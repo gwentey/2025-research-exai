@@ -142,15 +142,71 @@ curl http://<url>/ping
 # ou depuis un navigateur
 ```
 
+## Microservice sélection
+
+1. Se placer dans le dossier :
+```bash
+cd service-selection
+```
+
+2. Build et push dans le registre local :
+```bash
+docker build -t localhost:5000/service-selection:latest .
+docker push localhost:5000/service-selection:latest
+```
+
+3. Modifier `deployment.yaml` :
+```yaml
+image: localhost:5000/service-selection:latest
+```
+
+4. Appliquer les fichiers :
+```bash
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+```
+
+5. Supprimer les pods si nécessaire :
+```bash
+kubectl delete pod -n exai -l app=service-selection
+```
+
+6. Obtenir l’URL du service :
+```bash
+minikube service service-selection-service -n exai --url
+```
+
+---
+
+## Astuce Windows
+
+- Sur Windows 11, `minikube image load` ne fonctionne plus car `wmic` a été supprimé.
+- Utilisez un registre Docker local (`localhost:5000`) pour éviter ces erreurs (`ErrImagePull`, `ImagePullBackOff`).
+
+### Sous macOS/Linux :
+```bash
+eval $(minikube docker-env)
+docker build -t exai-api-gateway .
+```
+
+---
+
+## Accès API
+
+```bash
+minikube service api-gateway-service -n exai --url
+curl http://<url>/ping
+```
+
 ---
 
 ## Prochaine étape
-- Créer et déployer le microservice "sélection des jeux de données"
-- Intégrer les services ML (scikit-learn) et XAI (SHAP, LIME)
-- Créer un Ingress Controller pour une URL unique (ex: http://localhost/api/selection)
+- Créer et déployer le microservice pipeline ML
+- Intégrer les services XAI (SHAP, LIME)
+- Ajouter un Ingress Controller pour unifier les URL
 
 ---
 
 ## Auteurs
 - Projet EXAI - Master 2 MIAGE
-- Déploiement accompagné pas à pas (ChatGPT + Git Bash / Bash + Minikube)
+- Déploiement guidé pas à pas

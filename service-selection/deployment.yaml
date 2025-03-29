@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection
+  namespace: exai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-selection
+  template:
+    metadata:
+      labels:
+        app: service-selection
+    spec:
+      containers:
+        - name: service-selection
+          image: localhost:5000/service-selection:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://user:password@db:5432/exaidb"
