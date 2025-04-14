@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Architecture du Projet EXAI :: Documentation 2025 Research EXAI</title>
+    <meta name="generator" content="Antora 3.1.10">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/">Documentation 2025 Research EXAI</a>
+      <button class="navbar-burger" aria-controls="topbar-nav" aria-expanded="false" aria-label="Toggle main menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="EXAI" data-version="1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
+    <h3 class="title"><a href="../index.html">Documentation Principale</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Accueil</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Guide Utilisateur</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../user-guide/installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../user-guide/api.html">Utilisation API</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Développement</span>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="architecture.html">Architecture</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Documentation Principale</span>
+    <span class="version">1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../index.html">Documentation Principale</a></div>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Documentation Principale</a></li>
+    <li>Développement</li>
+    <li><a href="architecture.html">Architecture</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///C:/xampp/htdocs/2025-research-exai/docs/modules/ROOT/pages/dev-guide/architecture.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Architecture du Projet EXAI</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ce document décrit l&#8217;architecture globale de la plateforme EXAI, basée sur les informations du README principal.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_vue_densemble"><a class="anchor" href="#_vue_densemble"></a>Vue d&#8217;ensemble</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Le projet EXAI est une plateforme d&#8217;expérimentation pour l&#8217;Explainable AI (XAI) construite sur une architecture de <strong>microservices conteneurisés</strong>. L&#8217;objectif est de fournir une plateforme flexible pour intégrer et tester différents composants d&#8217;un pipeline Machine Learning et d&#8217;explicabilité.</p>
+</div>
+<div class="paragraph">
+<p>L&#8217;ensemble est conçu pour être déployé localement à l&#8217;aide de <strong>Minikube</strong>, simulant un environnement Kubernetes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_composants_principaux"><a class="anchor" href="#_composants_principaux"></a>Composants Principaux</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>L&#8217;architecture s&#8217;articule autour des composants suivants :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>API Gateway (<code>api-gateway/</code>)</strong>: Point d&#8217;entrée unique pour les requêtes externes (par exemple, depuis une interface utilisateur). Elle route les requêtes vers les microservices appropriés. Développée avec FastAPI.</p>
+</li>
+<li>
+<p><strong>Service Sélection (<code>service-selection/</code>)</strong>: Microservice responsable de la gestion et de la sélection des jeux de données pour les expérimentations. (Dépend d&#8217;une base de données PostgreSQL). Développé avec FastAPI.</p>
+</li>
+<li>
+<p><strong>Base de Données (PostgreSQL)</strong>: Utilisée par le <code>Service Sélection</code> pour stocker les métadonnées des datasets. Déployée comme un service distinct dans Kubernetes.</p>
+</li>
+<li>
+<p><strong>(Autres microservices à venir)</strong>: Le projet prévoit d&#8217;intégrer d&#8217;autres services pour le pipeline ML et le moteur XAI.</p>
+</li>
+<li>
+<p><strong>(Interface Frontend)</strong>: Une interface Angular est prévue mais est en cours de développement.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_gestion_de_la_base_de_données_postgresql"><a class="anchor" href="#_gestion_de_la_base_de_données_postgresql"></a>Gestion de la Base de Données (PostgreSQL)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>La persistance des données, notamment pour le <code>Service Sélection</code>, est assurée par une base de données PostgreSQL.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Rôle</strong>: Stocker les métadonnées des datasets gérés par le <code>Service Sélection</code>.</p>
+</li>
+<li>
+<p><strong>Déploiement K8s</strong>: Les manifestes Kubernetes pour PostgreSQL se trouvent dans le dossier <code>k8s/postgres/</code>. Ils incluent typiquement :</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>deployment.yaml</code>: Définit comment lancer le pod PostgreSQL (image, variables d&#8217;environnement, etc.).</p>
+</li>
+<li>
+<p><code>service.yaml</code>: Expose le service PostgreSQL au sein du cluster Kubernetes (pour que les autres microservices puissent s&#8217;y connecter).</p>
+</li>
+<li>
+<p><code>persistentvolumeclaim.yaml</code> (implicite ou explicite): Demande un espace de stockage persistant pour que les données ne soient pas perdues si le pod redémarre.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Configuration</strong>: La configuration (comme les identifiants <code>exai_user</code> et <code>exai_db</code>) est probablement définie via des variables d&#8217;environnement ou des ConfigMaps/Secrets dans les manifestes de déploiement.</p>
+</li>
+<li>
+<p><strong>Initialisation</strong>: Une étape cruciale du déploiement est l&#8217;initialisation du schéma de la base de données. Cela est fait en exécutant le script <code>k8s/postgres/init-db.sql</code> à l&#8217;intérieur du pod PostgreSQL une fois celui-ci démarré. La procédure recommandée est :</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Identifier le nom du pod PostgreSQL (<code>kubectl get pods -n exai | grep postgresql</code>).</p>
+</li>
+<li>
+<p>Copier le script dans le pod (<code>kubectl cp k8s/postgres/init-db.sql &lt;POD_NAME&gt;:/tmp/init-db.sql -n exai</code>).</p>
+</li>
+<li>
+<p>Exécuter le script via <code>psql</code> dans le pod (<code>kubectl exec -n exai &lt;POD_NAME&gt;&#8201;&#8212;&#8201;psql -U exai_user -d exai_db -f /tmp/init-db.sql</code>).</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_technologies_utilisées"><a class="anchor" href="#_technologies_utilisées"></a>Technologies Utilisées</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Langage Backend</strong>: Python (avec FastAPI)</p>
+</li>
+<li>
+<p><strong>Conteneurisation</strong>: Docker</p>
+</li>
+<li>
+<p><strong>Orchestration</strong>: Kubernetes (via Minikube pour le développement local)</p>
+</li>
+<li>
+<p><strong>Base de Données</strong>: PostgreSQL</p>
+</li>
+<li>
+<p><strong>Outils de Build/Gestion</strong>: Docker CLI, kubectl, Makefile (potentiellement)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_déploiement_via_minikube"><a class="anchor" href="#_déploiement_via_minikube"></a>Déploiement (via Minikube)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Le déploiement standard se fait sur un cluster Minikube local. Les étapes clés sont :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Démarrer Minikube</strong>: <code>minikube start</code></p>
+</li>
+<li>
+<p><strong>Créer un Namespace</strong>: <code>kubectl create namespace exai</code> (pour isoler les ressources du projet)</p>
+</li>
+<li>
+<p><strong>Déployer PostgreSQL</strong>: Appliquer les manifestes K8s (<code>deployment.yaml</code>, <code>service.yaml</code>, <code>persistentvolumeclaim.yaml</code>) situés dans <code>k8s/postgres/</code>.</p>
+</li>
+<li>
+<p><strong>Initialiser la Base de Données</strong>: Copier le script <code>init-db.sql</code> dans le pod PostgreSQL et l&#8217;exécuter avec <code>kubectl exec &#8230;&#8203; psql &#8230;&#8203;</code>.</p>
+</li>
+<li>
+<p><strong>Déployer les Microservices</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Configurer le terminal pour utiliser le Docker de Minikube (<code>minikube docker-env</code>).</p>
+</li>
+<li>
+<p>Pour chaque service (<code>api-gateway</code>, <code>service-selection</code>, &#8230;&#8203;):</p>
+</li>
+<li>
+<p>Construire l&#8217;image Docker (<code>docker build -t &lt;nom-image&gt;:&lt;tag&gt; .</code>) dans l&#8217;environnement Minikube.</p>
+</li>
+<li>
+<p>Appliquer les manifestes K8s du service (<code>deployment.yaml</code>, <code>service.yaml</code>) en s&#8217;assurant que <code>imagePullPolicy</code> est <code>IfNotPresent</code> ou <code>Never</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Accéder aux Services</strong>: Utiliser <code>minikube service &lt;nom-service&gt; --url -n exai</code> pour obtenir l&#8217;URL d&#8217;accès.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Le README mentionne des alternatives comme l&#8217;utilisation d&#8217;un registre Docker local (<code>localhost:5000</code>) notamment pour contourner des problèmes sous Windows.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_structure_des_dossiers_pertinente"><a class="anchor" href="#_structure_des_dossiers_pertinente"></a>Structure des Dossiers Pertinente</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">/
+├── api-gateway/         # Code et config K8s pour l'API Gateway
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   ├── deployment.yaml
+│   └── service.yaml
+├── service-selection/   # Code et config K8s pour le service de sélection
+│   └── ...
+├── k8s/                 # Configurations Kubernetes globales/partagées
+│   └── postgres/        # Config K8s pour PostgreSQL (deployment, service, init script)
+├── docs/                # Documentation Antora
+│   └── ...
+├── antora-playbook.yml  # Playbook Antora
+└── README.md            # Ce fichier</code></pre>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

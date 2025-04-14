@@ -1,6 +1,6 @@
 * xref:index.adoc[Accueil]
 * Guide Utilisateur
-// ** xref:user-guide/installation.adoc[Installation]
-// ** xref:user-guide/api.adoc[Utilisation API]
+** xref:user-guide/installation.adoc[Installation]
+** xref:user-guide/api.adoc[Utilisation API]
 * Développement
-// ** xref:dev-guide/architecture.adoc[Architecture] 
+** xref:dev-guide/architecture.adoc[Architecture] 

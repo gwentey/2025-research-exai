@@ -1,0 +1,79 @@
+= Architecture du Projet EXAI
+
+Ce document décrit l'architecture globale de la plateforme EXAI, basée sur les informations du README principal.
+
+== Vue d'ensemble
+
+Le projet EXAI est une plateforme d'expérimentation pour l'Explainable AI (XAI) construite sur une architecture de **microservices conteneurisés**. L'objectif est de fournir une plateforme flexible pour intégrer et tester différents composants d'un pipeline Machine Learning et d'explicabilité.
+
+L'ensemble est conçu pour être déployé localement à l'aide de **Minikube**, simulant un environnement Kubernetes.
+
+== Composants Principaux
+
+L'architecture s'articule autour des composants suivants :
+
+*   **API Gateway (`api-gateway/`)**: Point d'entrée unique pour les requêtes externes (par exemple, depuis une interface utilisateur). Elle route les requêtes vers les microservices appropriés. Développée avec FastAPI.
+*   **Service Sélection (`service-selection/`)**: Microservice responsable de la gestion et de la sélection des jeux de données pour les expérimentations. (Dépend d'une base de données PostgreSQL). Développé avec FastAPI.
+*   **Base de Données (PostgreSQL)**: Utilisée par le `Service Sélection` pour stocker les métadonnées des datasets. Déployée comme un service distinct dans Kubernetes.
+*   **(Autres microservices à venir)**: Le projet prévoit d'intégrer d'autres services pour le pipeline ML et le moteur XAI.
+*   **(Interface Frontend)**: Une interface Angular est prévue mais est en cours de développement.
+
+== Gestion de la Base de Données (PostgreSQL)
+
+La persistance des données, notamment pour le `Service Sélection`, est assurée par une base de données PostgreSQL.
+
+*   **Rôle**: Stocker les métadonnées des datasets gérés par le `Service Sélection`.
+*   **Déploiement K8s**: Les manifestes Kubernetes pour PostgreSQL se trouvent dans le dossier `k8s/postgres/`. Ils incluent typiquement :
+    **   `deployment.yaml`: Définit comment lancer le pod PostgreSQL (image, variables d'environnement, etc.).
+    **   `service.yaml`: Expose le service PostgreSQL au sein du cluster Kubernetes (pour que les autres microservices puissent s'y connecter).
+    **   `persistentvolumeclaim.yaml` (implicite ou explicite): Demande un espace de stockage persistant pour que les données ne soient pas perdues si le pod redémarre.
+*   **Configuration**: La configuration (comme les identifiants `exai_user` et `exai_db`) est probablement définie via des variables d'environnement ou des ConfigMaps/Secrets dans les manifestes de déploiement.
+*   **Initialisation**: Une étape cruciale du déploiement est l'initialisation du schéma de la base de données. Cela est fait en exécutant le script `k8s/postgres/init-db.sql` à l'intérieur du pod PostgreSQL une fois celui-ci démarré. La procédure recommandée est :
+    1.  Identifier le nom du pod PostgreSQL (`kubectl get pods -n exai | grep postgresql`).
+    2.  Copier le script dans le pod (`kubectl cp k8s/postgres/init-db.sql <POD_NAME>:/tmp/init-db.sql -n exai`).
+    3.  Exécuter le script via `psql` dans le pod (`kubectl exec -n exai <POD_NAME> -- psql -U exai_user -d exai_db -f /tmp/init-db.sql`).
+
+== Technologies Utilisées
+
+*   **Langage Backend**: Python (avec FastAPI)
+*   **Conteneurisation**: Docker
+*   **Orchestration**: Kubernetes (via Minikube pour le développement local)
+*   **Base de Données**: PostgreSQL
+*   **Outils de Build/Gestion**: Docker CLI, kubectl, Makefile (potentiellement)
+
+== Déploiement (via Minikube)
+
+Le déploiement standard se fait sur un cluster Minikube local. Les étapes clés sont :
+
+1.  **Démarrer Minikube**: `minikube start`
+2.  **Créer un Namespace**: `kubectl create namespace exai` (pour isoler les ressources du projet)
+3.  **Déployer PostgreSQL**: Appliquer les manifestes K8s (`deployment.yaml`, `service.yaml`, `persistentvolumeclaim.yaml`) situés dans `k8s/postgres/`.
+4.  **Initialiser la Base de Données**: Copier le script `init-db.sql` dans le pod PostgreSQL et l'exécuter avec `kubectl exec ... psql ...`.
+5.  **Déployer les Microservices**:
+    *   Configurer le terminal pour utiliser le Docker de Minikube (`minikube docker-env`).
+    *   Pour chaque service (`api-gateway`, `service-selection`, ...):
+        *   Construire l'image Docker (`docker build -t <nom-image>:<tag> .`) dans l'environnement Minikube.
+        *   Appliquer les manifestes K8s du service (`deployment.yaml`, `service.yaml`) en s'assurant que `imagePullPolicy` est `IfNotPresent` ou `Never`.
+6.  **Accéder aux Services**: Utiliser `minikube service <nom-service> --url -n exai` pour obtenir l'URL d'accès.
+
+NOTE: Le README mentionne des alternatives comme l'utilisation d'un registre Docker local (`localhost:5000`) notamment pour contourner des problèmes sous Windows.
+
+== Structure des Dossiers Pertinente
+
+```
+/
+├── api-gateway/         # Code et config K8s pour l'API Gateway
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   ├── deployment.yaml
+│   └── service.yaml
+├── service-selection/   # Code et config K8s pour le service de sélection
+│   └── ...
+├── k8s/                 # Configurations Kubernetes globales/partagées
+│   └── postgres/        # Config K8s pour PostgreSQL (deployment, service, init script)
+├── docs/                # Documentation Antora
+│   └── ...
+├── antora-playbook.yml  # Playbook Antora
+└── README.md            # Ce fichier
+``` 

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Installation et Déploiement :: Documentation 2025 Research EXAI</title>
+    <meta name="generator" content="Antora 3.1.10">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/">Documentation 2025 Research EXAI</a>
+      <button class="navbar-burger" aria-controls="topbar-nav" aria-expanded="false" aria-label="Toggle main menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="EXAI" data-version="1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
+    <h3 class="title"><a href="../index.html">Documentation Principale</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Accueil</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Guide Utilisateur</span>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="api.html">Utilisation API</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Développement</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../dev-guide/architecture.html">Architecture</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Documentation Principale</span>
+    <span class="version">1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../index.html">Documentation Principale</a></div>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Documentation Principale</a></li>
+    <li>Guide Utilisateur</li>
+    <li><a href="installation.html">Installation</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///C:/xampp/htdocs/2025-research-exai/docs/modules/ROOT/pages/user-guide/installation.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Installation et Déploiement</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ce guide décrit comment installer les prérequis et déployer l&#8217;application EXAI sur votre machine locale en utilisant Minikube.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prérequis"><a class="anchor" href="#_prérequis"></a>Prérequis</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Avant de commencer, assurez-vous d&#8217;avoir les outils suivants installés et fonctionnels :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Docker Desktop</strong>: Pour la gestion des conteneurs.</p>
+</li>
+<li>
+<p><strong>kubectl</strong>: L&#8217;outil en ligne de commande pour interagir avec Kubernetes.</p>
+</li>
+<li>
+<p><strong>Minikube</strong>: Pour créer un cluster Kubernetes local.</p>
+</li>
+<li>
+<p><strong>Terminal Bash</strong>: Recommandé pour exécuter les commandes (Git Bash sous Windows, ou terminal natif sous macOS/Linux).</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_installation_des_outils_minikube_kubectl"><a class="anchor" href="#_installation_des_outils_minikube_kubectl"></a>Installation des outils (Minikube &amp; kubectl)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Windows (avec Chocolatey)</strong>:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-powershell hljs" data-lang="powershell">choco install minikube
+choco install kubernetes-cli</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>macOS (avec Homebrew)</strong>:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">brew install minikube
+brew install kubectl</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Linux (Debian/Ubuntu)</strong>:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Installer Minikube
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Installer kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_déploiement_complet_avec_minikube"><a class="anchor" href="#_déploiement_complet_avec_minikube"></a>Déploiement Complet avec Minikube</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>C&#8217;est la méthode recommandée pour tester l&#8217;architecture microservices complète.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Démarrer Minikube</strong>:</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Ouvrez votre terminal et lancez :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">minikube start
+# Optionnel : spécifier le driver si nécessaire
+# minikube start --driver=docker</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Vérifiez que le cluster est bien démarré :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">minikube status
+kubectl get nodes</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Créer le Namespace <code>exai</code></strong>:</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Nous isolons les ressources Kubernetes dans un namespace dédié.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl create namespace exai</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Si le namespace existe déjà, une erreur s&#8217;affichera, ce qui est normal.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Déployer PostgreSQL</strong>:</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>La base de données est la première dépendance.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f k8s/postgres/ -n exai</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Vérifiez le démarrage du pod PostgreSQL (il doit passer en statut <code>Running</code>) :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl get pods -n exai</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Initialiser la Base de Données PostgreSQL</strong>:</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Une fois le pod PostgreSQL lancé (<code>Running</code>), exécutez le script d&#8217;initialisation.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Trouvez le nom exact du pod PostgreSQL :</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl get pods -n exai | grep postgresql
+# Copiez le nom complet du pod (ex: postgresql-deployment-xxxxx-yyyyy)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Copiez le script SQL dans le pod :</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl cp k8s/postgres/init-db.sql &lt;NOM_DU_POD_POSTGRES&gt;:/tmp/init-db.sql -n exai
+# Remplacez &lt;NOM_DU_POD_POSTGRES&gt; par le nom copié</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Exécutez le script copié :</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl exec -n exai &lt;NOM_DU_POD_POSTGRES&gt; -- psql -U exai_user -d exai_db -f /tmp/init-db.sql
+# Remplacez &lt;NOM_DU_POD_POSTGRES&gt; par le nom copié</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Déployer les Microservices (API Gateway, Service Sélection, &#8230;&#8203;)</strong>:</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Pour chaque microservice (ex: <code>api-gateway</code>, <code>service-selection</code>) :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Configurez votre terminal pour utiliser le Docker de Minikube :</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Pour Linux/macOS (Bash/Zsh)
+eval $(minikube -p minikube docker-env)
+
+# Pour Windows PowerShell
+# minikube -p minikube docker-env | Invoke-Expression</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Naviguez vers le dossier du service :</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd &lt;nom-du-service&gt;
+# ex: cd api-gateway</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Construisez l&#8217;image Docker :</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker build -t &lt;nom-image&gt;:&lt;tag&gt; .
+# ex: docker build -t exai-api-gateway:latest .</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Appliquez les manifestes Kubernetes :</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Assurez-vous que le champ <code>image:</code> dans <code>deployment.yaml</code> correspond bien à <code>&lt;nom-image&gt;:&lt;tag&gt;</code> et que <code>imagePullPolicy</code> est <code>IfNotPresent</code> ou <code>Never</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f deployment.yaml -n exai
+kubectl apply -f service.yaml -n exai</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Vérifiez le déploiement :</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl get pods -n exai
+kubectl get services -n exai</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Revenez au répertoire racine :</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd ..</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Répétez ces étapes (les sous-étapes marquées par <code>*</code>, depuis la navigation vers le dossier jusqu&#8217;au retour à la racine) pour tous les microservices requis.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Accéder aux Services</strong>:</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Une fois tous les services déployés, vous pouvez obtenir leur URL d&#8217;accès. Voir la section <a href="api.html" class="xref page">Utilisation API</a> pour plus de détails (notamment <code>minikube service &#8230;&#8203;</code>).</p>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
