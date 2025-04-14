@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-service # Nom du service, utilisé par les autres pods pour se connecter
+  namespace: exai
+spec:
+  selector:
+    app: postgresql # Doit correspondre aux labels du Pod PostgreSQL
+  ports:
+    - protocol: TCP
+      port: 5432 # Port exposé par le service
+      targetPort: 5432 # Port sur lequel le conteneur PostgreSQL écoute
+  type: ClusterIP # Expose le service uniquement à l'intérieur du cluster 

@@ -1,0 +1,10 @@
+= Bienvenue dans la Documentation du Projet Research EXAI
+
+Ceci est la page d'accueil de la documentation.
+
+Vous trouverez ici des informations sur :
+
+* L'architecture du projet
+* Comment installer et lancer l'application
+* L'utilisation de l'API
+* ... etc. 

@@ -1,0 +1,18 @@
+site:
+  title: Documentation 2025 Research EXAI
+  url: / # Ajustez si vous déployez dans un sous-dossier
+  start_page: research-exai::index.adoc # Page d'accueil: composant research-exai, page index.adoc
+
+content:
+  sources:
+    - url: . # Utilise le dépôt local
+      branches: HEAD # Branche actuelle
+      start_path: docs # Cherche la documentation dans le dossier 'docs'
+
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true # Important pour utiliser le zip directement
+
+output:
+  dir: ./build/site # Dossier de sortie pour le site généré 

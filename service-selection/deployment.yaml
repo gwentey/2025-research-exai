@@ -1,23 +1,99 @@
+# Version de l'API Kubernetes utilisée pour cet objet.
 apiVersion: apps/v1
+# Type d'objet Kubernetes que nous définissons ici : un Deployment.
+# Un Deployment gère le déploiement et la mise à l'échelle d'un ensemble de Pods.
 kind: Deployment
+# Métadonnées associées au Deployment.
 metadata:
+  # Nom unique du Deployment dans le namespace.
   name: service-selection
+  # Namespace Kubernetes dans lequel ce Deployment sera créé.
   namespace: exai
+# Spécification (spec) du Deployment : décrit l'état désiré.
 spec:
-  replicas: 1
+  # Nombre de répliques (Pods) que le Deployment doit maintenir en cours d'exécution.
+  replicas: 2
+  # Sélecteur utilisé par le Deployment pour identifier les Pods qu'il doit gérer.
   selector:
+    # Les Pods gérés doivent avoir ce label.
     matchLabels:
       app: service-selection
+  # Template (modèle) utilisé pour créer de nouveaux Pods lorsque nécessaire.
   template:
+    # Métadonnées appliquées aux Pods créés par ce template.
     metadata:
+      # Labels appliqués aux Pods. Doit correspondre au `selector.matchLabels` ci-dessus.
       labels:
         app: service-selection
+    # Spécification des Pods créés.
     spec:
+      # Liste des conteneurs à exécuter dans chaque Pod.
       containers:
+        # Nom du conteneur dans le Pod.
         - name: service-selection
+          # Image Docker à utiliser pour ce conteneur.
           image: localhost:5000/service-selection:latest
+          imagePullPolicy: IfNotPresent
+          # Liste des ports que le conteneur expose.
           ports:
+            # Le conteneur écoute sur le port 8081 (port d'Uvicorn).
             - containerPort: 8081
+          # Variables d'environnement injectées dans le conteneur.
           env:
+            # Variable DATABASE_URL requise par l'application.
             - name: DATABASE_URL
-              value: "postgresql://user:password@db:5432/exaidb"
+              # La valeur est récupérée depuis un Secret Kubernetes.
+              valueFrom:
+                secretKeyRef:
+                  # Nom du Secret contenant la variable.
+                  name: db-secrets # Ce Secret doit exister dans le namespace `exai`.
+                  # Clé dans le Secret dont la valeur sera utilisée.
+                  key: database-url
+          # Définition des ressources (CPU, mémoire) requises et limitées pour le conteneur.
+          resources:
+            # Ressources minimales garanties pour le conteneur.
+            requests:
+              memory: "128Mi" # 128 Mébioctets de mémoire RAM
+              cpu: "100m"    # 100 millicores (0.1 CPU core)
+            # Limites maximales de ressources que le conteneur peut consommer.
+            limits:
+              memory: "256Mi" # 256 Mébioctets de mémoire RAM
+              cpu: "200m"    # 200 millicores (0.2 CPU core)
+          # Readiness Probe : Vérifie si le conteneur est prêt à accepter du trafic.
+          # Kubernetes n'enverra pas de trafic au Pod tant que cette sonde n'est pas réussie.
+          readinessProbe:
+            # Type de sonde : une requête HTTP GET.
+            httpGet:
+              # Chemin à vérifier.
+              path: / # La racine de notre API devrait retourner 200 OK.
+              # Port sur lequel envoyer la requête.
+              port: 8081
+            # Délai initial avant la première sonde.
+            initialDelaySeconds: 10 # Attend 10s que le conteneur démarre
+            # Période entre les sondes.
+            periodSeconds: 10
+          # Liveness Probe : Vérifie si le conteneur est toujours en cours d'exécution et fonctionnel.
+          # Si cette sonde échoue plusieurs fois, Kubernetes redémarrera le conteneur.
+          livenessProbe:
+            httpGet:
+              path: / # Idem, la racine devrait répondre.
+              port: 8081
+            initialDelaySeconds: 20 # Attend un peu plus longtemps avant de vérifier la vitalité
+            periodSeconds: 20
+          # Montage de volumes dans le conteneur.
+          # volumeMounts:
+          #   # Nom du volume (défini plus bas) à monter.
+          #   - name: dataset-storage
+          #     # Chemin à l'intérieur du conteneur où le volume sera monté.
+          #     # L'application pourra lire/écrire des fichiers de datasets ici.
+          #     mountPath: /app/data
+      # Définition des volumes disponibles pour ce Pod.
+      # volumes:
+      #   # Nom du volume (référencé par `volumeMounts.name`).
+      #   - name: dataset-storage
+      #     # Type de volume : un PersistentVolumeClaim (PVC).
+      #     # Un PVC demande du stockage persistant au cluster Kubernetes.
+      #     persistentVolumeClaim:
+      #       # Nom du PersistentVolumeClaim qui doit exister dans le namespace.
+      #       # Ce PVC doit être créé séparément et lié à un stockage physique.
+      #       claimName: dataset-pvc # Assurez-vous que ce PVC existe

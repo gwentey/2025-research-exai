@@ -1,0 +1,5 @@
+name: EXAI
+version: '1.0' # Ou la version actuelle de votre projet
+title: Documentation Principale
+nav:
+  - modules/ROOT/nav.adoc # Chemin vers le fichier de navigation principal 
