@@ -1,0 +1,5 @@
+= Créer un Pipeline ML Interactif
+
+Guide pas à pas pour construire, entraîner et évaluer un modèle de Machine Learning.
+
+Contenu à venir... 

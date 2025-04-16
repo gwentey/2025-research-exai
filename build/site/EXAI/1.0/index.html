@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Bienvenue dans la Documentation du Projet Research EXAI :: Documentation 2025 Research EXAI</title>
+    <title>Bienvenue dans la Documentation du Projet EXAI :: Documentation 2025 Research EXAI</title>
     <meta name="generator" content="Antora 3.1.10">
     <link rel="stylesheet" href="../../_/css/site.css">
   </head>
@@ -58,26 +58,41 @@
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="index.html">Accueil</a>
+    <a class="nav-link" href="index.html">Accueil Projet EXAI</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="getting-started.html">🚀 Installation &amp; Démarrage</a>
   </li>
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Guide Utilisateur</span>
 <ul class="nav-list">
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="user-guide/installation.html">Installation</a>
+    <a class="nav-link" href="user-guide/index.html">Présentation</a>
   </li>
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="user-guide/api.html">Utilisation API</a>
+    <a class="nav-link" href="user-guide/dataset-selection.html">📊 Sélection de Datasets</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="user-guide/ml-pipeline.html">🛠️ Pipeline ML Interactif</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="user-guide/xai-recommendation.html">💡 Recommandations XAI</a>
   </li>
 </ul>
   </li>
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Développement</span>
+    <span class="nav-text">Guide Développeur</span>
 <ul class="nav-list">
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="dev-guide/architecture.html">Architecture</a>
+    <a class="nav-link" href="dev-guide/index.html">Présentation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="dev-guide/architecture.html">Architecture Technique</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="dev-guide/api-reference.html">Référence API</a>
   </li>
 </ul>
   </li>
@@ -108,10 +123,11 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
+  <a href="index.html" class="home-link is-current"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Documentation Principale</a></li>
-    <li><a href="index.html">Accueil</a></li>
+    <li><a href="index.html">Accueil Projet EXAI</a></li>
   </ul>
 </nav>
 <div class="edit-this-page"><a href="file:///C:/xampp/htdocs/2025-research-exai/docs/modules/ROOT/pages/index.adoc">Edit this Page</a></div>
@@ -121,28 +137,82 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Bienvenue dans la Documentation du Projet Research EXAI</h1>
-<div class="paragraph">
-<p>Ceci est la page d&#8217;accueil de la documentation.</p>
+<h1 class="page">Bienvenue dans la Documentation du Projet EXAI</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph lead">
+<p><span class="image"><img src="https://img.shields.io/badge/Statut-Proof%20of%20Concept%20(PoC)-blue.svg" alt="PoC"></span></p>
 </div>
 <div class="paragraph">
-<p>Vous trouverez ici des informations sur :</p>
+<p>Ce projet s&#8217;inscrit dans un <strong>Proof of Concept (PoC) scientifique</strong> visant à développer un outil innovant pour la communauté de recherche et les praticiens de l&#8217;Intelligence Artificielle.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_contexte_et_objectifs"><a class="anchor" href="#_contexte_et_objectifs"></a>Contexte et Objectifs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Le projet EXAI vise à répondre à trois défis majeurs dans le domaine de l&#8217;IA appliquée :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Sélection de Datasets :</strong> Aider les utilisateurs (experts ou non) à choisir des datasets pertinents en fonction de critères techniques, éthiques et métier spécifiques à leurs besoins.</p>
+</li>
+<li>
+<p><strong>Pipeline ML Interactif :</strong> Fournir une interface guidée pour la création et l&#8217;expérimentation de pipelines de Machine Learning, rendant ces processus accessibles même aux non-spécialistes.</p>
+</li>
+<li>
+<p><strong>Explicabilité (XAI) :</strong> Recommander et appliquer des techniques d&#8217;IA Explicable adaptées au modèle, aux données et aux besoins de l&#8217;utilisateur, afin de favoriser la confiance et la compréhension des modèles d&#8217;IA.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enjeux_scientifiques"><a class="anchor" href="#_enjeux_scientifiques"></a>Enjeux Scientifiques</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ce PoC accorde une importance particulière aux aspects suivants :</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>L&#8217;architecture du projet</p>
+<p><strong>Validation Académique :</strong> Le processus et les résultats doivent suivre une démarche scientifique rigoureuse.</p>
 </li>
 <li>
-<p>Comment installer et lancer l&#8217;application</p>
+<p><strong>Explicabilité :</strong> L&#8217;intégration native de méthodes XAI est au cœur du projet.</p>
 </li>
 <li>
-<p>L&#8217;utilisation de l&#8217;API</p>
+<p><strong>Reproductibilité :</strong> La documentation (gérée via Antora) doit permettre à quiconque de comprendre, utiliser et répliquer entièrement le système et les expériences.</p>
 </li>
 <li>
-<p>&#8230;&#8203; etc.</p>
+<p><strong>Éthique &amp; RGPD :</strong> Les considérations éthiques et la conformité réglementaire sont intégrées dès la conception.</p>
 </li>
 </ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_navigation"><a class="anchor" href="#_navigation"></a>Navigation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Utilisez le menu de navigation sur la gauche pour explorer les différentes sections :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="getting-started.html" class="xref page">Installation &amp; Démarrage</a> : Pour commencer à utiliser EXAI.</p>
+</li>
+<li>
+<p><code>Guide Utilisateur</code> : Pour apprendre à utiliser les fonctionnalités principales.</p>
+</li>
+<li>
+<p><code>Guide Développeur</code> : Pour comprendre l&#8217;architecture et comment contribuer.</p>
+</li>
+</ul>
+</div>
+</div>
 </div>
 </article>
   </div>

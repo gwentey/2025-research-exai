@@ -1,6 +1,19 @@
-* xref:index.adoc[Accueil]
+* xref:index.adoc[Accueil Projet EXAI]
+
+* xref:getting-started.adoc[🚀 Installation & Démarrage]
+
 * Guide Utilisateur
-** xref:user-guide/installation.adoc[Installation]
-** xref:user-guide/api.adoc[Utilisation API]
-* Développement
-** xref:dev-guide/architecture.adoc[Architecture] 
+** xref:user-guide/index.adoc[Présentation]
+** xref:user-guide/dataset-selection.adoc[📊 Sélection de Datasets]
+** xref:user-guide/ml-pipeline.adoc[🛠️ Pipeline ML Interactif]
+** xref:user-guide/xai-recommendation.adoc[💡 Recommandations XAI]
+
+* Guide Développeur
+** xref:dev-guide/index.adoc[Présentation]
+** xref:dev-guide/architecture.adoc[Architecture Technique]
+** xref:dev-guide/api-reference.adoc[Référence API]
+
+// Optionnel: Section Concepts
+// * Concepts Clés
+// ** xref:concepts/xai-methods.adoc[Méthodes XAI]
+// ** xref:concepts/ethics-gdpr.adoc[Éthique & RGPD] 

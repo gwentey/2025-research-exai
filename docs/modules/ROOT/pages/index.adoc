@@ -1,10 +1,35 @@
-= Bienvenue dans la Documentation du Projet Research EXAI
+= Bienvenue dans la Documentation du Projet EXAI
 
-Ceci est la page d'accueil de la documentation.
+// Optionnel: Ajouter un sous-titre plus descriptif
+// :page-subtitle: Un outil scientifique pour l'IA Explicable et la Sélection de Données
 
-Vous trouverez ici des informations sur :
+// Badge pour indiquer le statut du PoC
+[.lead]
+image:https://img.shields.io/badge/Statut-Proof%20of%20Concept%20(PoC)-blue.svg[PoC]
 
-* L'architecture du projet
-* Comment installer et lancer l'application
-* L'utilisation de l'API
-* ... etc. 
+Ce projet s'inscrit dans un **Proof of Concept (PoC) scientifique** visant à développer un outil innovant pour la communauté de recherche et les praticiens de l'Intelligence Artificielle.
+
+== Contexte et Objectifs
+
+Le projet EXAI vise à répondre à trois défis majeurs dans le domaine de l'IA appliquée :
+
+1.  **Sélection de Datasets :** Aider les utilisateurs (experts ou non) à choisir des datasets pertinents en fonction de critères techniques, éthiques et métier spécifiques à leurs besoins.
+2.  **Pipeline ML Interactif :** Fournir une interface guidée pour la création et l'expérimentation de pipelines de Machine Learning, rendant ces processus accessibles même aux non-spécialistes.
+3.  **Explicabilité (XAI) :** Recommander et appliquer des techniques d'IA Explicable adaptées au modèle, aux données et aux besoins de l'utilisateur, afin de favoriser la confiance et la compréhension des modèles d'IA.
+
+== Enjeux Scientifiques
+
+Ce PoC accorde une importance particulière aux aspects suivants :
+
+*   **Validation Académique :** Le processus et les résultats doivent suivre une démarche scientifique rigoureuse.
+*   **Explicabilité :** L'intégration native de méthodes XAI est au cœur du projet.
+*   **Reproductibilité :** La documentation (gérée via Antora) doit permettre à quiconque de comprendre, utiliser et répliquer entièrement le système et les expériences.
+*   **Éthique & RGPD :** Les considérations éthiques et la conformité réglementaire sont intégrées dès la conception.
+
+== Navigation
+
+Utilisez le menu de navigation sur la gauche pour explorer les différentes sections :
+
+*   xref:getting-started.adoc[Installation & Démarrage] : Pour commencer à utiliser EXAI.
+*   `Guide Utilisateur` : Pour apprendre à utiliser les fonctionnalités principales.
+*   `Guide Développeur` : Pour comprendre l'architecture et comment contribuer. 

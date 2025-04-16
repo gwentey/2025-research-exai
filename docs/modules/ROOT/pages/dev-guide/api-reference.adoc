@@ -1,0 +1,212 @@
+= Référence de l'API EXAI
+
+Ce document fournit une vue d'ensemble structurée de l'API REST de la plateforme EXAI. L'accès principal aux fonctionnalités se fait via l'**API Gateway**.
+
+[IMPORTANT]
+====
+La ressource **principale et la plus à jour** pour explorer les API est la **documentation interactive (Swagger UI)** générée automatiquement par chaque service FastAPI.
+
+*   **API Gateway :** Accédez à `<URL_API_GATEWAY>/docs` (obtenez l'URL via `minikube service api-gateway --url -n exai`).
+*   **Autres Services (pour debug) :** Accédez à `<URL_SERVICE_X>/docs` (obtenez l'URL via `minikube service <nom-service> --url -n exai`).
+
+Cette page vise à compléter cette documentation interactive en fournissant :
+*   Une vue d'ensemble des endpoints clés.
+*   Des explications sur les concepts transverses comme l'authentification.
+*   Des exemples d'utilisation avec `curl`.
+====
+
+Pour savoir comment obtenir les URL des services, consultez la section "Accéder à l'application" du guide xref:getting-started.adoc[Installation & Démarrage Rapide].
+
+== Authentification (JWT)
+
+Toutes les routes de l'API Gateway (sauf potentiellement `/docs`, `/openapi.json` et une route de login) sont protégées et nécessitent un **jeton JWT (JSON Web Token)** valide.
+
+=== Obtenir un Token
+
+Pour obtenir un token, vous devez envoyer une requête POST au endpoint d'authentification de l'API Gateway (le chemin exact est à confirmer, supposons `/api/v1/auth/login`) avec les identifiants utilisateur.
+
+*   **Méthode & Chemin :** `POST /api/v1/auth/login` (sur l'API Gateway)
+*   **Corps de la Requête :** `application/x-www-form-urlencoded` (courant pour OAuth2/token) ou `application/json`.
+    *   Exemple (`x-www-form-urlencoded`) : `username=votre_nom_utilisateur&password=votre_mot_de_passe`
+    *   Exemple (`json`) : `{"username": "votre_nom_utilisateur", "password": "votre_mot_de_passe"}`
+*   **Réponse Succès (200 OK) :** Un objet JSON contenant le token.
+    ```json
+    {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "token_type": "bearer"
+    }
+    ```
+
+*   **Exemple `curl` (form-urlencoded) :**
+    ```bash
+    curl -X POST "<URL_API_GATEWAY>/api/v1/auth/login" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "username=testuser&password=testpassword"
+    ```
+
+=== Utiliser le Token
+
+Une fois le token obtenu, vous devez l'inclure dans l'en-tête `Authorization` de toutes vos requêtes suivantes vers les endpoints protégés, en préfixant le token par `Bearer ` (avec un espace).
+
+*   **En-tête HTTP :** `Authorization: Bearer <VOTRE_ACCESS_TOKEN>`
+
+*   **Exemple `curl` (pour un endpoint GET) :**
+    ```bash
+    TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." # Remplacez par votre token
+    curl -X GET "<URL_API_GATEWAY>/api/v1/datasets/" \
+    -H "Authorization: Bearer $TOKEN"
+    ```
+
+== Endpoints Principaux de l'API Gateway (`/api/v1/...`)
+
+L'API Gateway expose les routes suivantes, qui sont les points d'entrée pour le Frontend. Elles se chargent de router les appels vers les services backend appropriés.
+
+*(Note : Les chemins exacts `/api/v1/...` sont des exemples et devront être confirmés.)*
+
+=== Authentification
+*   `POST /api/v1/auth/login`
+    *   **Description :** Permet à un utilisateur de s'authentifier et d'obtenir un token JWT.
+    *   **Service Backend :** Logique gérée potentiellement par l'API Gateway elle-même ou un microservice d'authentification dédié (si créé).
+    *   **Voir :** Section Authentification ci-dessus.
+
+=== Gestion des Datasets (via Service Sélection)
+*   `GET /api/v1/datasets/`
+    *   **Description :** Liste les datasets disponibles.
+    *   **Service Backend :** `service-selection`
+    *   **Voir :** Référence du Service Sélection ci-dessous.
+*   `POST /api/v1/datasets/`
+    *   **Description :** Crée un nouveau dataset (métadonnées).
+    *   **Service Backend :** `service-selection`
+    *   **Voir :** Référence du Service Sélection ci-dessous.
+*   `GET /api/v1/datasets/\`{dataset_id}\``
+    *   **Description :** Récupère les détails d'un dataset spécifique.
+    *   **Service Backend :** `service-selection`
+    *   **Voir :** Référence du Service Sélection ci-dessous.
+*   `POST /api/v1/datasets/search` (Exemple)
+    *   **Description :** Recherche des datasets selon des critères spécifiques.
+    *   **Service Backend :** `service-selection`
+    *   **Voir :** Référence du Service Sélection ci-dessous.
+
+=== Pipeline ML (via Service ML)
+*   `POST /api/v1/ml/train` (Exemple)
+    *   **Description :** Lance une tâche d'entraînement de modèle ML.
+    *   **Service Backend :** `service-ml`
+    *   **Voir :** Référence du Service ML ci-dessous.
+*   `GET /api/v1/ml/jobs/\`{job_id}\`` (Exemple)
+    *   **Description :** Récupère le statut ou les résultats d'une tâche d'entraînement.
+    *   **Service Backend :** `service-ml`
+    *   **Voir :** Référence du Service ML ci-dessous.
+
+=== Explicabilité XAI (via Service XAI)
+*   `POST /api/v1/xai/explain` (Exemple)
+    *   **Description :** Lance une tâche de génération d'explication XAI.
+    *   **Service Backend :** `service-xai`
+    *   **Voir :** Référence du Service XAI ci-dessous.
+*   `GET /api/v1/xai/jobs/\`{job_id}\`` (Exemple)
+    *   **Description :** Récupère le statut ou les résultats d'une tâche XAI.
+    *   **Service Backend :** `service-xai`
+    *   **Voir :** Référence du Service XAI ci-dessous.
+
+== Référence API par Service Backend
+
+Cette section détaille les endpoints clés exposés par chaque microservice backend. Notez que ces endpoints sont normalement appelés *via* l'API Gateway, mais peuvent être utiles pour le développement ou le débogage direct.
+
+=== Service Sélection (`service-selection`)
+
+Ce service gère les métadonnées des datasets.
+
+*   **Endpoint :** `GET /datasets/`
+    *   **Description :** Récupère la liste de tous les datasets enregistrés.
+    *   **Paramètres Query :** (Optionnels) `skip: int = 0`, `limit: int = 100` pour la pagination.
+    *   **Réponse Succès (200 OK) :** Liste d'objets Dataset.
+        ```json
+        [
+          {
+            "id": 1,
+            "name": "Dataset Iris",
+            "description": "Le classique dataset Iris.",
+            "file_path": "/data/iris.csv",
+            "file_type": "csv"
+          },
+          ...
+        ]
+        ```
+    *   **Exemple `curl` (authentifié via Gateway) :**
+        ```bash
+        TOKEN="..."
+        curl -X GET "<URL_API_GATEWAY>/api/v1/datasets/?limit=10" -H "Authorization: Bearer $TOKEN"
+        ```
+
+*   **Endpoint :** `POST /datasets/`
+    *   **Description :** Enregistre un nouveau dataset dans le catalogue.
+    *   **Corps de la Requête (JSON) :** Objet `DatasetCreate`.
+        ```json
+        {
+          "name": "Mon Nouveau Dataset",
+          "description": "Description du dataset.",
+          "file_path": "/chemin/vers/fichier.csv",
+          "file_type": "csv"
+        }
+        ```
+    *   **Réponse Succès (201 Created) :** L'objet Dataset créé (avec son ID).
+        ```json
+        {
+          "id": 3,
+          "name": "Mon Nouveau Dataset", ...
+        }
+        ```
+    *   **Exemple `curl` (authentifié via Gateway) :**
+        ```bash
+        TOKEN="..."
+        curl -X POST "<URL_API_GATEWAY>/api/v1/datasets/" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{"name": "Test", "description": "Test desc", "file_path": "/path", "file_type": "csv"}'
+        ```
+
+*   **Endpoint :** `GET /datasets/\`{dataset_id}\``
+    *   **Description :** Récupère les détails d'un dataset par son ID.
+    *   **Paramètre Path :** ``dataset_id: int``.
+    *   **Réponse Succès (200 OK) :** Objet Dataset.
+    *   **Réponse Erreur (404 Not Found) :** Si l'ID n'existe pas.
+    *   **Exemple `curl` (authentifié via Gateway) :**
+        ```bash
+        TOKEN="..."
+        curl -X GET "<URL_API_GATEWAY>/api/v1/datasets/1" -H "Authorization: Bearer $TOKEN"
+        ```
+
+*   **Endpoint :** `POST /datasets/search` (Exemple)
+    *   **Description :** Recherche des datasets selon des critères.
+    *   **Corps de la Requête (JSON) :** Objet `DatasetSearchCriteria`.
+        ```json
+        {
+          "name_contains": "Iris",
+          "min_rows": 100,
+          "ethical_tags": ["no_bias"]
+        }
+        ```
+    *   **Réponse Succès (200 OK) :** Liste des objets Dataset correspondants.
+
+=== Service ML (`service-ml`)
+
+*(Endpoints à définir et documenter ici : lancement entraînement, récupération statut/résultats...)*
+
+=== Service XAI (`service-xai`)
+
+*(Endpoints à définir et documenter ici : lancement explication, récupération statut/résultats...)*
+
+== Modèles de Données Communs (Exemples)
+
+=== Objet `Dataset`
+Représente les métadonnées d'un jeu de données.
+
+```json
+{
+  "id": int,             // Identifiant unique généré par la base de données
+  "name": str,           // Nom du dataset
+  "description": str,    // Description textuelle
+  "file_path": str,      // Chemin d'accès au fichier de données (sur un volume partagé ?)
+  "file_type": str,      // Type de fichier (ex: "csv", "parquet")
+  "metadata": dict | None // Autres métadonnées techniques/éthiques/métier (nb lignes, colonnes, tags...)
+}
+``` 

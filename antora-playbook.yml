@@ -1,7 +1,7 @@
 site:
   title: Documentation 2025 Research EXAI
   url: / # Ajustez si vous déployez dans un sous-dossier
-  start_page: research-exai::index.adoc # Page d'accueil: composant research-exai, page index.adoc
+  start_page: EXAI::index.adoc # Page d'accueil: composant research-exai, page index.adoc
 
 content:
   sources:

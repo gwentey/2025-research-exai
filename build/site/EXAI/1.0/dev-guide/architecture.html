@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Architecture du Projet EXAI :: Documentation 2025 Research EXAI</title>
+    <title>Architecture Technique du Projet EXAI :: Documentation 2025 Research EXAI</title>
     <meta name="generator" content="Antora 3.1.10">
     <link rel="stylesheet" href="../../../_/css/site.css">
   </head>
@@ -58,26 +58,41 @@
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../index.html">Accueil</a>
+    <a class="nav-link" href="../index.html">Accueil Projet EXAI</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../getting-started.html">🚀 Installation &amp; Démarrage</a>
   </li>
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Guide Utilisateur</span>
 <ul class="nav-list">
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../user-guide/installation.html">Installation</a>
+    <a class="nav-link" href="../user-guide/index.html">Présentation</a>
   </li>
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../user-guide/api.html">Utilisation API</a>
+    <a class="nav-link" href="../user-guide/dataset-selection.html">📊 Sélection de Datasets</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../user-guide/ml-pipeline.html">🛠️ Pipeline ML Interactif</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../user-guide/xai-recommendation.html">💡 Recommandations XAI</a>
   </li>
 </ul>
   </li>
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Développement</span>
+    <span class="nav-text">Guide Développeur</span>
 <ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="index.html">Présentation</a>
+  </li>
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="architecture.html">Architecture</a>
+    <a class="nav-link" href="architecture.html">Architecture Technique</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="api-reference.html">Référence API</a>
   </li>
 </ul>
   </li>
@@ -108,11 +123,12 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Documentation Principale</a></li>
-    <li>Développement</li>
-    <li><a href="architecture.html">Architecture</a></li>
+    <li>Guide Développeur</li>
+    <li><a href="architecture.html">Architecture Technique</a></li>
   </ul>
 </nav>
 <div class="edit-this-page"><a href="file:///C:/xampp/htdocs/2025-research-exai/docs/modules/ROOT/pages/dev-guide/architecture.adoc">Edit this Page</a></div>
@@ -122,178 +138,132 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Architecture du Projet EXAI</h1>
+<h1 class="page">Architecture Technique du Projet EXAI</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Ce document décrit l&#8217;architecture globale de la plateforme EXAI, basée sur les informations du README principal.</p>
+<p>Ce document détaille l&#8217;architecture logicielle de la plateforme EXAI. Pour les instructions d&#8217;installation et de déploiement, veuillez consulter le guide <a href="../getting-started.html" class="xref page">Installation &amp; Démarrage Rapide</a>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_vue_densemble"><a class="anchor" href="#_vue_densemble"></a>Vue d&#8217;ensemble</h2>
+<h2 id="_1_vision_densemble_et_objectifs"><a class="anchor" href="#_1_vision_densemble_et_objectifs"></a>1. Vision d&#8217;Ensemble et Objectifs</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Le projet EXAI est une plateforme d&#8217;expérimentation pour l&#8217;Explainable AI (XAI) construite sur une architecture de <strong>microservices conteneurisés</strong>. L&#8217;objectif est de fournir une plateforme flexible pour intégrer et tester différents composants d&#8217;un pipeline Machine Learning et d&#8217;explicabilité.</p>
-</div>
-<div class="paragraph">
-<p>L&#8217;ensemble est conçu pour être déployé localement à l&#8217;aide de <strong>Minikube</strong>, simulant un environnement Kubernetes.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_composants_principaux"><a class="anchor" href="#_composants_principaux"></a>Composants Principaux</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>L&#8217;architecture s&#8217;articule autour des composants suivants :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>API Gateway (<code>api-gateway/</code>)</strong>: Point d&#8217;entrée unique pour les requêtes externes (par exemple, depuis une interface utilisateur). Elle route les requêtes vers les microservices appropriés. Développée avec FastAPI.</p>
-</li>
-<li>
-<p><strong>Service Sélection (<code>service-selection/</code>)</strong>: Microservice responsable de la gestion et de la sélection des jeux de données pour les expérimentations. (Dépend d&#8217;une base de données PostgreSQL). Développé avec FastAPI.</p>
-</li>
-<li>
-<p><strong>Base de Données (PostgreSQL)</strong>: Utilisée par le <code>Service Sélection</code> pour stocker les métadonnées des datasets. Déployée comme un service distinct dans Kubernetes.</p>
-</li>
-<li>
-<p><strong>(Autres microservices à venir)</strong>: Le projet prévoit d&#8217;intégrer d&#8217;autres services pour le pipeline ML et le moteur XAI.</p>
-</li>
-<li>
-<p><strong>(Interface Frontend)</strong>: Une interface Angular est prévue mais est en cours de développement.</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_gestion_de_la_base_de_données_postgresql"><a class="anchor" href="#_gestion_de_la_base_de_données_postgresql"></a>Gestion de la Base de Données (PostgreSQL)</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>La persistance des données, notamment pour le <code>Service Sélection</code>, est assurée par une base de données PostgreSQL.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Rôle</strong>: Stocker les métadonnées des datasets gérés par le <code>Service Sélection</code>.</p>
-</li>
-<li>
-<p><strong>Déploiement K8s</strong>: Les manifestes Kubernetes pour PostgreSQL se trouvent dans le dossier <code>k8s/postgres/</code>. Ils incluent typiquement :</p>
-<div class="ulist">
-<ul>
-<li>
-<p><code>deployment.yaml</code>: Définit comment lancer le pod PostgreSQL (image, variables d&#8217;environnement, etc.).</p>
-</li>
-<li>
-<p><code>service.yaml</code>: Expose le service PostgreSQL au sein du cluster Kubernetes (pour que les autres microservices puissent s&#8217;y connecter).</p>
-</li>
-<li>
-<p><code>persistentvolumeclaim.yaml</code> (implicite ou explicite): Demande un espace de stockage persistant pour que les données ne soient pas perdues si le pod redémarre.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>Configuration</strong>: La configuration (comme les identifiants <code>exai_user</code> et <code>exai_db</code>) est probablement définie via des variables d&#8217;environnement ou des ConfigMaps/Secrets dans les manifestes de déploiement.</p>
-</li>
-<li>
-<p><strong>Initialisation</strong>: Une étape cruciale du déploiement est l&#8217;initialisation du schéma de la base de données. Cela est fait en exécutant le script <code>k8s/postgres/init-db.sql</code> à l&#8217;intérieur du pod PostgreSQL une fois celui-ci démarré. La procédure recommandée est :</p>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Identifier le nom du pod PostgreSQL (<code>kubectl get pods -n exai | grep postgresql</code>).</p>
-</li>
-<li>
-<p>Copier le script dans le pod (<code>kubectl cp k8s/postgres/init-db.sql &lt;POD_NAME&gt;:/tmp/init-db.sql -n exai</code>).</p>
-</li>
-<li>
-<p>Exécuter le script via <code>psql</code> dans le pod (<code>kubectl exec -n exai &lt;POD_NAME&gt;&#8201;&#8212;&#8201;psql -U exai_user -d exai_db -f /tmp/init-db.sql</code>).</p>
-</li>
-</ol>
-</div>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_technologies_utilisées"><a class="anchor" href="#_technologies_utilisées"></a>Technologies Utilisées</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Langage Backend</strong>: Python (avec FastAPI)</p>
-</li>
-<li>
-<p><strong>Conteneurisation</strong>: Docker</p>
-</li>
-<li>
-<p><strong>Orchestration</strong>: Kubernetes (via Minikube pour le développement local)</p>
-</li>
-<li>
-<p><strong>Base de Données</strong>: PostgreSQL</p>
-</li>
-<li>
-<p><strong>Outils de Build/Gestion</strong>: Docker CLI, kubectl, Makefile (potentiellement)</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_déploiement_via_minikube"><a class="anchor" href="#_déploiement_via_minikube"></a>Déploiement (via Minikube)</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Le déploiement standard se fait sur un cluster Minikube local. Les étapes clés sont :</p>
+<p>Le projet EXAI vise à créer un <strong>outil scientifique (PoC)</strong> répondant à trois défis :</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>Démarrer Minikube</strong>: <code>minikube start</code></p>
+<p>Aide à la <strong>sélection de datasets</strong> (critères techniques, éthiques, métier).</p>
 </li>
 <li>
-<p><strong>Créer un Namespace</strong>: <code>kubectl create namespace exai</code> (pour isoler les ressources du projet)</p>
+<p>Guidage interactif pour les <strong>pipelines de Machine Learning</strong>.</p>
 </li>
 <li>
-<p><strong>Déployer PostgreSQL</strong>: Appliquer les manifestes K8s (<code>deployment.yaml</code>, <code>service.yaml</code>, <code>persistentvolumeclaim.yaml</code>) situés dans <code>k8s/postgres/</code>.</p>
-</li>
-<li>
-<p><strong>Initialiser la Base de Données</strong>: Copier le script <code>init-db.sql</code> dans le pod PostgreSQL et l&#8217;exécuter avec <code>kubectl exec &#8230;&#8203; psql &#8230;&#8203;</code>.</p>
-</li>
-<li>
-<p><strong>Déployer les Microservices</strong>:</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Configurer le terminal pour utiliser le Docker de Minikube (<code>minikube docker-env</code>).</p>
-</li>
-<li>
-<p>Pour chaque service (<code>api-gateway</code>, <code>service-selection</code>, &#8230;&#8203;):</p>
-</li>
-<li>
-<p>Construire l&#8217;image Docker (<code>docker build -t &lt;nom-image&gt;:&lt;tag&gt; .</code>) dans l&#8217;environnement Minikube.</p>
-</li>
-<li>
-<p>Appliquer les manifestes K8s du service (<code>deployment.yaml</code>, <code>service.yaml</code>) en s&#8217;assurant que <code>imagePullPolicy</code> est <code>IfNotPresent</code> ou <code>Never</code>.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>Accéder aux Services</strong>: Utiliser <code>minikube service &lt;nom-service&gt; --url -n exai</code> pour obtenir l&#8217;URL d&#8217;accès.</p>
+<p>Recommandation et application de techniques d'<strong>IA Explicable (XAI)</strong>.</p>
 </li>
 </ol>
 </div>
-<div class="admonitionblock note">
+<div class="paragraph">
+<p>Pour atteindre ces objectifs avec <strong>modularité</strong>, <strong>scalabilité</strong> et <strong>maintenabilité</strong>, EXAI repose sur une architecture en <strong>microservices conteneurisés</strong> orchestrés par <strong>Kubernetes</strong>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Microservices :</strong> Chaque grande fonctionnalité (sélection de données, entraînement ML, explicabilité XAI, interface utilisateur) est gérée par un service indépendant. Cela permet de développer, déployer et mettre à l&#8217;échelle chaque partie séparément.</p>
+</li>
+<li>
+<p><strong>Conteneurisation (Docker) :</strong> Chaque microservice est packagé dans une image Docker avec toutes ses dépendances. Cela garantit la cohérence entre les environnements (développement, test, production).</p>
+</li>
+<li>
+<p><strong>Orchestration (Kubernetes) :</strong> Kubernetes gère le déploiement, la mise à l&#8217;échelle, la mise en réseau et la communication entre les conteneurs/microservices. Pour le développement local, nous utilisons <strong>Minikube</strong> qui simule un cluster Kubernetes.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_2_diagramme_darchitecture"><a class="anchor" href="#_2_diagramme_darchitecture"></a>2. Diagramme d&#8217;Architecture</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>(Essentiel : Un diagramme est nécessaire ici pour visualiser les interactions !)</em></p>
+</div>
+<div class="admonitionblock important">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-Le README mentionne des alternatives comme l&#8217;utilisation d&#8217;un registre Docker local (<code>localhost:5000</code>) notamment pour contourner des problèmes sous Windows.
+<div class="paragraph">
+<p>Un diagramme d&#8217;architecture illustrant les composants ci-dessous et leurs interactions principales doit être inséré ici. Options possibles :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>PlantUML ou Mermaid intégré :</strong> Si Antora est configuré avec les extensions nécessaires.
+```plantuml
+@startuml
+!include <a href="https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml" class="bare">https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml</a></p>
+<div class="literalblock">
+<div class="content">
+<pre>Person(user, "Utilisateur")</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>System_Boundary(exai, "Plateforme EXAI") {
+    Container(frontend, "Frontend", "Angular, Tailwind", "Interface Utilisateur")
+    Container(api_gw, "API Gateway", "FastAPI", "Point d'entrée, Routage, Auth")
+    ContainerDb(db, "Base de Données", "PostgreSQL", "Stockage métadonnées datasets")
+    Container(sel_svc, "Service Sélection", "FastAPI", "Gestion &amp; Scoring Datasets")
+    Container(ml_svc, "Service ML", "FastAPI, Scikit-learn, Celery", "Entraînement &amp; Évaluation Modèles")
+    Container(xai_svc, "Service XAI", "FastAPI, SHAP, LIME, Celery", "Génération Explications XAI")
+    ContainerQueue(queue, "Message Queue", "Redis/Celery", "Tâches asynchrones ML/XAI")
+}</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>    Rel(user, frontend, "Utilise")
+    Rel(frontend, api_gw, "Requêtes API", "HTTPS/REST")
+    Rel(api_gw, sel_svc, "Route vers", "REST")
+    Rel(api_gw, ml_svc, "Route vers", "REST")
+    Rel(api_gw, xai_svc, "Route vers", "REST")
+    Rel(sel_svc, db, "Lit/Écrit", "SQL")
+    Rel(ml_svc, queue, "Envoie tâches")
+    Rel(xai_svc, queue, "Envoie tâches")
+    ' Ajouter d'autres relations si nécessaire (ex: XAI &lt;-&gt; ML)
+    @enduml
+    ```
+2.  **Image Externe :** Créer le diagramme avec un outil externe (draw.io, Lucidchart...) et l'inclure.
+    `image::architecture-diagram.png[Diagramme d'architecture EXAI]`
+3.  **Diagramme Texte AsciiDoc :** Pour une version très simple.
+    ```text
+    +-----------+       +-------------+       +---------------------+
+    | Utilisateur | ----&gt; |  Frontend   | ----&gt; |     API Gateway     |---
+    +-----------+       | (Angular)   |       |      (FastAPI)      |   |
+                      +-------------+       +---------------------+   |
+                                                      |               |
+                                                      v               v
+                                          +-------------+   +-------------+
+                                          | Service ML  |   | Service XAI |
+                                          | (FastAPI)   |   | (FastAPI)   |
+                                          +-------------+   +-------------+
+                                                |               |
+                                                v               v
+                                          +-------------+   +-------------+
+                                          |   Queue     |   |  Service    |
+                                          | (Celery)    |&lt;--|  Sélection  |---+--&gt; Database
+                                          +-------------+   |  (FastAPI)    |   | (Postgres)
+                                                          +-------------+---+ +----------+
+    ```</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
 </td>
 </tr>
 </table>
@@ -301,26 +271,293 @@ Le README mentionne des alternatives comme l&#8217;utilisation d&#8217;un regist
 </div>
 </div>
 <div class="sect1">
-<h2 id="_structure_des_dossiers_pertinente"><a class="anchor" href="#_structure_des_dossiers_pertinente"></a>Structure des Dossiers Pertinente</h2>
+<h2 id="_3_description_détaillée_des_composants"><a class="anchor" href="#_3_description_détaillée_des_composants"></a>3. Description Détaillée des Composants</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_3_1_frontend_frontend"><a class="anchor" href="#_3_1_frontend_frontend"></a>3.1 Frontend (<code>frontend/</code>)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Rôle :</strong> Interface utilisateur web interactive pour la plateforme EXAI.</p>
+</li>
+<li>
+<p><strong>Responsabilités :</strong> Permettre à l&#8217;utilisateur de naviguer dans les fonctionnalités (sélection datasets, configuration pipeline ML, visualisation XAI), afficher les informations et résultats.</p>
+</li>
+<li>
+<p><strong>Technologies :</strong> Angular, Tailwind CSS.</p>
+</li>
+<li>
+<p><strong>Interactions :</strong> Communique exclusivement avec l&#8217;API Gateway via des requêtes HTTP REST/JSON.</p>
+</li>
+<li>
+<p><strong>Justification :</strong> Angular offre un framework robuste pour les applications Single Page complexes. Tailwind facilite la création rapide d&#8217;interfaces modernes.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_2_api_gateway_api_gateway"><a class="anchor" href="#_3_2_api_gateway_api_gateway"></a>3.2 API Gateway (<code>api-gateway/</code>)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Rôle :</strong> Point d&#8217;entrée unique pour toutes les requêtes provenant du Frontend (ou d&#8217;autres clients externes).</p>
+</li>
+<li>
+<p><strong>Responsabilités :</strong></p>
+</li>
+<li>
+<p>Authentification et autorisation des requêtes (via JWT).</p>
+</li>
+<li>
+<p>Routage des requêtes vers le microservice interne approprié (Sélection, ML, XAI).</p>
+</li>
+<li>
+<p>Agrégation potentielle de réponses provenant de plusieurs services.</p>
+</li>
+<li>
+<p>Gestion centralisée du CORS (Cross-Origin Resource Sharing).</p>
+</li>
+<li>
+<p><strong>Technologies :</strong> FastAPI (Python).</p>
+</li>
+<li>
+<p><strong>Interactions :</strong> Reçoit les requêtes du Frontend, les transmet aux services backend (Sélection, ML, XAI) via REST.</p>
+</li>
+<li>
+<p><strong>Justification :</strong> FastAPI est performant, facile à utiliser, intègre la validation de données (Pydantic) et génère automatiquement la documentation OpenAPI (Swagger UI), idéal pour une gateway.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_3_service_sélection_service_selection"><a class="anchor" href="#_3_3_service_sélection_service_selection"></a>3.3 Service Sélection (<code>service-selection/</code>)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Rôle :</strong> Gérer le catalogue de datasets et fournir des fonctionnalités de sélection.</p>
+</li>
+<li>
+<p><strong>Responsabilités :</strong></p>
+</li>
+<li>
+<p>Stocker et récupérer les métadonnées des datasets (nom, description, type, caractéristiques&#8230;&#8203;).</p>
+</li>
+<li>
+<p>Implémenter la logique de recherche et de filtrage des datasets selon les critères utilisateur.</p>
+</li>
+<li>
+<p>Calculer les scores de pertinence des datasets.</p>
+</li>
+<li>
+<p><strong>Technologies :</strong> FastAPI (Python), SQLAlchemy (potentiellement, pour l&#8217;ORM), PostgreSQL (pour le stockage).</p>
+</li>
+<li>
+<p><strong>Interactions :</strong> Reçoit des requêtes de l&#8217;API Gateway, interagit avec la base de données PostgreSQL.</p>
+</li>
+<li>
+<p><strong>Justification :</strong> FastAPI pour la rapidité de développement API. PostgreSQL est une base de données relationnelle robuste et éprouvée.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_4_service_ml_service_ml"><a class="anchor" href="#_3_4_service_ml_service_ml"></a>3.4 Service ML (<code>service-ml/</code>)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Rôle :</strong> Gérer les aspects liés à l&#8217;entraînement et à l&#8217;évaluation des modèles de Machine Learning.</p>
+</li>
+<li>
+<p><strong>Responsabilités (Prévues) :</strong></p>
+</li>
+<li>
+<p>Prétraitement des données (nettoyage, normalisation&#8230;&#8203;).</p>
+</li>
+<li>
+<p>Entraînement de modèles (classification, régression&#8230;&#8203;) basés sur les choix utilisateur.</p>
+</li>
+<li>
+<p>Évaluation des performances des modèles.</p>
+</li>
+<li>
+<p>Gestion des tâches longues (entraînement) de manière asynchrone.</p>
+</li>
+<li>
+<p><strong>Technologies :</strong> FastAPI (Python), Scikit-learn, Pandas, Celery (pour les tâches asynchrones), Redis (comme broker pour Celery).</p>
+</li>
+<li>
+<p><strong>Interactions :</strong> Reçoit des requêtes de l&#8217;API Gateway, lit potentiellement des données (via le Service Sélection ou directement ?), utilise Celery/Redis pour les tâches longues, peut interagir avec le Service XAI.</p>
+</li>
+<li>
+<p><strong>Justification :</strong> Scikit-learn est la bibliothèque standard pour le ML en Python. Celery/Redis gèrent efficacement les traitements longs sans bloquer l&#8217;API.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_5_service_xai_service_xai"><a class="anchor" href="#_3_5_service_xai_service_xai"></a>3.5 Service XAI (<code>service-xai/</code>)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Rôle :</strong> Fournir des fonctionnalités d&#8217;explicabilité pour les modèles ML.</p>
+</li>
+<li>
+<p><strong>Responsabilités (Prévues) :</strong></p>
+</li>
+<li>
+<p>Recommander des méthodes XAI adaptées (LIME, SHAP&#8230;&#8203;) en fonction du modèle, des données, du contexte.</p>
+</li>
+<li>
+<p>Générer les explications (calculs potentiellement longs).</p>
+</li>
+<li>
+<p>Formater les résultats des explications pour la visualisation.</p>
+</li>
+<li>
+<p>Gérer les tâches de génération d&#8217;explication de manière asynchrone.</p>
+</li>
+<li>
+<p><strong>Technologies :</strong> FastAPI (Python), SHAP, LIME, autres bibliothèques XAI, Celery, Redis.</p>
+</li>
+<li>
+<p><strong>Interactions :</strong> Reçoit des requêtes de l&#8217;API Gateway, interagit probablement avec le Service ML (pour obtenir le modèle, les données), utilise Celery/Redis.</p>
+</li>
+<li>
+<p><strong>Justification :</strong> Bibliothèques XAI dédiées (SHAP, LIME). Celery/Redis pour les calculs longs.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_6_base_de_données_k8spostgres"><a class="anchor" href="#_3_6_base_de_données_k8spostgres"></a>3.6 Base de Données (<code>k8s/postgres/</code>)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Rôle :</strong> Stockage persistant des données relationnelles.</p>
+</li>
+<li>
+<p><strong>Responsabilités :</strong> Principalement utilisée par le Service Sélection pour stocker les métadonnées des datasets. Pourrait être utilisée par d&#8217;autres services si nécessaire.</p>
+</li>
+<li>
+<p><strong>Technologies :</strong> PostgreSQL.</p>
+</li>
+<li>
+<p><strong>Interactions :</strong> Accessible par les microservices (principalement Service Sélection) via le réseau interne de Kubernetes.</p>
+</li>
+<li>
+<p><strong>Justification :</strong> Système de gestion de base de données relationnelle open-source, fiable, performant et riche en fonctionnalités.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_7_orchestration_infrastructure_k8s_dockerfiles"><a class="anchor" href="#_3_7_orchestration_infrastructure_k8s_dockerfiles"></a>3.7 Orchestration &amp; Infrastructure (<code>k8s/</code>, Dockerfiles)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Rôle :</strong> Définir, construire et gérer l&#8217;exécution de l&#8217;ensemble des services.</p>
+</li>
+<li>
+<p><strong>Responsabilités :</strong></p>
+</li>
+<li>
+<p>Définir comment construire les images conteneurs (via les <code>Dockerfile</code> dans chaque service).</p>
+</li>
+<li>
+<p>Définir comment déployer et configurer chaque service dans Kubernetes (via les manifestes YAML dans <code>k8s/</code> ou les sous-dossiers <code>k8s/</code> de chaque service).</p>
+</li>
+<li>
+<p>Gérer la mise en réseau, le stockage persistant (via Kubernetes).</p>
+</li>
+<li>
+<p><strong>Technologies :</strong> Docker, Kubernetes, Minikube (pour le local).</p>
+</li>
+<li>
+<p><strong>Justification :</strong> Standards de l&#8217;industrie pour la conteneurisation et l&#8217;orchestration, favorisant la reproductibilité et la scalabilité.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_4_flux_de_données_et_communication"><a class="anchor" href="#_4_flux_de_données_et_communication"></a>4. Flux de Données et Communication</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Communication Inter-Services :</strong> La communication entre le Frontend et l&#8217;API Gateway, ainsi qu&#8217;entre l&#8217;API Gateway et les microservices backend, se fait principalement via des <strong>API REST synchrones</strong> (requête/réponse HTTP/JSON).</p>
+</li>
+<li>
+<p><strong>Tâches Asynchrones :</strong> Pour les opérations longues (entraînement de modèles ML, génération d&#8217;explications XAI), les services ML et XAI utilisent <strong>Celery</strong> avec <strong>Redis</strong> comme broker de messages. L&#8217;API reçoit la requête, la place dans une file d&#8217;attente Redis, et un worker Celery (processus séparé) la prend en charge. Cela évite de bloquer les requêtes API.</p>
+</li>
+<li>
+<p><strong>Sécurité :</strong> L'<strong>API Gateway</strong> est responsable de la validation des jetons <strong>JWT</strong> pour sécuriser l&#8217;accès aux API.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_5_structure_du_code_source"><a class="anchor" href="#_5_structure_du_code_source"></a>5. Structure du Code Source</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Voici une vue typique de l&#8217;organisation attendue du code source :</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">/
-├── api-gateway/         # Code et config K8s pour l'API Gateway
-│   ├── main.py
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">/
+├── frontend/                 # Code source de l'interface Angular
+│   ├── src/
+│   ├── angular.json
+│   ├── Dockerfile              # Pour construire l'image du frontend
+│   └── k8s/                  # Manifestes K8s spécifiques au frontend
+│       ├── deployment.yaml
+│       └── service.yaml
+├── api-gateway/              # Code source de l'API Gateway
+│   ├── app/
 │   ├── requirements.txt
 │   ├── Dockerfile
-│   ├── deployment.yaml
-│   └── service.yaml
-├── service-selection/   # Code et config K8s pour le service de sélection
-│   └── ...
-├── k8s/                 # Configurations Kubernetes globales/partagées
-│   └── postgres/        # Config K8s pour PostgreSQL (deployment, service, init script)
-├── docs/                # Documentation Antora
-│   └── ...
-├── antora-playbook.yml  # Playbook Antora
-└── README.md            # Ce fichier</code></pre>
+│   └── k8s/
+│       ├── deployment.yaml
+│       └── service.yaml
+├── service-selection/        # Code source du Service Sélection
+│   ├── app/
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── k8s/
+│       ├── deployment.yaml
+│       └── service.yaml
+├── service-ml/               # Code source du Service ML
+│   ├── app/
+│   ├── worker/               # Code pour les workers Celery
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── k8s/
+│       ├── deployment.yaml   # Déploiement de l'API FastAPI
+│       ├── service.yaml
+│       └── worker-deployment.yaml # Déploiement des workers Celery
+├── service-xai/              # Code source du Service XAI (structure similaire à ML)
+│   ├── ...
+├── k8s/                      # Configurations Kubernetes globales/partagées
+│   ├── postgres/             # Config K8s pour PostgreSQL
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   ├── persistentvolumeclaim.yaml
+│   │   └── init-db.sql
+│   └── redis/                # Config K8s pour Redis (si nécessaire)
+│       └── ...
+├── docs/                     # Documentation Antora (ce que vous lisez)
+│   └── modules/ROOT/
+│       ├── pages/
+│       └── nav.adoc
+├── antora.yml                # Configuration du composant Antora
+├── antora-playbook.yml       # Playbook pour générer la documentation
+└── README.md                 # README général du projet</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Cette structure vise à séparer clairement chaque microservice tout en gardant les configurations Kubernetes associées proches du code source du service concerné.</p>
 </div>
 </div>
 </div>
