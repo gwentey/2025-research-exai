@@ -38,11 +38,11 @@ Pour obtenir un token, vous devez envoyer une requête POST au endpoint d'authen
     ```
 
 *   **Exemple `curl` (form-urlencoded) :**
-    ```bash
+    ----
     curl -X POST "<URL_API_GATEWAY>/api/v1/auth/login" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=testuser&password=testpassword"
-    ```
+    ----
 
 === Utiliser le Token
 
@@ -51,11 +51,11 @@ Une fois le token obtenu, vous devez l'inclure dans l'en-tête `Authorization` d
 *   **En-tête HTTP :** `Authorization: Bearer <VOTRE_ACCESS_TOKEN>`
 
 *   **Exemple `curl` (pour un endpoint GET) :**
-    ```bash
+    ----
     TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." # Remplacez par votre token
     curl -X GET "<URL_API_GATEWAY>/api/v1/datasets/" \
     -H "Authorization: Bearer $TOKEN"
-    ```
+    ----
 
 == Endpoints Principaux de l'API Gateway (`/api/v1/...`)
 
@@ -78,7 +78,7 @@ L'API Gateway expose les routes suivantes, qui sont les points d'entrée pour le
     *   **Description :** Crée un nouveau dataset (métadonnées).
     *   **Service Backend :** `service-selection`
     *   **Voir :** Référence du Service Sélection ci-dessous.
-*   `GET /api/v1/datasets/\`{dataset_id}\``
+*   `GET /api/v1/datasets/\{dataset_id}`
     *   **Description :** Récupère les détails d'un dataset spécifique.
     *   **Service Backend :** `service-selection`
     *   **Voir :** Référence du Service Sélection ci-dessous.
@@ -92,7 +92,7 @@ L'API Gateway expose les routes suivantes, qui sont les points d'entrée pour le
     *   **Description :** Lance une tâche d'entraînement de modèle ML.
     *   **Service Backend :** `service-ml`
     *   **Voir :** Référence du Service ML ci-dessous.
-*   `GET /api/v1/ml/jobs/\`{job_id}\`` (Exemple)
+*   `GET /api/v1/ml/jobs/\{job_id}` (Exemple)
     *   **Description :** Récupère le statut ou les résultats d'une tâche d'entraînement.
     *   **Service Backend :** `service-ml`
     *   **Voir :** Référence du Service ML ci-dessous.
@@ -102,7 +102,7 @@ L'API Gateway expose les routes suivantes, qui sont les points d'entrée pour le
     *   **Description :** Lance une tâche de génération d'explication XAI.
     *   **Service Backend :** `service-xai`
     *   **Voir :** Référence du Service XAI ci-dessous.
-*   `GET /api/v1/xai/jobs/\`{job_id}\`` (Exemple)
+*   `GET /api/v1/xai/jobs/\{job_id}` (Exemple)
     *   **Description :** Récupère le statut ou les résultats d'une tâche XAI.
     *   **Service Backend :** `service-xai`
     *   **Voir :** Référence du Service XAI ci-dessous.
@@ -132,10 +132,10 @@ Ce service gère les métadonnées des datasets.
         ]
         ```
     *   **Exemple `curl` (authentifié via Gateway) :**
-        ```bash
+        ----
         TOKEN="..."
         curl -X GET "<URL_API_GATEWAY>/api/v1/datasets/?limit=10" -H "Authorization: Bearer $TOKEN"
-        ```
+        ----
 
 *   **Endpoint :** `POST /datasets/`
     *   **Description :** Enregistre un nouveau dataset dans le catalogue.
@@ -156,24 +156,24 @@ Ce service gère les métadonnées des datasets.
         }
         ```
     *   **Exemple `curl` (authentifié via Gateway) :**
-        ```bash
+        ----
         TOKEN="..."
         curl -X POST "<URL_API_GATEWAY>/api/v1/datasets/" \
         -H "Authorization: Bearer $TOKEN" \
         -H "Content-Type: application/json" \
         -d '{"name": "Test", "description": "Test desc", "file_path": "/path", "file_type": "csv"}'
-        ```
+        ----
 
-*   **Endpoint :** `GET /datasets/\`{dataset_id}\``
+*   **Endpoint :** `GET /datasets/\{dataset_id}`
     *   **Description :** Récupère les détails d'un dataset par son ID.
-    *   **Paramètre Path :** ``dataset_id: int``.
+    *   **Paramètre Path :** `{dataset_id}: int`.
     *   **Réponse Succès (200 OK) :** Objet Dataset.
     *   **Réponse Erreur (404 Not Found) :** Si l'ID n'existe pas.
     *   **Exemple `curl` (authentifié via Gateway) :**
-        ```bash
+        ----
         TOKEN="..."
         curl -X GET "<URL_API_GATEWAY>/api/v1/datasets/1" -H "Authorization: Bearer $TOKEN"
-        ```
+        ----
 
 *   **Endpoint :** `POST /datasets/search` (Exemple)
     *   **Description :** Recherche des datasets selon des critères.

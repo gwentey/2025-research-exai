@@ -22,58 +22,16 @@ _(Essentiel : Un diagramme est nécessaire ici pour visualiser les interactions 
 
 [IMPORTANT]
 ====
-Un diagramme d'architecture illustrant les composants ci-dessous et leurs interactions principales doit être inséré ici. Options possibles :
+Un diagramme d'architecture illustrant les composants décrits ci-dessous et leurs interactions principales doit être inséré ici.
 
-1.  **PlantUML ou Mermaid intégré :** Si Antora est configuré avec les extensions nécessaires.
-    ```plantuml
-    @startuml
-    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+Le moyen le plus simple est de créer le diagramme avec un outil externe (comme https://draw.io[draw.io^], Lucidchart, Miro...) et de l'enregistrer sous forme d'image (par exemple, `architecture-diagram.png`) dans le dossier `docs/modules/ROOT/assets/images/`. Ensuite, incluez-le avec la ligne suivante :
 
-    Person(user, "Utilisateur")
+[source,asciidoc]
+----
+image::architecture-diagram.png[Diagramme d'architecture EXAI, L=auto]
+----
 
-    System_Boundary(exai, "Plateforme EXAI") {
-        Container(frontend, "Frontend", "Angular, Tailwind", "Interface Utilisateur")
-        Container(api_gw, "API Gateway", "FastAPI", "Point d'entrée, Routage, Auth")
-        ContainerDb(db, "Base de Données", "PostgreSQL", "Stockage métadonnées datasets")
-        Container(sel_svc, "Service Sélection", "FastAPI", "Gestion & Scoring Datasets")
-        Container(ml_svc, "Service ML", "FastAPI, Scikit-learn, Celery", "Entraînement & Évaluation Modèles")
-        Container(xai_svc, "Service XAI", "FastAPI, SHAP, LIME, Celery", "Génération Explications XAI")
-        ContainerQueue(queue, "Message Queue", "Redis/Celery", "Tâches asynchrones ML/XAI")
-    }
-
-    Rel(user, frontend, "Utilise")
-    Rel(frontend, api_gw, "Requêtes API", "HTTPS/REST")
-    Rel(api_gw, sel_svc, "Route vers", "REST")
-    Rel(api_gw, ml_svc, "Route vers", "REST")
-    Rel(api_gw, xai_svc, "Route vers", "REST")
-    Rel(sel_svc, db, "Lit/Écrit", "SQL")
-    Rel(ml_svc, queue, "Envoie tâches")
-    Rel(xai_svc, queue, "Envoie tâches")
-    ' Ajouter d'autres relations si nécessaire (ex: XAI <-> ML)
-    @enduml
-    ```
-2.  **Image Externe :** Créer le diagramme avec un outil externe (draw.io, Lucidchart...) et l'inclure.
-    `image::architecture-diagram.png[Diagramme d'architecture EXAI]`
-3.  **Diagramme Texte AsciiDoc :** Pour une version très simple.
-    ```text
-    +-----------+       +-------------+       +---------------------+
-    | Utilisateur | ----> |  Frontend   | ----> |     API Gateway     |---
-    +-----------+       | (Angular)   |       |      (FastAPI)      |   |
-                      +-------------+       +---------------------+   |
-                                                      |               |
-                                                      v               v
-                                          +-------------+   +-------------+
-                                          | Service ML  |   | Service XAI |
-                                          | (FastAPI)   |   | (FastAPI)   |
-                                          +-------------+   +-------------+
-                                                |               |
-                                                v               v
-                                          +-------------+   +-------------+
-                                          |   Queue     |   |  Service    |
-                                          | (Celery)    |<--|  Sélection  |---+--> Database
-                                          +-------------+   |  (FastAPI)    |   | (Postgres)
-                                                          +-------------+---+ +----------+
-    ```
+(Assurez-vous que le chemin d'accès à l'image est correct par rapport à l'emplacement de ce fichier `architecture.adoc`.)
 ====
 
 == 3. Description Détaillée des Composants

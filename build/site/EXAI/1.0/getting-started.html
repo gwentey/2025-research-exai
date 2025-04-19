@@ -300,8 +300,8 @@ rm kubectl</pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone &lt;URL_DU_DEPOT_GIT_EXAI&gt;
-cd &lt;NOM_DU_DOSSIER_PROJET_EXAI&gt;</code></pre>
+<pre>git clone &lt;URL_DU_DEPOT_GIT_EXAI&gt;
+cd &lt;NOM_DU_DOSSIER_PROJET_EXAI&gt;</pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -335,24 +335,34 @@ Exécutez toutes les commandes suivantes depuis la racine de ce dossier projet c
 <p>Ouvrez votre terminal (à la racine du projet EXAI).</p>
 </li>
 <li>
-<p>Lancez la commande suivante :
-[source,bash]
-----
-minikube start
+<p>Lancez la commande suivante :</p>
+<div class="literalblock">
+<div class="content">
+<pre>minikube start
 # Astuce: Si vous avez plusieurs Go de RAM, vous pouvez allouer plus de ressources:
-# minikube start --memory 4096 --cpus 2
-----
-Le premier démarrage peut prendre quelques minutes car Minikube télécharge les images nécessaires.</p>
-</li>
-<li>
-<p>Une fois terminé, vérifiez que le cluster est bien démarré :
-[source,bash]
-----
-minikube status
-----
-Vous devriez voir des informations indiquant que <code>minikube</code>, <code>apiserver</code>, et <code>kubeconfig</code> sont <code>Running</code> ou <code>Configured</code>.</p>
+# minikube start --memory 4096 --cpus 2</pre>
+</div>
+</div>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>Le premier démarrage peut prendre quelques minutes car Minikube télécharge les images nécessaires.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Une fois terminé, vérifiez que le cluster est bien démarré :</p>
+<div class="literalblock">
+<div class="content">
+<pre>minikube status</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Vous devriez voir des informations indiquant que <code>minikube</code>, <code>apiserver</code>, et <code>kubeconfig</code> sont <code>Running</code> ou <code>Configured</code>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -362,7 +372,7 @@ Vous devriez voir des informations indiquant que <code>minikube</code>, <code>ap
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl create namespace exai</code></pre>
+<pre>kubectl create namespace exai</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -386,22 +396,32 @@ Si vous voyez une erreur indiquant que le namespace existe déjà (<code>Error f
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Appliquez les fichiers de configuration Kubernetes pour PostgreSQL :
-[source,bash]
-----
-kubectl apply -f k8s/postgres/ -n exai
-----
-Cela crée un <code>Deployment</code> (qui gère le Pod PostgreSQL) et un <code>Service</code> (qui permet aux autres composants de communiquer avec la base de données).</p>
-</li>
-<li>
-<p>Vérifiez que le pod PostgreSQL démarre correctement :
-[source,bash]
-----
-kubectl get pods -n exai -l app=postgresql
-----
-Attendez que le statut du pod passe à <code>Running</code>. Cela peut prendre une minute ou deux. Vous pouvez relancer la commande pour suivre l&#8217;évolution. Si le statut reste bloqué sur <code>Pending</code> ou <code>ContainerCreating</code> pendant longtemps, consultez la section Dépannage.</p>
+<p>Appliquez les fichiers de configuration Kubernetes pour PostgreSQL :</p>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl apply -f k8s/postgres/ -n exai</pre>
+</div>
+</div>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>Cela crée un <code>Deployment</code> (qui gère le Pod PostgreSQL) et un <code>Service</code> (qui permet aux autres composants de communiquer avec la base de données).</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Vérifiez que le pod PostgreSQL démarre correctement :</p>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl get pods -n exai -l app=postgresql</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Attendez que le statut du pod passe à <code>Running</code>. Cela peut prendre une minute ou deux. Vous pouvez relancer la commande pour suivre l&#8217;évolution. Si le statut reste bloqué sur <code>Pending</code> ou <code>ContainerCreating</code> pendant longtemps, consultez la section Dépannage.</p>
 </div>
 </div>
 <div class="sect2">
@@ -412,32 +432,43 @@ Attendez que le statut du pod passe à <code>Running</code>. Cela peut prendre u
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Identifiez le nom exact du pod PostgreSQL. La commande suivante devrait l&#8217;afficher directement :
-[source,bash]
-----
-POD_NAME=$(kubectl get pods -n exai -l app=postgresql -o jsonpath='{.items[0].metadata.name}')
-echo "Nom du pod PostgreSQL trouvé : $POD_NAME"
-----
-Si cela ne fonctionne pas, utilisez <code>kubectl get pods -n exai | grep postgresql</code> et copiez le nom manuellement. <strong>Notez bien ce nom pour les commandes suivantes.</strong></p>
-</li>
-<li>
-<p>Copiez le script d&#8217;initialisation dans le pod :
-[source,bash]
-----
-# Remplacez &lt;NOM_DU_POD_POSTGRES&gt; par le nom que vous avez noté
-kubectl cp k8s/postgres/init-db.sql &lt;NOM_DU_POD_POSTGRES&gt;:/tmp/init-db.sql -n exai
-----</p>
-</li>
-<li>
-<p>Exécutez le script SQL à l&#8217;intérieur du pod :
-[source,bash]
-----
-# Remplacez &lt;NOM_DU_POD_POSTGRES&gt; par le nom que vous avez noté
-kubectl exec -n exai &lt;NOM_DU_POD_POSTGRES&gt;&#8201;&#8212;&#8201;psql -U exai_user -d exai_db -f /tmp/init-db.sql
-----
-Vous devriez voir des messages indiquant la création des tables (<code>CREATE TABLE</code>).</p>
+<p>Identifiez le nom exact du pod PostgreSQL. La commande suivante devrait l&#8217;afficher directement :</p>
+<div class="literalblock">
+<div class="content">
+<pre>POD_NAME=$(kubectl get pods -n exai -l app=postgresql -o jsonpath='{.items[0].metadata.name}')
+echo "Nom du pod PostgreSQL trouvé : $POD_NAME"</pre>
+</div>
+</div>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>Si cela ne fonctionne pas, utilisez <code>kubectl get pods -n exai | grep postgresql</code> et copiez le nom manuellement. <strong>Notez bien ce nom pour les commandes suivantes.</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Copiez le script d&#8217;initialisation dans le pod :</p>
+<div class="literalblock">
+<div class="content">
+<pre># Remplacez &lt;NOM_DU_POD_POSTGRES&gt; par le nom que vous avez noté
+kubectl cp k8s/postgres/init-db.sql &lt;NOM_DU_POD_POSTGRES&gt;:/tmp/init-db.sql -n exai</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Exécutez le script SQL à l&#8217;intérieur du pod :</p>
+<div class="literalblock">
+<div class="content">
+<pre># Remplacez &lt;NOM_DU_POD_POSTGRES&gt; par le nom que vous avez noté
+kubectl exec -n exai &lt;NOM_DU_POD_POSTGRES&gt; -- psql -U exai_user -d exai_db -f /tmp/init-db.sql</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Vous devriez voir des messages indiquant la création des tables (<code>CREATE TABLE</code>).</p>
 </div>
 </div>
 <div class="sect2">
@@ -461,21 +492,18 @@ Pour que Minikube puisse utiliser les images Docker que nous allons construire l
 <ul>
 <li>
 <p><strong>Linux/macOS (Bash/Zsh)</strong> :
-[source,bash]
 ----
 eval $(minikube -p minikube docker-env)
 ----</p>
 </li>
 <li>
 <p><strong>Windows (PowerShell)</strong> :
-[source,powershell]
 ----
 minikube -p minikube docker-env | Invoke-Expression
 ----</p>
 </li>
 <li>
 <p><strong>Windows (Git Bash)</strong> :
-[source,bash]
 ----
 eval $(minikube -p minikube docker-env)
 ----</p>
@@ -486,68 +514,13 @@ eval $(minikube -p minikube docker-env)
 <p>Maintenant, déployez chaque service. Pour l&#8217;instant, nous allons déployer les services principaux :</p>
 </div>
 <div class="paragraph">
-<p><strong>(À adapter avec les noms réels des services et dossiers quand ils existeront)</strong></p>
+<p><strong>API Gateway (<code>api-gateway</code>)</strong></p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>API Gateway (<code>api-gateway</code>)</strong>
-[source,bash]
-----
-# 1. Aller dans le dossier du service
-cd api-gateway
-# 2. Construire l&#8217;image Docker locale
-docker build -t exai-api-gateway:latest .
-# 3. Appliquer les manifestes Kubernetes
-kubectl apply -f k8s/deployment.yaml -n exai
-kubectl apply -f k8s/service.yaml -n exai
-# 4. Revenir à la racine
-cd ..
-----</p>
-</li>
-<li>
-<p><strong>Service Sélection (<code>service-selection</code>)</strong>
-[source,bash]
-----
-# 1. Aller dans le dossier du service
-cd service-selection
-# 2. Construire l&#8217;image Docker locale
-docker build -t exai-service-selection:latest .
-# 3. Appliquer les manifestes Kubernetes
-kubectl apply -f k8s/deployment.yaml -n exai
-kubectl apply -f k8s/service.yaml -n exai
-# 4. Revenir à la racine
-cd ..
-----</p>
-</li>
-<li>
-<p><strong>Service ML (<code>service-ml</code>)</strong>
-[source,bash]
-----
-# (Commandes similaires : cd service-ml, docker build &#8230;&#8203;, kubectl apply &#8230;&#8203;, cd ..)
-# Remplacer par les commandes réelles quand le service existera
-echo "Déploiement de service-ml à faire&#8230;&#8203;"
-----</p>
-</li>
-<li>
-<p><strong>Service XAI (<code>service-xai</code>)</strong>
-[source,bash]
-----
-# (Commandes similaires : cd service-xai, docker build &#8230;&#8203;, kubectl apply &#8230;&#8203;, cd ..)
-# Remplacer par les commandes réelles quand le service existera
-echo "Déploiement de service-xai à faire&#8230;&#8203;"
-----</p>
-</li>
-<li>
-<p><strong>Frontend (<code>frontend</code>)</strong>
-[source,bash]
-----
-# (Commandes similaires : cd frontend, docker build &#8230;&#8203;, kubectl apply &#8230;&#8203;, cd ..)
-# Remplacer par les commandes réelles quand le service existera
-echo "Déploiement de frontend à faire&#8230;&#8203;"
-----</p>
-</li>
-</ol>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl apply -f k8s/deployment.yaml -n exai
+kubectl apply -f k8s/service.yaml -n exai</pre>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -557,7 +530,7 @@ echo "Déploiement de frontend à faire&#8230;&#8203;"
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl get pods -n exai</code></pre>
+<pre>kubectl get pods -n exai</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -568,7 +541,7 @@ echo "Déploiement de frontend à faire&#8230;&#8203;"
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl get services -n exai</code></pre>
+<pre>kubectl get services -n exai</pre>
 </div>
 </div>
 </div>
@@ -584,7 +557,6 @@ echo "Déploiement de frontend à faire&#8230;&#8203;"
 <ol class="arabic">
 <li>
 <p>Obtenez l&#8217;URL d&#8217;accès au service frontend :
-[source,bash]
 ----
 minikube service frontend --url -n exai
 ----
@@ -602,7 +574,6 @@ Cette commande ouvrira peut-être directement l&#8217;URL dans votre navigateur,
 <ol class="arabic">
 <li>
 <p>Obtenez l&#8217;URL de l&#8217;API Gateway :
-[source,bash]
 ----
 minikube service api-gateway --url -n exai
 ----</p>
@@ -649,7 +620,7 @@ minikube service api-gateway --url -n exai
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">minikube stop</code></pre>
+<pre>minikube stop</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -657,7 +628,7 @@ minikube service api-gateway --url -n exai
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">minikube delete</code></pre>
+<pre>minikube delete</pre>
 </div>
 </div>
 </div>

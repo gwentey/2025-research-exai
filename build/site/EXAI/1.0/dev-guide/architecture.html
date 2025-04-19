@@ -197,72 +197,18 @@
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Un diagramme d&#8217;architecture illustrant les composants ci-dessous et leurs interactions principales doit être inséré ici. Options possibles :</p>
+<p>Un diagramme d&#8217;architecture illustrant les composants décrits ci-dessous et leurs interactions principales doit être inséré ici.</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>PlantUML ou Mermaid intégré :</strong> Si Antora est configuré avec les extensions nécessaires.
-```plantuml
-@startuml
-!include <a href="https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml" class="bare">https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml</a></p>
-<div class="literalblock">
+<div class="paragraph">
+<p>Le moyen le plus simple est de créer le diagramme avec un outil externe (comme <a href="https://draw.io" target="_blank" rel="noopener">draw.io</a>, Lucidchart, Miro&#8230;&#8203;) et de l&#8217;enregistrer sous forme d&#8217;image (par exemple, <code>architecture-diagram.png</code>) dans le dossier <code>docs/modules/ROOT/assets/images/</code>. Ensuite, incluez-le avec la ligne suivante :</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<pre>Person(user, "Utilisateur")</pre>
+<pre class="highlightjs highlight"><code class="language-asciidoc hljs" data-lang="asciidoc">image::architecture-diagram.png[Diagramme d'architecture EXAI, L=auto]</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>System_Boundary(exai, "Plateforme EXAI") {
-    Container(frontend, "Frontend", "Angular, Tailwind", "Interface Utilisateur")
-    Container(api_gw, "API Gateway", "FastAPI", "Point d'entrée, Routage, Auth")
-    ContainerDb(db, "Base de Données", "PostgreSQL", "Stockage métadonnées datasets")
-    Container(sel_svc, "Service Sélection", "FastAPI", "Gestion &amp; Scoring Datasets")
-    Container(ml_svc, "Service ML", "FastAPI, Scikit-learn, Celery", "Entraînement &amp; Évaluation Modèles")
-    Container(xai_svc, "Service XAI", "FastAPI, SHAP, LIME, Celery", "Génération Explications XAI")
-    ContainerQueue(queue, "Message Queue", "Redis/Celery", "Tâches asynchrones ML/XAI")
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>    Rel(user, frontend, "Utilise")
-    Rel(frontend, api_gw, "Requêtes API", "HTTPS/REST")
-    Rel(api_gw, sel_svc, "Route vers", "REST")
-    Rel(api_gw, ml_svc, "Route vers", "REST")
-    Rel(api_gw, xai_svc, "Route vers", "REST")
-    Rel(sel_svc, db, "Lit/Écrit", "SQL")
-    Rel(ml_svc, queue, "Envoie tâches")
-    Rel(xai_svc, queue, "Envoie tâches")
-    ' Ajouter d'autres relations si nécessaire (ex: XAI &lt;-&gt; ML)
-    @enduml
-    ```
-2.  **Image Externe :** Créer le diagramme avec un outil externe (draw.io, Lucidchart...) et l'inclure.
-    `image::architecture-diagram.png[Diagramme d'architecture EXAI]`
-3.  **Diagramme Texte AsciiDoc :** Pour une version très simple.
-    ```text
-    +-----------+       +-------------+       +---------------------+
-    | Utilisateur | ----&gt; |  Frontend   | ----&gt; |     API Gateway     |---
-    +-----------+       | (Angular)   |       |      (FastAPI)      |   |
-                      +-------------+       +---------------------+   |
-                                                      |               |
-                                                      v               v
-                                          +-------------+   +-------------+
-                                          | Service ML  |   | Service XAI |
-                                          | (FastAPI)   |   | (FastAPI)   |
-                                          +-------------+   +-------------+
-                                                |               |
-                                                v               v
-                                          +-------------+   +-------------+
-                                          |   Queue     |   |  Service    |
-                                          | (Celery)    |&lt;--|  Sélection  |---+--&gt; Database
-                                          +-------------+   |  (FastAPI)    |   | (Postgres)
-                                                          +-------------+---+ +----------+
-    ```</pre>
-</div>
-</div>
-</li>
-</ol>
+<div class="paragraph">
+<p>(Assurez-vous que le chemin d&#8217;accès à l&#8217;image est correct par rapport à l&#8217;emplacement de ce fichier <code>architecture.adoc</code>.)</p>
 </div>
 </td>
 </tr>

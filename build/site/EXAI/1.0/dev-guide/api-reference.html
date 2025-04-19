@@ -215,11 +215,11 @@
 </li>
 <li>
 <p><strong>Exemple <code>curl</code> (form-urlencoded) :</strong>
-<code><code>bash
+----
 curl -X POST "&lt;URL_API_GATEWAY&gt;/api/v1/auth/login" \
 -H "Content-Type: application/x-www-form-urlencoded" \
 -d "username=testuser&amp;password=testpassword"
-</code></code></p>
+----</p>
 </li>
 </ul>
 </div>
@@ -236,11 +236,11 @@ curl -X POST "&lt;URL_API_GATEWAY&gt;/api/v1/auth/login" \
 </li>
 <li>
 <p><strong>Exemple <code>curl</code> (pour un endpoint GET) :</strong>
-<code><code>bash
+----
 TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9&#8230;&#8203;" # Remplacez par votre token
 curl -X GET "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/" \
 -H "Authorization: Bearer $TOKEN"
-</code></code></p>
+----</p>
 </li>
 </ul>
 </div>
@@ -304,7 +304,7 @@ curl -X GET "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/" \
 <p><strong>Voir :</strong> Référence du Service Sélection ci-dessous.</p>
 </li>
 <li>
-<p><code>GET /api/v1/datasets/\</code>{dataset_id}\``</p>
+<p><code>GET /api/v1/datasets/{dataset_id}</code></p>
 </li>
 <li>
 <p><strong>Description :</strong> Récupère les détails d&#8217;un dataset spécifique.</p>
@@ -347,7 +347,7 @@ curl -X GET "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/" \
 <p><strong>Voir :</strong> Référence du Service ML ci-dessous.</p>
 </li>
 <li>
-<p><code>GET /api/v1/ml/jobs/\</code>{job_id}\`` (Exemple)</p>
+<p><code>GET /api/v1/ml/jobs/{job_id}</code> (Exemple)</p>
 </li>
 <li>
 <p><strong>Description :</strong> Récupère le statut ou les résultats d&#8217;une tâche d&#8217;entraînement.</p>
@@ -378,7 +378,7 @@ curl -X GET "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/" \
 <p><strong>Voir :</strong> Référence du Service XAI ci-dessous.</p>
 </li>
 <li>
-<p><code>GET /api/v1/xai/jobs/\</code>{job_id}\`` (Exemple)</p>
+<p><code>GET /api/v1/xai/jobs/{job_id}</code> (Exemple)</p>
 </li>
 <li>
 <p><strong>Description :</strong> Récupère le statut ou les résultats d&#8217;une tâche XAI.</p>
@@ -433,10 +433,10 @@ curl -X GET "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/" \
 </li>
 <li>
 <p><strong>Exemple <code>curl</code> (authentifié via Gateway) :</strong>
-<code><code>bash
+----
 TOKEN="&#8230;&#8203;"
 curl -X GET "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/?limit=10" -H "Authorization: Bearer $TOKEN"
-</code></code></p>
+----</p>
 </li>
 <li>
 <p><strong>Endpoint :</strong> <code>POST /datasets/</code></p>
@@ -466,22 +466,22 @@ curl -X GET "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/?limit=10" -H "Authorizatio
 </li>
 <li>
 <p><strong>Exemple <code>curl</code> (authentifié via Gateway) :</strong>
-<code><code>bash
+----
 TOKEN="&#8230;&#8203;"
 curl -X POST "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/" \
 -H "Authorization: Bearer $TOKEN" \
 -H "Content-Type: application/json" \
 -d '{"name": "Test", "description": "Test desc", "file_path": "/path", "file_type": "csv"}'
-</code></code></p>
+----</p>
 </li>
 <li>
-<p><strong>Endpoint :</strong> <code>GET /datasets/\</code>{dataset_id}\``</p>
+<p><strong>Endpoint :</strong> <code>GET /datasets/{dataset_id}</code></p>
 </li>
 <li>
 <p><strong>Description :</strong> Récupère les détails d&#8217;un dataset par son ID.</p>
 </li>
 <li>
-<p><strong>Paramètre Path :</strong> <code>dataset_id: int</code>.</p>
+<p><strong>Paramètre Path :</strong> <code>{dataset_id}: int</code>.</p>
 </li>
 <li>
 <p><strong>Réponse Succès (200 OK) :</strong> Objet Dataset.</p>
@@ -491,10 +491,10 @@ curl -X POST "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/" \
 </li>
 <li>
 <p><strong>Exemple <code>curl</code> (authentifié via Gateway) :</strong>
-<code><code>bash
+----
 TOKEN="&#8230;&#8203;"
 curl -X GET "&lt;URL_API_GATEWAY&gt;/api/v1/datasets/1" -H "Authorization: Bearer $TOKEN"
-</code></code></p>
+----</p>
 </li>
 <li>
 <p><strong>Endpoint :</strong> <code>POST /datasets/search</code> (Exemple)</p>
