@@ -35,13 +35,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20' 
+          # cache: 'npm' # Supprimé car nous n'utilisons pas de package-lock.json à la racine
 
-      - name: Install Antora CLI and Default Site Generator
-        run: echo "Using npx to run Antora"
+      - name: Install Antora CLI and Default Generator Globally
+        # Installe explicitement les paquets nécessaires globalement
+        run: npm install -g @antora/cli @antora/site-generator-default
 
       - name: Build Antora Site
-
-        run: npx --yes @antora/cli@latest --cache-dir=./.cache/antora antora-playbook.yml
+        # Utilise la commande antora installée globalement
+        run: antora --cache-dir=./.cache/antora antora-playbook.yml
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
