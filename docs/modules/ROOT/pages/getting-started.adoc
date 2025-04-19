@@ -165,7 +165,17 @@ En résumé, l'application initiale des migrations implique :
 kubectl port-forward service/postgresql-service -n exai 5432:5432
 ----
 
-2.  **Configurer la connexion locale :** S'assurer que les fichiers `.env` à la racine des répertoires `api-gateway` et `service-selection` contiennent la bonne `DATABASE_URL` pointant vers `localhost:5432` (voir le guide détaillé).
+2.  **Configurer la connexion locale :** 
+
+[source,bash]
+----
+# Copier le fichier d'exemple de configuration en fichier .env à la racine du projet
+cp .env.example .env
+
+# Vous pouvez également modifier ce fichier .env si nécessaire pour ajuster les paramètres de connexion
+----
+
+S'assurer que le fichier `.env` à la racine du projet contient la bonne `DATABASE_URL` pointant vers `localhost:5432` pour permettre aux migrations Alembic de se connecter à la base de données.
 
 3.  **Créer et activer un environnement virtuel Python** pour isoler les dépendances :
 

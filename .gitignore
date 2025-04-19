@@ -1,0 +1,56 @@
+# Environnements virtuels Python
+.venv/
+venv/
+env/
+ENV/
+
+# Variables d'environnement
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Fichiers Python générés
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.egg-info/
+dist/
+build/
+*.egg
+
+# Fichiers IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Fichiers spécifiques à Kubernetes/Docker
+*.log
+*.tmp
+
+# Node.js / Angular
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.angular/
+.pnp/
+.pnp.js
+coverage/
+/dist/
+/tmp/
+/out-tsc/
+
+# NOTE: NE PAS ignorer les dossiers de migrations Alembic !
+# Les fichiers suivants sont essentiels et doivent être versionnés :
+# alembic/versions/ 
