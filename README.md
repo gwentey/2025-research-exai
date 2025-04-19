@@ -15,8 +15,7 @@ Ce projet académique est une plateforme de démonstration (Proof of Concept) vi
 
 **Toute la documentation technique et utilisateur détaillée se trouve dans notre documentation dédiée générée avec Antora.**
 
-➡️ **Consultez la documentation ici :** [`docs/README.md`](docs/README.md) 
-*(Note : Ce lien pointe vers le README du module Antora. Idéalement, remplacez-le par l'URL du site de documentation généré une fois disponible.)*
+➡️ **Consultez la documentation en ligne ici :** [https://gwentey.github.io/2025-research-exai/](https://gwentey.github.io/2025-research-exai/)
 
 Vous y trouverez :
 - Le guide d'installation complet (Prérequis, Minikube, Docker, etc.)
