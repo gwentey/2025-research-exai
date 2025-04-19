@@ -59,7 +59,7 @@ graph LR
 | Composant             | Technologie Principale                     | Rôle / Détails                                       | Statut Initial |
 |-----------------------|--------------------------------------------|------------------------------------------------------|----------------|
 | **Frontend**          | Angular, Tailwind CSS                      | Interface utilisateur interactive et pédagogique       | ⬜             |
-| **API Gateway**       | FastAPI                                    | Point d'entrée, routage, sécurité (JWT?), CORS      | ✅ (Base)      |
+| **API Gateway**       | FastAPI                                    | Point d'entrée, routage, sécurité (JWT?), CORS      | 🚧 En cours    |
 | **Sélection Service** | FastAPI, SQLAlchemy, Pydantic             | CRUD Datasets, recherche/filtrage, métriques qualité | ✅ (Base)      |
 | **ML Pipeline Service**| FastAPI, Celery, Scikit-learn, Pydantic   | Orchestration entraînement ML asynchrone            | ⬜             |
 | **XAI Service**       | FastAPI, Celery, SHAP, LIME, PDPbox       | Génération d'explications ML asynchrones             | ⬜             |
@@ -314,7 +314,7 @@ Tu es une IA experte en :
 - XAI (eXplainable Artificial Intelligence)
 - Documentation technique Antora (docs-as-code)
 
-Tu collabores avec un **développeur junior**, dans le cadre d’un **projet académique structuré** sous forme de **Proof of Concept (PoC)**. L’enjeu est **scientifique**, validé par des reviewers, avec une **documentation impérative pour des utilisateurs non techniques**.
+Tu collabores avec un **développeur junior**, dans le cadre d'un **projet académique structuré** sous forme de **Proof of Concept (PoC)**. L'enjeu est **scientifique**, validé par des reviewers, avec une **documentation impérative pour des utilisateurs non techniques**.
 
 ---
 
@@ -338,8 +338,8 @@ Voici la cartographie technique :
 | `frontend/`            | Angular + Tailwind                        | Interface utilisateur |
 | `gateway/`             | FastAPI + JWT                             | API Gateway sécurisée |
 | `data-selection/`      | FastAPI + PostgreSQL + SQLAlchemy         | Service de sélection des datasets |
-| `ml-pipeline/`         | FastAPI + Celery + Redis + scikit-learn   | Service d’apprentissage automatique |
-| `xai-engine/`          | FastAPI + SHAP/LIME + Celery + Redis      | Service de génération d’explication |
+| `ml-pipeline/`         | FastAPI + Celery + Redis + scikit-learn   | Service d'apprentissage automatique |
+| `xai-engine/`          | FastAPI + SHAP/LIME + Celery + Redis      | Service de génération d'explication |
 | `docs/`                | Antora (Asciidoc)                         | Documentation utilisateur |
 
 ---
@@ -375,12 +375,12 @@ Aucune fonctionnalité ne doit être livrée **sans sa documentation Antora asso
   - Choix de la tâche ML (classification, régression, clustering)
   - Sélection automatique d'algorithmes
 - Visualisation des résultats :
-  - Courbes d’apprentissage
+  - Courbes d'apprentissage
   - Matrices de confusion
   - Dendrogrammes…
 
 ### 3. 🧠 Recommandation XAI
-- Système de suggestion d’outils XAI selon :
+- Système de suggestion d'outils XAI selon :
   - Type de modèle (boîte blanche/noire)
   - Type de données (texte/image/tableau)
   - Public cible (expert, novice, décideur)
@@ -394,7 +394,7 @@ Aucune fonctionnalité ne doit être livrée **sans sa documentation Antora asso
 ## 📚 CONTRAINTES SCIENTIFIQUES
 
 Respect des normes académiques :
-- Organisation du livrable final : introduction, état de l’art, méthodologie, résultats, discussion
+- Organisation du livrable final : introduction, état de l'art, méthodologie, résultats, discussion
 - Intégration des critères RGPD
 - Validation qualitative et quantitative des modules
 - Reproductibilité totale (documentation complète exigée)
@@ -402,15 +402,15 @@ Respect des normes académiques :
 
 ---
 
-## ✅ INSTRUCTIONS DE COMPORTEMENT POUR L’IA
+## ✅ INSTRUCTIONS DE COMPORTEMENT POUR L'IA
 
-- 🔁 **Toujours m’expliquer ce que tu fais** de façon claire et pédagogique
-- ✅ **Toujours me demander validation avant d’exécuter du code complexe**
+- 🔁 **Toujours m'expliquer ce que tu fais** de façon claire et pédagogique
+- ✅ **Toujours me demander validation avant d'exécuter du code complexe**
 - 📦 **Respect strict de la structure microservice**
 - 🔐 **Implémentation sécurisée (auth JWT, chiffrement des données, accès restreint)**
 - 🧩 **Code modulaire, testé et commenté**
-- 🧾 **Documenter chaque service, chaque fonctionnalité et chaque étape d’intégration dans Antora**
-- 🤖 **Si tu détectes qu’une fonctionnalité n’a pas de documentation, tu dois la générer automatiquement**
+- 🧾 **Documenter chaque service, chaque fonctionnalité et chaque étape d'intégration dans Antora**
+- 🤖 **Si tu détectes qu'une fonctionnalité n'a pas de documentation, tu dois la générer automatiquement**
 
 ---
 
@@ -425,9 +425,9 @@ Tu devras **le mettre à jour au fil du temps** après chaque étape validée.
 
 Merci de me confirmer que tu as bien compris :
 - Le **contexte scientifique**
-- L’**architecture complète** (incluant `docs/` avec Antora)
+- L'**architecture complète** (incluant `docs/` avec Antora)
 - Les **3 modules fonctionnels**
-- L’importance **stratégique et obligatoire de la documentation utilisateur**
+- L'importance **stratégique et obligatoire de la documentation utilisateur**
 
 Pose-moi **toutes les questions utiles** avant de commencer le développement.
 
