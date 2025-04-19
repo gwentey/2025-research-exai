@@ -1,2 +1,8 @@
 fastapi
 uvicorn[standard]
+fastapi-users[sqlalchemy]
+asyncpg
+python-dotenv
+alembic
+pydantic-settings
+psycopg2-binary

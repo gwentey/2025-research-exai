@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Gestion des Migrations de Base de Données avec Alembic :: Documentation 2025 Research EXAI</title>
+    <meta name="generator" content="Antora 3.1.10">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/">Documentation 2025 Research EXAI</a>
+      <button class="navbar-burger" aria-controls="topbar-nav" aria-expanded="false" aria-label="Toggle main menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="EXAI" data-version="1.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
+    <h3 class="title"><a href="../index.html">Documentation Principale</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Accueil Projet EXAI</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../getting-started.html">🚀 Installation &amp; Démarrage</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Guide Utilisateur</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../user-guide/index.html">Présentation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../user-guide/dataset-selection.html">📊 Sélection de Datasets</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../user-guide/ml-pipeline.html">🛠️ Pipeline ML Interactif</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../user-guide/xai-recommendation.html">💡 Recommandations XAI</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Guide Développeur</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../dev-guide/index.html">Présentation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../dev-guide/architecture.html">Architecture Technique</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="database-migrations.html">Migrations Base de Données (Alembic)</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../dev-guide/api-reference.html">Référence API</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Documentation Principale</span>
+    <span class="version">1.0</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../index.html">Documentation Principale</a></div>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">1.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Documentation Principale</a></li>
+    <li>Guide Développeur</li>
+    <li><a href="database-migrations.html">Migrations Base de Données (Alembic)</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///C:/xampp/htdocs/2025-research-exai/docs/modules/ROOT/pages/development/database-migrations.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Gestion des Migrations de Base de Données avec Alembic</h1>
+<div class="sect1">
+<h2 id="_contexte_et_objectif"><a class="anchor" href="#_contexte_et_objectif"></a>Contexte et Objectif</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ce projet utilise une base de données PostgreSQL potentiellement partagée par plusieurs microservices (<code>api-gateway</code>, <code>service-selection</code>, etc.).
+Il est crucial que les modifications du schéma de la base de données (ajout de tables, modification de colonnes&#8230;&#8203;) soient gérées de manière :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Robuste et Fiable :</strong> Pour éviter les erreurs et la corruption des données.</p>
+</li>
+<li>
+<p><strong>Versionnée :</strong> Pour pouvoir suivre les changements et revenir en arrière si nécessaire.</p>
+</li>
+<li>
+<p><strong>Reproductible :</strong> Pour garantir que l&#8217;état de la base de données est cohérent entre les environnements (développement, production).</p>
+</li>
+<li>
+<p><strong>Adaptée aux Microservices :</strong> Pour que chaque service puisse gérer indépendamment le schéma des tables dont il est responsable.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Pour répondre à ces exigences, nous utilisons l&#8217;outil <strong>Alembic</strong>, un standard dans l&#8217;écosystème SQLAlchemy.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Cette approche remplace les éventuels scripts d&#8217;initialisation SQL statiques, qui sont moins flexibles et plus difficiles à maintenir à long terme.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_approche_microservices_indépendance_des_migrations"><a class="anchor" href="#_approche_microservices_indépendance_des_migrations"></a>Approche Microservices : Indépendance des Migrations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Principe fondamental : <strong>Chaque microservice qui interagit avec la base de données possède son propre environnement Alembic indépendant.</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>api-gateway</code> gère les migrations pour ses tables (ex: <code>user</code>).</p>
+</li>
+<li>
+<p><code>service-selection</code> gère les migrations pour ses tables (ex: <code>datasets</code>).</p>
+</li>
+<li>
+<p>Etc. pour les futurs services.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Cela garantit que les services restent faiblement couplés et peuvent évoluer indépendamment.</p>
+</div>
+<div class="sect2">
+<h3 id="_tables_dhistorique_séparées"><a class="anchor" href="#_tables_dhistorique_séparées"></a>Tables d&#8217;Historique Séparées</h3>
+<div class="paragraph">
+<p>Pour que plusieurs environnements Alembic puissent coexister dans la <strong>même base de données</strong>, chacun utilise une <strong>table d&#8217;historique distincte</strong> pour suivre les migrations appliquées :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>api-gateway</code> utilise la table <code>alembic_version_gateway</code>.</p>
+</li>
+<li>
+<p><code>service-selection</code> utilise la table <code>alembic_version_selection</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Ces noms sont configurés dans le fichier <code>alembic.ini</code> de chaque service respectif, via l&#8217;option <code>version_table</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_processus_de_migration_développement_local"><a class="anchor" href="#_processus_de_migration_développement_local"></a>Processus de Migration (Développement Local)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Voici les étapes pour générer et appliquer des migrations lorsque vous développez localement, en interagissant avec la base de données tournant sur Minikube.</p>
+</div>
+<div class="sect2">
+<h3 id="_prérequis"><a class="anchor" href="#_prérequis"></a>Prérequis</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Dépendances Installées :</strong> Assurez-vous d&#8217;avoir installé les dépendances Python pour le service concerné en exécutant <code>pip install -r requirements.txt</code> dans le répertoire du service (ex: <code>api-gateway/</code> ou <code>service-selection/</code>) après avoir activé votre environnement virtuel (<code>.venv</code>).</p>
+</li>
+<li>
+<p><strong>Base de Données Accessible :</strong> La base de données PostgreSQL doit être déployée et fonctionnelle sur Minikube (voir guide d&#8217;installation).</p>
+</li>
+<li>
+<p><strong>Tunnel Réseau (Port Forwarding) :</strong> Comme Alembic s&#8217;exécute sur votre machine locale, il a besoin d&#8217;un moyen d&#8217;atteindre la base de données à l&#8217;intérieur de Minikube. Ouvrez un <strong>terminal distinct</strong> et lancez la commande suivante. <strong>Laissez ce terminal ouvert</strong> pendant que vous travaillez avec Alembic :</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl port-forward service/postgresql-service -n exai 5432:5432</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Cela redirige le port <code>5432</code> de votre <code>localhost</code> vers le service PostgreSQL dans Minikube.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration_de_la_connexion_locale_env"><a class="anchor" href="#_configuration_de_la_connexion_locale_env"></a>Configuration de la Connexion Locale (<code>.env</code>)</h3>
+<div class="paragraph">
+<p>Pour qu&#8217;Alembic (et votre application en local) sache comment se connecter à la base de données via le tunnel, vous devez configurer l&#8217;URL de connexion. La méthode recommandée est d&#8217;utiliser un fichier <code>.env</code>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Créez (ou modifiez)</strong> un fichier nommé <code>.env</code> à la racine du répertoire de <strong>chaque service</strong> concerné (ex: <code>api-gateway/.env</code>, <code>service-selection/.env</code>).</p>
+</li>
+<li>
+<p>Ajoutez la ligne suivante dans chaque fichier <code>.env</code>, en adaptant les identifiants si nécessaire (ils doivent correspondre à ceux configurés dans PostgreSQL) :</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">Exemple de contenu pour <code>.env</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-dotenv hljs" data-lang="dotenv">DATABASE_URL="postgresql+asyncpg://exai_user:password@localhost:5432/exai_db"
+SECRET_KEY="votre_cle_secrete_pour_api_gateway" # Uniquement pour api-gateway/.env</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>postgresql+asyncpg://</code> : Indique l&#8217;utilisation du pilote asynchrone <code>asyncpg</code>.</p>
+</li>
+<li>
+<p><code>exai_user:password</code> : Remplacez par l&#8217;utilisateur et le mot de passe réels de votre base <code>exai_db</code>.</p>
+</li>
+<li>
+<p><code>localhost:5432</code> : Pointe vers le tunnel créé par <code>kubectl port-forward</code>.</p>
+</li>
+<li>
+<p><code>exai_db</code> : Le nom de votre base de données.</p>
+</li>
+<li>
+<p><code>SECRET_KEY</code> : Nécessaire pour <code>api-gateway</code>, utilisez une clé secrète forte (voir configuration JWT).</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Ne commitez JAMAIS</strong> votre fichier <code>.env</code> dans Git ! Ajoutez <code>.env</code> à votre fichier <code>.gitignore</code> global ou à celui de chaque service.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_génération_dune_nouvelle_migration"><a class="anchor" href="#_génération_dune_nouvelle_migration"></a>Génération d&#8217;une Nouvelle Migration</h3>
+<div class="paragraph">
+<p>Chaque fois que vous modifiez un modèle SQLAlchemy (ex: ajout d&#8217;une colonne dans <code>app/models.py</code> du service concerné), vous devez générer un script de migration.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Ouvrez votre terminal principal.</p>
+</li>
+<li>
+<p>Assurez-vous d&#8217;être dans le répertoire du <strong>service concerné</strong> (ex: <code>cd api-gateway</code>).</p>
+</li>
+<li>
+<p>Assurez-vous que votre environnement virtuel est activé.</p>
+</li>
+<li>
+<p>Lancez la commande <code>autogenerate</code> :</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Remplacez "Description concise du changement" par un message clair
+alembic revision --autogenerate -m "Description concise du changement"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alembic va :
+*   Lire la variable <code>DATABASE_URL</code> de votre environnement (priorité à une variable définie directement dans le terminal, sinon lecture du <code>.env</code>).
+*   Se connecter à la base de données via le tunnel <code>port-forward</code>.
+*   Comparer l&#8217;état actuel de la base avec les modèles définis dans le code Python du service.
+*   Générer un nouveau fichier Python dans le sous-dossier <code>alembic/versions/</code> contenant les opérations <code>op.</code> nécessaires (ex: <code>op.add_column(&#8230;&#8203;)</code>).</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Vérifiez TOUJOURS</strong> le contenu du fichier de migration généré ! <code>autogenerate</code> n&#8217;est pas parfait, surtout dans un contexte de base partagée. Assurez-vous qu&#8217;il ne contient pas d&#8217;opérations inattendues, notamment des <code>op.drop_table()</code> pour des tables appartenant à d&#8217;autres services. Corrigez manuellement le script si nécessaire avant de l&#8217;appliquer.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application_des_migrations"><a class="anchor" href="#_application_des_migrations"></a>Application des Migrations</h3>
+<div class="paragraph">
+<p>Pour appliquer les changements définis dans les scripts de migration à la base de données :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Assurez-vous que le tunnel <code>port-forward</code> est actif.</p>
+</li>
+<li>
+<p>Depuis le répertoire du service concerné (avec <code>.venv</code> activé), lancez :</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">alembic upgrade head</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Cela exécute les fonctions <code>upgrade()</code> de toutes les migrations en attente (celles qui ne sont pas encore enregistrées dans la table d&#8217;historique du service : <code>alembic_version_gateway</code> ou <code>alembic_version_selection</code>).</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_processus_de_migration_déploiementproduction"><a class="anchor" href="#_processus_de_migration_déploiementproduction"></a>Processus de Migration (Déploiement/Production)</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>L&#8217;application des migrations en production (ou sur des environnements de staging/pré-production) ne se fait <strong>PAS</strong> manuellement via <code>kubectl port-forward</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Le processus standard dans un pipeline de déploiement (CI/CD) est d&#8217;utiliser un <strong>Kubernetes Job</strong> :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Le pipeline construit la nouvelle image Docker du service.</p>
+</li>
+<li>
+<p>Avant de déployer le service lui-même, le pipeline lance un Job Kubernetes.</p>
+</li>
+<li>
+<p>Ce Job utilise la même image Docker (ou une image dédiée aux migrations) et exécute la commande <code>alembic upgrade head</code> <strong>depuis l&#8217;intérieur du cluster</strong>.</p>
+</li>
+<li>
+<p>Le Job récupère l&#8217;URL de la base de données et les identifiants depuis les <strong>Secrets Kubernetes</strong>, lui permettant de se connecter directement au service PostgreSQL interne.</p>
+</li>
+<li>
+<p>Le pipeline attend que le Job se termine avec succès avant de déployer la nouvelle version du service applicatif.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Cette approche garantit que les migrations sont appliquées de manière automatisée et sécurisée, en utilisant les configurations de l&#8217;environnement cible.</p>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

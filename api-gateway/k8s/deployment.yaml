@@ -17,6 +17,9 @@ spec:
       - name: api-gateway
         image: exai-api-gateway:latest
         imagePullPolicy: IfNotPresent
+        envFrom:
+          - secretRef:
+              name: gateway-secrets
         ports:
         - containerPort: 8088
         resources:

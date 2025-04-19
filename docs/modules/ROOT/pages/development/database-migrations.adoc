@@ -1,0 +1,140 @@
+= Gestion des Migrations de Base de Données avec Alembic
+
+// Métadonnées pour Antora (optionnel mais utile)
+:description: Explique comment gérer les changements de schéma de la base de données PostgreSQL partagée à l'aide d'Alembic pour chaque microservice.
+:keywords: alembic, migration, base de données, database, postgresql, microservices, api-gateway, service-selection
+
+== Contexte et Objectif
+
+Ce projet utilise une base de données PostgreSQL potentiellement partagée par plusieurs microservices (`api-gateway`, `service-selection`, etc.).
+Il est crucial que les modifications du schéma de la base de données (ajout de tables, modification de colonnes...) soient gérées de manière :
+
+*   **Robuste et Fiable :** Pour éviter les erreurs et la corruption des données.
+*   **Versionnée :** Pour pouvoir suivre les changements et revenir en arrière si nécessaire.
+*   **Reproductible :** Pour garantir que l'état de la base de données est cohérent entre les environnements (développement, production).
+*   **Adaptée aux Microservices :** Pour que chaque service puisse gérer indépendamment le schéma des tables dont il est responsable.
+
+Pour répondre à ces exigences, nous utilisons l'outil **Alembic**, un standard dans l'écosystème SQLAlchemy.
+
+[IMPORTANT]
+====
+Cette approche remplace les éventuels scripts d'initialisation SQL statiques, qui sont moins flexibles et plus difficiles à maintenir à long terme.
+====
+
+== Approche Microservices : Indépendance des Migrations
+
+Principe fondamental : **Chaque microservice qui interagit avec la base de données possède son propre environnement Alembic indépendant.**
+
+*   `api-gateway` gère les migrations pour ses tables (ex: `user`).
+*   `service-selection` gère les migrations pour ses tables (ex: `datasets`).
+*   Etc. pour les futurs services.
+
+Cela garantit que les services restent faiblement couplés et peuvent évoluer indépendamment.
+
+=== Tables d'Historique Séparées
+
+Pour que plusieurs environnements Alembic puissent coexister dans la *même base de données*, chacun utilise une **table d'historique distincte** pour suivre les migrations appliquées :
+
+*   `api-gateway` utilise la table `alembic_version_gateway`.
+*   `service-selection` utilise la table `alembic_version_selection`.
+
+Ces noms sont configurés dans le fichier `alembic.ini` de chaque service respectif, via l'option `version_table`.
+
+== Processus de Migration (Développement Local)
+
+Voici les étapes pour générer et appliquer des migrations lorsque vous développez localement, en interagissant avec la base de données tournant sur Minikube.
+
+=== Prérequis
+
+1.  **Dépendances Installées :** Assurez-vous d'avoir installé les dépendances Python pour le service concerné en exécutant `pip install -r requirements.txt` dans le répertoire du service (ex: `api-gateway/` ou `service-selection/`) après avoir activé votre environnement virtuel (`.venv`).
+2.  **Base de Données Accessible :** La base de données PostgreSQL doit être déployée et fonctionnelle sur Minikube (voir guide d'installation).
+3.  **Tunnel Réseau (Port Forwarding) :** Comme Alembic s'exécute sur votre machine locale, il a besoin d'un moyen d'atteindre la base de données à l'intérieur de Minikube. Ouvrez un **terminal distinct** et lancez la commande suivante. **Laissez ce terminal ouvert** pendant que vous travaillez avec Alembic :
+
+[source,bash]
+----
+kubectl port-forward service/postgresql-service -n exai 5432:5432
+----
+
+Cela redirige le port `5432` de votre `localhost` vers le service PostgreSQL dans Minikube.
+
+=== Configuration de la Connexion Locale (`.env`)
+
+Pour qu'Alembic (et votre application en local) sache comment se connecter à la base de données via le tunnel, vous devez configurer l'URL de connexion. La méthode recommandée est d'utiliser un fichier `.env`.
+
+1.  **Créez (ou modifiez)** un fichier nommé `.env` à la racine du répertoire de **chaque service** concerné (ex: `api-gateway/.env`, `service-selection/.env`).
+2.  Ajoutez la ligne suivante dans chaque fichier `.env`, en adaptant les identifiants si nécessaire (ils doivent correspondre à ceux configurés dans PostgreSQL) :
+
+[source,dotenv]
+.Exemple de contenu pour `.env`
+----
+DATABASE_URL="postgresql+asyncpg://exai_user:password@localhost:5432/exai_db"
+SECRET_KEY="votre_cle_secrete_pour_api_gateway" # Uniquement pour api-gateway/.env
+----
+
+*   `postgresql+asyncpg://` : Indique l'utilisation du pilote asynchrone `asyncpg`.
+*   `exai_user:password` : Remplacez par l'utilisateur et le mot de passe réels de votre base `exai_db`.
+*   `localhost:5432` : Pointe vers le tunnel créé par `kubectl port-forward`.
+*   `exai_db` : Le nom de votre base de données.
+*   `SECRET_KEY` : Nécessaire pour `api-gateway`, utilisez une clé secrète forte (voir configuration JWT).
+
+[WARNING]
+====
+**Ne commitez JAMAIS** votre fichier `.env` dans Git ! Ajoutez `.env` à votre fichier `.gitignore` global ou à celui de chaque service.
+====
+
+=== Génération d'une Nouvelle Migration
+
+Chaque fois que vous modifiez un modèle SQLAlchemy (ex: ajout d'une colonne dans `app/models.py` du service concerné), vous devez générer un script de migration.
+
+1.  Ouvrez votre terminal principal.
+2.  Assurez-vous d'être dans le répertoire du **service concerné** (ex: `cd api-gateway`).
+3.  Assurez-vous que votre environnement virtuel est activé.
+4.  Lancez la commande `autogenerate` :
+
+[source,bash]
+----
+# Remplacez "Description concise du changement" par un message clair
+alembic revision --autogenerate -m "Description concise du changement"
+----
+
+Alembic va :
+*   Lire la variable `DATABASE_URL` de votre environnement (priorité à une variable définie directement dans le terminal, sinon lecture du `.env`).
+*   Se connecter à la base de données via le tunnel `port-forward`.
+*   Comparer l'état actuel de la base avec les modèles définis dans le code Python du service.
+*   Générer un nouveau fichier Python dans le sous-dossier `alembic/versions/` contenant les opérations `op.` nécessaires (ex: `op.add_column(...)`).
+
+[IMPORTANT]
+====
+**Vérifiez TOUJOURS** le contenu du fichier de migration généré ! `autogenerate` n'est pas parfait, surtout dans un contexte de base partagée. Assurez-vous qu'il ne contient pas d'opérations inattendues, notamment des `op.drop_table()` pour des tables appartenant à d'autres services. Corrigez manuellement le script si nécessaire avant de l'appliquer.
+====
+
+=== Application des Migrations
+
+Pour appliquer les changements définis dans les scripts de migration à la base de données :
+
+1.  Assurez-vous que le tunnel `port-forward` est actif.
+2.  Depuis le répertoire du service concerné (avec `.venv` activé), lancez :
+
+[source,bash]
+----
+alembic upgrade head
+----
+
+Cela exécute les fonctions `upgrade()` de toutes les migrations en attente (celles qui ne sont pas encore enregistrées dans la table d'historique du service : `alembic_version_gateway` ou `alembic_version_selection`).
+
+== Processus de Migration (Déploiement/Production)
+
+[NOTE]
+====
+L'application des migrations en production (ou sur des environnements de staging/pré-production) ne se fait **PAS** manuellement via `kubectl port-forward`.
+====
+
+Le processus standard dans un pipeline de déploiement (CI/CD) est d'utiliser un **Kubernetes Job** :
+
+1.  Le pipeline construit la nouvelle image Docker du service.
+2.  Avant de déployer le service lui-même, le pipeline lance un Job Kubernetes.
+3.  Ce Job utilise la même image Docker (ou une image dédiée aux migrations) et exécute la commande `alembic upgrade head` *depuis l'intérieur du cluster*.
+4.  Le Job récupère l'URL de la base de données et les identifiants depuis les **Secrets Kubernetes**, lui permettant de se connecter directement au service PostgreSQL interne.
+5.  Le pipeline attend que le Job se termine avec succès avant de déployer la nouvelle version du service applicatif.
+
+Cette approche garantit que les migrations sont appliquées de manière automatisée et sécurisée, en utilisant les configurations de l'environnement cible. 

@@ -75,11 +75,17 @@ graph LR
 
 ### ✅ API Gateway (`service-api-gateway`, port K8s: 8088)
 *   **Objectif :** Point d'entrée unique, sécurisé et routage vers les services backend.
-*   **Technos :** FastAPI, Uvicorn.
-*   **État actuel :** [✅] Base FastAPI + route `/ping` déployée. Exposé via NodePort Minikube.
+*   **Technos :** FastAPI, Uvicorn, **fastapi-users (pour JWT/Auth)**.
+*   **État actuel :** [🚧] Base FastAPI + route `/ping` déployée. CORS configuré (permissif). **Configuration initiale `fastapi-users` en cours.**
 *   **Étapes restantes :**
-    *   [⬜] Configurer CORS pour autoriser le Frontend Angular.
-    *   [⬜] Mettre en place la sécurité (ex: JWT pour authentification/autorisation future).
+    *   [✅] Configurer CORS pour autoriser le Frontend Angular. (Fait, configuration permissive)
+    *   [🚧] Mettre en place la sécurité (JWT via **fastapi-users**) :
+        *   [✅] Ajout dépendances (`fastapi-users[sqlalchemy]`, `asyncpg`).
+        *   [✅] Création fichiers config (`core/config.py`), db (`db.py`), modèles (`models/user.py`), schemas (`schemas/user.py`).
+        *   [⬜] Initialiser `fastapi-users` (gestionnaire d'utilisateurs, backend d'authentification JWT).
+        *   [⬜] Intégrer les routeurs `fastapi-users` (auth, register, users) dans `main.py`.
+        *   [⬜] Assurer la connexion à la base de données PostgreSQL (nécessite BDD déployée).
+        *   [⬜] Gérer la `SECRET_KEY` et `DATABASE_URL` via Secrets K8s.
     *   [⬜] Ajouter les routes de reverse proxy vers :
         *   [⬜] `/datasets/**` → `service-selection:8081`
         *   [⬜] `/pipelines/**` → `service-ml-pipeline:8082`
@@ -293,8 +299,8 @@ graph LR
 | **API Gateway**                                                      |        |                        |                                          |
 | ✅ Déployer API Gateway (Base)                                     |   ✅   | service-api-gateway    | Déjà fait apparemment                    |
 | ⬜ Configurer les reverse proxies vers les services internes         |   ⬜   | service-api-gateway    | `service-selection`, `service-ml-pipeline`, `service-xai` |
-| ⬜ Configurer CORS                                                  |   ⬜   | service-api-gateway    | Autoriser origine du Frontend Angular    |
-| ⬜ (Optionnel) Configurer sécurité JWT                               |   ⬜   | service-api-gateway    |                                          |
+| ✅ Configurer CORS                                                  |   ✅   | service-api-gateway    | Autoriser origine du Frontend Angular (fait, permissif) |
+| 🚧 Configurer sécurité JWT (via `fastapi-users`)                    |   🚧   | service-api-gateway    | Modèles/Schemas créés, reste initialisation/routes | 
 | ⬜ Mettre à jour le déploiement K8s                                   |   ⬜   | service-api-gateway    |                                          |
 | **Frontend Angular**                                                 |        |                        |                                          |
 | ⬜ Initialiser le projet Angular                                    |   ⬜   | exai-frontend          |                                          |

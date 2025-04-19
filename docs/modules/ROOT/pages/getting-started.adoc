@@ -40,6 +40,7 @@ Choisissez les commandes correspondant à votre système :
 
 *   **Windows (avec Chocolatey)** :
     Ouvrez PowerShell en tant qu'administrateur :
+[source,powershell]
 ----
 choco install minikube
 choco install kubernetes-cli
@@ -47,6 +48,7 @@ choco install kubernetes-cli
 
 *   **macOS (avec Homebrew)** :
     Ouvrez votre Terminal :
+[source,bash]
 ----
 brew install minikube
 brew install kubectl
@@ -54,6 +56,7 @@ brew install kubectl
 
 *   **Linux (Debian/Ubuntu)** :
     Ouvrez votre Terminal :
+[source,bash]
 ----
 # Installer Minikube
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
@@ -72,6 +75,7 @@ Après l'installation, vérifiez que les outils fonctionnent avec les commandes 
 
 Si ce n'est pas déjà fait, récupérez le code source du projet EXAI depuis son dépôt Git.
 
+[source,bash]
 ----
 git clone <URL_DU_DEPOT_GIT_EXAI>
 cd <NOM_DU_DOSSIER_PROJET_EXAI>
@@ -89,15 +93,21 @@ Minikube va créer une machine virtuelle (ou utiliser un conteneur Docker) pour 
 . Ouvrez votre terminal (à la racine du projet EXAI).
 . Lancez la commande suivante :
 
-  minikube start
-  # Astuce: Si vous avez plusieurs Go de RAM, vous pouvez allouer plus de ressources:
-  # minikube start --memory 4096 --cpus 2
+[source,bash]
+----
+minikube start
+# Astuce: Si vous avez plusieurs Go de RAM, vous pouvez allouer plus de ressources:
+# minikube start --memory 4096 --cpus 2
+----
 
 Le premier démarrage peut prendre quelques minutes car Minikube télécharge les images nécessaires.
 
 . Une fois terminé, vérifiez que le cluster est bien démarré :
 
-  minikube status
+[source,bash]
+----
+minikube status
+----
 
 Vous devriez voir des informations indiquant que `minikube`, `apiserver`, et `kubeconfig` sont `Running` ou `Configured`.
 
@@ -105,6 +115,7 @@ Vous devriez voir des informations indiquant que `minikube`, `apiserver`, et `ku
 
 Pour garder notre application organisée et isolée des autres composants système de Kubernetes, nous créons un "namespace" appelé `exai`.
 
+[source,bash]
 ----
 kubectl create namespace exai
 ----
@@ -117,40 +128,95 @@ EXAI a besoin d'une base de données PostgreSQL pour fonctionner. Nous la déplo
 
 . Appliquez les fichiers de configuration Kubernetes pour PostgreSQL :
 
-  kubectl apply -f k8s/postgres/ -n exai
+[source,bash]
+----
+kubectl apply -f k8s/postgres/ -n exai
+----
 
 Cela crée un `Deployment` (qui gère le Pod PostgreSQL) et un `Service` (qui permet aux autres composants de communiquer avec la base de données).
 
 . Vérifiez que le pod PostgreSQL démarre correctement :
 
-  kubectl get pods -n exai -l app=postgresql
+[source,bash]
+----
+kubectl get pods -n exai -l app=postgresql
+----
 
 Attendez que le statut du pod passe à `Running`. Cela peut prendre une minute ou deux. Vous pouvez relancer la commande pour suivre l'évolution. Si le statut reste bloqué sur `Pending` ou `ContainerCreating` pendant longtemps, consultez la section Dépannage.
 
-=== 3.4 Initialiser la Base de Données
+=== 3.4 Initialiser/Mettre à jour le Schéma de Base de Données (Alembic)
 
-Une fois le pod PostgreSQL en cours d'exécution (`Running`), nous devons exécuter un script SQL pour créer les tables nécessaires.
+Une fois que PostgreSQL est déployé sur Minikube, le schéma des tables requises par les microservices (`user`, `datasets`, etc.) doit être créé ou mis à jour.
+Ce projet utilise **Alembic** pour gérer ces migrations de manière versionnée, remplaçant les scripts d'initialisation statiques.
 
-. Identifiez le nom exact du pod PostgreSQL. La commande suivante devrait l'afficher directement :
+[IMPORTANT]
+====
+Après le premier déploiement de la base de données, ou lors d'une mise à jour de l'application nécessitant des changements de schéma, vous devez appliquer les migrations Alembic manuellement depuis votre environnement de développement local connecté à Minikube.
 
+Consultez le guide détaillé sur les migrations pour les étapes précises et le contexte :
+* xref:development/database-migrations.adoc[Gestion des Migrations de Base de Données avec Alembic]
 
-  POD_NAME=$(kubectl get pods -n exai -l app=postgresql -o jsonpath='{.items[0].metadata.name}')
-  echo "Nom du pod PostgreSQL trouvé : $POD_NAME"
+En résumé, l'application initiale des migrations implique :
 
-  
-Si cela ne fonctionne pas, utilisez `kubectl get pods -n exai | grep postgresql` et copiez le nom manuellement. **Notez bien ce nom pour les commandes suivantes.**
+1.  **Lancer le tunnel réseau** vers la base de données Minikube (à laisser tourner dans un terminal séparé) :
 
-. Copiez le script d'initialisation dans le pod :
+[source,bash]
+----
+kubectl port-forward service/postgresql-service -n exai 5432:5432
+----
 
-  # Remplacez <NOM_DU_POD_POSTGRES> par le nom que vous avez noté
-  kubectl cp k8s/postgres/init-db.sql <NOM_DU_POD_POSTGRES>:/tmp/init-db.sql -n exai
+2.  **Configurer la connexion locale :** S'assurer que les fichiers `.env` à la racine des répertoires `api-gateway` et `service-selection` contiennent la bonne `DATABASE_URL` pointant vers `localhost:5432` (voir le guide détaillé).
 
-. Exécutez le script SQL à l'intérieur du pod :
+3.  **Créer et activer un environnement virtuel Python** pour isoler les dépendances :
 
-  # Remplacez <NOM_DU_POD_POSTGRES> par le nom que vous avez noté
-  kubectl exec -n exai <NOM_DU_POD_POSTGRES> -- psql -U exai_user -d exai_db -f /tmp/init-db.sql
+[source,bash]
+----
+# Depuis le répertoire du service (par exemple api-gateway/)
+python -m venv .venv
 
-Vous devriez voir des messages indiquant la création des tables (`CREATE TABLE`).
+# Activation sur Linux/macOS
+source .venv/bin/activate
+
+# Activation sur Windows (PowerShell)
+.\.venv\Scripts\Activate.ps1
+
+# Activation sur Windows (CMD)
+.\.venv\Scripts\activate.bat
+----
+
+4.  **Installer les dépendances** pour chaque service :
+
+[source,bash]
+----
+# Dans l'environnement virtuel activé
+pip install -r requirements.txt
+----
+
+5.  **Charger les variables d'environnement** du fichier `.env` :
+
+[source,bash]
+----
+# Sur Linux/macOS
+export $(cat .env | xargs)
+
+# Sur Windows (PowerShell)
+Get-Content .env | ForEach-Object { $_ -replace "#.*", "" } | Where-Object { $_ } | ForEach-Object { $var = $_.Split('=', 2); Set-Item "env:$($var[0])" $var[1] }
+
+# Alternative: installer python-dotenv si ce n'est pas déjà inclus dans requirements.txt
+# pip install python-dotenv
+----
+
+6.  **Appliquer les migrations** pour chaque service (depuis le répertoire du service respectif, avec l'environnement virtuel activé) :
+
+[source,bash]
+----
+# Depuis le répertoire api-gateway/
+alembic upgrade head
+
+# Depuis le répertoire service-selection/
+alembic upgrade head
+----
+====
 
 === 3.5 Déployer les Microservices EXAI
 
@@ -159,36 +225,97 @@ Nous allons maintenant déployer les différents services qui composent l'applic
 IMPORTANT: Pour que Minikube puisse utiliser les images Docker que nous allons construire localement, vous devez connecter votre terminal à l'environnement Docker de Minikube. Exécutez la commande appropriée *une fois* pour votre session terminal :
 
 *   **Linux/macOS (Bash/Zsh)** :
-    ----
-    eval $(minikube -p minikube docker-env)
-    ----
+[source,bash]
+----
+eval $(minikube -p minikube docker-env)
+----
 *   **Windows (PowerShell)** :
-    ----
-    minikube -p minikube docker-env | Invoke-Expression
-    ----
+[source,powershell]
+----
+minikube -p minikube docker-env | Invoke-Expression
+----
 *   **Windows (Git Bash)** :
-    ----
-    eval $(minikube -p minikube docker-env)
-    ----
+[source,bash]
+----
+eval $(minikube -p minikube docker-env)
+----
 
-Maintenant, déployez chaque service. Pour l'instant, nous allons déployer les services principaux :
+Maintenant, déployez chaque service en suivant ces instructions pour tous les microservices de l'architecture EXAI :
 
+**1. API Gateway (`api-gateway`)**
 
-**API Gateway (`api-gateway`)**
+[source,bash]
+----
+# Construire l'image Docker (si nécessaire)
+docker build -t exai/api-gateway:latest ./api-gateway
 
-  kubectl apply -f k8s/deployment.yaml -n exai
-  kubectl apply -f k8s/service.yaml -n exai
+# Déployer le service
+kubectl apply -f k8s/api-gateway/deployment.yaml -n exai
+kubectl apply -f k8s/api-gateway/service.yaml -n exai
+----
+
+**2. Service de Sélection de Datasets (`service-selection`)**
+
+[source,bash]
+----
+# Construire l'image Docker (si nécessaire)
+docker build -t exai/service-selection:latest ./service-selection
+
+# Déployer le service
+kubectl apply -f k8s/service-selection/deployment.yaml -n exai
+kubectl apply -f k8s/service-selection/service.yaml -n exai
+----
+
+**3. Service de Pipeline ML (`ml-pipeline`)**
+
+[source,bash]
+----
+# Construire l'image Docker (si nécessaire)
+docker build -t exai/ml-pipeline:latest ./ml-pipeline
+
+# Déployer le service
+kubectl apply -f k8s/ml-pipeline/deployment.yaml -n exai
+kubectl apply -f k8s/ml-pipeline/service.yaml -n exai
+----
+
+**4. Service XAI Engine (`xai-engine`)**
+
+[source,bash]
+----
+# Construire l'image Docker (si nécessaire)
+docker build -t exai/xai-engine:latest ./xai-engine
+
+# Déployer le service
+kubectl apply -f k8s/xai-engine/deployment.yaml -n exai
+kubectl apply -f k8s/xai-engine/service.yaml -n exai
+----
+
+**5. Frontend (`frontend`)**
+
+[source,bash]
+----
+# Construire l'image Docker (si nécessaire)
+docker build -t exai/frontend:latest ./frontend
+
+# Déployer le service
+kubectl apply -f k8s/frontend/deployment.yaml -n exai
+kubectl apply -f k8s/frontend/service.yaml -n exai
+----
+
+NOTE: Les chemins des fichiers deployment.yaml et service.yaml peuvent varier selon la structure de votre projet. Adaptez les commandes en fonction de l'organisation de vos fichiers Kubernetes.
 
 === 3.6 Vérifier le Déploiement
 
 Après avoir lancé le déploiement de tous les services, vérifiez que leurs pods démarrent correctement.
 
+[source,bash]
 ----
 kubectl get pods -n exai
 ----
 Attendez que tous les pods (PostgreSQL, api-gateway, service-selection, etc.) affichent le statut `Running`. Cela peut prendre quelques minutes car les images sont chargées et les conteneurs démarrés.
 
 Vous pouvez aussi vérifier les services Kubernetes :
+[source,bash]
 ----
 kubectl get services -n exai
 ----
@@ -198,9 +325,10 @@ kubectl get services -n exai
 Une fois que tous les pods sont `Running`, vous pouvez accéder à l'application. L'accès principal se fait généralement via le Frontend.
 
 . Obtenez l'URL d'accès au service frontend :
-  ----
-  minikube service frontend --url -n exai
-  ----
+[source,bash]
+----
+minikube service frontend --url -n exai
+----
   Cette commande ouvrira peut-être directement l'URL dans votre navigateur, ou affichera l'URL (ex: `http://127.0.0.1:xxxxx`) dans le terminal.
 
 . Ouvrez l'URL retournée dans votre navigateur web. Vous devriez voir l'interface utilisateur d'EXAI.
@@ -208,9 +336,10 @@ Une fois que tous les pods sont `Running`, vous pouvez accéder à l'application
 Pour explorer les API directement (par exemple, pour le développement ou des tests avancés) :
 
 . Obtenez l'URL de l'API Gateway :
-  ----
-  minikube service api-gateway --url -n exai
-  ----
+[source,bash]
+----
+minikube service api-gateway --url -n exai
+----
 
 . Accédez à la documentation interactive (Swagger UI) en ajoutant `/docs` à l'URL obtenue : `http://127.0.0.1:yyyyy/docs`.
 
@@ -229,11 +358,13 @@ Félicitations ! Vous avez déployé EXAI localement avec Minikube.
 
 Pour arrêter l'application et libérer les ressources :
 
+[source,bash]
 ----
 minikube stop
 ----
 
 Pour supprimer complètement le cluster Minikube (attention, supprime toutes les données) :
+[source,bash]
 ----
 minikube delete
 ---- 
