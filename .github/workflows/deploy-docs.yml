@@ -1,0 +1,59 @@
+name: Deploy Antora Documentation to GitHub Pages
+
+on:
+  # Déclencher le workflow à chaque push sur la branche main
+  push:
+    branches:
+      - main # Ou master, selon votre nom de branche par défaut
+    # Optionnel: Déclencher uniquement si des fichiers dans docs/ ou le playbook changent
+    # paths:
+    #   - 'docs/**'
+    #   - 'antora-playbook.yml'
+
+  # Permet de lancer ce workflow manuellement depuis l'onglet Actions de GitHub
+  workflow_dispatch:
+
+# Donner les permissions nécessaires au job pour le déploiement sur GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Autoriser un seul déploiement concurrentiel, annuler les exécutions précédentes si une nouvelle arrive
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' 
+          cache: 'npm'
+
+      - name: Install Antora CLI and Default Site Generator
+        run: echo "Using npx to run Antora"
+
+      - name: Build Antora Site
+
+        run: npx --yes @antora/cli@latest --cache-dir=./.cache/antora antora-playbook.yml
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Chemin vers le répertoire où Antora génère le site (défini dans antora-playbook.yml, souvent 'build/site')
+          # Vérifiez votre antora-playbook.yml pour le chemin exact sous 'output.dir'
+          path: './build/site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 
