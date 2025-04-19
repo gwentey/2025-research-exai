@@ -15,16 +15,23 @@ spec:
     spec:
       containers:
         - name: postgresql
-          image: postgres:13 # Vous pouvez choisir une version plus récente si nécessaire
+          image: postgres:13 
           ports:
             - containerPort: 5432
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           env:
             - name: POSTGRES_DB
-              value: "exai_db" # Nom de la base de données
+              value: "exai_db" 
             - name: POSTGRES_USER
-              value: "exai_user" # Nom d'utilisateur
+              value: "exai_user" 
             - name: POSTGRES_PASSWORD
-              value: "changeme" # Mot de passe - À CHANGER pour la production!
+              value: "password"
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgresql-persistent-storage

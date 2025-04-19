@@ -28,9 +28,9 @@ COPY requirements.txt .
 # `-r requirements.txt` indique à pip d'installer les packages de ce fichier.
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copie de TOUT le reste du code source de notre application (depuis le contexte de build)
+# Copie du code source de l'application (depuis le sous-dossier ./app)
 # dans le répertoire de travail `/app` du conteneur.
-COPY . .
+COPY ./app /app
 
 # --- Phase 2: Configuration de l'environnement d'exécution --- #
 

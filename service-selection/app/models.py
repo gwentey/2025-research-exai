@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, JSON, Float
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -25,6 +25,9 @@ class Dataset(Base):
     # Description détaillée du contenu et de l'objectif du dataset.
     description = Column(String(500))
 
+    # Source du dataset (ex: URL, nom de fichier uploadé, base de données source).
+    source = Column(String(255))
+
     # Chemin d'accès au fichier du dataset (par exemple, sur un stockage partagé). Obligatoire.
     file_path = Column(String(255), nullable=False)
 
@@ -36,6 +39,18 @@ class Dataset(Base):
 
     # Nombre de colonnes (caractéristiques) dans le dataset.
     column_count = Column(Integer)
+
+    # Taille du fichier en octets.
+    size_bytes = Column(Integer)
+
+    # Type de tâche ML principale pour laquelle ce dataset est adapté.
+    task_type = Column(String(50), index=True)
+
+    # Score de qualité/pertinence calculé pour ce dataset.
+    quality_score = Column(Float)
+
+    # Aperçu des premières lignes ou d'un échantillon des données, stocké en JSON.
+    preview_data = Column(JSON)
 
     # Métadonnées techniques stockées au format JSON.
     # Peut inclure des infos sur l'encodage, le séparateur (pour CSV), les types de colonnes, etc.
