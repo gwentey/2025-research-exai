@@ -131,32 +131,42 @@ Pour simplifier le déploiement de tous les composants nécessaires (PostgreSQL,
 Ce script automatise l'application des fichiers de configuration Kubernetes (`kubectl apply`) pour chaque composant et vérifie ensuite si les pods correspondants démarrent.
 ====
 
-. **Prérequis pour le script :**
-    * Assurez-vous que `kubectl` est installé et configuré pour pointer vers votre cluster Minikube (voir les étapes précédentes).
-    * Le script `deploy-app.sh` doit être exécutable. Si ce n'est pas le cas, ouvrez votre terminal à la racine du projet et exécutez :
-      [source,bash]
-      ----
-      chmod +x deploy-app.sh
-      ----
-    * (Facultatif mais recommandé) Ouvrez le script `deploy-app.sh` et vérifiez que les variables `POSTGRES_K8S_DIR`, `GATEWAY_K8S_DIR`, `SELECTION_K8S_DIR` ainsi que les `..._LABEL` correspondants pointent vers les bons répertoires et utilisent les bons sélecteurs de labels pour votre configuration Kubernetes.
+. *Prérequis pour le script :*
++
+--
+* Assurez-vous que `kubectl` est installé et configuré pour pointer vers votre cluster Minikube (voir les étapes précédentes).
+* Le script `deploy-app.sh` doit être exécutable. Si ce n'est pas le cas, ouvrez votre terminal à la racine du projet et exécutez :
++
+[source,bash]
+----
+chmod +x deploy-app.sh
+----
+* (Facultatif mais recommandé) Ouvrez le script `deploy-app.sh` et vérifiez que les variables `POSTGRES_K8S_DIR`, `GATEWAY_K8S_DIR`, `SELECTION_K8S_DIR` ainsi que les `..._LABEL` correspondants pointent vers les bons répertoires et utilisent les bons sélecteurs de labels pour votre configuration Kubernetes.
+--
 
-. **Exécuter le script de déploiement :**
-  Depuis la racine du projet EXAI, lancez le script :
-  [source,bash]
-  ----
-  ./deploy-app.sh
-  ----
-
+. *Exécuter le script de déploiement :*
++
+Depuis la racine du projet EXAI, lancez le script :
++
+[source,bash]
+----
+./deploy-app.sh
+----
++
 Le script va afficher la progression du déploiement pour chaque composant (PostgreSQL, API Gateway, Service Selection) et terminera en montrant l'état des pods pour chacun d'eux.
 
-. **Vérification :**
-  Le script exécute `kubectl get pods` à la fin. Attendez que le statut de tous les pods (PostgreSQL, api-gateway-..., service-selection-...) passe à `Running`. Cela peut prendre quelques minutes.
-  Vous pouvez relancer manuellement la vérification pour tous les pods dans le namespace `exai` avec :
-  [source,bash]
-  ----
-  kubectl get pods -n exai
-  ----
-  Si des pods restent bloqués sur `Pending` ou `ContainerCreating` pendant longtemps, consultez la section Dépannage.
+. *Vérification :*
++
+Le script exécute `kubectl get pods` à la fin. Attendez que le statut de tous les pods (PostgreSQL, api-gateway-..., service-selection-...) passe à `Running`. Cela peut prendre quelques minutes.
++
+Vous pouvez relancer manuellement la vérification pour tous les pods dans le namespace `exai` avec :
++
+[source,bash]
+----
+kubectl get pods -n exai
+----
++
+Si des pods restent bloqués sur `Pending` ou `ContainerCreating` pendant longtemps, consultez la section Dépannage.
 
 === 3.4 Initialiser/Mettre à jour le Schéma de Base de Données (Alembic)
 
