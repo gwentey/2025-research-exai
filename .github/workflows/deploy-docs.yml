@@ -35,7 +35,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20' 
-          cache: 'npm' # Réactivé car nous allons créer un package-lock.json
+          # cache: 'npm' # Supprimé DÉFINITIVEMENT car package-lock.json est créé APRÈS cette étape
 
       - name: Install Antora CLI and Default Generator Locally
         # Installe explicitement les paquets nécessaires localement
