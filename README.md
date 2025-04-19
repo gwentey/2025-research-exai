@@ -28,7 +28,7 @@ Vous y trouverez :
 
 ## 🚀 Démarrage Rapide (Aperçu)
 
-Pour un aperçu rapide des étapes initiales, référez-vous à la section "Getting Started" de la [documentation principale](docs/README.md). Les commandes spécifiques et la configuration détaillée y sont expliquées.
+Pour un aperçu rapide des étapes initiales, référez-vous à la section "Installation & Démarrage" de la [documentation principale](https://gwentey.github.io/2025-research-exai/EXAI/1.0/getting-started.html). Les commandes spécifiques et la configuration détaillée y sont expliquées.
 
 ---
 
