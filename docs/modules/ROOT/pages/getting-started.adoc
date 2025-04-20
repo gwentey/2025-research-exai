@@ -189,7 +189,7 @@ Skaffold va :
 ====
 Le premier déploiement peut prendre quelques minutes. Attendez que tous les pods passent à l'état `Running`. 
 
-Les services seront automatiquement accessibles via les URL locales affichées dans la console, généralement :
+Les services seront automatiquement accessibles via les URLs locales affichées dans la console, généralement :
 * API Gateway : http://localhost:8080
 * Service Selection : http://localhost:8081
 ====
@@ -203,95 +203,51 @@ Laissez le terminal avec Skaffold ouvert pendant que vous développez. Il survei
 Pour arrêter Skaffold, appuyez sur `Ctrl+C` dans le terminal où il s'exécute. Cela n'arrêtera pas Minikube, mais seulement le processus de surveillance et de redéploiement automatique.
 ====
 
-=== 3.4 Initialiser/Mettre à jour le Schéma de Base de Données (Alembic)
+=== 3.4 Initialisation de la Base de Données
 
-[IMPORTANT]
-====
-Skaffold déploie l'infrastructure (pods, services), mais *ne crée pas ou ne met pas à jour* le schéma des tables dans la base de données PostgreSQL.
-Cette étape doit être effectuée *après* que le pod PostgreSQL soit `Running`.
-====
+L'architecture EXAI utilise une base de données PostgreSQL unique et partagée par tous les microservices. Chaque service possède sa propre configuration Alembic pour gérer ses migrations spécifiques dans cette base de données commune.
 
-Une fois que PostgreSQL est déployé sur Minikube (confirmé par Skaffold), le schéma des tables requises par les microservices (`user`, `datasets`, etc.) doit être créé ou mis à jour.
-Ce projet utilise **Alembic** pour gérer ces migrations de manière versionnée.
-
-[IMPORTANT]
-====
-Après le premier déploiement de la base de données, ou lors d'une mise à jour de l'application nécessitant des changements de schéma, vous devez appliquer les migrations Alembic manuellement depuis votre environnement de développement local connecté à Minikube.
-
-Consultez le guide détaillé sur les migrations pour les étapes précises et le contexte :
-* xref:development/database-migrations.adoc[Gestion des Migrations de Base de Données avec Alembic]
-
-En résumé, l'application initiale des migrations implique :
-
-1.  **Lancer le tunnel réseau** vers la base de données Minikube (à laisser tourner dans un terminal séparé) :
+=== 3.4.1 Préparation Générale
 
 [source,bash]
 ----
+# Port-forwarding vers PostgreSQL depuis Kubernetes
 kubectl port-forward service/postgresql-service -n exai 5432:5432
 ----
 
-2.  **Configurer la connexion locale :**
+=== 3.4.2 Initialisation par Service
+
+Chaque microservice doit exécuter ses propres migrations dans la base de données partagée. Exécutez ces commandes dans des terminaux séparés.
+
+==== Service de Sélection (service-selection)
 
 [source,bash]
 ----
-# Copier le fichier d'exemple de configuration en fichier .env à la racine du projet
-cp .env.example .env
+# 1. Définir la variable d'environnement pour la connexion
+$env:DATABASE_URL = 'postgresql+asyncpg://exai_user:password@localhost:5432/exai_db'
 
-# Vous pouvez également modifier ce fichier .env si nécessaire pour ajuster les paramètres de connexion
-----
+# 2. Accéder au répertoire du service
+cd service-selection
 
-S'assurer que le fichier `.env` à la racine du projet contient la bonne `DATABASE_URL` pointant vers `localhost:5432` pour permettre aux migrations Alembic de se connecter à la base de données.
-
-3.  **Créer et activer un environnement virtuel Python** pour isoler les dépendances (faites ceci pour `api-gateway` et `service-selection`) :
-
-[source,bash]
-----
-# Depuis le répertoire du service (par exemple api-gateway/)
-python -m venv .venv
-
-# Activation sur Linux/macOS
-source .venv/bin/activate
-
-# Activation sur Windows (PowerShell)
-.\.venv\Scripts\Activate.ps1
-
-# Activation sur Windows (CMD)
-.\.venv\Scripts\activate.bat
-----
-
-4.  **Installer les dépendances** pour chaque service :
-
-[source,bash]
-----
-# Dans l'environnement virtuel activé du service concerné
-pip install -r requirements.txt
-----
-
-5.  **Charger les variables d'environnement** du fichier `.env` (nécessaire dans le terminal où vous lancerez Alembic) :
-
-[source,bash]
-----
-# Sur Linux/macOS
-export $(grep -v '^#' .env | xargs)
-
-# Sur Windows (PowerShell)
-Get-Content .env | Where-Object {$_ -notmatch '^#' -and $_ -match '='} | ForEach-Object { $var = $_.Split('=', 2); Set-Item "env:$($var[0])" $var[1] }
-
-# Alternative: installer et utiliser python-dotenv si ce n'est pas déjà fait
-# pip install python-dotenv
-----
-
-6.  **Appliquer les migrations** pour chaque service (depuis le répertoire du service respectif, avec l'environnement virtuel activé et les variables d'env chargées) :
-
-[source,bash]
-----
-# Depuis le répertoire api-gateway/
-alembic upgrade head
-
-# Depuis le répertoire service-selection/
+# 3. Exécuter la migration
 alembic upgrade head
 ----
-====
+
+
+==== API Gateway
+
+[source,bash]
+----
+# 1. Définir la variable d'environnement pour la connexion
+$env:DATABASE_URL = 'postgresql+asyncpg://exai_user:password@localhost:5432/exai_db'
+
+# 2. Accéder au répertoire du service
+cd api-gateway
+
+# 3. Exécuter la migration
+alembic upgrade head
+----
+
 
 === 3.5 Accéder à l'Application
 
@@ -397,4 +353,4 @@ Pour supprimer complètement le cluster Minikube (attention, supprime toutes les
 [source,bash]
 ----
 minikube delete
----- 
+----
