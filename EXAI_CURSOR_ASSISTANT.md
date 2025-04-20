@@ -76,16 +76,16 @@ graph LR
 ### ✅ API Gateway (`service-api-gateway`, port K8s: 8088)
 *   **Objectif :** Point d'entrée unique, sécurisé et routage vers les services backend.
 *   **Technos :** FastAPI, Uvicorn, **fastapi-users (pour JWT/Auth)**.
-*   **État actuel :** [🚧] Base FastAPI + route `/ping` déployée. CORS configuré (permissif). **Configuration initiale `fastapi-users` en cours.**
+*   **État actuel :** [✅] Base FastAPI déployée. CORS configuré. **Authentification `fastapi-users` (inscription, login JWT) fonctionnelle.**
 *   **Étapes restantes :**
     *   [✅] Configurer CORS pour autoriser le Frontend Angular. (Fait, configuration permissive)
-    *   [🚧] Mettre en place la sécurité (JWT via **fastapi-users**) :
+    *   [✅] Mettre en place la sécurité (JWT via **fastapi-users**) :
         *   [✅] Ajout dépendances (`fastapi-users[sqlalchemy]`, `asyncpg`).
         *   [✅] Création fichiers config (`core/config.py`), db (`db.py`), modèles (`models/user.py`), schemas (`schemas/user.py`).
-        *   [⬜] Initialiser `fastapi-users` (gestionnaire d'utilisateurs, backend d'authentification JWT).
-        *   [⬜] Intégrer les routeurs `fastapi-users` (auth, register, users) dans `main.py`.
-        *   [⬜] Assurer la connexion à la base de données PostgreSQL (nécessite BDD déployée).
-        *   [⬜] Gérer la `SECRET_KEY` et `DATABASE_URL` via Secrets K8s.
+        *   [✅] Initialiser `fastapi-users` (gestionnaire d'utilisateurs, backend d'authentification JWT).
+        *   [✅] Intégrer les routeurs `fastapi-users` (auth, register, users) dans `main.py`.
+        *   [✅] Assurer la connexion à la base de données PostgreSQL (nécessite BDD déployée).
+        *   [✅] Gérer la `SECRET_KEY` et `DATABASE_URL` via Secrets K8s.
     *   [⬜] Ajouter les routes de reverse proxy vers :
         *   [⬜] `/datasets/**` → `service-selection:8081`
         *   [⬜] `/pipelines/**` → `service-ml-pipeline:8082`
@@ -296,12 +296,6 @@ graph LR
 | ⬜ Déployer App FastAPI XAI                                         |   ⬜   | service-xai            |                                          |
 | ⬜ Déployer Worker(s) Celery XAI                                     |   ⬜   | service-xai            |                                          |
 | ⬜ Tester le lancement et le suivi d'une tâche XAI                   |   ⬜   | service-xai            |                                          |
-| **API Gateway**                                                      |        |                        |                                          |
-| ✅ Déployer API Gateway (Base)                                     |   ✅   | service-api-gateway    | Déjà fait apparemment                    |
-| ⬜ Configurer les reverse proxies vers les services internes         |   ⬜   | service-api-gateway    | `service-selection`, `service-ml-pipeline`, `service-xai` |
-| ✅ Configurer CORS                                                  |   ✅   | service-api-gateway    | Autoriser origine du Frontend Angular (fait, permissif) |
-| 🚧 Configurer sécurité JWT (via `fastapi-users`)                    |   🚧   | service-api-gateway    | Modèles/Schemas créés, reste initialisation/routes | 
-| ⬜ Mettre à jour le déploiement K8s                                   |   ⬜   | service-api-gateway    |                                          |
 | **Frontend Angular**                                                 |        |                        |                                          |
 | ⬜ Initialiser le projet Angular                                    |   ⬜   | exai-frontend          |                                          |
 | ⬜ Créer les modules, composants et services de base                |   ⬜   | exai-frontend          |                                          |
