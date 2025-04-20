@@ -1,5 +1,20 @@
-= Guide Utilisateur
+= Guide Utilisateur EXAI
 
-Cette section décrit comment utiliser les fonctionnalités de l'application EXAI.
+Cette section présente les principales fonctionnalités d'EXAI.
 
-Contenu à venir... 
+== Modules Principaux
+
+[cols="1,4", options="header"]
+|===
+| Module | Description
+| xref:user-guide/dataset-selection.adoc[📊 Sélection de Datasets] | Trouvez et comparez des datasets selon des critères techniques, éthiques et métier
+| xref:user-guide/ml-pipeline.adoc[🛠️ Pipeline ML Interactif] | Créez et entraînez des modèles ML avec un guidage complet
+| xref:user-guide/xai-recommendation.adoc[💡 Recommandations XAI] | Obtenez des explications adaptées pour vos modèles
+|===
+
+== Workflow Typique
+
+1. Sélectionnez un dataset approprié à votre problème
+2. Créez un pipeline ML adapté à votre tâche
+3. Entraînez et évaluez votre modèle
+4. Demandez et interprétez des explications sur le fonctionnement du modèle 

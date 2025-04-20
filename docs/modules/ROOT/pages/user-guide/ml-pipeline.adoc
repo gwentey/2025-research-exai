@@ -1,5 +1,38 @@
-= Créer un Pipeline ML Interactif
+= 🛠️ Pipeline ML Interactif
 
-Guide pas à pas pour construire, entraîner et évaluer un modèle de Machine Learning.
+EXAI vous guide à travers chaque étape du processus de Machine Learning.
 
-Contenu à venir... 
+== Étapes Principales
+
+1. **Préparation des données**
+   * Nettoyage automatique
+   * Gestion des valeurs manquantes
+   * Encodage des variables catégorielles
+   * Normalisation/standardisation
+
+2. **Sélection de la tâche ML**
+   * Classification
+   * Régression
+   * Clustering
+
+3. **Choix d'algorithmes**
+   * Suggestions adaptées à votre tâche
+   * Options classiques et avancées
+   * Paramètres préconfigurés ou personnalisables
+
+4. **Entraînement et Évaluation**
+   * Validation croisée
+   * Métriques de performance
+   * Visualisation des résultats
+
+== Visualisations d'Évaluation
+
+* **Classification**: matrices de confusion, courbes ROC/PR
+* **Régression**: dispersions, résidus, importance des variables
+* **Clustering**: dendrogrammes, visualisations t-SNE/UMAP
+
+== Sauvegarde et Déploiement
+
+* Sauvegarde du modèle entraîné
+* Exportation du pipeline complet
+* Intégration avec le module XAI 
