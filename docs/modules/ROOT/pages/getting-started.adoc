@@ -146,6 +146,35 @@ python3 --version
 * (Facultatif mais recommandé) Ouvrez le script `deploy_app.py` et vérifiez que les variables `POSTGRES_K8S_DIR`, `GATEWAY_K8S_DIR`, `SELECTION_K8S_DIR` ainsi que les `..._LABEL` correspondants pointent vers les bons répertoires et utilisent les bons sélecteurs de labels pour votre configuration Kubernetes.
 --
 
+. *Construire les images Docker pour Minikube :*
++
+Avant d'exécuter le script de déploiement, assurez-vous que les images Docker sont disponibles dans l'environnement Minikube :
++
+[source,bash]
+----
+# Configurer l'environnement Docker pour utiliser celui de Minikube
+# Sur Linux/macOS
+eval $(minikube docker-env)
+
+# Sur Windows (PowerShell)
+& minikube -p minikube docker-env --shell powershell | Invoke-Expression
+
+# Construire l'image Docker pour l'API Gateway
+cd api-gateway
+docker build -t exai-api-gateway:latest .
+cd ..
+
+# Construire l'image Docker pour le Service Selection
+cd service-selection
+docker build -t service-selection:latest .
+cd ..
+----
++
+[IMPORTANT]
+====
+Si vous rencontrez des erreurs de démarrage des pods `api-gateway` ou `service-selection` avec des messages comme `ImagePullBackOff`, assurez-vous que les images Docker sont bien construites dans l'environnement Minikube et que les fichiers de déploiement `deployment.yaml` utilisent `imagePullPolicy: Never` pour utiliser uniquement les images locales.
+====
+
 . *Exécuter le script de déploiement :*
 +
 Depuis la racine du projet EXAI, lancez le script :
@@ -176,6 +205,40 @@ kubectl get pods -n exai
 ----
 +
 Si des pods restent bloqués sur `Pending` ou `ContainerCreating` pendant longtemps, consultez la section Dépannage.
+
+. *Résolution de problèmes courants après déploiement :*
++
+--
+* Si le pod `api-gateway` est en état d'erreur avec un message `CrashLoopBackOff` ou si les logs montrent une erreur `ModuleNotFoundError: No module named 'app'`, vous devez reconstruire l'image Docker avec la structure de répertoire corrigée. Utilisez le Dockerfile suivant :
++
+[source,dockerfile]
+----
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN mkdir -p /app/api_gateway
+COPY ./app /app/api_gateway
+RUN echo 'import sys\nsys.path.insert(0, "/app")\nfrom api_gateway.main import app' > /app/start.py
+EXPOSE 8088
+CMD ["uvicorn", "start:app", "--host", "0.0.0.0", "--port", "8088"]
+----
++
+Ensuite, reconstruisez l'image et supprimez le pod défaillant pour qu'il soit redémarré :
++
+[source,bash]
+----
+# Reconstruire l'image
+cd api-gateway
+docker build -t exai-api-gateway:latest .
+cd ..
+
+# Supprimer le pod défaillant (remplacez XXXXX par l'identifiant réel du pod)
+kubectl delete pod -n exai api-gateway-XXXXX
+----
+
+* Si le pod `service-selection` est en état d'erreur avec `ImagePullBackOff` ou `ErrImagePull`, vérifiez que l'image est correctement construite dans Minikube et que le fichier deployment.yaml utilise `imagePullPolicy: Never`.
+--
 
 === 3.4 Initialiser/Mettre à jour le Schéma de Base de Données (Alembic)
 
@@ -269,26 +332,36 @@ alembic upgrade head
 
 === 3.5 Accéder à l'Application
 
-Une fois que tous les pods sont `Running`, vous pouvez accéder à l'application. L'accès principal se fait généralement via le Frontend.
+Une fois que tous les pods sont `Running`, vous pouvez accéder à l'application via les services correspondants.
 
-. Obtenez l'URL d'accès au service frontend :
+. *Accéder à l'API Gateway :*
++
 [source,bash]
 ----
-minikube service frontend --url -n exai
+minikube service api-gateway-service -n exai
 ----
-  Cette commande ouvrira peut-être directement l'URL dans votre navigateur, ou affichera l'URL (ex: `http://127.0.0.1:xxxxx`) dans le terminal.
++
+Cette commande créera un tunnel et ouvrira le service dans votre navigateur par défaut. Vous verrez une URL comme `http://127.0.0.1:XXXXX` dans le terminal.
 
-. Ouvrez l'URL retournée dans votre navigateur web. Vous devriez voir l'interface utilisateur d'EXAI.
-
-Pour explorer les API directement (par exemple, pour le développement ou des tests avancés) :
-
-. Obtenez l'URL de l'API Gateway :
+. *Accéder au Service de Sélection :*
++
 [source,bash]
 ----
-minikube service api-gateway --url -n exai
+minikube service service-selection-service -n exai
+----
++
+Cette commande créera un tunnel et ouvrira le service dans votre navigateur par défaut. Vous verrez une URL comme `http://127.0.0.1:YYYYY` dans le terminal.
+
+. *Vérifier l'état des services :*
++
+Pour voir la liste complète des services disponibles et leurs URLs :
++
+[source,bash]
+----
+minikube service list -n exai
 ----
 
-. Accédez à la documentation interactive (Swagger UI) en ajoutant `/docs` à l'URL obtenue : `http://127.0.0.1:yyyyy/docs`.
+. Accédez à la documentation interactive (Swagger UI) en ajoutant `/docs` à l'URL obtenue : `http://127.0.0.1:XXXXX/docs`.
 
 Voir la page xref:dev-guide/api-reference.adoc[Référence API] pour plus de détails sur l'utilisation des API.
 
@@ -296,10 +369,51 @@ Félicitations ! Vous avez déployé EXAI localement avec Minikube.
 
 == (Optionnel) Dépannage
 
+Cette section présente les solutions aux problèmes les plus courants que vous pourriez rencontrer lors du déploiement d'EXAI.
+
+=== Problèmes liés à Minikube
+
 *   **Minikube ne démarre pas :** Vérifiez que Docker Desktop est lancé. Essayez `minikube delete` puis `minikube start`. Vérifiez les logs avec `minikube logs`. Assurez-vous que la virtualisation est activée dans le BIOS/UEFI de votre machine si vous n'utilisez pas le driver Docker.
-*   **Pod bloqué en `Pending` :** Manque de ressources (CPU/Mémoire) ? Essayez d'allouer plus de ressources à Minikube (`minikube stop`, `minikube config set memory 4096`, `minikube start`). Problème de réseau ? Vérifiez la sortie de `kubectl describe pod <nom-du-pod> -n exai`.
-*   **Pod bloqué en `ImagePullBackOff` ou `ErrImagePull`:** L'image Docker n'a pas pu être trouvée. Avez-vous bien exécuté `eval $(minikube -p minikube docker-env)` (ou équivalent) *avant* de lancer `docker build` ? Le nom et le tag de l'image dans `k8s/deployment.yaml` correspondent-ils exactement à ceux utilisés lors du `docker build` ? Avez-vous mis `imagePullPolicy: IfNotPresent` ou `Never` dans le `deployment.yaml` pour les images locales ?
-*   **`minikube service ... --url` ne fonctionne pas :** Assurez-vous que le service Kubernetes existe (`kubectl get services -n exai`). Vérifiez l'état du pod associé.
+
+*   **Problèmes de connexion avec Minikube :** Si vous rencontrez des problèmes de connexion avec Minikube, essayez de redémarrer Minikube avec la commande `minikube stop` suivie de `minikube start`.
+
+=== Problèmes liés aux pods Kubernetes
+
+*   **Pod bloqué en `Pending` :** 
+    ** Manque de ressources (CPU/Mémoire) ? Essayez d'allouer plus de ressources à Minikube (`minikube stop`, `minikube config set memory 4096`, `minikube start`).
+    ** Problème de réseau ? Vérifiez la sortie de `kubectl describe pod <nom-du-pod> -n exai`.
+
+*   **Pod bloqué en `ImagePullBackOff` ou `ErrImagePull`:** 
+    ** L'image Docker n'a pas pu être trouvée ou téléchargée.
+    ** Assurez-vous d'avoir configuré l'environnement Docker pour utiliser celui de Minikube avec `eval $(minikube -p minikube docker-env)` (Linux/macOS) ou `& minikube -p minikube docker-env --shell powershell | Invoke-Expression` (Windows PowerShell) *avant* de lancer `docker build`. 
+    ** Vérifiez que le nom et le tag de l'image dans `deployment.yaml` correspondent exactement à ceux utilisés lors du `docker build`.
+    ** Modifiez l'attribut `imagePullPolicy` à `Never` dans le fichier `deployment.yaml` pour forcer Kubernetes à utiliser uniquement les images locales.
+
+*   **Pod en état `CrashLoopBackOff` ou erreur d'exécution :**
+    ** Consultez les logs du pod avec `kubectl logs -n exai <nom-du-pod>` pour identifier l'erreur.
+    ** Pour les erreurs de type `ModuleNotFoundError: No module named 'app'` dans l'API Gateway, référez-vous à la section 3.3.5 pour corriger le Dockerfile et reconstruire l'image.
+
+=== Problèmes liés aux services
+
+*   **Service inaccessible :** 
+    ** Vérifiez que le service a été créé avec `kubectl get services -n exai`
+    ** Assurez-vous que le pod associé est en état `Running` avec `kubectl get pods -n exai`
+    ** Utilisez `minikube service <nom-du-service> -n exai` pour créer un tunnel et accéder au service
+
+*   **`minikube service ... --url` ne fonctionne pas :** 
+    ** Assurez-vous que le service Kubernetes existe (`kubectl get services -n exai`). 
+    ** Vérifiez l'état du pod associé.
+    ** Sur Windows, parfois il est nécessaire de garder le terminal ouvert pendant l'utilisation du tunnel.
+
+=== Comment diagnostiquer un problème
+
+Pour diagnostiquer un problème non listé ci-dessus, suivez ces étapes :
+
+1. Vérifiez l'état des pods : `kubectl get pods -n exai`
+2. Pour un pod problématique, consultez les détails : `kubectl describe pod <nom-du-pod> -n exai`
+3. Examinez les logs du pod : `kubectl logs -n exai <nom-du-pod>`
+4. Vérifiez les services : `kubectl get services -n exai`
+5. Consultez les logs de Minikube : `minikube logs`
 
 == Arrêter l'environnement
 

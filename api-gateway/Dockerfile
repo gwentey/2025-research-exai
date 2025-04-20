@@ -8,11 +8,17 @@ COPY requirements.txt .
 # Installer les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le code de l'application depuis le sous-dossier local app/
-COPY ./app /app
+# Créer la structure de répertoires initiale
+RUN mkdir -p /app/api_gateway
 
-# Exposer le port (optionnel mais bonne pratique)
+# Copier le code de l'application dans le répertoire api_gateway
+COPY ./app /app/api_gateway
+
+# Créer un fichier principal qui importe correctement l'application
+RUN echo 'import sys\nsys.path.insert(0, "/app")\nfrom api_gateway.main import app' > /app/start.py
+
+# Exposer le port pour l'API
 EXPOSE 8088
 
 # Commande de démarrage
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8088"]
+CMD ["uvicorn", "start:app", "--host", "0.0.0.0", "--port", "8088"]

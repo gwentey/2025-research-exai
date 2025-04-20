@@ -1,19 +1,20 @@
 import uuid
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_users import FastAPIUsers
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 
-from app.core.config import settings
-from app.db import get_async_session, User # Import User model directly for DB adapter
-from app.schemas.user import UserCreate, UserRead, UserUpdate
-from app.models.user import User as UserModel # Renamed to avoid conflict
+from api_gateway.core.config import settings
+from api_gateway.db import get_async_session # Retirons l'import de User depuis db
+from api_gateway.schemas.user import UserCreate, UserRead, UserUpdate
+from api_gateway.models.user import User as UserModel # Import correct du modèle User
 
 # 1. Database Adapter
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, UserModel) # Use the imported UserModel
+    yield SQLAlchemyUserDatabase(session, UserModel)
 
 # 2. JWT Strategy
 def get_jwt_strategy() -> JWTStrategy:
@@ -27,16 +28,14 @@ auth_backend = AuthenticationBackend(
     get_strategy=get_jwt_strategy,
 )
 
-# 4. FastAPIUsers Initialization
-fastapi_users = FastAPIUsers[
-    UserModel, uuid.UUID
-]( # Use UserModel here
-    get_user_db,  # Use the new async dependency
+# 4. FastAPIUsers Initialization - Corrigé pour la version 14.0.1
+# Création d'une instance FastAPIUsers avec seulement les arguments nécessaires
+fastapi_users = FastAPIUsers[UserModel, uuid.UUID](
+    get_user_db,
     [auth_backend],
-    UserRead,
-    UserCreate,
-    UserUpdate,
 )
+
+current_active_user = fastapi_users.current_user(active=True)
 
 # FastAPI App Initialization
 app = FastAPI(
@@ -86,6 +85,6 @@ def ping():
 
 # Example Protected Route
 @app.get("/users/me")
-def read_users_me(current_user: UserModel = Depends(fastapi_users.current_user(active=True))):
-    # fastapi_users.current_user() is a dependency that ensures the user is authenticated
+def read_users_me(current_user: UserModel = Depends(current_active_user)):
+    # Using the current_active_user dependency to ensure the user is authenticated
     return current_user

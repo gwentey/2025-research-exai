@@ -16,7 +16,7 @@ spec:
       containers:
       - name: api-gateway
         image: exai-api-gateway:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         envFrom:
           - secretRef:
               name: gateway-secrets
