@@ -17,9 +17,17 @@ spec:
       - name: api-gateway
         image: exai-api-gateway:latest
         imagePullPolicy: Never
-        envFrom:
-          - secretRef:
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
               name: gateway-secrets
+              key: database-url
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gateway-secrets
+              key: secret-key
         ports:
         - containerPort: 8088
         resources:

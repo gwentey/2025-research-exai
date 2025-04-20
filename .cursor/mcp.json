@@ -1,0 +1,15 @@
+{
+    "mcpServers": {
+      "postgres": {
+        "command": "docker",
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "mcp/postgres",
+          "postgresql://exai_user:password@host.docker.internal:5432/exai_db"
+        ]
+      }
+    }
+  }
+  
