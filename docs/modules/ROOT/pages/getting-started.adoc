@@ -86,10 +86,10 @@ Skaffold va :
 ====
 Le premier déploiement peut prendre plusieurs minutes. Attendez que tous les pods passent à l'état `Running`.
 
-[.underline]#*ATTENTION*# : Contrairement à ce qui pourrait être affiché dans la console Skaffold, les services ne sont *PAS* directement accessibles via localhost. Vous devez utiliser les commandes `minikube service` décrites dans la section 3.5.
+[.underline]#*ATTENTION*# : Contrairement à ce qui pourrait être affiché dans la console Skaffold, les services ne sont *PAS* directement accessibles via localhost. Vous devez utiliser les commandes `minikube service` décrites dans la section suivante.
 ====
 
-=== 3.4 Initialisation de la Base de Données
+=== Initialisation de la Base de Données
 
 L'architecture EXAI utilise une base de données PostgreSQL partagée par tous les microservices, chaque service gérant ses migrations spécifiques.
 
@@ -120,7 +120,7 @@ Ces commandes exécutent les migrations Alembic directement à l'intérieur des 
 Chaque service utilise sa propre table de version Alembic (`alembic_version_gateway` et `alembic_version_selection`) pour suivre ses migrations dans la base de données partagée.
 ====
 
-=== 3.5 Accéder à l'Application
+=== Accéder à l'Application
 
 [.underline]#*IMPORTANT*# : Les services dans Minikube ne sont accessibles QUE via les commandes suivantes :
 
@@ -147,7 +147,9 @@ Pour obtenir uniquement l'URL sans ouvrir de navigateur, ajoutez le flag `--url`
 `minikube service service-selection-service -n exai --url`
 ====
 
-=== Cycle de développement avec Skaffold
+== Workflow de Développement
+
+=== Cycle de Développement avec Skaffold
 1. Modifiez votre code
 2. Skaffold détecte les changements
 3. Reconstruction et redéploiement automatiques
@@ -156,14 +158,14 @@ Pour obtenir uniquement l'URL sans ouvrir de navigateur, ajoutez le flag `--url`
 [TIP]
 Pour un workflow plus fluide, utilisez des outils comme **Lens**, **k9s** ou le **Kubernetes Dashboard** (`minikube dashboard`).
 
-== Dépannage Rapide
+== Dépannage
 
-=== Problèmes courants
+=== Problèmes Courants
 * *Minikube ne démarre pas* : Vérifiez Docker Desktop, essayez `minikube delete` puis `minikube start`
 * *Pod bloqué en `Pending`* : Augmentez les ressources (`minikube stop && minikube config set memory 4096 && minikube start`)
 * *Pod en `CrashLoopBackOff`* : Vérifiez les logs avec `kubectl logs -n exai <pod-name>`
 
-=== Diagnostic en 5 étapes
+=== Étapes de Diagnostic
 1. Logs Skaffold
 2. État des pods : `kubectl get pods -n exai`
 3. Détails d'un pod : `kubectl describe pod <pod-name> -n exai`
