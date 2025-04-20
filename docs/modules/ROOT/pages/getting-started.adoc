@@ -242,26 +242,34 @@ Chaque service utilise sa propre table de version Alembic (`alembic_version_gate
 
 === 3.5 Accéder à l'Application
 
-Avec Skaffold en cours d'exécution, les services sont automatiquement accessibles via les ports configurés dans le fichier `skaffold.yaml`.
+Les services déployés dans Minikube ne sont pas directement accessibles via des URLs fixes sur localhost. Vous devez utiliser la commande `minikube service` pour créer un tunnel d'accès.
 
-. *Accéder à l'API Gateway :*
-+
-Ouvrez simplement votre navigateur à l'adresse : http://localhost:8080
+==== Accéder au Service de Sélection
 
-. *Accéder au Service de Sélection :*
-+
-Ouvrez simplement votre navigateur à l'adresse : http://localhost:8081
+[source,bash]
+----
+# Cette commande ouvre automatiquement un navigateur avec l'URL correcte
+minikube service service-selection-service -n exai
+----
 
-. *Accéder à la documentation API (Swagger UI)* :
-+
-Ajoutez `/docs` aux URLs ci-dessus :
-+
-- API Gateway Swagger : http://localhost:8080/docs
-- Service Selection Swagger : http://localhost:8081/docs
+==== Accéder à l'API Gateway
+
+[source,bash]
+----
+# Cette commande ouvre automatiquement un navigateur avec l'URL correcte
+minikube service api-gateway-service -n exai
+----
+
+
+[IMPORTANT]
+====
+Sur Windows avec le driver Docker pour Minikube, la fenêtre du terminal doit rester ouverte pendant que vous accédez au service, car elle maintient le tunnel actif.
+====
 
 [TIP]
 ====
-Si les ports par défaut ne fonctionnent pas, consultez les URLs affichées dans le terminal où Skaffold s'exécute. Skaffold affiche les redirections de port actives au démarrage.
+Pour obtenir uniquement l'URL sans ouvrir de navigateur, ajoutez le flag `--url` :
+`minikube service service-selection-service -n exai --url`
 ====
 
 == Workflow de Développement avec Skaffold
