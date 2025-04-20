@@ -1,0 +1,25 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+  name: --research-exai
+build:
+  artifacts:
+    - image: exai-api-gateway
+      context: api-gateway
+      docker:
+        dockerfile: Dockerfile
+    - image: service-selection
+      context: service-selection
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - api-gateway/k8s/deployment.yaml
+    - api-gateway/k8s/gateway-secrets.yaml
+    - api-gateway/k8s/service.yaml
+    - k8s/postgres/postgresql-deployment.yaml
+    - k8s/postgres/postgresql-service.yaml
+    - service-selection/k8s/dataset-pvc.yaml
+    - service-selection/k8s/db-secrets.yaml
+    - service-selection/k8s/deployment.yaml
+    - service-selection/k8s/service.yaml
