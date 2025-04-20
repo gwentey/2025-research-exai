@@ -32,6 +32,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # dans le répertoire de travail `/app` du conteneur.
 COPY ./app /app
 
+# Copie des fichiers Alembic nécessaires aux migrations de base de données
+COPY ./alembic /app/alembic
+COPY alembic.ini /app/
+
 # --- Phase 2: Configuration de l'environnement d'exécution --- #
 
 # Création d'un utilisateur dédié non-root (`appuser`) pour exécuter l'application.

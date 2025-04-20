@@ -12,14 +12,18 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from alembic import context
 
 # Import your models directly and use their metadata
-# Corrected path based on user confirmation
 try:
-    from app.models import Dataset # Corrected import
-    # If you have multiple models managed by this service, import them all
-    # and ensure they share the same Base or merge their metadata
-    target_metadata = Dataset.metadata # Use metadata directly from the imported model(s)
-except ImportError:
-    print("Could not import Dataset model from app.models. Check path and model name.")
+    # Essayer d'abord l'import direct (quand exécuté depuis le répertoire du service)
+    try:
+        from app.models import Base, Dataset
+        target_metadata = Base.metadata  # Utiliser Base.metadata au lieu de Dataset.metadata
+    except ImportError:
+        # Si l'import direct échoue, essayer depuis le répertoire courant
+        from models import Base, Dataset
+        target_metadata = Base.metadata  # Utiliser Base.metadata au lieu de Dataset.metadata
+except ImportError as e:
+    print(f"Erreur d'importation: {e}")
+    print("Could not import Dataset model from app.models or directly from models. Check path and model name.")
     target_metadata = None # Set to None if model cannot be imported
 
 # Alembic Config object
