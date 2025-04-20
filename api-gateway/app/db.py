@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from api_gateway.core.config import settings
+from .core.config import settings
 
 # Création de la base déclarative SQLAlchemy
 Base = declarative_base()

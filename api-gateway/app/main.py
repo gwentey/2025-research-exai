@@ -7,10 +7,10 @@ from fastapi_users import FastAPIUsers
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 
-from api_gateway.core.config import settings
-from api_gateway.db import get_async_session # Retirons l'import de User depuis db
-from api_gateway.schemas.user import UserCreate, UserRead, UserUpdate
-from api_gateway.models.user import User as UserModel # Import correct du modèle User
+from .core.config import settings
+from .db import get_async_session # Retirons l'import de User depuis db
+from .schemas.user import UserCreate, UserRead, UserUpdate
+from .models.user import User as UserModel # Import correct du modèle User
 
 # 1. Database Adapter
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
