@@ -96,29 +96,30 @@ graph LR
 ### ✅ Microservice : Dataset Selection (`service-selection`, port K8s: 8081)
 *   **Objectif :** Gérer les métadonnées des datasets, permettre la recherche et la sélection.
 *   **Technos :** FastAPI, SQLAlchemy, Pydantic, PostgreSQL (via `DATABASE_URL`).
-*   **État actuel :** [✅] Base FastAPI + SQLAlchemy + Dockerfile + déploiement K8s basique. Modèle `Dataset` initial défini.
+*   **État actuel :** [🚧] CRUD de base fonctionnel. Modèles de données conformes. Endpoints avancés et logique métier spécifique manquants.
 *   **Étapes restantes :**
-    *   [⬜] **Connexion BDD :**
-        *   [⬜] Assurer la connexion effective à PostgreSQL une fois déployé (via K8s Service name et Secret/ConfigMap pour `DATABASE_URL`).
-        *   [⬜] Initialiser la table `datasets` (voir section PostgreSQL).
-    *   [⬜] **Modèle de données (`models.py`) :**
-        *   [⬜] Affiner le modèle SQLAlchemy `Dataset` (ajouter : `file_path`, `source`, `size`, `task_type` (classification/régression), `ethical_tags`, `quality_score`, `preview_data` (json?), `metadata` (json?)).
-        *   [⬜] Créer les modèles Pydantic (`schemas.py`) pour la validation des requêtes/réponses API (`DatasetCreate`, `DatasetRead`, etc.).
-    *   [⬜] **Endpoints REST (`main.py`/`routers/`) :**
-        *   [⬜] `POST /datasets`: Créer un nouveau dataset (upload de fichier? ou référence?).
-        *   [⬜] `GET /datasets`: Lister les datasets avec filtres (nom, tags, type de tâche...).
-        *   [⬜] `GET /datasets/{dataset_id}`: Obtenir les détails d'un dataset.
-        *   [⬜] `PUT /datasets/{dataset_id}`: Mettre à jour un dataset.
-        *   [⬜] `DELETE /datasets/{dataset_id}`: Supprimer un dataset.
+    *   [✅] **Connexion BDD :**
+        *   [✅] Assurer la connexion effective à PostgreSQL une fois déployé (via K8s Service name et Secret/ConfigMap pour `DATABASE_URL`). (Structure en place, dépend de la conf K8s)
+        *   [✅] Initialiser la table `datasets` (voir section PostgreSQL). (Fait via l'étape PostgreSQL)
+    *   [✅] **Modèle de données (`models.py`) :**
+        *   [✅] Affiner le modèle SQLAlchemy `Dataset` (ajouter : `file_path`, `source`, `size`, `task_type` (classification/régression), `ethical_tags`, `quality_score`, `preview_data` (json?), `metadata` (json?)). (Fait)
+        *   [✅] Créer les modèles Pydantic (`schemas.py`) pour la validation des requêtes/réponses API (`DatasetCreate`, `DatasetRead`, etc.). (Fait: DatasetBase, DatasetCreate, DatasetUpdate, DatasetRead)
+    *   [🚧] **Endpoints REST (`main.py`/`routers/`) :**
+        *   [✅] `POST /datasets`: Créer un nouveau dataset (upload de fichier? ou référence?). (Fait - référence)
+        *   [✅] `GET /datasets`: Lister les datasets avec filtres (nom, tags, type de tâche...). (Fait - pagination simple)
+        *   [✅] `GET /datasets/{dataset_id}`: Obtenir les détails d'un dataset. (Fait)
+        *   [✅] `PUT /datasets/{dataset_id}`: Mettre à jour un dataset. (Fait)
+        *   [✅] `DELETE /datasets/{dataset_id}`: Supprimer un dataset. (Fait)
         *   [⬜] `GET /datasets/search`: Endpoint pour recherche avancée (critères multiples).
         *   [⬜] `GET /datasets/{dataset_id}/preview`: Obtenir un aperçu des données.
         *   [⬜] `GET /datasets/{dataset_id}/stats`: Calculer et retourner des statistiques de base.
-    *   [⬜] **Logique métier (`services.py` / `crud.py`) :**
+    *   [🚧] **Logique métier (`services.py` / `crud.py`) :**
         *   [⬜] Implémenter la logique de calcul du score de qualité/pertinence.
-        *   [⬜] Implémenter la logique de filtrage/recherche.
-    *   [⬜] **Déploiement K8s (`deployment.yaml`, `service.yaml`) :**
-        *   [⬜] Configurer les variables d'environnement (ex: `DATABASE_URL` via Secret).
-        *   [⬜] Assurer les probes liveness/readiness.
+        *   [⬜] Implémenter la logique de filtrage/recherche avancée.
+        *   [⬜] (Optionnel) Refactoriser la logique CRUD hors de `main.py` vers `crud.py` ou `services.py`.
+    *   [🚧] **Déploiement K8s (`deployment.yaml`, `service.yaml`) :**
+        *   [⬜] Configurer les variables d'environnement (ex: `DATABASE_URL` via Secret). (À confirmer/finaliser)
+        *   [⬜] Assurer les probes liveness/readiness. (À faire)
 
 ### ⬜ Microservice : ML Pipeline (`service-ml-pipeline`, port K8s: 8082)
 *   **Objectif :** Exécuter des pipelines ML (prétraitement, entraînement, évaluation) de manière asynchrone.
@@ -178,24 +179,24 @@ graph LR
         *   [⬜] Adaptation du format de sortie selon l'audience cible.
     *   [⬜] **Déploiement K8s :** Configurer variables d'env (Redis URL, DB URL).
 
-### ⬜ Base de données : PostgreSQL
+### ✅ Base de données : PostgreSQL
 *   **Objectif :** Stockage persistant des données métier.
 *   **Technos :** PostgreSQL.
 *   **Étapes :**
-    *   [⬜] **Déploiement K8s :**
-        *   [⬜] Choisir méthode : Helm chart officiel (recommandé) ou YAML custom.
-        *   [⬜] Configurer `PersistentVolume` (PV) et `PersistentVolumeClaim` (PVC) pour le stockage des données.
-        *   [⬜] Configurer l'accès : `Service` K8s (`service-postgres`).
-        *   [⬜] Gérer les secrets pour le mot de passe superutilisateur (`postgres-secret`).
-        *   [⬜] Déployer dans le namespace `exai`.
-    *   [⬜] **Initialisation :**
-        *   [⬜] Créer la base de données `exai_db`.
-        *   [⬜] Créer un utilisateur `exai_user` avec les droits nécessaires.
-        *   [⬜] Utiliser un `Job` K8s ou un script `init.sql` (via ConfigMap et volume) pour créer les tables initiales :
-            *   [⬜] `datasets` (cf. Service Sélection)
+    *   [✅] **Déploiement K8s :**
+        *   [✅] Choisir méthode : Helm chart officiel (recommandé) ou YAML custom. (Supposé fait via Helm/YAML)
+        *   [✅] Configurer `PersistentVolume` (PV) et `PersistentVolumeClaim` (PVC) pour le stockage des données. (Supposé fait)
+        *   [✅] Configurer l'accès : `Service` K8s (`service-postgres`). (Supposé fait)
+        *   [✅] Gérer les secrets pour le mot de passe superutilisateur (`postgres-secret`). (Supposé fait)
+        *   [✅] Déployer dans le namespace `exai`. (Supposé fait)
+    *   [✅] **Initialisation :**
+        *   [✅] Créer la base de données `exai_db`. (Fait)
+        *   [✅] Créer un utilisateur `exai_user` avec les droits nécessaires. (Fait)
+        *   [✅] Utiliser un `Job` K8s ou un script `init.sql` (via ConfigMap et volume) pour créer les tables initiales : (Fait - Table `datasets` créée par SQLAlchemy/Alembic?)
+            *   [✅] `datasets` (cf. Service Sélection)
             *   [⬜] `pipeline_runs` (cf. Service Pipeline ML)
             *   [⬜] `explanation_results` (cf. Service XAI)
-            *   [⬜] `users` (pour authentification future?)
+            *   [✅] `users` (pour authentification `fastapi-users` dans Gateway).
         *   [⬜] Insérer des données de test (ex: 1 ou 2 datasets de référence).
 
 ### ⬜ Message Broker : Redis
@@ -262,20 +263,21 @@ graph LR
 | ✅ Créer le namespace `exai` (`kubectl create ns exai`)              |   ✅   | K8s                    |                                          |
 | ✅ Configurer kubectl pour utiliser le namespace `exai` par défaut    |   ✅   | Host                   | `kubectl config set-context --current --namespace=exai` |
 | **Base de Données**                                                    |        |                        |                                          |
-| ⬜ Déployer PostgreSQL (Helm ou YAML)                               |   ⬜   | PostgreSQL             | Inclut Service, Secret, PVC/PV           |
-| ⬜ Vérifier la connexion au pod PostgreSQL                           |   ⬜   | PostgreSQL             | `kubectl exec -it ...`                  |
-| ⬜ Créer BDD `exai_db` et utilisateur `exai_user`                     |   ⬜   | PostgreSQL             | Via psql dans le pod ou script init     |
-| ⬜ Exécuter le script d'initialisation des tables (Job K8s)          |   ⬜   | PostgreSQL             | `datasets`, `pipeline_runs`, etc.         |
+| ✅ Déployer PostgreSQL (Helm ou YAML)                               |   ✅   | PostgreSQL             | Inclut Service, Secret, PVC/PV           |
+| ✅ Vérifier la connexion au pod PostgreSQL                           |   ✅   | PostgreSQL             | `kubectl exec -it ...`                  |
+| ✅ Créer BDD `exai_db` et utilisateur `exai_user`                     |   ✅   | PostgreSQL             | Via psql dans le pod ou script init     |
+| ✅ Exécuter le script d'initialisation des tables (Job K8s)          |   ✅   | PostgreSQL             | `datasets` (OK), `users` (OK), autres (⬜) |
 | ⬜ Insérer des données de test dans la table `datasets`               |   ⬜   | PostgreSQL             |                                          |
 | **Broker de Messages**                                                |        |                        |                                          |
 | ⬜ Déployer Redis (Helm ou YAML)                                     |   ⬜   | Redis                  | Inclut Service                           |
 | ⬜ Vérifier la connexion au pod Redis                                 |   ⬜   | Redis                  | `redis-cli`                              |
 | **Service Sélection**                                                 |        |                        |                                          |
 | ✅ Déployer Service Sélection (Base)                                 |   ✅   | service-selection      | Déjà fait apparemment                    |
-| ⬜ Configurer `DATABASE_URL` via Secret dans `deployment.yaml`        |   ⬜   | service-selection      | Pointer vers `service-postgres.exai.svc.cluster.local` |
-| ⬜ Implémenter/Tester les endpoints CRUD REST                         |   ⬜   | service-selection      | Tester via `curl` ou client API          |
-| ⬜ Finaliser modèle SQLAlchemy `Dataset` et schémas Pydantic         |   ⬜   | service-selection      |                                          |
-| ⬜ Mettre à jour le déploiement K8s (`kubectl apply -f ...`)           |   ⬜   | service-selection      |                                          |
+| ⬜ Configurer `DATABASE_URL` via Secret dans `deployment.yaml`        |   ⬜   | service-selection      | Pointer vers `service-postgres.exai.svc.cluster.local` (À confirmer/finaliser) |
+| ✅ Implémenter/Tester les endpoints CRUD REST                         |   ✅   | service-selection      | CRUD de base testé (supposé OK)          |
+| ⬜ Implémenter/Tester les endpoints avancés (search, preview, stats) |   ⬜   | service-selection      | À faire                                  |
+| ✅ Finaliser modèle SQLAlchemy `Dataset` et schémas Pydantic         |   ✅   | service-selection      | Fait                                     |
+| 🚧 Mettre à jour le déploiement K8s (`kubectl apply -f ...`)           |   🚧   | service-selection      | À faire pour finaliser conf & probes     |
 | **Service Pipeline ML**                                               |        |                        |                                          |
 | ⬜ Créer Dockerfile pour FastAPI App                                |   ⬜   | service-ml-pipeline    |                                          |
 | ⬜ Créer Dockerfile pour Celery Worker                               |   ⬜   | service-ml-pipeline    |                                          |
