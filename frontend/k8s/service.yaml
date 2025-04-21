@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend # Nom du service (doit correspondre à la cible d'autres services/ingress)
+  namespace: exai # Doit être dans le même namespace que le déploiement
+  labels:
+    app: frontend # Label pour identifier ce service
+spec:
+  selector:
+    app: frontend # Sélectionne les pods avec ce label (ceux créés par le déploiement)
+  ports:
+    - name: http # Nom du port (optionnel mais descriptif)
+      protocol: TCP
+      port: 80 # Port sur lequel le service est joignable DANS le cluster
+      targetPort: 80 # Port cible sur les pods (doit correspondre au containerPort du déploiement)
+  type: ClusterIP # Type de service (ClusterIP est standard pour l'accès interne) 

@@ -12,6 +12,10 @@ build:
       context: service-selection
       docker:
         dockerfile: Dockerfile
+    - image: frontend
+      context: frontend
+      docker:
+        dockerfile: Dockerfile
 manifests:
   rawYaml:
     - api-gateway/k8s/deployment.yaml
@@ -23,3 +27,5 @@ manifests:
     - service-selection/k8s/db-secrets.yaml
     - service-selection/k8s/deployment.yaml
     - service-selection/k8s/service.yaml
+    - frontend/k8s/deployment.yaml
+    - frontend/k8s/service.yaml

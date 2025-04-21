@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend # Nom du déploiement
+  namespace: exai # Assurez-vous que ce namespace existe ou adaptez-le
+  labels:
+    app: frontend # Label pour identifier les pods de ce déploiement
+spec:
+  replicas: 1 # Nombre de pods à exécuter (1 suffit pour le dev local)
+  selector:
+    matchLabels:
+      app: frontend # Sélectionne les pods gérés par ce déploiement
+  template:
+    metadata:
+      labels:
+        app: frontend # Label appliqué aux pods créés
+    spec:
+      containers:
+        - name: frontend # Nom du conteneur dans le pod
+          image: frontend # Nom de l'image Docker (Skaffold s'occupe du build et du tag)
+          ports:
+            - containerPort: 80 # Port exposé par le conteneur Nginx (cf. Dockerfile et nginx.conf)
+          resources: # Optionnel: Définir des limites de ressources
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          readinessProbe: # Vérifie si le conteneur est prêt à recevoir du trafic
+            httpGet:
+              path: / # Vérifie la page d'accueil
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe: # Vérifie si le conteneur est toujours en vie
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20 
