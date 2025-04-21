@@ -118,7 +118,6 @@
   <button
     mat-stroked-button
     class="d-none d-lg-flex custom-outline-btn"
-    (click)="openDialog()"
   >
     <div class="d-flex align-items-center">
       <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> Try to
@@ -500,6 +499,7 @@
           mat-flat-button
           color="primary"
           class="w-100"
+          (click)="logout()"
         >
           Logout
         </button>

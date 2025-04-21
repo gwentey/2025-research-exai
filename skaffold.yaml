@@ -29,3 +29,11 @@ manifests:
     - service-selection/k8s/service.yaml
     - frontend/k8s/deployment.yaml
     - frontend/k8s/service.yaml
+
+# Ajouter cette section pour le port-forwarding
+portForward:
+  - resourceType: service
+    resourceName: api-gateway-service
+    namespace: exai
+    port: 80        # Port du service Kubernetes
+    localPort: 9000 # Utiliser le port local 9000

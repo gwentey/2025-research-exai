@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormGroup,
@@ -10,6 +10,10 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { AuthService } from 'src/app/services/auth.service';
+import { finalize } from 'rxjs';
+import { SignupData } from '../../../models/auth.models';
+
 @Component({
   selector: 'app-side-register',
   standalone: true,
@@ -23,14 +27,20 @@ import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/brandi
   templateUrl: './side-register.component.html',
 })
 export class AppSideRegisterComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private settings = inject(CoreService);
+
   options = this.settings.getOptions();
 
-  constructor(private settings: CoreService, private router: Router) {}
+  isLoading = false;
+  signupError: string | null = null;
+  signupSuccess = false;
 
   form = new FormGroup({
-    uname: new FormControl('', [Validators.required, Validators.minLength(6)]),
-    email: new FormControl('', [Validators.required]),
-    password: new FormControl('', [Validators.required]),
+    uname: new FormControl('', [Validators.required, Validators.minLength(3)]),
+    email: new FormControl('', [Validators.required, Validators.email]),
+    password: new FormControl('', [Validators.required, Validators.minLength(8)]),
   });
 
   get f() {
@@ -38,7 +48,38 @@ export class AppSideRegisterComponent {
   }
 
   submit() {
-    // console.log(this.form.value);
-    this.router.navigate(['/dashboards/dashboard1']);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.signupError = 'Veuillez remplir correctement tous les champs.';
+      this.signupSuccess = false;
+      return;
+    }
+
+    this.isLoading = true;
+    this.signupError = null;
+    this.signupSuccess = false;
+
+    const userData: SignupData = {
+      email: this.f.email.value ?? '',
+      password: this.f.password.value ?? '',
+    };
+
+    this.authService.signup(userData)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (response) => {
+          console.log('Signup successful', response);
+          this.signupSuccess = true;
+        },
+        error: (error) => {
+          console.error('Signup failed:', error);
+          this.signupSuccess = false;
+          if (error.message?.includes('400')) {
+             this.signupError = 'Cet email est déjà utilisé. Veuillez en choisir un autre ou vous connecter.';
+          } else {
+             this.signupError = error.message || 'Échec de l\'inscription. Veuillez réessayer.';
+          }
+        }
+      });
   }
 }

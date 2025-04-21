@@ -66,10 +66,24 @@
 
                     <div class="or-border m-t-30">or sign up with</div>
 
+                    <!-- Display Signup Success -->
+                    @if(signupSuccess) {
+                      <div class="alert alert-success m-t-20" role="alert">
+                        Inscription réussie ! Vous pouvez maintenant vous
+                        <a [routerLink]="['/authentication/login']" class="alert-link">connecter</a>.
+                      </div>
+                    }
+
+                    <!-- Display Signup Error -->
+                    @if(signupError) {
+                      <mat-error class="m-t-20 m-b-10">{{ signupError }}</mat-error>
+                    }
+
                     <form
                       class="m-t-30"
                       [formGroup]="form"
                       (ngSubmit)="submit()"
+                      *ngIf="!signupSuccess"
                     >
                       <mat-label
                         class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block"
@@ -89,7 +103,7 @@
                           } @if(f['uname'].errors &&
                           f['uname'].errors['minlength']) {
                           <div class="text-error">
-                            Name should be 6 character.
+                            Name should be at least 3 characters.
                           </div>
                           }
                         </mat-hint>
@@ -111,6 +125,8 @@
                           @if(f['email'].errors &&
                           f['email'].errors['required']) {
                           <div class="text-error">Email is required.</div>
+                          } @if(f['email'].errors && f['email'].errors['email']) {
+                            <div class="text-error">Please enter a valid email address.</div>
                           }
                         </mat-hint>
                         }
@@ -135,6 +151,8 @@
                           @if(f['password'].errors &&
                           f['password'].errors['required']) {
                           <div class="text-error">Password is required.</div>
+                          } @if(f['password'].errors && f['password'].errors['minlength']) {
+                            <div class="text-error">Password should be at least 8 characters.</div>
                           }
                         </mat-hint>
                         }
@@ -144,9 +162,9 @@
                         mat-flat-button
                         color="primary"
                         class="w-100"
-                        [disabled]="!form.valid"
+                        [disabled]="!form.valid || isLoading"
                       >
-                        Sign Up
+                        {{ isLoading ? 'Signing Up...' : 'Sign Up' }}
                       </button>
                       <!-- input -->
                     </form>

@@ -1,0 +1,38 @@
+/**
+ * Interface pour les données envoyées lors de la connexion.
+ */
+export interface LoginCredentials {
+  email: string;      // Ou username si votre API l'attend
+  password: string;
+}
+
+/**
+ * Interface pour la réponse attendue de l'endpoint de connexion.
+ */
+export interface LoginResponse {
+  access_token: string;
+  token_type: string; // Généralement 'bearer'
+}
+
+/**
+ * Interface pour les données envoyées lors de l'inscription.
+ * (Aligné avec le schéma UserCreate de FastAPI)
+ */
+export interface SignupData {
+  email: string;
+  password: string;
+  // Ajoutez d'autres champs si UserCreate les requiert (ex: uname: string)
+}
+
+/**
+ * Interface pour représenter un utilisateur lu depuis l'API.
+ * (Aligné avec le schéma UserRead de FastAPI)
+ */
+export interface UserRead {
+  id: string; // UUID est une chaîne de caractères en TS/JS
+  email: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  is_verified: boolean;
+  // Ajoutez d'autres champs si UserRead les définit (ex: first_name?: string)
+} 

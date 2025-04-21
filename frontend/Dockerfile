@@ -21,9 +21,8 @@ RUN npm install --legacy-peer-deps
 # Copier tous les fichiers du projet dans le conteneur
 COPY . .
 
-# Construire l'application Angular pour la production
-# La sortie sera dans le dossier /app/dist/Spike (confirmé via angular.json)
-RUN npm run build -- --configuration production
+# Construire l'application Angular (utilisera environment.ts par défaut)
+RUN npm run build
 
 # --- Étape 2: Serve ---
 # Utiliser une image Nginx légère pour servir les fichiers statiques

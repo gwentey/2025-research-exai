@@ -15,8 +15,8 @@ import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './vertical/sidebar/sidebar.component';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { HeaderComponent } from './vertical/header/header.component';
-import { AppHorizontalHeaderComponent } from './horizontal/header/header.component';
+import { VerticalHeaderComponent } from './vertical/header/header.component';
+import { HorizontalHeaderComponent } from './horizontal/header/header.component';
 import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.component';
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
@@ -52,8 +52,8 @@ interface quicklinks {
         SidebarComponent,
         NgScrollbarModule,
         TablerIconsModule,
-        HeaderComponent,
-        AppHorizontalHeaderComponent,
+        VerticalHeaderComponent,
+        HorizontalHeaderComponent,
         AppHorizontalSidebarComponent,
         AppBreadcrumbComponent,
         CustomizerComponent,

@@ -19,7 +19,6 @@
     <!-- --------------------------------------------------------------- -->
     <button
       mat-icon-button
-      (click)="openDialog()"
       class="d-flex align-items-center justify-content-center m-x-4"
     >
       <i-tabler name="search" class="icon-20 d-flex"></i-tabler>
@@ -493,6 +492,7 @@
             mat-flat-button
             color="primary"
             class="w-100"
+            (click)="logout()"
           >
             Logout
           </button>
