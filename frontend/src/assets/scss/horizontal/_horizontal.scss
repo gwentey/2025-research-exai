@@ -1,0 +1,301 @@
+@use "../variables" as *;
+
+.sidebarNav-horizontal {
+  .contentWrapper {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .childBox {
+    background: var(--mat-sys-surface);
+  }
+
+  // header
+  .horizontal-topbar {
+    box-shadow: none;
+
+    .branding {
+      padding-left: 0;
+    }
+
+    .container {
+      max-width: $boxedWidth;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+  }
+
+  // sidebar
+  .horizontal-sidebar {
+    background: var(--mat-sys-surface);
+  }
+
+  .horizontal-navbar {
+    position: relative;
+    gap: 3px !important;
+    .parentBox {
+      position: relative;
+      z-index: 5;
+      margin: 5px 0;
+      &.mega-menu {
+        position: static;
+        &:hover {
+          > .childBox > .ddmenu {
+            display: inline-block;
+          }
+        }
+        > .childBox {
+          width: 100%;
+          left: 0;
+
+          > .ddmenu {
+            width: 24%;
+          }
+        }
+      }
+      &.two-column {
+        &:hover {
+          > .childBox > .ddmenu {
+            display: inline-block;
+          }
+        }
+        > .childBox {
+          width: 600px;
+
+          > .ddmenu {
+            width: 49%;
+          }
+        }
+      }
+      .menuLink {
+        padding: 10px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        height: 40px;
+        gap: 10px;
+        position: relative;
+        font-size: 14px;
+        &:before {
+          content: "";
+          display: block;
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: unset;
+          width: 0;
+          height: 100%;
+          opacity: 1;
+          z-index: -1;
+          border-radius: $border-radius;
+          transition: all 0.4s ease-in-out;
+        }
+        &:hover {
+          &:before {
+            content: "";
+            width: 100%;
+          }
+        }
+
+        &.primary {
+          &:hover,
+          &:hover > .activeMenu,
+          &.activeMenu {
+            color: var(--mat-sys-primary) !important;
+          }
+          &:before {
+            background-color: var(--mat-sys-primary-fixed-dim);
+          }
+        }
+
+        &.secondary {
+          &:hover,
+          &:hover > .activeMenu,
+          &.activeMenu {
+            color: $secondary !important;
+          }
+          &:before {
+            background-color: var(--mat-sys-secondary-fixed-dim);
+          }
+        }
+
+        &.success {
+          &:hover,
+          &:hover > .activeMenu,
+          &.activeMenu {
+            color: $success !important;
+          }
+          &:before {
+            background-color: rgba($success, 0.1);
+          }
+        }
+
+        &.warning {
+          &:hover,
+          &:hover > .activeMenu,
+          &.activeMenu {
+            color: $warning !important;
+          }
+          &:before {
+            background-color: rgba($warning, 0.1);
+          }
+        }
+        &.error {
+          &:hover,
+          &:hover > .activeMenu,
+          &.activeMenu {
+            color: $error !important;
+          }
+          &:before {
+            background-color: var(--mat-sys-error-fixed-dim);
+          }
+        }
+      }
+
+      &:hover > .activeMenu,
+      .activeMenu {
+        color: var(--mat-sys-on-background);
+        font-weight: 600;
+      }
+      .down-icon .mat-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 18px;
+      }
+      .childBox {
+        border-radius: $border-radius;
+        box-shadow: var(--mat-sys-level1);
+        position: absolute;
+        width: 250px;
+
+        .ddmenu {
+          display: none;
+          padding: 10px;
+          margin: 10px;
+          position: relative;
+        }
+      }
+
+      &:hover > .childBox > .ddmenu:hover {
+        background-color: rgba(0, 0, 0, 0.025);
+        border-radius: $border-radius;
+        &:hover > .childBox > .ddmenu:hover {
+          background-color: rgba(0, 0, 0, 0.025);
+          border-radius: $border-radius;
+        }
+      }
+      &:hover > .childBox > .ddmenu:hover > .childBox {
+        left: 230px;
+        top: 0px;
+        z-index: 9;
+        > .ddmenu:hover > .childBox {
+          left: 235px;
+          top: 0;
+        }
+      }
+
+      &:hover > .childBox > .ddmenu {
+        display: block;
+        padding: 0;
+        &:hover > .childBox > .ddmenu {
+          display: block;
+          padding: 0;
+          &:hover > .childBox > .ddmenu {
+            display: block;
+            padding: 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+.sidebarNav-horizontal {
+  .topbar,
+  .mainWrapper {
+    width: 100%;
+    border-radius: 0;
+  }
+  .horizontal-navbar {
+    .parentBox {
+      > .menuLink.activeMenu {
+        font-weight: 400;
+        &:before {
+          width: 100%;
+        }
+      }
+      &.pactive > a,
+      &.pactive > a:hover,
+      &.pactive:hover > a {
+        &:before {
+          width: 100%;
+        }
+        border-radius: $border-radius;
+      }
+      &.pactive > a.warning,
+      &.pactive > a.warning:hover,
+      &.pactive:hover > a.warning {
+        color: $warning;
+      }
+      &.pactive > a.error,
+      &.pactive > a.error:hover,
+      &.pactive:hover > a.error {
+        color: $error;
+      }
+      &.pactive > a.success,
+      &.pactive > a.success:hover,
+      &.pactive:hover > a.success {
+        color: $success;
+      }
+    }
+  }
+}
+
+.ltr {
+  .sidebarNav-horizontal {
+    .horizontal-navbar {
+      .parentBox {
+        &:last-child:hover > .childBox > .ddmenu {
+          &:hover > .childBox {
+            right: 250px;
+            left: unset;
+
+            > .ddmenu:hover > .childBox {
+              right: 250px;
+              left: unset;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.rtl {
+  .sidebarNav-horizontal {
+    .horizontal-navbar {
+      .parentBox {
+        &:last-child:hover > .childBox > .ddmenu {
+          &:hover > .childBox {
+            left: 250px;
+            right: unset;
+
+            > .ddmenu:hover > .childBox {
+              left: 250px;
+              right: unset;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 1023px) {
+  .sidebarNav-horizontal .horizontal-topbar .container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

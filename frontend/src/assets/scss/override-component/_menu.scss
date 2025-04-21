@@ -1,0 +1,25 @@
+@use "sass:map";
+@use "@angular/material" as mat;
+
+@include mat.menu-overrides(
+  (
+    container-shape: var(--mat-sys-corner-medium),
+  )
+);
+
+//   styles
+html {
+  .mat-mdc-menu-panel {
+    box-shadow: var(--mat-sys-level3) !important;
+  }
+
+  .mat-mdc-select-panel {
+    padding: 8px !important;
+  }
+
+  .bg-light-primary-hover {
+    &:hover {
+      background-color: var(--mat-sys-surface-bright);
+    }
+  }
+}

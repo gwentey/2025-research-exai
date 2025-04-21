@@ -1,0 +1,25 @@
+@use "../variables" as *;
+
+.breadcrumb {
+  list-style: none;
+  margin: 0;
+  padding: 0px;
+  display: flex;
+}
+
+.breadcrumb-item {
+  &:first-child {
+    //margin-left: -20px;
+    &::marker {
+      content: " ";
+    }
+  }
+  &.active {
+    margin-left: 20px;
+  }
+  a {
+    text-decoration: none;
+    color: var(--mat-sys-on-background);
+    font-size: 14px;
+  }
+}

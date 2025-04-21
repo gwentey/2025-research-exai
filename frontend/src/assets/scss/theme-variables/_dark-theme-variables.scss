@@ -1,0 +1,39 @@
+@use "@angular/material" as mat;
+
+html.dark-theme {
+  color-scheme: dark;
+  --mat-sys-corner-medium: 16px;
+  --mat-sys-background: #15263a;
+  --mat-sys-on-background: rgba(255, 255, 255, 0.9);
+  --mat-sys-on-primary: #fff;
+  --mat-sys-surface-bright: #ffffff05;
+  --mat-sys-surface: #15263a;
+  --mat-sys-surface-container: #15263a;
+  --mat-sys-surface-container-low: #15263a;
+  --mat-sys-outline-variant: #2e3f50;
+  --mat-sys-outline: #2e3f50;
+  --mdc-outlined-text-field-hover-outline-color: #465670;
+  --mdc-checkbox-unselected-hover-state-layer-color: #132335;
+  --mat-menu-item-hover-state-layer-color: #132335;
+  --mat-standard-button-toggle-state-layer-color: #132335;
+  --mat-option-focus-state-layer-color: #132335;
+  --mat-option-hover-state-layer-color: #132335;
+  --mdc-switch-unselected-track-color: #132335;
+  --mat-stepper-header-focus-state-layer-color: #132335;
+  --mat-stepper-header-hover-state-layer-color: #132335;
+  --mat-expansion-header-hover-state-layer-color: #132335;
+  @include mat.card-overrides(
+    (
+      elevated-container-color: #111c2d,
+      elevated-container-elevation: rgba(0, 0, 0, 0.2) 0px 0px 2px 0px,
+      subtitle-text-color: rgba(255, 255, 255, 0.67),
+    )
+  );
+  @include mat.theme-overrides(
+    (
+      level1: 0px 12px 24px -4px rgba(143, 176, 210, 0.02),
+      level2: 0px 12px 24px -4px rgba(143, 176, 210, 0.02),
+      level3: 0px 12px 24px -4px rgba(143, 176, 210, 0.02),
+    )
+  );
+}
