@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>🚀 Installation et Démarrage Rapide d&#8217;EXAI :: Documentation 2025 Research EXAI</title>
+    <title>🚀 Installation et Démarrage d&#8217;EXAI :: Documentation 2025 Research EXAI</title>
     <meta name="generator" content="Antora 3.1.10">
     <link rel="stylesheet" href="../../_/css/site.css">
   </head>
@@ -140,298 +140,138 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">🚀 Installation et Démarrage Rapide d&#8217;EXAI</h1>
-<div id="preamble">
+<h1 class="page">🚀 Installation et Démarrage d&#8217;EXAI</h1>
+<div class="sect1">
+<h2 id="_prérequis"><a class="anchor" href="#_prérequis"></a>Prérequis</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Bienvenue dans le guide de démarrage du projet EXAI !</p>
+<p>Installez les outils suivants:</p>
 </div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Outil</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker Desktop</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Moteur de conteneurisation - <a href="https://www.docker.com/products/docker-desktop/">Télécharger</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Minikube</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kubernetes local - <code>choco install minikube</code> (Windows) ou <code>brew install minikube</code> (macOS)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">kubectl</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CLI Kubernetes - <code>choco install kubernetes-cli</code> (Windows) ou <code>brew install kubectl</code> (macOS)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Skaffold</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Workflow Kubernetes - <code>choco install skaffold</code> (Windows) ou <code>brew install skaffold</code> (macOS)</p></td>
+</tr>
+</tbody>
+</table>
 <div class="paragraph">
-<p>Ce document vous explique comment installer les outils nécessaires et déployer l&#8217;application EXAI sur votre ordinateur personnel en utilisant Minikube. Minikube nous permet de simuler un environnement Kubernetes (l&#8217;outil utilisé pour orchestrer nos microservices) localement pour le développement et les tests.</p>
+<p>Pour Linux (Debian/Ubuntu):</p>
 </div>
-<div class="paragraph">
-<p>Suivez attentivement ces étapes pour avoir une instance fonctionnelle d&#8217;EXAI.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Minikube
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# Skaffold
+curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+sudo install skaffold /usr/local/bin/</code></pre>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_étape_1_préparer_votre_environnement_de_développement"><a class="anchor" href="#_étape_1_préparer_votre_environnement_de_développement"></a>Étape 1 : Préparer votre Environnement de Développement</h2>
+<h2 id="_déploiement"><a class="anchor" href="#_déploiement"></a>Déploiement</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>Avant de pouvoir déployer EXAI, vous devez installer quelques outils essentiels sur votre machine.</p>
-</div>
-<div class="sect2">
-<h3 id="_prérequis_logiciels"><a class="anchor" href="#_prérequis_logiciels"></a>Prérequis Logiciels</h3>
-<div class="paragraph">
-<p>Assurez-vous d&#8217;avoir les logiciels suivants installés :</p>
-</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>Docker Desktop</strong> : C&#8217;est le moteur qui gère nos conteneurs logiciels. Minikube l&#8217;utilise en arrière-plan.</p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Installation :</strong> Suivez les instructions sur le site officiel de <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">Docker Desktop</a>.</p>
-</li>
-<li>
-<p><strong>Vérification :</strong> Ouvrez un terminal et tapez <code>docker --version</code>. Vous devriez voir une version s&#8217;afficher.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>Minikube</strong> : L&#8217;outil pour exécuter un cluster Kubernetes à nœud unique sur votre machine.</p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Installation :</strong> Voir les commandes ci-dessous pour votre système d&#8217;exploitation ou consultez la <a href="https://minikube.sigs.k8s.io/docs/start/" target="_blank" rel="noopener">documentation officielle de Minikube</a>.</p>
-</li>
-<li>
-<p><strong>Vérification :</strong> Après installation, tapez <code>minikube version</code> dans votre terminal.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>kubectl</strong> : L&#8217;outil en ligne de commande pour interagir avec votre cluster Kubernetes (local ou distant).</p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Installation :</strong> Voir les commandes ci-dessous ou consultez la <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/" target="_blank" rel="noopener">documentation officielle de kubectl</a>.</p>
-</li>
-<li>
-<p><strong>Vérification :</strong> Après installation, tapez <code>kubectl version --client</code> dans votre terminal.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>Terminal Bash (Recommandé)</strong> : Pour exécuter les commandes de ce guide.</p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Windows :</strong> Utilisez <a href="https://gitforwindows.org/" target="_blank" rel="noopener">Git Bash</a> (inclus avec Git pour Windows) ou WSL (Windows Subsystem for Linux).</p>
-</li>
-<li>
-<p><strong>macOS/Linux :</strong> Utilisez le terminal intégré.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>(Optionnel mais recommandé) Gestionnaire de paquets :</strong></p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Windows :</strong> <a href="https://chocolatey.org/install" target="_blank" rel="noopener">Chocolatey</a></p>
-</li>
-<li>
-<p><strong>macOS :</strong> <a href="https://brew.sh/" target="_blank" rel="noopener">Homebrew</a></p>
-</li>
-</ul>
-</div>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_commandes_dinstallation_minikube_kubectl"><a class="anchor" href="#_commandes_dinstallation_minikube_kubectl"></a>Commandes d&#8217;Installation (Minikube &amp; kubectl)</h3>
-<div class="paragraph">
-<p>Choisissez les commandes correspondant à votre système :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Windows (avec Chocolatey)</strong> :
-Ouvrez PowerShell en tant qu&#8217;administrateur :</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>choco install minikube
-choco install kubernetes-cli</pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>macOS (avec Homebrew)</strong> :
-Ouvrez votre Terminal :</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>brew install minikube
-brew install kubectl</pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Linux (Debian/Ubuntu)</strong> :
-Ouvrez votre Terminal :</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre># Installer Minikube
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
-rm minikube-linux-amd64
-
-# Installer kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-rm kubectl</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Après l&#8217;installation, vérifiez que les outils fonctionnent avec les commandes <code>minikube version</code> et <code>kubectl version --client</code>.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_étape_2_cloner_le_dépôt_du_projet"><a class="anchor" href="#_étape_2_cloner_le_dépôt_du_projet"></a>Étape 2 : Cloner le Dépôt du Projet</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Si ce n&#8217;est pas déjà fait, récupérez le code source du projet EXAI depuis son dépôt Git.</p>
-</div>
+<p><strong>Cloner le dépôt</strong>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone &lt;URL_DU_DEPOT_GIT_EXAI&gt;
 cd &lt;NOM_DU_DOSSIER_PROJET_EXAI&gt;</code></pre>
 </div>
 </div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-Exécutez toutes les commandes suivantes depuis la racine de ce dossier projet cloné.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_étape_3_déployer_lapplication_exai_sur_minikube"><a class="anchor" href="#_étape_3_déployer_lapplication_exai_sur_minikube"></a>Étape 3 : Déployer l&#8217;Application EXAI sur Minikube</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Maintenant que les outils sont prêts, nous allons démarrer notre cluster local et y déployer les composants d&#8217;EXAI.</p>
-</div>
-<div class="sect2">
-<h3 id="_3_1_démarrer_minikube"><a class="anchor" href="#_3_1_démarrer_minikube"></a>3.1 Démarrer Minikube</h3>
-<div class="paragraph">
-<p>Minikube va créer une machine virtuelle (ou utiliser un conteneur Docker) pour héberger votre cluster Kubernetes.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Ouvrez votre terminal (à la racine du projet EXAI).</p>
 </li>
 <li>
-<p>Lancez la commande suivante :</p>
-</li>
-</ol>
-</div>
+<p><strong>Démarrer Minikube</strong>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">minikube start
-# Astuce: Si vous avez plusieurs Go de RAM, vous pouvez allouer plus de ressources:
-# minikube start --memory 4096 --cpus 2</code></pre>
+# Pour plus de ressources: minikube start --memory 4096 --cpus 2</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Le premier démarrage peut prendre quelques minutes car Minikube télécharge les images nécessaires.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Une fois terminé, vérifiez que le cluster est bien démarré :</p>
 </li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">minikube status</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Vous devriez voir des informations indiquant que <code>minikube</code>, <code>apiserver</code>, et <code>kubeconfig</code> sont <code>Running</code> ou <code>Configured</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_3_2_créer_un_espace_de_noms_namespace"><a class="anchor" href="#_3_2_créer_un_espace_de_noms_namespace"></a>3.2 Créer un Espace de Noms (Namespace)</h3>
-<div class="paragraph">
-<p>Pour garder notre application organisée et isolée des autres composants système de Kubernetes, nous créons un "namespace" appelé <code>exai</code>.</p>
-</div>
+<li>
+<p><strong>Créer le namespace</strong>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl create namespace exai</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Si vous voyez une erreur indiquant que le namespace existe déjà (<code>Error from server (AlreadyExists)</code>), ce n&#8217;est pas grave, vous pouvez continuer.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_3_3_déployer_la_base_de_données_postgresql"><a class="anchor" href="#_3_3_déployer_la_base_de_données_postgresql"></a>3.3 Déployer la Base de Données (PostgreSQL)</h3>
-<div class="paragraph">
-<p>EXAI a besoin d&#8217;une base de données PostgreSQL pour fonctionner. Nous la déployons en premier.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Appliquez les fichiers de configuration Kubernetes pour PostgreSQL :</p>
 </li>
-</ol>
-</div>
+<li>
+<p><strong>Configurer Docker pour Minikube</strong>:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f k8s/postgres/ -n exai</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Linux/macOS
+eval $(minikube docker-env)
+
+# Windows (PowerShell)
+&amp; minikube -p minikube docker-env --shell powershell | Invoke-Expression</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Cela crée un <code>Deployment</code> (qui gère le Pod PostgreSQL) et un <code>Service</code> (qui permet aux autres composants de communiquer avec la base de données).</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Vérifiez que le pod PostgreSQL démarre correctement :</p>
 </li>
-</ol>
-</div>
+<li>
+<p><strong>Déployer avec Skaffold</strong>:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl get pods -n exai -l app=postgresql</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">skaffold dev</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Attendez que le statut du pod passe à <code>Running</code>. Cela peut prendre une minute ou deux. Vous pouvez relancer la commande pour suivre l&#8217;évolution. Si le statut reste bloqué sur <code>Pending</code> ou <code>ContainerCreating</code> pendant longtemps, consultez la section Dépannage.</p>
+<p>Skaffold va :</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Construire les images Docker pour <code>api-gateway</code> et <code>service-selection</code></p>
+</li>
+<li>
+<p>Déployer les manifestes Kubernetes (PostgreSQL, API Gateway, Service Selection)</p>
+</li>
+<li>
+<p>Configurer des redirections de port</p>
+</li>
+<li>
+<p>Surveiller les changements de code et redéployer automatiquement</p>
+</li>
+<li>
+<p>Afficher les logs en temps réel</p>
+</li>
+</ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_3_4_initialisermettre_à_jour_le_schéma_de_base_de_données_alembic"><a class="anchor" href="#_3_4_initialisermettre_à_jour_le_schéma_de_base_de_données_alembic"></a>3.4 Initialiser/Mettre à jour le Schéma de Base de Données (Alembic)</h3>
-<div class="paragraph">
-<p>Une fois que PostgreSQL est déployé sur Minikube, le schéma des tables requises par les microservices (<code>user</code>, <code>datasets</code>, etc.) doit être créé ou mis à jour.
-Ce projet utilise <strong>Alembic</strong> pour gérer ces migrations de manière versionnée, remplaçant les scripts d&#8217;initialisation statiques.</p>
 </div>
 <div class="admonitionblock important">
 <table>
@@ -441,224 +281,45 @@ Ce projet utilise <strong>Alembic</strong> pour gérer ces migrations de manièr
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Après le premier déploiement de la base de données, ou lors d&#8217;une mise à jour de l&#8217;application nécessitant des changements de schéma, vous devez appliquer les migrations Alembic manuellement depuis votre environnement de développement local connecté à Minikube.</p>
+<p>Le premier déploiement peut prendre plusieurs minutes. Attendez que tous les pods passent à l&#8217;état <code>Running</code>.</p>
 </div>
 <div class="paragraph">
-<p>Consultez le guide détaillé sur les migrations pour les étapes précises et le contexte :
-* <a href="development/database-migrations.html" class="xref page">Gestion des Migrations de Base de Données avec Alembic</a></p>
-</div>
-<div class="paragraph">
-<p>En résumé, l&#8217;application initiale des migrations implique :</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>Lancer le tunnel réseau</strong> vers la base de données Minikube (à laisser tourner dans un terminal séparé) :</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl port-forward service/postgresql-service -n exai 5432:5432</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>Configurer la connexion locale :</strong> S&#8217;assurer que les fichiers <code>.env</code> à la racine des répertoires <code>api-gateway</code> et <code>service-selection</code> contiennent la bonne <code>DATABASE_URL</code> pointant vers <code>localhost:5432</code> (voir le guide détaillé).</p>
-</li>
-<li>
-<p><strong>Créer et activer un environnement virtuel Python</strong> pour isoler les dépendances :</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Depuis le répertoire du service (par exemple api-gateway/)
-python -m venv .venv
-
-# Activation sur Linux/macOS
-source .venv/bin/activate
-
-# Activation sur Windows (PowerShell)
-.\.venv\Scripts\Activate.ps1
-
-# Activation sur Windows (CMD)
-.\.venv\Scripts\activate.bat</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>Installer les dépendances</strong> pour chaque service :</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Dans l'environnement virtuel activé
-pip install -r requirements.txt</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>Charger les variables d&#8217;environnement</strong> du fichier <code>.env</code> :</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Sur Linux/macOS
-export $(cat .env | xargs)
-
-# Sur Windows (PowerShell)
-Get-Content .env | ForEach-Object { $_ -replace "#.*", "" } | Where-Object { $_ } | ForEach-Object { $var = $_.Split('=', 2); Set-Item "env:$($var[0])" $var[1] }
-
-# Alternative: installer python-dotenv si ce n'est pas déjà inclus dans requirements.txt
-# pip install python-dotenv</code></pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>Appliquer les migrations</strong> pour chaque service (depuis le répertoire du service respectif, avec l&#8217;environnement virtuel activé) :</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Depuis le répertoire api-gateway/
-alembic upgrade head
-
-# Depuis le répertoire service-selection/
-alembic upgrade head</code></pre>
-</div>
+<p><span class="underline"><strong>ATTENTION</strong></span> : Contrairement à ce qui pourrait être affiché dans la console Skaffold, les services ne sont <strong>PAS</strong> directement accessibles via localhost. Vous devez utiliser les commandes <code>minikube service</code> décrites dans la section suivante.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
+</li>
+</ol>
 </div>
 <div class="sect2">
-<h3 id="_3_5_déployer_les_microservices_exai"><a class="anchor" href="#_3_5_déployer_les_microservices_exai"></a>3.5 Déployer les Microservices EXAI</h3>
+<h3 id="_initialisation_de_la_base_de_données"><a class="anchor" href="#_initialisation_de_la_base_de_données"></a>Initialisation de la Base de Données</h3>
 <div class="paragraph">
-<p>Nous allons maintenant déployer les différents services qui composent l&#8217;application EXAI.</p>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-Pour que Minikube puisse utiliser les images Docker que nous allons construire localement, vous devez connecter votre terminal à l&#8217;environnement Docker de Minikube. Exécutez la commande appropriée <strong>une fois</strong> pour votre session terminal :
-</td>
-</tr>
-</table>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Linux/macOS (Bash/Zsh)</strong> :</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>eval $(minikube -p minikube docker-env)</pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Windows (PowerShell)</strong> :</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>minikube -p minikube docker-env | Invoke-Expression</pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Windows (Git Bash)</strong> :</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>eval $(minikube -p minikube docker-env)</pre>
-</div>
+<p>L&#8217;architecture EXAI utilise une base de données PostgreSQL partagée par tous les microservices, chaque service gérant ses migrations spécifiques.</p>
 </div>
 <div class="paragraph">
-<p>Maintenant, déployez chaque service en suivant ces instructions pour tous les microservices de l&#8217;architecture EXAI :</p>
+<p>Exécutez les migrations depuis les pods Kubernetes :</p>
 </div>
-<div class="paragraph">
-<p><strong>1. API Gateway (<code>api-gateway</code>)</strong></p>
-</div>
+<div class="sect3">
+<h4 id="_service_de_sélection"><a class="anchor" href="#_service_de_sélection"></a>Service de Sélection</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Construire l'image Docker (si nécessaire)
-docker build -t exai/api-gateway:latest ./api-gateway
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># 1. Identifier le pod
+kubectl get pods -n exai -l app=service-selection
 
-# Déployer le service
-kubectl apply -f k8s/api-gateway/deployment.yaml -n exai
-kubectl apply -f k8s/api-gateway/service.yaml -n exai</code></pre>
+# 2. Exécuter la migration (remplacer &lt;pod-name&gt;)
+kubectl exec -it &lt;pod-name&gt; -n exai -- bash -c "cd /app &amp;&amp; DATABASE_URL='postgresql+asyncpg://exai_user:password@postgresql-service:5432/exai_db' alembic upgrade head"</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p><strong>2. Service de Sélection de Datasets (<code>service-selection</code>)</strong></p>
 </div>
+<div class="sect3">
+<h4 id="_api_gateway"><a class="anchor" href="#_api_gateway"></a>API Gateway</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Construire l'image Docker (si nécessaire)
-docker build -t exai/service-selection:latest ./service-selection
-
-# Déployer le service
-kubectl apply -f k8s/service-selection/deployment.yaml -n exai
-kubectl apply -f k8s/service-selection/service.yaml -n exai</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><strong>3. Service de Pipeline ML (<code>ml-pipeline</code>)</strong></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Construire l'image Docker (si nécessaire)
-docker build -t exai/ml-pipeline:latest ./ml-pipeline
-
-# Déployer le service
-kubectl apply -f k8s/ml-pipeline/deployment.yaml -n exai
-kubectl apply -f k8s/ml-pipeline/service.yaml -n exai</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><strong>4. Service XAI Engine (<code>xai-engine</code>)</strong></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Construire l'image Docker (si nécessaire)
-docker build -t exai/xai-engine:latest ./xai-engine
-
-# Déployer le service
-kubectl apply -f k8s/xai-engine/deployment.yaml -n exai
-kubectl apply -f k8s/xai-engine/service.yaml -n exai</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><strong>5. Frontend (<code>frontend</code>)</strong></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Construire l'image Docker (si nécessaire)
-docker build -t exai/frontend:latest ./frontend
-
-# Déployer le service
-kubectl apply -f k8s/frontend/deployment.yaml -n exai
-kubectl apply -f k8s/frontend/service.yaml -n exai</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Identifier le pod et exécuter la migration
+kubectl get pods -n exai -l app=api-gateway
+kubectl exec -it &lt;pod-name&gt; -n exai -- bash -c "cd /app &amp;&amp; DATABASE_URL='postgresql+asyncpg://exai_user:password@postgresql-service:5432/exai_db' alembic upgrade head"</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -668,134 +329,158 @@ kubectl apply -f k8s/frontend/service.yaml -n exai</code></pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Les chemins des fichiers deployment.yaml et service.yaml peuvent varier selon la structure de votre projet. Adaptez les commandes en fonction de l&#8217;organisation de vos fichiers Kubernetes.
+<div class="paragraph">
+<p>Ces commandes exécutent les migrations Alembic directement à l&#8217;intérieur des pods. Cela évite les problèmes de connectivité et assure que la configuration est identique à celle utilisée par l&#8217;application.</p>
+</div>
+<div class="paragraph">
+<p>Chaque service utilise sa propre table de version Alembic (<code>alembic_version_gateway</code> et <code>alembic_version_selection</code>) pour suivre ses migrations dans la base de données partagée.</p>
+</div>
 </td>
 </tr>
 </table>
 </div>
 </div>
+</div>
 <div class="sect2">
-<h3 id="_3_6_vérifier_le_déploiement"><a class="anchor" href="#_3_6_vérifier_le_déploiement"></a>3.6 Vérifier le Déploiement</h3>
+<h3 id="_accéder_à_lapplication"><a class="anchor" href="#_accéder_à_lapplication"></a>Accéder à l&#8217;Application</h3>
 <div class="paragraph">
-<p>Après avoir lancé le déploiement de tous les services, vérifiez que leurs pods démarrent correctement.</p>
+<p><span class="underline"><strong>IMPORTANT</strong></span> : Les services dans Minikube ne sont accessibles QUE via les commandes suivantes :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl get pods -n exai</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Accéder au Service de Sélection
+minikube service service-selection-service -n exai
+
+# Accéder à l'API Gateway
+minikube service api-gateway-service -n exai
+
+# Pour obtenir seulement l'URL (sans ouvrir le navigateur)
+minikube service service-selection-service -n exai --url</code></pre>
 </div>
 </div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>Attendez que tous les pods (PostgreSQL, api-gateway, service-selection, etc.) affichent le statut <code>Running</code>. Cela peut prendre quelques minutes car les images sont chargées et les conteneurs démarrés.</p>
+<p>Sur Windows avec le driver Docker, gardez la fenêtre du terminal ouverte pendant l&#8217;utilisation du service (elle maintient le tunnel actif).</p>
 </div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>Vous pouvez aussi vérifier les services Kubernetes :</p>
+<p>Pour obtenir uniquement l&#8217;URL sans ouvrir de navigateur, ajoutez le flag <code>--url</code> :
+<code>minikube service service-selection-service -n exai --url</code></p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl get services -n exai</code></pre>
-</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_étape_4_accéder_à_lapplication_exai"><a class="anchor" href="#_étape_4_accéder_à_lapplication_exai"></a>Étape 4 : Accéder à l&#8217;Application EXAI</h2>
+<h2 id="_workflow_de_développement"><a class="anchor" href="#_workflow_de_développement"></a>Workflow de Développement</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>Une fois que tous les pods sont <code>Running</code>, vous pouvez accéder à l&#8217;application. L&#8217;accès principal se fait généralement via le Frontend.</p>
-</div>
+<div class="sect2">
+<h3 id="_cycle_de_développement_avec_skaffold"><a class="anchor" href="#_cycle_de_développement_avec_skaffold"></a>Cycle de Développement avec Skaffold</h3>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Obtenez l&#8217;URL d&#8217;accès au service frontend :</p>
+<p>Modifiez votre code</p>
 </li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>minikube service frontend --url -n exai</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>Cette commande ouvrira peut-être directement l'URL dans votre navigateur, ou affichera l'URL (ex: `http://127.0.0.1:xxxxx`) dans le terminal.</pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
 <li>
-<p>Ouvrez l&#8217;URL retournée dans votre navigateur web. Vous devriez voir l&#8217;interface utilisateur d&#8217;EXAI.</p>
+<p>Skaffold détecte les changements</p>
 </li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Pour explorer les API directement (par exemple, pour le développement ou des tests avancés) :</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
 <li>
-<p>Obtenez l&#8217;URL de l&#8217;API Gateway :</p>
+<p>Reconstruction et redéploiement automatiques</p>
 </li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>minikube service api-gateway --url -n exai</pre>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
 <li>
-<p>Accédez à la documentation interactive (Swagger UI) en ajoutant <code>/docs</code> à l&#8217;URL obtenue : <code><a href="http://127.0.0.1:yyyyy/docs" class="bare">http://127.0.0.1:yyyyy/docs</a></code>.</p>
+<p>Services redémarrés avec le nouveau code</p>
 </li>
 </ol>
 </div>
-<div class="paragraph">
-<p>Voir la page <a href="dev-guide/api-reference.html" class="xref page">Référence API</a> pour plus de détails sur l&#8217;utilisation des API.</p>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Pour un workflow plus fluide, utilisez des outils comme <strong>Lens</strong>, <strong>k9s</strong> ou le <strong>Kubernetes Dashboard</strong> (<code>minikube dashboard</code>).
+</td>
+</tr>
+</table>
 </div>
-<div class="paragraph">
-<p>Félicitations ! Vous avez déployé EXAI localement avec Minikube.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_optionnel_dépannage"><a class="anchor" href="#_optionnel_dépannage"></a>(Optionnel) Dépannage</h2>
+<h2 id="_dépannage"><a class="anchor" href="#_dépannage"></a>Dépannage</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_problèmes_courants"><a class="anchor" href="#_problèmes_courants"></a>Problèmes Courants</h3>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Minikube ne démarre pas :</strong> Vérifiez que Docker Desktop est lancé. Essayez <code>minikube delete</code> puis <code>minikube start</code>. Vérifiez les logs avec <code>minikube logs</code>. Assurez-vous que la virtualisation est activée dans le BIOS/UEFI de votre machine si vous n&#8217;utilisez pas le driver Docker.</p>
+<p><strong>Minikube ne démarre pas</strong> : Vérifiez Docker Desktop, essayez <code>minikube delete</code> puis <code>minikube start</code></p>
 </li>
 <li>
-<p><strong>Pod bloqué en <code>Pending</code> :</strong> Manque de ressources (CPU/Mémoire) ? Essayez d&#8217;allouer plus de ressources à Minikube (<code>minikube stop</code>, <code>minikube config set memory 4096</code>, <code>minikube start</code>). Problème de réseau ? Vérifiez la sortie de <code>kubectl describe pod &lt;nom-du-pod&gt; -n exai</code>.</p>
+<p><strong>Pod bloqué en <code>Pending</code></strong> : Augmentez les ressources (<code>minikube stop &amp;&amp; minikube config set memory 4096 &amp;&amp; minikube start</code>)</p>
 </li>
 <li>
-<p><strong>Pod bloqué en <code>ImagePullBackOff</code> ou <code>ErrImagePull</code>:</strong> L&#8217;image Docker n&#8217;a pas pu être trouvée. Avez-vous bien exécuté <code>eval $(minikube -p minikube docker-env)</code> (ou équivalent) <strong>avant</strong> de lancer <code>docker build</code> ? Le nom et le tag de l&#8217;image dans <code>k8s/deployment.yaml</code> correspondent-ils exactement à ceux utilisés lors du <code>docker build</code> ? Avez-vous mis <code>imagePullPolicy: IfNotPresent</code> ou <code>Never</code> dans le <code>deployment.yaml</code> pour les images locales ?</p>
-</li>
-<li>
-<p><strong><code>minikube service &#8230;&#8203; --url</code> ne fonctionne pas :</strong> Assurez-vous que le service Kubernetes existe (<code>kubectl get services -n exai</code>). Vérifiez l&#8217;état du pod associé.</p>
+<p><strong>Pod en <code>CrashLoopBackOff</code></strong> : Vérifiez les logs avec <code>kubectl logs -n exai &lt;pod-name&gt;</code></p>
 </li>
 </ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_étapes_de_diagnostic"><a class="anchor" href="#_étapes_de_diagnostic"></a>Étapes de Diagnostic</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Logs Skaffold</p>
+</li>
+<li>
+<p>État des pods : <code>kubectl get pods -n exai</code></p>
+</li>
+<li>
+<p>Détails d&#8217;un pod : <code>kubectl describe pod &lt;pod-name&gt; -n exai</code></p>
+</li>
+<li>
+<p>Logs d&#8217;un pod : <code>kubectl logs -n exai &lt;pod-name&gt;</code></p>
+</li>
+<li>
+<p>Logs Minikube : <code>minikube logs</code></p>
+</li>
+</ol>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_arrêter_lenvironnement"><a class="anchor" href="#_arrêter_lenvironnement"></a>Arrêter l&#8217;environnement</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>Pour arrêter l&#8217;application et libérer les ressources :</p>
-</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">minikube stop</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Pour supprimer complètement le cluster Minikube (attention, supprime toutes les données) :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">minikube delete</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Arrêter Skaffold : Ctrl+C
+
+# Arrêter Minikube
+minikube stop
+
+# Supprimer complètement Minikube (supprime les données)
+minikube delete</code></pre>
 </div>
 </div>
 </div>

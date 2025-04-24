@@ -1,0 +1,1 @@
+* xref:pages/azure-initial-setup.adoc[Configuration Initiale Azure] 

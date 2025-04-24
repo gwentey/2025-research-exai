@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Définit toutes les ressources de cette base
+# Les overlays pourront se référer à cette base.
+resources:
+  # API Gateway
+  - api-gateway/deployment.yaml
+  - api-gateway/gateway-secrets.yaml # Les valeurs seront surchargées si nécessaire par les overlays ou secrets manuels
+  - api-gateway/service.yaml
+  # Frontend
+  - frontend/deployment.yaml
+  - frontend/service.yaml
+  # Postgres (interne, temporaire)
+  - postgres/postgresql-deployment.yaml
+  - postgres/postgresql-service.yaml
+  # - postgres/postgresql-pvc.yaml # Décommentez si besoin
+  # Service Selection
+  - service-selection/deployment.yaml
+  - service-selection/db-secrets.yaml # Les valeurs seront surchargées si nécessaire
+  - service-selection/service.yaml
+  - service-selection/dataset-pvc.yaml # Décommentez/vérifiez si besoin 

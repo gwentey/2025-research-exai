@@ -1,39 +1,64 @@
 apiVersion: skaffold/v4beta13
 kind: Config
 metadata:
-  name: --research-exai
+  name: research-exai
 build:
+  # Pas de defaultRepo global
+  tagPolicy:
+    sha256: {}
   artifacts:
+    # Noms d'images de base SANS préfixe
     - image: exai-api-gateway
       context: api-gateway
-      docker:
-        dockerfile: Dockerfile
+      docker: { dockerfile: Dockerfile }
     - image: service-selection
       context: service-selection
-      docker:
-        dockerfile: Dockerfile
+      docker: { dockerfile: Dockerfile }
     - image: frontend
       context: frontend
-      docker:
-        dockerfile: Dockerfile
-manifests:
-  rawYaml:
-    - api-gateway/k8s/deployment.yaml
-    - api-gateway/k8s/gateway-secrets.yaml
-    - api-gateway/k8s/service.yaml
-    - k8s/postgres/postgresql-deployment.yaml
-    - k8s/postgres/postgresql-service.yaml
-    - service-selection/k8s/dataset-pvc.yaml
-    - service-selection/k8s/db-secrets.yaml
-    - service-selection/k8s/deployment.yaml
-    - service-selection/k8s/service.yaml
-    - frontend/k8s/deployment.yaml
-    - frontend/k8s/service.yaml
+      docker: { dockerfile: Dockerfile }
 
-# Ajouter cette section pour le port-forwarding
-portForward:
-  - resourceType: service
-    resourceName: api-gateway-service
-    namespace: exai
-    port: 80        # Port du service Kubernetes
-    localPort: 9000 # Utiliser le port local 9000
+deploy:
+  kubectl: {}
+profiles:
+  - name: local
+    # Pas de build spécifique pour le local
+    manifests:
+      # Référencer les manifestes de base pour le local
+      rawYaml:
+        - k8s/base/api-gateway/deployment.yaml
+        - k8s/base/api-gateway/gateway-secrets.yaml
+        - k8s/base/api-gateway/service.yaml
+        - k8s/base/postgres/postgresql-deployment.yaml
+        - k8s/base/postgres/postgresql-service.yaml
+        # - k8s/base/postgres/postgresql-pvc.yaml # Décommentez si ce fichier existe et est nécessaire pour le local
+        - k8s/base/service-selection/deployment.yaml
+        - k8s/base/service-selection/db-secrets.yaml
+        - k8s/base/service-selection/service.yaml
+        - k8s/base/service-selection/dataset-pvc.yaml # Décommentez/vérifiez si nécessaire pour le local
+        - k8s/base/frontend/deployment.yaml
+        - k8s/base/frontend/service.yaml
+    portForward:
+      - resourceType: service
+        resourceName: api-gateway-service
+        namespace: exai
+        port: 80
+        localPort: 9000
+
+  - name: azure
+    # Utiliser des patches pour modifier les noms d'images pour ce profil
+    patches:
+      - op: replace
+        path: /build/artifacts/0/image
+        value: exaimemoireacr.azurecr.io/exai-api-gateway
+      - op: replace
+        path: /build/artifacts/1/image
+        value: exaimemoireacr.azurecr.io/service-selection
+      - op: replace
+        path: /build/artifacts/2/image
+        value: exaimemoireacr.azurecr.io/frontend
+    manifests:
+      kustomize:
+        paths:
+          - k8s/overlays/azure
+    # Utilise le deploy kubectl global

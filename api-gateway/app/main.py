@@ -1,5 +1,5 @@
 import uuid
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
@@ -51,6 +51,21 @@ app = FastAPI(
     description="API Gateway pour le projet EXAI - Plateforme d'Explainable AI",
     version="0.1.0",
 )
+
+# Simple health check endpoint
+@app.get("/health", tags=["status"], status_code=status.HTTP_200_OK)
+async def health_check(session: AsyncSession = Depends(get_async_session)):
+    """Vérifie la disponibilité du service et la connexion DB de base."""
+    try:
+        # Tente d'obtenir une connexion pour vérifier la dispo de la DB
+        await session.connection()
+        return {"status": "ok", "database": "connected"}
+    except Exception:
+        # Si la connexion échoue, on peut le signaler
+        # Mais la sonde devrait quand même retourner 200 pour que le service ne soit pas tué
+        # sauf si la DB est absolument critique pour le démarrage même du service.
+        # Pour une sonde readiness/liveness, un simple 200 est souvent suffisant.
+        return {"status": "ok", "database": "error"}
 
 # Configuration CORS
 origins = [

@@ -1,0 +1,50 @@
+= Configuration Initiale de l'Infrastructure Azure
+
+Ce guide décrit les premières étapes réalisées pour préparer l'environnement Microsoft Azure afin d'accueillir l'application EXAI.
+
+== Objectif
+
+L'objectif est de mettre en place les fondations nécessaires sur Azure pour pouvoir ensuite y déployer les différents microservices de l'application (Frontend, API Gateway, Data Selection, etc.).
+
+== Composants Créés
+
+Nous avons utilisé l'outil en ligne de commande Azure CLI pour créer les ressources suivantes dans la région *francecentral*.
+
+=== 1. Groupe de Ressources (Resource Group)
+
+*   **Nom :** `exai-production-rg`
+*   **Rôle :** C'est comme un dossier logique dans Azure qui contient toutes les ressources liées à notre projet EXAI. Cela permet de les gérer et de les organiser ensemble.
+
+=== 2. Registre de Conteneurs Azure (Azure Container Registry - ACR)
+
+*   **Nom :** `exaimemoireacr`
+*   **Adresse (Login Server) :** `exaimemoireacr.azurecr.io`
+*   **Rôle :** C'est un service privé et sécurisé pour stocker les "images Docker" de nos microservices. Une image Docker est un paquet contenant tout le nécessaire pour exécuter un service (le code, les dépendances, etc.). Plus tard, notre cluster Kubernetes ira chercher ces images dans ce registre pour lancer les applications.
+
+=== 3. Cluster Kubernetes Azure (Azure Kubernetes Service - AKS)
+
+*   **Nom :** `exai-prod-aks`
+*   **Configuration :**
+    *   1 Nœud de travail (machine virtuelle) de type `Standard_B2s` (taille économique).
+    *   Connecté à l'ACR (`exaimemoireacr`) pour pouvoir récupérer les images Docker.
+    *   Monitoring Azure activé pour surveiller la santé du cluster.
+*   **Rôle :** C'est le cœur de notre déploiement. AKS orchestre l'exécution de nos microservices empaquetés dans des conteneurs Docker. Il gère le démarrage, l'arrêt, la mise à l'échelle et la disponibilité de nos applications.
+
+== Connexion au Cluster
+
+Après la création du cluster AKS, nous avons configuré notre outil local `kubectl` pour qu'il puisse communiquer avec ce nouveau cluster Azure. Cela a été fait avec la commande :
+
+[source,bash]
+----
+az aks get-credentials --resource-group exai-production-rg --name exai-prod-aks
+----
+
+Cela nous permet maintenant de gérer notre cluster Kubernetes sur Azure directement depuis notre machine de développement.
+
+== Prochaines Étapes
+
+L'infrastructure de base étant prête, les prochaines étapes consisteront à :
+
+*   Configurer `skaffold` pour construire et pousser les images Docker vers l'ACR.
+*   Adapter les fichiers de configuration Kubernetes (`manifests`) pour le déploiement sur AKS.
+*   Déployer les applications sur le cluster AKS. 

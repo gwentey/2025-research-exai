@@ -6,11 +6,11 @@ metadata:
   labels:
     app: frontend # Label pour identifier ce service
 spec:
+  type: LoadBalancer
   selector:
     app: frontend # Sélectionne les pods avec ce label (ceux créés par le déploiement)
   ports:
     - name: http # Nom du port (optionnel mais descriptif)
       protocol: TCP
-      port: 80 # Port sur lequel le service est joignable DANS le cluster
-      targetPort: 80 # Port cible sur les pods (doit correspondre au containerPort du déploiement)
-  type: ClusterIP # Type de service (ClusterIP est standard pour l'accès interne) 
+      port: 80 # Port sur lequel le service sera accessible (depuis l'extérieur via le LB)
+      targetPort: 80 # Port cible sur les pods (doit correspondre au containerPort du déploiement) 
