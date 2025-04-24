@@ -12,6 +12,7 @@
 ** xref:dev-guide/index.adoc[Présentation]
 ** xref:dev-guide/architecture.adoc[Architecture Technique]
 ** xref:development/database-migrations.adoc[Migrations Base de Données (Alembic)]
+** xref:development/azure-deployment.adoc[Déploiement Azure]
 ** xref:dev-guide/api-reference.adoc[Référence API]
 
 // Optionnel: Section Concepts

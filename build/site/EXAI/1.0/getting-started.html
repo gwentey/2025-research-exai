@@ -95,6 +95,9 @@
     <a class="nav-link" href="development/database-migrations.html">Migrations Base de Données (Alembic)</a>
   </li>
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="development/azure-deployment.html">Déploiement Azure</a>
+  </li>
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="dev-guide/api-reference.html">Référence API</a>
   </li>
 </ul>
@@ -236,7 +239,10 @@ cd &lt;NOM_DU_DOSSIER_PROJET_EXAI&gt;</code></pre>
 eval $(minikube docker-env)
 
 # Windows (PowerShell)
-&amp; minikube -p minikube docker-env --shell powershell | Invoke-Expression</code></pre>
+&amp; minikube -p minikube docker-env --shell powershell | Invoke-Expression
+
+# Windows (cmd.exe)
+@FOR /f "tokens=*" %i IN ('minikube -p minikube docker-env --shell cmd') DO @%i</code></pre>
 </div>
 </div>
 </li>
@@ -244,7 +250,11 @@ eval $(minikube docker-env)
 <p><strong>Déployer avec Skaffold</strong>:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">skaffold dev</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Pour le mode local (développement)
+skaffold dev --profile=local
+
+# Pour un déploiement sur Azure (si configuré)
+# skaffold run --profile=azure</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -255,13 +265,13 @@ eval $(minikube docker-env)
 <div class="ulist">
 <ul>
 <li>
-<p>Construire les images Docker pour <code>api-gateway</code> et <code>service-selection</code></p>
+<p>Construire les images Docker pour tous les microservices (frontend, api-gateway, service-selection)</p>
 </li>
 <li>
-<p>Déployer les manifestes Kubernetes (PostgreSQL, API Gateway, Service Selection)</p>
+<p>Déployer les manifestes Kubernetes depuis le dossier <code>k8s/base/</code> (PostgreSQL, API Gateway, Service Selection, Frontend)</p>
 </li>
 <li>
-<p>Configurer des redirections de port</p>
+<p>Configurer des redirections de port (notamment l&#8217;API Gateway sur le port 9000)</p>
 </li>
 <li>
 <p>Surveiller les changements de code et redéployer automatiquement</p>
@@ -348,7 +358,10 @@ kubectl exec -it &lt;pod-name&gt; -n exai -- bash -c "cd /app &amp;&amp; DATABAS
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Accéder au Service de Sélection
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Accéder au Frontend
+minikube service frontend-service -n exai
+
+# Accéder au Service de Sélection
 minikube service service-selection-service -n exai
 
 # Accéder à l'API Gateway
@@ -394,20 +407,47 @@ minikube service service-selection-service -n exai --url</code></pre>
 <h2 id="_workflow_de_développement"><a class="anchor" href="#_workflow_de_développement"></a>Workflow de Développement</h2>
 <div class="sectionbody">
 <div class="sect2">
+<h3 id="_structure_des_fichiers_kubernetes"><a class="anchor" href="#_structure_des_fichiers_kubernetes"></a>Structure des Fichiers Kubernetes</h3>
+<div class="paragraph">
+<p>Le projet utilise maintenant une organisation centralisée des fichiers Kubernetes :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">k8s/
+├── base/                      # Configurations de base communes
+│   ├── api-gateway/           # API Gateway
+│   ├── frontend/              # Frontend
+│   ├── postgres/              # Base de données PostgreSQL
+│   ├── service-selection/     # Service de sélection de datasets
+│   └── kustomization.yaml     # Fichier déclarant toutes les ressources
+└── overlays/                  # Surcouches pour différents environnements
+    └── azure/                 # Configuration spécifique à Azure</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Cette structure suit les principes de Kustomize :
+- Le dossier <code>base/</code> contient les configurations communes à tous les environnements
+- Le dossier <code>overlays/</code> contient des surcouches spécifiques à chaque environnement (comme Azure)</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_cycle_de_développement_avec_skaffold"><a class="anchor" href="#_cycle_de_développement_avec_skaffold"></a>Cycle de Développement avec Skaffold</h3>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Modifiez votre code</p>
+<p>Modifiez votre code dans l&#8217;un des microservices (frontend, api-gateway, service-selection)</p>
 </li>
 <li>
-<p>Skaffold détecte les changements</p>
+<p>Skaffold détecte automatiquement les changements</p>
 </li>
 <li>
-<p>Reconstruction et redéploiement automatiques</p>
+<p>Reconstruction et redéploiement automatiques des images Docker affectées</p>
 </li>
 <li>
 <p>Services redémarrés avec le nouveau code</p>
+</li>
+<li>
+<p>Visualisez les logs en temps réel dans la console Skaffold</p>
 </li>
 </ol>
 </div>
@@ -441,6 +481,9 @@ Pour un workflow plus fluide, utilisez des outils comme <strong>Lens</strong>, <
 </li>
 <li>
 <p><strong>Pod en <code>CrashLoopBackOff</code></strong> : Vérifiez les logs avec <code>kubectl logs -n exai &lt;pod-name&gt;</code></p>
+</li>
+<li>
+<p><strong>Services inaccessibles</strong> : Assurez-vous d&#8217;utiliser les commandes <code>minikube service</code> plutôt que localhost</p>
 </li>
 </ul>
 </div>

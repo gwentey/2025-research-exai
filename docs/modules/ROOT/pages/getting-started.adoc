@@ -63,21 +63,28 @@ eval $(minikube docker-env)
 
 # Windows (PowerShell)
 & minikube -p minikube docker-env --shell powershell | Invoke-Expression
+
+# Windows (cmd.exe)
+@FOR /f "tokens=*" %i IN ('minikube -p minikube docker-env --shell cmd') DO @%i
 ----
 
 5. **Déployer avec Skaffold**:
 +
 [source,bash]
 ----
-skaffold dev
+# Pour le mode local (développement)
+skaffold dev --profile=local
+
+# Pour un déploiement sur Azure (si configuré)
+# skaffold run --profile=azure
 ----
 +
 Skaffold va :
 +
 --
-* Construire les images Docker pour `api-gateway` et `service-selection`
-* Déployer les manifestes Kubernetes (PostgreSQL, API Gateway, Service Selection)
-* Configurer des redirections de port
+* Construire les images Docker pour tous les microservices (frontend, api-gateway, service-selection)
+* Déployer les manifestes Kubernetes depuis le dossier `k8s/base/` (PostgreSQL, API Gateway, Service Selection, Frontend)
+* Configurer des redirections de port (notamment l'API Gateway sur le port 9000)
 * Surveiller les changements de code et redéployer automatiquement
 * Afficher les logs en temps réel
 --
@@ -126,6 +133,9 @@ Chaque service utilise sa propre table de version Alembic (`alembic_version_gate
 
 [source,bash]
 ----
+# Accéder au Frontend
+minikube service frontend-service -n exai
+
 # Accéder au Service de Sélection
 minikube service service-selection-service -n exai
 
@@ -149,11 +159,32 @@ Pour obtenir uniquement l'URL sans ouvrir de navigateur, ajoutez le flag `--url`
 
 == Workflow de Développement
 
+=== Structure des Fichiers Kubernetes
+
+Le projet utilise maintenant une organisation centralisée des fichiers Kubernetes :
+
+```
+k8s/
+├── base/                      # Configurations de base communes
+│   ├── api-gateway/           # API Gateway
+│   ├── frontend/              # Frontend
+│   ├── postgres/              # Base de données PostgreSQL
+│   ├── service-selection/     # Service de sélection de datasets
+│   └── kustomization.yaml     # Fichier déclarant toutes les ressources
+└── overlays/                  # Surcouches pour différents environnements
+    └── azure/                 # Configuration spécifique à Azure
+```
+
+Cette structure suit les principes de Kustomize :
+- Le dossier `base/` contient les configurations communes à tous les environnements
+- Le dossier `overlays/` contient des surcouches spécifiques à chaque environnement (comme Azure)
+
 === Cycle de Développement avec Skaffold
-1. Modifiez votre code
-2. Skaffold détecte les changements
-3. Reconstruction et redéploiement automatiques
+1. Modifiez votre code dans l'un des microservices (frontend, api-gateway, service-selection)
+2. Skaffold détecte automatiquement les changements
+3. Reconstruction et redéploiement automatiques des images Docker affectées
 4. Services redémarrés avec le nouveau code
+5. Visualisez les logs en temps réel dans la console Skaffold
 
 [TIP]
 Pour un workflow plus fluide, utilisez des outils comme **Lens**, **k9s** ou le **Kubernetes Dashboard** (`minikube dashboard`).
@@ -164,6 +195,7 @@ Pour un workflow plus fluide, utilisez des outils comme **Lens**, **k9s** ou le 
 * *Minikube ne démarre pas* : Vérifiez Docker Desktop, essayez `minikube delete` puis `minikube start`
 * *Pod bloqué en `Pending`* : Augmentez les ressources (`minikube stop && minikube config set memory 4096 && minikube start`)
 * *Pod en `CrashLoopBackOff`* : Vérifiez les logs avec `kubectl logs -n exai <pod-name>`
+* *Services inaccessibles* : Assurez-vous d'utiliser les commandes `minikube service` plutôt que localhost
 
 === Étapes de Diagnostic
 1. Logs Skaffold

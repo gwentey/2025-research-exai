@@ -95,6 +95,9 @@
     <a class="nav-link" href="../development/database-migrations.html">Migrations Base de Données (Alembic)</a>
   </li>
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../development/azure-deployment.html">Déploiement Azure</a>
+  </li>
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="api-reference.html">Référence API</a>
   </li>
 </ul>
@@ -378,7 +381,7 @@
 </div>
 </div>
 <div class="sect2">
-<h3 id="_3_6_base_de_données_k8spostgres"><a class="anchor" href="#_3_6_base_de_données_k8spostgres"></a>3.6 Base de Données (<code>k8s/postgres/</code>)</h3>
+<h3 id="_3_6_base_de_données_k8sbasepostgres"><a class="anchor" href="#_3_6_base_de_données_k8sbasepostgres"></a>3.6 Base de Données (<code>k8s/base/postgres/</code>)</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -400,7 +403,7 @@
 </div>
 </div>
 <div class="sect2">
-<h3 id="_3_7_orchestration_infrastructure_k8s_dockerfiles"><a class="anchor" href="#_3_7_orchestration_infrastructure_k8s_dockerfiles"></a>3.7 Orchestration &amp; Infrastructure (<code>k8s/</code>, Dockerfiles)</h3>
+<h3 id="_3_7_orchestration_infrastructure_k8s"><a class="anchor" href="#_3_7_orchestration_infrastructure_k8s"></a>3.7 Orchestration &amp; Infrastructure (<code>k8s/</code>)</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -413,13 +416,13 @@
 <p>Définir comment construire les images conteneurs (via les <code>Dockerfile</code> dans chaque service).</p>
 </li>
 <li>
-<p>Définir comment déployer et configurer chaque service dans Kubernetes (via les manifestes YAML dans <code>k8s/</code> ou les sous-dossiers <code>k8s/</code> de chaque service).</p>
+<p>Définir comment déployer et configurer chaque service dans Kubernetes (via les manifestes YAML dans <code>k8s/base/</code> et <code>k8s/overlays/</code>).</p>
 </li>
 <li>
 <p>Gérer la mise en réseau, le stockage persistant (via Kubernetes).</p>
 </li>
 <li>
-<p><strong>Technologies :</strong> Docker, Kubernetes, Minikube (pour le local).</p>
+<p><strong>Technologies :</strong> Docker, Kubernetes, Minikube (pour le local), Skaffold (pour l&#8217;automatisation du déploiement).</p>
 </li>
 <li>
 <p><strong>Justification :</strong> Standards de l&#8217;industrie pour la conteneurisation et l&#8217;orchestration, favorisant la reproductibilité et la scalabilité.</p>
@@ -451,7 +454,7 @@
 <h2 id="_5_structure_du_code_source"><a class="anchor" href="#_5_structure_du_code_source"></a>5. Structure du Code Source</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Voici une vue typique de l&#8217;organisation attendue du code source :</p>
+<p>Voici la structure actualisée du code source, reflétant la centralisation des configurations Kubernetes dans le dossier <code>k8s/</code> à la racine :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -459,54 +462,55 @@
 ├── frontend/                 # Code source de l'interface Angular
 │   ├── src/
 │   ├── angular.json
-│   ├── Dockerfile              # Pour construire l'image du frontend
-│   └── k8s/                  # Manifestes K8s spécifiques au frontend
-│       ├── deployment.yaml
-│       └── service.yaml
+│   └── Dockerfile            # Pour construire l'image du frontend
 ├── api-gateway/              # Code source de l'API Gateway
 │   ├── app/
 │   ├── requirements.txt
-│   ├── Dockerfile
-│   └── k8s/
-│       ├── deployment.yaml
-│       └── service.yaml
+│   └── Dockerfile
 ├── service-selection/        # Code source du Service Sélection
 │   ├── app/
 │   ├── requirements.txt
-│   ├── Dockerfile
-│   └── k8s/
-│       ├── deployment.yaml
-│       └── service.yaml
-├── service-ml/               # Code source du Service ML
+│   └── Dockerfile
+├── service-ml/               # Code source du Service ML (prévu)
 │   ├── app/
 │   ├── worker/               # Code pour les workers Celery
 │   ├── requirements.txt
-│   ├── Dockerfile
-│   └── k8s/
-│       ├── deployment.yaml   # Déploiement de l'API FastAPI
-│       ├── service.yaml
-│       └── worker-deployment.yaml # Déploiement des workers Celery
-├── service-xai/              # Code source du Service XAI (structure similaire à ML)
+│   └── Dockerfile
+├── service-xai/              # Code source du Service XAI (prévu)
 │   ├── ...
-├── k8s/                      # Configurations Kubernetes globales/partagées
-│   ├── postgres/             # Config K8s pour PostgreSQL
-│   │   ├── deployment.yaml
-│   │   ├── service.yaml
-│   │   ├── persistentvolumeclaim.yaml
-│   │   └── init-db.sql
-│   └── redis/                # Config K8s pour Redis (si nécessaire)
-│       └── ...
+├── k8s/                      # Configurations Kubernetes centralisées
+│   ├── base/                 # Configurations de base communes
+│   │   ├── api-gateway/      # Configurations K8s pour l'API Gateway
+│   │   │   ├── deployment.yaml
+│   │   │   ├── gateway-secrets.yaml
+│   │   │   └── service.yaml
+│   │   ├── frontend/         # Configurations K8s pour le Frontend
+│   │   │   ├── deployment.yaml
+│   │   │   └── service.yaml
+│   │   ├── postgres/         # Configurations K8s pour PostgreSQL
+│   │   │   ├── postgresql-deployment.yaml
+│   │   │   ├── postgresql-service.yaml
+│   │   │   └── postgresql-pvc.yaml      # Si nécessaire
+│   │   ├── service-selection/ # Configurations K8s pour le Service Sélection
+│   │   │   ├── deployment.yaml
+│   │   │   ├── db-secrets.yaml
+│   │   │   ├── service.yaml
+│   │   │   └── dataset-pvc.yaml        # Si nécessaire
+│   │   └── kustomization.yaml # Fichier déclarant toutes les ressources de base
+│   ├── overlays/             # Surcouches de configuration pour différents environnements
+│   │   └── azure/            # Configuration spécifique au déploiement sur Azure
+│   │       └── kustomization.yaml # Utilise kustomize pour appliquer des modifications sur la base
 ├── docs/                     # Documentation Antora (ce que vous lisez)
 │   └── modules/ROOT/
 │       ├── pages/
 │       └── nav.adoc
 ├── antora.yml                # Configuration du composant Antora
 ├── antora-playbook.yml       # Playbook pour générer la documentation
-└── README.md                 # README général du projet</code></pre>
+└── skaffold.yaml             # Configuration Skaffold pour automatiser build et déploiement</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Cette structure vise à séparer clairement chaque microservice tout en gardant les configurations Kubernetes associées proches du code source du service concerné.</p>
+<p>Cette nouvelle structure reflète l&#8217;organisation actualisée où tous les fichiers de configuration Kubernetes sont centralisés dans le dossier <code>k8s/</code> à la racine du projet, divisé en <code>base/</code> (configurations communes) et <code>overlays/</code> (configurations spécifiques à chaque environnement) selon les principes de Kustomize. Les microservices conservent uniquement leur code source et leurs Dockerfiles.</p>
 </div>
 </div>
 </div>
