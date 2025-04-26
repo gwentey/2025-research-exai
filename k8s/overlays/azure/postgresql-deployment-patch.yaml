@@ -1,0 +1,7 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql-deployment
+spec:
+  strategy:
+    type: Recreate  # Cela forcera la suppression de l'ancien pod avant d'en créer un nouveau 

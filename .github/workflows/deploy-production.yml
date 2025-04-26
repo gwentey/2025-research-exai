@@ -75,5 +75,6 @@ jobs:
           echo "Images have been built and pushed successfully!"
           echo "To deploy to AKS, run the following commands:"
           echo "az login"
+          echo "az acr login --name exaimemoireacr"
           echo "az aks get-credentials --resource-group exai-production-rg --name exai-prod-aks"
           echo "skaffold run --profile=azure --tag=${{ env.sha_short }} -n exai"
