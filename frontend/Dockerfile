@@ -7,6 +7,9 @@ ARG NGINX_VERSION=1.25
 # La version est définie par l'ARG global
 FROM node:${NODE_VERSION}-alpine as build
 
+# Argument pour définir l'environnement de build Angular (dev par défaut)
+ARG ANGULAR_ENV=development
+
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app
 
@@ -21,8 +24,9 @@ RUN npm install --legacy-peer-deps
 # Copier tous les fichiers du projet dans le conteneur
 COPY . .
 
-# Construire l'application Angular (utilisera environment.ts par défaut)
-RUN npm run build
+# Construire l'application Angular en utilisant l'argument ANGULAR_ENV
+# La valeur par défaut 'development' sera utilisée si l'ARG n'est pas fourni au moment du build
+RUN npm run build -- --configuration ${ANGULAR_ENV}
 
 # --- Étape 2: Serve ---
 # Utiliser une image Nginx légère pour servir les fichiers statiques

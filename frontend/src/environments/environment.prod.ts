@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-production-api-gateway-url.com' // Remplacez par l'URL réelle de production
+  // Remplacez par votre nom DNS configuré pointant vers l'IP de votre LoadBalancer/Ingress
+  apiUrl: 'http://api.yourdomain.com'
 }; 

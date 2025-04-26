@@ -108,4 +108,24 @@ graph LR
 
 ## 4. Documentation
 
-*   La documentation utilisateur et technique doit être générée dans `docs/` en utilisant **Antora/Asciidoc**. C'est une exigence forte du projet. (Statut actuel : Probablement [⬜]) 
+*   La documentation utilisateur et technique doit être générée dans `docs/` en utilisant **Antora/Asciidoc**. C'est une exigence forte du projet. (Statut actuel : Probablement [⬜])
+
+## 5. Déploiement et CI/CD
+
+*   **Développement Local :** `skaffold dev` est utilisé pour builder les images Docker localement et déployer sur Minikube en utilisant Kustomize (`k8s/overlays/minikube`).
+*   **Déploiement Production (Azure) :**
+    *   Un workflow GitHub Actions (`.github/workflows/deploy-production.yml`) est configuré.
+    *   **Trigger :** Push sur la branche `production`.
+    *   **Étapes Principales :
+        1.  Checkout du code.
+        2.  Login sur Azure Container Registry (ACR).
+        3.  Build et Push des images Docker des services (`api-gateway`, `service-selection`, `frontend`, etc.) vers ACR, taguées avec le SHA court du commit et `latest`.
+        4.  (Placeholder) Exécution des tests unitaires/intégration.
+        5.  Login sur Azure (via Service Principal).
+        6.  Configuration du contexte `kubectl` pour le cluster AKS cible.
+        7.  Déploiement sur AKS via `skaffold run --profile=azure --tag=<commit_sha>` qui utilise l'overlay Kustomize `k8s/overlays/azure`.
+    *   **Gestion de la Configuration Production :
+        *   **Frontend :** Utilisation de `frontend/src/environments/environment.prod.ts` (qui contient l'URL de l'API de production) activé par la configuration de build Angular et le Dockerfile.
+        *   **Backend :** Les configurations (URL BDD, secrets, etc.) sont injectées via des variables d'environnement définies dans les manifestes K8s (via ConfigMaps/Secrets) de l'overlay `k8s/overlays/azure`.
+        *   **Kubernetes :** L'overlay `k8s/overlays/azure` contient les manifestes/patches spécifiques à Azure (ex: nom d'images préfixé par l'ACR, configurations de ressources, potentiellement Ingress).
+    *   **Secrets Requis (GitHub Actions) :** `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_CREDENTIALS`. 

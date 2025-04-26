@@ -16,13 +16,18 @@ build:
       docker: { dockerfile: Dockerfile }
     - image: frontend
       context: frontend
-      docker: { dockerfile: Dockerfile }
+      # Définir buildArgs pour l'environnement par défaut (local)
+      docker:
+        dockerfile: Dockerfile
+        buildArgs:
+          ANGULAR_ENV: development
 
 deploy:
   kubectl: {}
 profiles:
   - name: local
-    # Pas de build spécifique pour le local
+    # Pas de section build spécifique ici, utilisera la conf globale
+    # (avec ANGULAR_ENV=development pour le frontend)
     manifests:
       # Référencer les manifestes de base pour le local
       rawYaml:
@@ -46,7 +51,7 @@ profiles:
         localPort: 9000
 
   - name: azure
-    # Utiliser des patches pour modifier les noms d'images pour ce profil
+    # Utiliser des patches pour modifier les noms d'images ET les buildArgs pour ce profil
     patches:
       - op: replace
         path: /build/artifacts/0/image
@@ -57,6 +62,11 @@ profiles:
       - op: replace
         path: /build/artifacts/2/image
         value: exaimemoireacr.azurecr.io/frontend
+      # Ajouter un patch pour surcharger les buildArgs du frontend pour Azure
+      - op: add # Ou 'replace' si buildArgs existe déjà au path exact
+        path: /build/artifacts/2/docker/buildArgs # Index 2 pour l'artefact frontend
+        value:
+          ANGULAR_ENV: production
     manifests:
       kustomize:
         paths:
