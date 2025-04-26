@@ -20,6 +20,13 @@ images:
   # - name: postgres
   #   newName: exaimemoireacr.azurecr.io/postgres
 
+# Patches pour les configurations spécifiques à Azure
+patches:
+  - path: postgresql-deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: postgresql-deployment
+
 # Ici, on pourrait ajouter des patches spécifiques à Azure si nécessaire plus tard
 # (par exemple, pour modifier des variables d'environnement, des replicas, etc.)
 # patches:
