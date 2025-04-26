@@ -36,6 +36,13 @@ jobs:
         id: sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
+      # Installer Skaffold
+      - name: Install Skaffold
+        run: |
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+          sudo install skaffold /usr/local/bin/
+          skaffold version
+
       # Builder et pusher chaque image
       - name: Build and push API Gateway image
         uses: docker/build-push-action@v5
