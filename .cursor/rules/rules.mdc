@@ -3,133 +3,118 @@ description:
 globs: 
 alwaysApply: true
 ---
-# 🎯 RULE — Projet Scientifique EXAI : Développement Assisté + Documentation
+- Rule: Lire PRD pour Exigences
+  Trigger: Always
+  Description: Toujours lire memory-bank/prd_exai_poc_v2.md avant d'écrire ou de modifier du code lié aux fonctionnalités ou aux exigences pour assurer l'alignement avec les spécifications. Consulter la section spécifique pertinente pour la tâche en cours si possible.
 
-## 🧠 CONTEXTE GÉNÉRAL
+- Rule: Lire Tech Stack pour Choix Techniques
+  Trigger: Always
+  Description: Toujours lire memory-bank/tech_stack_exai_v2.md avant de faire des choix concernant les bibliothèques (ex: Angular Material vs autres), frameworks, composants d'infrastructure (ex: NGINX Ingress vs AGIC), ou détails d'implémentation spécifiques (ex: stratégie de stockage, configuration Celery). Adhérer strictement aux technologies choisies.
 
-Tu es une IA experte en :
-- Développement logiciel (Python, Angular, TypeScript, etc.)
-- Architecture microservices (Docker, Kubernetes, FastAPI…)
-- MLOps et pipelines Machine Learning
-- XAI (eXplainable Artificial Intelligence)
-- Documentation technique Antora (docs-as-code)
+- Rule: Lire Document Architecture
+  Trigger: Always
+  Description: Toujours lire memory-bank/architecture.md avant d'écrire ou de modifier du code pour comprendre la structure actuelle du projet, les responsabilités des microservices, les patterns de communication, et le but des fichiers. Inclure les détails pertinents du schéma de base de données (depuis PRD ou doc architecture) si modification des interactions BDD.
 
-Tu collabores avec un **développeur junior**, dans le cadre d’un **projet académique structuré** sous forme de **Proof of Concept (PoC)**. L’enjeu est **scientifique**, validé par des reviewers, avec une **documentation impérative pour des utilisateurs non techniques**.
+- Rule: Mettre à jour Document Architecture
+  Trigger: After generating code that adds a major feature, completes a significant step (as defined in the implementation plan), or modifies the architecture (e.g., adds a new file/service, changes inter-service communication, modifies DB schema significantly).
+  Description: Mettre à jour memory-bank/architecture.md pour refléter précisément les changements effectués. Expliquer le but des nouveaux fichiers/services ou les modifications de structure et d'interactions. Rester concis mais informatif.
 
----
+# --- RÈGLE DOCUMENTATION OBLIGATOIRE ---
+# Trigger: Après génération ou modification de code fonctionnel (API Backend, Composant Frontend, Logique métier principale).
 
-## 🧪 OBJECTIF DU PROJET EXAI
+- Rule: Générer/MAJ Documentation Antora
+  Trigger: After generating or modifying functional code (Backend API endpoints, Frontend Components, significant business logic).
+  Description: OBLIGATOIRE - Pour toute nouvelle fonctionnalité, endpoint API, ou changement de code significatif, générer ou mettre à jour la documentation utilisateur/technique correspondante dans le dossier `docs/` en utilisant le format Antora/Asciidoc. La documentation doit être claire, accessible aux non-développeurs, inclure des exemples si pertinent, et expliquer la fonctionnalité/l'usage. Aucune fonctionnalité n'est complète sans sa documentation associée. Référencer le fichier Asciidoc spécifique à créer/modifier si possible.
 
-Le système doit résoudre **3 problèmes majeurs rencontrés par les non-experts en science des données** :
+# --- BONNES PRATIQUES GÉNÉRALES ---
+# Trigger: Avant de générer du code
 
-1. **Sélection de datasets** selon des **critères techniques, éthiques et métier** (ex. RGPD, anonymisation…)
-2. **Guidage complet dans un pipeline de Machine Learning**, même sans expertise
-3. **Recommandation automatique de techniques XAI**, selon le type de modèle, de données, et le niveau d'expertise utilisateur
+- Rule: Modularité et Responsabilité Unique
+  Trigger: Before generating code
+  Description: Assurer que le code est hautement modulaire. Créer des fichiers/fonctions/classes séparés pour des responsabilités distinctes (ex: séparer opérations CRUD de la logique des endpoints, séparer transformation de données de l'entraînement ML). Éviter les fichiers monolithiques ou les fonctions faisant trop de choses. Suivre strictement l'architecture microservices définie dans tech-stack.md.
 
----
+- Rule: Typage (Python & TypeScript)
+  Trigger: Before generating code
+  Description: Utiliser les indications de type statiques (`type hints`) de manière extensive et précise dans tout le code Python (backend FastAPI) et TypeScript (frontend Angular). Utiliser `Optional`, `List`, `Dict` de `typing` en Python lorsque approprié.
 
-## 🧱 ARCHITECTURE TECHNIQUE
+- Rule: Docstrings et Commentaires
+  Trigger: Before generating code
+  Description: Générer des docstrings Python claires (style Google ou reStructuredText) pour tous les modules, classes, fonctions et méthodes publics. Générer des commentaires JSDoc/TSDoc pour les fonctions/classes/méthodes TypeScript. Ajouter des commentaires inline uniquement pour la logique complexe ou non évidente.
 
-Le projet suit une **architecture microservices**, orchestrée avec **Kubernetes et Docker**, déployable en **local via Minikube**.  
-Voici la cartographie technique :
+- Rule: Gestion des Erreurs
+  Trigger: Before generating code
+  Description: Implémenter une gestion des erreurs spécifique et robuste. Dans FastAPI, utiliser des `HTTPException` spécifiques avec des codes de statut et messages de détail appropriés pour les erreurs API attendues. Utiliser des blocs try/except pour les opérations susceptibles d'échouer (I/O, appels réseau, parsing). Logger les erreurs de manière appropriée. Dans Angular, gérer les erreurs `HttpClient` dans les services et les propager ou les gérer proprement dans les composants.
 
-| Composant              | Technologie                               | Description |
-|------------------------|-------------------------------------------|-------------|
-| `frontend/`            | Angular + Tailwind                        | Interface utilisateur |
-| `gateway/`             | FastAPI + JWT                             | API Gateway sécurisée |
-| `data-selection/`      | FastAPI + PostgreSQL + SQLAlchemy         | Service de sélection des datasets |
-| `ml-pipeline/`         | FastAPI + Celery + Redis + scikit-learn   | Service d’apprentissage automatique |
-| `xai-engine/`          | FastAPI + SHAP/LIME + Celery + Redis      | Service de génération d’explication |
-| `docs/`                | Antora (Asciidoc)                         | Documentation utilisateur |
+- Rule: Configuration via Variables d'Environnement
+  Trigger: Before generating code, especially for backend services and K8s manifests.
+  Description: Éviter strictement de coder en dur les valeurs de configuration (URL BDD, URL Redis, Secrets JWT, endpoints API externes, etc.). Toute configuration doit être chargée depuis des variables d'environnement. Utiliser `BaseSettings` de Pydantic dans les services FastAPI pour charger et valider les variables d'environnement. Référencer les Secrets ou ConfigMaps K8s pour injecter ces variables d'environnement dans les déploiements.
 
----
+# --- BACKEND (FastAPI / Python) ---
+# Trigger: Avant de générer du code Python pour les services backend (`api-gateway/`, `service-selection/`, `ml-pipeline/`, `xai-engine/`)
 
-## 📘 RÈGLE SPÉCIALE : DOCUMENTATION ANTORA (OBLIGATOIRE)
+- Rule: Structure Projet FastAPI
+  Trigger: Before generating Python code for backend services
+  Description: Structurer les applications FastAPI logiquement dans un sous-dossier `app/`. Utiliser `APIRouter` pour les différentes sections logiques de l'API. Séparer les responsabilités dans des fichiers distincts : `models.py` (SQLAlchemy), `schemas.py` (Pydantic), `crud.py` (opérations BDD), `services.py` (logique métier), `tasks.py` (tâches Celery), `database.py` (config session BDD), `core/config.py` (settings).
 
-⚠️ **La documentation est un pilier du projet**. Tu dois **OBLIGATOIREMENT** :
+- Rule: Pydantic pour Contrats API
+  Trigger: Before generating Python code involving API requests/responses or data validation.
+  Description: Définir des modèles Pydantic dans `schemas.py` pour tous les corps de requête API, paramètres de query, et structures de réponse. Utiliser ces schémas dans les signatures de fonction des endpoints FastAPI pour validation automatique et dans `response_model` pour la sérialisation. Utiliser des types spécifiques et validateurs si nécessaire.
 
-- Documenter **chaque fonctionnalité, API, ou comportement** dans le dossier `docs/`
-- Rédiger en **langage simple, accessible aux non-développeurs**
-- Ajouter si nécessaire :
-  - Des **exemples**
-  - Des **captures ou schémas**
-  - Des **explications du comportement attendu**
-- Utiliser **Antora/Asciidoc** (pas Markdown)
-- Structurer dans des modules (`modules/user-guide/pages/…`) avec navigation claire
+- Rule: SQLAlchemy pour Interaction BDD
+  Trigger: Before generating Python code involving database operations
+  Description: Utiliser SQLAlchemy ORM pour toutes les interactions BDD avec PostgreSQL. Définir les modèles héritant d'une base déclarative dans `models.py`. Utiliser l'injection de dépendances (`Depends`) dans les endpoints FastAPI pour obtenir les sessions BDD (`Session = Depends(get_db)`). Encapsuler toute la logique de requête BDD dans des fonctions dans `crud.py` (ex: `get_dataset`, `create_pipeline_run`).
 
-Aucune fonctionnalité ne doit être livrée **sans sa documentation Antora associée**.
+- Rule: Alembic pour Migrations (Rappel)
+  Trigger: When modifying SQLAlchemy models (`models.py`).
+  Description: Après modification des modèles de base de données (`app/models.py`), se rappeler qu'un script de migration Alembic DOIT être généré via `alembic revision --autogenerate -m "Brève description du changement"` puis appliqué (`alembic upgrade head`). Ne pas instruire de modification directe du schéma BDD en dehors d'Alembic.
 
----
+- Rule: Définition et Usage Tâches Celery
+  Trigger: Before generating code for long-running operations in `ml-pipeline` or `xai-engine`.
+  Description: Définir les tâches longues dans `tasks.py` en utilisant le décorateur `@celery_app.task`. Les tâches doivent accepter des arguments simples (IDs, références de fichiers, dictionnaires de configuration). Utiliser `apply_async(args=[...], kwargs={...}, queue='specific_queue')` pour dispatcher les tâches vers les files appropriées (`ml_queue`, `xai_queue`). Assurer que les tâches mettent à jour le statut et les résultats dans la BDD à la fin ou en cas d'erreur.
 
-## 🔍 FONCTIONNALITÉS PRINCIPALES À DÉVELOPPER
+# --- FRONTEND (Angular) ---
+# Trigger: Avant de générer du code TypeScript/HTML/CSS pour le frontend (`frontend/`)
 
-### 1. 🔎 Sélection de datasets
-- Formulaire web avec critères techniques/éthiques/métier
-- Calcul automatique de score de pertinence
-- Visualisation des datasets filtrés : radar, histogrammes, heatmap
-- Fonction de comparaison
+- Rule: Modularité et Structure Angular
+  Trigger: Before generating Angular code
+  Description: Organiser l'application en modules fonctionnels (`ng generate module ...`). Utiliser `CoreModule` pour les singletons (services, intercepteurs) et `SharedModule` pour les composants/pipes/directives réutilisables. Implémenter le lazy loading pour les modules fonctionnels dans la configuration de routage principale.
 
-### 2. 🔧 Pipeline de Machine Learning
-- Étapes guidées :
-  - Prétraitement (cleaning, encoding…)
-  - Choix de la tâche ML (classification, régression, clustering)
-  - Sélection automatique d'algorithmes
-- Visualisation des résultats :
-  - Courbes d’apprentissage
-  - Matrices de confusion
-  - Dendrogrammes…
+- Rule: Conception Composants (Smart/Dumb)
+  Trigger: Before generating Angular components
+  Description: Privilégier la création de composants "Smart" (conteneurs) responsables de récupérer les données via les services et de les passer aux enfants, et de composants "Dumb" (présentationnels) qui reçoivent les données via `@Input()` et émettent des événements via `@Output()`. Garder la logique des composants centrée sur la vue.
 
-### 3. 🧠 Recommandation XAI
-- Système de suggestion d’outils XAI selon :
-  - Type de modèle (boîte blanche/noire)
-  - Type de données (texte/image/tableau)
-  - Public cible (expert, novice, décideur)
-  - Contraintes de calcul
-- Outils XAI intégrés : **LIME, SHAP, PDP**
-- Génération automatique de visualisations explicatives
-- Documentation Antora pour chaque méthode XAI intégrée
+- Rule: Utilisation Angular Material
+  Trigger: Before generating Angular HTML templates requiring UI elements.
+  Description: Utiliser les composants Angular Material de manière cohérente pour l'UI (ex: `MatTable`, `MatPaginator`, `MatSort`, `MatButton`, `MatFormField`, `MatInput`, `MatSelect`, `MatCheckbox`, `MatSlider`, `MatCard`, `MatDialog`, `MatStepper`, `MatChip`). Importer les modules Material requis (ex: `MatTableModule`, `MatButtonModule`) dans le module Angular fonctionnel correspondant.
 
----
+- Rule: Services Angular et HttpClient
+  Trigger: Before generating code that interacts with the backend API.
+  Description: Créer des Services Angular dédiés (`ng generate service ...`) dans les modules fonctionnels ou core. Injecter `HttpClient`. Définir des méthodes pour chaque appel API, retournant des `Observable`s RxJS. Gérer la configuration de l'URL de base de l'API de manière centralisée (ex: fichiers d'environnement). Implémenter la gestion des erreurs pour les requêtes HTTP dans le service ou permettre aux composants de souscrire au canal d'erreur.
 
-## 📚 CONTRAINTES SCIENTIFIQUES
+- Rule: Formulaires Réactifs Angular
+  Trigger: Before generating Angular forms (e.g., filters, pipeline config).
+  Description: Utiliser l'API Reactive Forms d'Angular (`FormBuilder`, `FormGroup`, `FormControl`, `Validators`) pour tous les formulaires. Définir la structure du formulaire dans le fichier TypeScript du composant. Lier le formulaire au template en utilisant `[formGroup]` et `formControlName`.
 
-Respect des normes académiques :
-- Organisation du livrable final : introduction, état de l’art, méthodologie, résultats, discussion
-- Intégration des critères RGPD
-- Validation qualitative et quantitative des modules
-- Reproductibilité totale (documentation complète exigée)
-- Démarche de PoC (Proof of Concept)
+# --- Kubernetes (K8s) & Infrastructure ---
+# Trigger: Avant de générer ou modifier les manifestes YAML K8s (`k8s/`) ou les Dockerfiles
 
----
+- Rule: Utilisation Kustomize
+  Trigger: Before generating or modifying K8s YAML manifests
+  Description: Adhérer strictement à la structure Kustomize (`k8s/base/`, `k8s/overlays/minikube/`). Placer les manifestes génériques dans `base/`. Utiliser `k8s/overlays/minikube/kustomization.yaml` et des fichiers de patch dans l'overlay pour spécifier les configurations spécifiques à l'environnement (tags d'image, replicas, limites de ressources, références ConfigMap/Secret).
 
-## ✅ INSTRUCTIONS DE COMPORTEMENT POUR L’IA
+- Rule: Nommage Ressources K8s
+  Trigger: Before generating K8s YAML manifests
+  Description: Utiliser des noms cohérents, en minuscules, séparés par des tirets pour les ressources K8s (ex: `service-selection-deployment`, `postgres-service`, `redis-pvc`). Inclure le nom du service dans le nom de la ressource.
 
-- 🔁 **Toujours m’expliquer ce que tu fais** de façon claire et pédagogique
-- ✅ **Toujours me demander validation avant d’exécuter du code complexe**
-- 📦 **Respect strict de la structure microservice**
-- 🔐 **Implémentation sécurisée (auth JWT, chiffrement des données, accès restreint)**
-- 🧩 **Code modulaire, testé et commenté**
-- 🧾 **Documenter chaque service, chaque fonctionnalité et chaque étape d’intégration dans Antora**
-- 🤖 **Si tu détectes qu’une fonctionnalité n’a pas de documentation, tu dois la générer automatiquement**
+- Rule: Injection Configuration K8s
+  Trigger: Before generating K8s Deployments requiring configuration.
+  Description: Injecter la configuration dans les Pods exclusivement via des variables d'environnement peuplées depuis des ConfigMaps K8s (pour données non sensibles) et des Secrets K8s (pour données sensibles comme mots de passe, clés API, secret JWT). Définir les sections `envFrom` ou `env` dans le manifeste du Deployment.
 
----
+- Rule: Bonnes Pratiques Dockerfile
+  Trigger: Before generating or modifying Dockerfiles.
+  Description: Utiliser des builds multi-étapes si approprié (ex: étape build pour frontend Angular). Utiliser des images de base spécifiques et légères (ex: `python:3.11-slim`). Minimiser les couches. Utiliser des utilisateurs non-root. Copier uniquement les fichiers nécessaires dans l'image. Spécifier `CMD` ou `ENTRYPOINT`.
 
-## ⏳ SUIVI DE PROJET
-
-Pour savoir **où nous en sommes dans le développement**, consulte le fichier `EXAI_CURSOR_ASSISTANT.md` qui est à la racine.  
-Tu devras **le mettre à jour au fil du temps** après chaque étape validée.
-
----
-
-## ❓AVANT DE COMMENCER
-
-Merci de me confirmer que tu as bien compris :
-- Le **contexte scientifique**
-- L’**architecture complète** (incluant `docs/` avec Antora)
-- Les **3 modules fonctionnels**
-- L’importance **stratégique et obligatoire de la documentation utilisateur**
-
-Pose-moi **toutes les questions utiles** avant de commencer le développement.
-
----
+- Rule: Configuration Skaffold
+  Trigger: When adding new services or modifying build/deploy logic.
+  Description: Assurer que `skaffold.yaml` liste correctement tous les artefacts à builder (mappant Dockerfiles aux noms d'images) et utilise Kustomize pour le déploiement ciblant l'overlay `k8s/overlays/minikube/`.
 
