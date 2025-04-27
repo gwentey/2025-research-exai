@@ -69,6 +69,10 @@ profiles:
           ANGULAR_ENV: production
     manifests:
       kustomize:
+        # Changer le chemin pour exécuter Kustomize depuis le dossier k8s
+        # en ciblant l'overlay azure.
+        buildArgs:
+          - --load-restrictor=LoadRestrictionsNone # Autorise explicitement la lecture en dehors du répertoire racine de Kustomize
         paths:
           - k8s/overlays/azure
     # Utilise le deploy kubectl global
