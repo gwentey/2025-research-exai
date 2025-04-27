@@ -9,16 +9,15 @@ metadata:
   namespace: exai # Assure-toi que c'est le bon namespace
 spec:
   # ttlSecondsAfterFinished: 300 # Optionnel: Supprime le Job automatiquement après sa fin
-  backoffLimit: 1 # Nombre de tentatives avant d'échouer
+  backoffLimit: 4 # Nombre de tentatives avant d'échouer
   template:
     spec:
       containers:
-      - name: alembic-migration
+      - name: api-gateway-migration
         # Utilise l'image :latest (avec les mises en garde pour la prod)
-        image: exaimemoireacr.azurecr.io/exai-api-gateway:latest
+        image: exaiprodacr.azurecr.io/exai-api-gateway:latest
         imagePullPolicy: Always # Force la récupération de la dernière :latest
-        command: ["alembic"]
-        args: ["upgrade", "head"]
+        command: ["alembic", "upgrade", "head"]
         workingDir: /app # Répertoire où se trouve alembic.ini
         env:
         # Définir explicitement DATABASE_URL à partir de la clé du secret
@@ -26,7 +25,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: gateway-secrets # Nom du Secret
-              key: database-url    # Nom de la clé DANS le Secret
+              key: database_url    # Nom de la clé DANS le Secret
         # Monte également les autres clés du secret si nécessaire (ex: SECRET_KEY si alembic/env.py l'utilise)
         # Si SECRET_KEY est aussi dans gateway-secrets avec la clé 'secret-key':
         - name: SECRET_KEY
