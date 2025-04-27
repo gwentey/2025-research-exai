@@ -86,6 +86,10 @@ jobs:
           resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
           cluster-name: ${{ env.AKS_CLUSTER_NAME }}
 
+      # --- Créer le namespace s'il n'existe pas ---
+      - name: Create Kubernetes Namespace (if not exists)
+        run: kubectl create namespace ${{ env.K8S_NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+
       # --- Migration de la base de données ---
       # Optionnel: Supprimer l'ancien job s'il existe pour éviter les conflits
       - name: Delete Previous Migration Job (if exists)
