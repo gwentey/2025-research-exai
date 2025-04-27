@@ -34,6 +34,12 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # --- Connexion Docker Explicite à l'ACR ---
+      - name: Log in to Azure Container Registry (Explicit)
+        run: |
+          ACR_TOKEN=$(az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }} --expose-token --output tsv --query accessToken)
+          echo $ACR_TOKEN | docker login ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io --username 00000000-0000-0000-0000-000000000000 --password-stdin
+
       # Obtenir le SHA court du commit pour le tag
       - name: Get short SHA
         id: sha
