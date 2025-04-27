@@ -45,13 +45,6 @@ jobs:
         id: sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      # Installer Skaffold
-      - name: Install Skaffold
-        run: |
-          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
-          sudo install skaffold /usr/local/bin/
-          skaffold version
-
       # --- Build et Push des images (maintenant après le login Azure) ---
       - name: Build and push API Gateway image
         uses: docker/build-push-action@v5
@@ -90,7 +83,25 @@ jobs:
       - name: Create Kubernetes Namespace (if not exists)
         run: kubectl create namespace ${{ env.K8S_NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
 
-      # --- Migration de la base de données ---
+      # --- Déploiement initial/Mise à jour de TOUTES les ressources --- 
+      # Installer Skaffold
+      - name: Install Skaffold
+        run: |
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+          sudo install skaffold /usr/local/bin/
+          skaffold version
+
+      - name: Deploy ALL applications and infrastructure via Skaffold
+        run: skaffold deploy --profile=azure --tag=${{ env.sha_short }} -n ${{ env.K8S_NAMESPACE }}
+
+      # --- Attendre que PostgreSQL soit prêt ---
+      - name: Wait for PostgreSQL Pod to be Ready
+        # Attend que le pod géré par le statefulset soit dans l'état Ready
+        # ATTENTION: Ceci ne garantit pas que la DB interne est prête, mais c'est un bon début.
+        # Augmenter le timeout si nécessaire.
+        run: kubectl wait pod --selector=app=postgresql --for=condition=Ready -n ${{ env.K8S_NAMESPACE }} --timeout=5m
+
+      # --- Migration de la base de données (MAINTENANT APRÈS SKAFFOLD DEPLOY) ---
       # Optionnel: Supprimer l'ancien job s'il existe pour éviter les conflits
       - name: Delete Previous Migration Job (if exists)
         run: kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
@@ -101,11 +112,13 @@ jobs:
       - name: Wait for Database Migration Job to Complete
         run: kubectl wait --for=condition=complete job/api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --timeout=5m
 
-      # --- Déploiement avec Skaffold ---
-      - name: Deploy applications using Skaffold
-        run: skaffold deploy --profile=azure --tag=${{ env.sha_short }} -n ${{ env.K8S_NAMESPACE }}
+      # --- (Optionnel) Redémarrer les applications dépendant de la DB ---
+      - name: Rollout restart API Gateway (ensure it uses migrated schema)
+        run: kubectl rollout restart deployment api-gateway -n ${{ env.K8S_NAMESPACE }}
+
+      # (Ajouter ici d'autres 'rollout restart' pour service-selection, etc. si nécessaire)
 
       # --- Nettoyage (Optionnel) ---
       - name: Delete Completed Migration Job (optional)
-        if: success()
+        if: success() # Ne supprime que si le déploiement a réussi
         run: kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
