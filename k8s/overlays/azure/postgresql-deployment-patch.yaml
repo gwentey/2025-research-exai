@@ -3,5 +3,23 @@ kind: Deployment
 metadata:
   name: postgresql-deployment
 spec:
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:15
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
   strategy:
     type: Recreate  # Cela forcera la suppression de l'ancien pod avant d'en créer un nouveau 
