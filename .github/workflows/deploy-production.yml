@@ -1,4 +1,4 @@
-name: Build and Push Production Images
+name: Build, Migrate, and Deploy Production
 
 on:
   push:
@@ -7,13 +7,16 @@ on:
 
 env:
   AZURE_CONTAINER_REGISTRY: 'exaimemoireacr'
+  AZURE_RESOURCE_GROUP: 'exai-production-rg'
+  AKS_CLUSTER_NAME: 'exai-prod-aks'
+  K8S_NAMESPACE: 'exai'
   API_GATEWAY_IMAGE_NAME: 'exai-api-gateway'
   SERVICE_SELECTION_IMAGE_NAME: 'service-selection'
   FRONTEND_IMAGE_NAME: 'frontend'
 
 jobs:
-  build_and_push:
-    name: Build & Push Docker Images
+  build_push_deploy:
+    name: Build, Push, Migrate & Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -70,11 +73,34 @@ jobs:
           build-args: |
             ANGULAR_ENV=production
 
-      - name: Print deployment instructions
-        run: |
-          echo "Images have been built and pushed successfully!"
-          echo "To deploy to AKS, run the following commands:"
-          echo "az login"
-          echo "az acr login --name exaimemoireacr"
-          echo "az aks get-credentials --resource-group exai-production-rg --name exai-prod-aks"
-          echo "skaffold deploy --profile=azure --tag=${{ env.sha_short }} -n exai"
+      # --- Connexion à Azure et configuration kubectl ---
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+
+      # --- Migration de la base de données ---
+      # Optionnel: Supprimer l'ancien job s'il existe pour éviter les conflits
+      - name: Delete Previous Migration Job (if exists)
+        run: kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+
+      - name: Apply Database Migration Job
+        run: kubectl apply -f k8s/base/jobs/api-gateway-migration-job.yaml -n ${{ env.K8S_NAMESPACE }}
+
+      - name: Wait for Database Migration Job to Complete
+        run: kubectl wait --for=condition=complete job/api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --timeout=5m
+
+      # --- Déploiement avec Skaffold ---
+      - name: Deploy applications using Skaffold
+        run: skaffold deploy --profile=azure --tag=${{ env.sha_short }} -n ${{ env.K8S_NAMESPACE }}
+
+      # --- Nettoyage (Optionnel) ---
+      - name: Delete Completed Migration Job (optional)
+        if: success()
+        run: kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
