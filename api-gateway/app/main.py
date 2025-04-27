@@ -69,10 +69,11 @@ async def health_check(session: AsyncSession = Depends(get_async_session)):
 
 # Configuration CORS
 origins = [
-    # Remplace "*" par l'origine exacte du frontend pour allow_credentials=True
-    "https://exai-pipeline.fr", 
-    # Tu peux ajouter d'autres origines si nécessaire (ex: localhost pour dev)
-    # "http://localhost:4200",
+    "https://exai-pipeline.fr", # Origine du Frontend
+    "https://api.exai-pipeline.fr", # Origine de l'API elle-même (par sécurité)
+    # Décommentez pour le développement local si nécessaire
+    # "http://localhost:4200", 
+    # "http://localhost",
 ]
 
 app.add_middleware(
