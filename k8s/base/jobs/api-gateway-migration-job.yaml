@@ -25,7 +25,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: gateway-secrets # Nom du Secret
-              key: database_url    # Nom de la clé DANS le Secret
+              key: database-url    # Nom de la clé DANS le Secret (corrigé avec tiret)
         # Monte également les autres clés du secret si nécessaire (ex: SECRET_KEY si alembic/env.py l'utilise)
         # Si SECRET_KEY est aussi dans gateway-secrets avec la clé 'secret-key':
         - name: SECRET_KEY
