@@ -1,7 +1,9 @@
 import uuid
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base
-from sqlalchemy import UUID as SQLAlchemyUUID # Import SQLAlchemy's UUID type
+from sqlalchemy import UUID as SQLAlchemyUUID, text # Import SQLAlchemy's UUID type and text
+from sqlalchemy.dialects.postgresql import UUID # Assurez-vous que UUID is importé
+from ...db import Base # Assurez-vous que Base est importé correctement depuis votre config DB
 
 # Define a local Base for models in this module (and potentially others in app/models)
 # This avoids depending on app.db for model definition
@@ -14,10 +16,13 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
     # Override the 'id' column from SQLAlchemyBaseUserTableUUID
     # to explicitly set native_uuid=False (Correction: native_uuid is not a constructor arg)
-    id: Mapped[uuid.UUID] = mapped_column(
-        SQLAlchemyUUID(as_uuid=True), # Keep as_uuid=True, remove invalid native_uuid arg
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), # Spécifie le type PostgreSQL UUID
         primary_key=True,
-        default=uuid.uuid4,
+        server_default=text("gen_random_uuid()"), # Ajout de la valeur par défaut serveur
+        index=True, # Gardez index=True si vous l'aviez
+        unique=True, # Gardez unique=True si vous l'aviez
+        nullable=False # Assurez-vous que nullable=False est présent
     )
 
     # Vous pouvez ajouter ici des colonnes spécifiques à votre application
