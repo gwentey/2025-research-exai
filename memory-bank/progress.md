@@ -39,13 +39,13 @@ L'infrastructure de base (K8s, Postgres, Skaffold, Kustomize) est en place. L'au
 *   [⬜] **Étape 1.7 : Endpoint `POST /datasets/score`** (Non trouvé.)
 *   [⬜] **Étape 1.8 : Endpoint `GET /datasets/{id}/preview`** (Non trouvé.)
 *   [⬜] **Étape 1.9 : Endpoint `GET /datasets/{id}/stats`** (Non trouvé.)
-*   [🚧] **Étape 1.10 : Finalisation Déploiement K8s `service-selection`** (Base déployée, mais config finale/probes manquantes.)
+*   [🚧] **Étape 1.10 : Finalisation Déploiement K8s `service-selection`** (Déployé sur Azure, sondes liveness/readiness configurées.)
 
 ## Phase 2 : Module `gateway` - Finalisation
 
 *   [✅] **Étape 2.1 : Authentification `fastapi-users`** (Vérifiée dans `main.py`.)
 *   [⬜] **Étape 2.2 : Routage Reverse Proxy** (Non trouvé dans `main.py`.)
-*   [🚧] **Étape 2.3 : Finalisation Déploiement K8s `gateway`** (Base déployée, mais config finale/probes/proxy manquants.)
+*   [🚧] **Étape 2.3 : Finalisation Déploiement K8s `gateway`** (Déployé sur Azure, sondes liveness/readiness configurées, proxy non implémenté.)
 
 ## Phase 3 : Infrastructure Asynchrone (Celery)
 
@@ -73,11 +73,12 @@ L'infrastructure de base (K8s, Postgres, Skaffold, Kustomize) est en place. L'au
 *   [⬜] **Étape 6.2 : Module Sélection Dataset** (Non trouvé.)
 *   [⬜] **Étape 6.3 : Module Pipeline ML** (Non trouvé.)
 *   [⬜] **Étape 6.4 : Module XAI** (Non trouvé.)
-*   [⬜] **Étape 6.5 : Déploiement K8s Frontend**
+*   [🚧] **Étape 6.5 : Déploiement K8s Frontend** (Déployé sur Azure, sondes liveness/readiness configurées.)
 
 ## Phase 7 : Ingress
 
-*   [⬜] **Étape 7.1 : Activation & Configuration NGINX Ingress**
+*   [✅] **Étape 7.1 : Activation & Configuration NGINX Ingress** (Déployé via Helm sur AKS, Ingress configuré pour frontend et gateway avec TLS Let's Encrypt via cert-manager.)
+    *   **Note (2025-04-27):** Résolution des problèmes de certificat TLS Let's Encrypt et de connectivité externe sur AKS. La cause principale était l'échec des sondes de santé (Health Probes) HTTP/HTTPS du Load Balancer Azure car elles utilisaient le chemin `/` au lieu de `/healthz` pour le contrôleur Nginx Ingress. La correction du chemin des sondes dans Azure et la réinitialisation forcée de cert-manager ont résolu le problème.
 
 ## Phase 8 : Finalisation PoC et Test End-to-End
 

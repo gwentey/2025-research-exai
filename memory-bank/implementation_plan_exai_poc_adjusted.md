@@ -142,9 +142,9 @@
 
 ## Phase 7 : Ingress (Recommandé)
 
-* **[⬜ Étape 7.1 : Activation & Configuration NGINX Ingress]**
-    * **Instruction :** Active addon Ingress Minikube. Crée `k8s/base/ingress.yaml`. Définit règles : `/` -> frontend-service, `/api/v1/` -> gateway-service (ou directement les services si gateway simplifiée). Applique.
-    * **Test :** Accéder à l'IP de Minikube (`minikube ip`). Vérifier que le frontend charge. Accéder à `/api/v1/datasets` (via IP Minikube), vérifier réponse (après login).
+* **[✅ Étape 7.1 : Activation & Configuration NGINX Ingress]**
+    * **Instruction :** Active addon Ingress Minikube. Crée `k8s/base/ingress.yaml`. Définit règles : `/` -> frontend-service, `/api/v1/` -> gateway-service (ou directement les services si gateway simplifiée). Applique. *(Note: Réalisé sur AKS avec Helm pour Nginx et Cert-Manager)*
+    * **Test :** Accéder à l'IP de Minikube (`minikube ip`). Vérifier que le frontend charge. Accéder à `/api/v1/datasets` (via IP Minikube), vérifier réponse (après login). *(Note: Testé avec succès sur les domaines publics `https://exai-pipeline.fr/` et `https://api.exai-pipeline.fr/`)*
 
 ## Phase 8 : Finalisation PoC et Test End-to-End
 
