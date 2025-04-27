@@ -4,7 +4,19 @@ kind: Kustomization
 # Cet overlay se base sur ../../base
 # Utilise 'resources' au lieu de 'bases' (corrigé)
 resources:
-  - ../../base
+  - ../../base/api-gateway/deployment.yaml
+  - ../../base/api-gateway/gateway-secrets.yaml
+  - ../../base/api-gateway/service.yaml
+  - ../../base/postgres/postgresql-deployment.yaml
+  - ../../base/postgres/postgresql-service.yaml
+  - ../../base/service-selection/deployment.yaml
+  - ../../base/service-selection/db-secrets.yaml
+  - ../../base/service-selection/service.yaml
+  - ../../base/service-selection/dataset-pvc.yaml
+  - ../../base/frontend/deployment.yaml
+  - ../../base/frontend/service.yaml
+  - ../../base/ingress/ingress.yaml
+  - ../../base/ingress/cluster-issuer.yaml
 
 # Appliquer un namespace spécifique pour cet overlay
 # (Redondant si la base le fait déjà, mais peut être utile pour surcharger)
@@ -14,13 +26,13 @@ namespace: exai
 # Remplacement des noms d'images spécifiques à Azure
 images:
   - name: exai-api-gateway
-    newName: exaimemoireacr.azurecr.io/exai-api-gateway
+    newName: exaiprodacr.azurecr.io/exai-api-gateway
   - name: service-selection
-    newName: exaimemoireacr.azurecr.io/service-selection
+    newName: exaiprodacr.azurecr.io/service-selection
   - name: frontend
-    newName: exaimemoireacr.azurecr.io/frontend
+    newName: exaiprodacr.azurecr.io/frontend
   # - name: postgres
-  #   newName: exaimemoireacr.azurecr.io/postgres
+  #   newName: exaiprodacr.azurecr.io/postgres
 
 # Suppression du patch ciblant l'ancien Deployment
 # Patches pour les configurations spécifiques à Azure
