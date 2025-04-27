@@ -97,7 +97,13 @@ graph LR
         *   **Note importante (2024-04-27) :** La gestion de PostgreSQL a été migrée d'un Deployment vers un **StatefulSet** pour une meilleure gestion de l'état, une identité stable des pods, et pour résoudre les problèmes d'attachement de volume ReadWriteOnce (RWO) lors des mises à jour.
     *   [⬜] Redis non déployé.
     *   [⬜] Workers Celery non déployés.
-    *   [⬜] Ingress Controller non configuré.
+    *   [✅] Ingress Controller (NGINX via Helm) déployé sur AKS.
+    *   [✅] Cert-Manager déployé via Helm sur AKS pour gestion TLS Let's Encrypt.
+    *   [✅] Ingress K8s (`exai-ingress`) configuré pour router `exai-pipeline.fr` vers `frontend` et `api.exai-pipeline.fr` vers `api-gateway`, avec TLS activé via cert-manager.
+    *   **Note Infrastructure Azure (AKS) :
+        *   Le service Nginx Ingress (type LoadBalancer) crée un Load Balancer public Azure.
+        *   Des règles NSG sont configurées pour autoriser le trafic sur les ports 80 et 443 vers l'IP publique du Load Balancer.
+        *   **Point critique (résolu le 2025-04-27):** Les sondes de santé (Health Probes) HTTP et HTTPS du Load Balancer Azure *doivent* cibler le chemin `/healthz` sur les NodePorts correspondants du service Nginx Ingress (par défaut `/` qui provoque des échecs) pour que le Load Balancer considère les nœuds comme sains et route le trafic correctement.
 
 ## 3. Interactions Clés
 
@@ -128,5 +134,10 @@ graph LR
     *   **Gestion de la Configuration Production :
         *   **Frontend :** Utilisation de `frontend/src/environments/environment.prod.ts` (qui contient l'URL de l'API de production) activé par la configuration de build Angular et le Dockerfile.
         *   **Backend :** Les configurations (URL BDD, secrets, etc.) sont injectées via des variables d'environnement définies dans les manifestes K8s (via ConfigMaps/Secrets) de l'overlay `k8s/overlays/azure`.
-        *   **Kubernetes :** L'overlay `k8s/overlays/azure` contient les manifestes/patches spécifiques à Azure (ex: nom d'images préfixé par l'ACR, configurations de ressources, potentiellement Ingress).
-    *   **Secrets Requis (GitHub Actions) :** `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_CREDENTIALS`. 
+        *   **Kubernetes :** L'overlay `k8s/overlays/azure` contient les manifestes/patches spécifiques à Azure (ex: nom d'images préfixé par l'ACR, configurations de ressources, Ingress, références aux secrets Azure Key Vault si utilisé).
+    *   **Secrets Requis (GitHub Actions) :** `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_CREDENTIALS`.
+    *   **Certificats TLS :** Gérés automatiquement par `cert-manager` via `ClusterIssuer` Let's Encrypt (requiert configuration Ingress correcte et accessibilité externe sur port 80 pour challenge HTTP-01).
+    *   **Note Infrastructure Azure (AKS) :
+        *   Le service Nginx Ingress (type LoadBalancer) crée un Load Balancer public Azure.
+        *   Des règles NSG sont configurées pour autoriser le trafic sur les ports 80 et 443 vers l'IP publique du Load Balancer.
+        *   **Point critique (résolu le 2025-04-27):** Les sondes de santé (Health Probes) HTTP et HTTPS du Load Balancer Azure *doivent* cibler le chemin `/healthz` sur les NodePorts correspondants du service Nginx Ingress (par défaut `/` qui provoque des échecs) pour que le Load Balancer considère les nœuds comme sains et route le trafic correctement. 

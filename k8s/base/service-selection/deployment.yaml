@@ -16,6 +16,9 @@ metadata:
 spec:
   # Réduire le nombre de répliques à 1 pour éviter le problème Multi-Attach avec Azure Disk
   replicas: 1
+  # Stratégie de mise à jour : Recreate pour éviter le conflit Multi-Attach sur PVC RWO
+  strategy:
+    type: Recreate
   # Sélecteur utilisé par le Deployment pour identifier les Pods qu'il doit gérer.
   selector:
     # Les Pods gérés doivent avoir ce label.

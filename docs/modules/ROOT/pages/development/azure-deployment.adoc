@@ -82,17 +82,54 @@ az aks get-credentials --resource-group exai-perso-rg --name exai-perso-aks --ov
 
 Avec l'infrastructure et l'authentification en place, le déploiement est géré par le workflow défini dans `.github/workflows/deploy-production.yml`.
 
-Ce workflow va automatiquement :
+Ce workflow utilise une combinaison d'outils :
 
-1.  Builder les images Docker pour chaque service.
-2.  Pousser les images vers votre ACR (`<VOTRE_ACR_NAME>.azurecr.io`).
-3.  S'authentifier sur Azure en utilisant le secret `AZURE_CREDENTIALS`.
-4.  Configurer `kubectl` pour cibler votre cluster AKS.
-5.  Exécuter le Job de migration de base de données Alembic.
-6.  Attendre la fin du Job de migration.
-7.  Déployer les applications (API Gateway, Frontend, etc.) sur AKS en utilisant Skaffold avec le profil `azure`.
+1.  *GitHub Actions* (`.github/workflows/deploy-production.yml`): Orchestre le processus global (build, push, déploiement K8s, migration BDD).
+2.  *Docker/Buildx*: Construit les images Docker pour les différents services.
+3.  *Azure CLI & Docker Login*: Authentifie le workflow auprès d'Azure et de l'ACR.
+4.  *Skaffold* (`skaffold.yaml`): Gère le déploiement sur Kubernetes en utilisant Kustomize. Le profil `azure` est spécifiquement utilisé.
+5.  *Kustomize* (`k8s/overlays/azure/`): Applique les configurations spécifiques à l'environnement Azure par-dessus les manifestes de base (`k8s/base/`).
+6.  *Kubectl*: Applique le Job de migration et gère les redémarrages post-migration.
+7.  *Alembic*: Exécuté via un Job Kubernetes pour appliquer les migrations de base de données après le déploiement des applications.
 
-Assurez-vous que les variables d'environnement dans le fichier de workflow (comme `AZURE_RESOURCE_GROUP`, `AKS_CLUSTER_NAME`, `AZURE_CONTAINER_REGISTRY`) correspondent aux noms que vous avez utilisés lors de la création des ressources.
+=== Flux Détaillé du Workflow (`deploy-production.yml`)
+
+1.  *Checkout*: Récupération du code source de la branche `production`.
+2.  *Login Azure/ACR*: Connexion sécurisée à Azure et à l'ACR spécifié (ex: `exaiprodacr`).
+3.  *Build & Push Images*:
+    *   Construction des images Docker pour `api-gateway`, `service-selection`, et `frontend`.
+    *   Les images sont taguées avec le SHA court du commit (ex: `:612ccb3`) ET avec `:latest`.
+    *   **Important**: Le tag `:latest` est crucial pour l'image `exai-api-gateway` car il est utilisé par le Job de migration Alembic.
+    *   Les images taguées sont poussées vers l'ACR.
+4.  *Set AKS Context*: Configuration de `kubectl` pour cibler le cluster AKS défini dans les variables d'env du workflow (ex: `exai-prod-aks`).
+5.  *Create Namespace*: Création du namespace `exai` s'il n'existe pas.
+6.  *Skaffold Deploy*:
+    *   Exécution de `skaffold deploy --profile=azure --tag=<commit_sha> -n exai`.
+    *   Skaffold utilise Kustomize pour builder les manifestes depuis l'overlay `k8s/overlays/azure/`.
+    *   L'overlay Azure (`kustomization.yaml`) référence les ressources de base (`k8s/base/...`) et applique les modifications nécessaires (ex: remplacement des noms d'images pour pointer vers l'ACR).
+    *   **Configuration Kustomize Clé**: L'argument `--load-restrictor=LoadRestrictionsNone` est passé à `kustomize build` via `skaffold.yaml` pour permettre à Kustomize de lire les fichiers de base situés en dehors du répertoire de l'overlay.
+7.  *Wait for PostgreSQL*: Attente que le pod du StatefulSet PostgreSQL soit prêt.
+8.  *Database Migration*:
+    *   Suppression de l'ancien Job de migration s'il existe (`kubectl delete job...`).
+    *   Application du fichier `k8s/base/jobs/api-gateway-migration-job.yaml`. Ce Job utilise l'image `exai-api-gateway:latest` et exécute `alembic upgrade head`.
+    *   Attente de la complétion du Job (`kubectl wait --for=condition=complete...`).
+9.  *Rollout Restart (Optionnel)*: Redémarrage des déploiements (ex: `api-gateway`) pour s'assurer qu'ils utilisent le schéma de base de données migré (`kubectl rollout restart deployment...`).
+10. *Cleanup (Optionnel)*: Suppression du Job de migration une fois terminé avec succès (`kubectl delete job...`).
+
+=== Configurations Kubernetes Clés (Base & Overlay)
+
+Le succès du déploiement dépend de la bonne configuration des manifestes Kubernetes de base et de leur surcharge via Kustomize pour l'environnement Azure.
+
+*   **Structure Kustomize**: Les manifestes génériques sont dans `k8s/base/` (organisés par service ou fonction, ex: `api-gateway/`, `postgres/`, `common/`). L'overlay `k8s/overlays/azure/kustomization.yaml` référence ces bases et applique des patches ou des remplacements (ex: noms d'images ACR).
+*   **StatefulSet pour PostgreSQL**: La base de données est gérée par un `StatefulSet` (`k8s/base/postgres/postgresql-statefulset.yaml`) pour assurer une identité réseau stable et une gestion correcte des volumes persistants.
+*   **Ressources Communes**: Les ressources partagées comme l'Ingress et le ClusterIssuer Cert-Manager sont placées dans `k8s/base/common/` (`ingress.yaml`, `letsencrypt-prod-issuer.yaml`). L'overlay Azure référence ces fichiers depuis `common/`.
+*   **Secrets (`gateway-secrets.yaml`, `db-secrets.yaml`, etc.)**:
+    *   Les secrets contiennent des informations sensibles comme les URL de base de données et les clés secrètes JWT, encodées en Base64.
+    *   **Cohérence Cruciale**: Les noms des clés DANS le secret YAML (ex: `database-url`, `secret-key` - souvent avec tiret par convention YAML) doivent correspondre EXACTEMENT aux clés (`key: ...`) référencées dans les définitions des variables d'environnement (`env.valueFrom.secretKeyRef.key`) des déploiements (`deployment.yaml`) ET des jobs (`api-gateway-migration-job.yaml`) qui les utilisent. Une incohérence (ex: tiret vs underscore) cause une erreur `CreateContainerConfigError` lors du démarrage du pod.
+*   **Ingress (`ingress.yaml`)**:
+    *   Définit les règles de routage HTTP(S) basées sur les noms d'hôtes (ex: `api.exai-pipeline.fr`) vers les services Kubernetes correspondants (`api-gateway-service`, `frontend`).
+    *   Utilise les annotations `kubernetes.io/ingress.class: nginx` et `cert-manager.io/cluster-issuer: letsencrypt-prod` pour indiquer au contrôleur Nginx Ingress et à Cert-Manager comment gérer les requêtes et les certificats TLS.
+    *   **Dépendance Forte**: L'Ingress ne fonctionne que si un contrôleur d'Ingress (comme Nginx Ingress) est correctement installé et en cours d'exécution dans le cluster, et expose un service de type `LoadBalancer` avec une adresse IP externe publique.
 
 == Prochaines Étapes
 
