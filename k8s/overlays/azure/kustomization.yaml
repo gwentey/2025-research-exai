@@ -7,7 +7,7 @@ resources:
   - ../../base/api-gateway/deployment.yaml
   - ../../base/api-gateway/gateway-secrets.yaml
   - ../../base/api-gateway/service.yaml
-  - ../../base/postgres/postgresql-deployment.yaml
+  - ../../base/postgres/postgresql-statefulset.yaml
   - ../../base/postgres/postgresql-service.yaml
   - ../../base/service-selection/deployment.yaml
   - ../../base/service-selection/db-secrets.yaml
