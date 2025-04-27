@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-headless # Nom du service utilisé par le StatefulSet
+  namespace: exai
+  labels:
+    app: postgresql # Mêmes labels que les pods pour la découverte
+spec:
+  ports:
+  - port: 5432
+    name: tcp-postgresql # Nom du port
+  clusterIP: None # IMPORTANT: Rend le service "Headless"
+  selector:
+    app: postgresql # Sélectionne les pods gérés par le StatefulSet 

@@ -94,6 +94,7 @@ graph LR
 
 *   **Infrastructure :**
     *   [✅] PostgreSQL déployé sur K8s et accessible.
+        *   **Note importante (2024-04-27) :** La gestion de PostgreSQL a été migrée d'un Deployment vers un **StatefulSet** pour une meilleure gestion de l'état, une identité stable des pods, et pour résoudre les problèmes d'attachement de volume ReadWriteOnce (RWO) lors des mises à jour.
     *   [⬜] Redis non déployé.
     *   [⬜] Workers Celery non déployés.
     *   [⬜] Ingress Controller non configuré.
