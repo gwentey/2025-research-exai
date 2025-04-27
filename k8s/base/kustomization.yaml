@@ -4,8 +4,9 @@ kind: Kustomization
 # Définit toutes les ressources de cette base
 # Les overlays pourront se référer à cette base.
 resources:
-  # Common Resources (Ingress, etc.)
+  # Common Resources (Ingress, Issuers, etc.)
   - common/ingress.yaml
+  - common/letsencrypt-staging-issuer.yaml
   # API Gateway
   - api-gateway/deployment.yaml
   - api-gateway/gateway-secrets.yaml # Les valeurs seront surchargées si nécessaire par les overlays ou secrets manuels
