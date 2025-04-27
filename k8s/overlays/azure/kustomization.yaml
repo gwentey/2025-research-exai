@@ -2,7 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Cet overlay se base sur ../../base
-bases:
+# Utilise 'resources' au lieu de 'bases' (corrigé)
+resources:
   - ../../base
 
 # Appliquer un namespace spécifique pour cet overlay
@@ -21,12 +22,13 @@ images:
   # - name: postgres
   #   newName: exaimemoireacr.azurecr.io/postgres
 
+# Suppression du patch ciblant l'ancien Deployment
 # Patches pour les configurations spécifiques à Azure
-patches:
-  - path: postgresql-deployment-patch.yaml
-    target:
-      kind: Deployment
-      name: postgresql-deployment
+# patches:
+#   - path: postgresql-deployment-patch.yaml
+#     target:
+#       kind: Deployment
+#       name: postgresql-deployment
 
 # Ici, on pourrait ajouter des patches spécifiques à Azure si nécessaire plus tard
 # (par exemple, pour modifier des variables d'environnement, des replicas, etc.)

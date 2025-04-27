@@ -15,10 +15,16 @@ resources:
   # Frontend
   - frontend/deployment.yaml
   - frontend/service.yaml
-  # Postgres (interne, temporaire)
-  - postgres/postgresql-deployment.yaml
+  # Postgres
+  # Supprimer l'ancien déploiement
+  # - postgres/postgresql-deployment.yaml
+  # Ajouter les nouvelles ressources StatefulSet et Headless Service
+  - postgres/postgresql-statefulset.yaml
+  - postgres/postgresql-headless-service.yaml
+  # Garder le service normal
   - postgres/postgresql-service.yaml
-  # - postgres/postgresql-pvc.yaml # Décommentez si besoin
+  # La gestion du PVC est maintenant intégrée au StatefulSet via volumeClaimTemplates
+  # - postgres/postgresql-pvc.yaml # Inutile de lister le PVC explicitement
   # Service Selection
   - service-selection/deployment.yaml
   - service-selection/db-secrets.yaml # Les valeurs seront surchargées si nécessaire
