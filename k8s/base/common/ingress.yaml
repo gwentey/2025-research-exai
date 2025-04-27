@@ -24,6 +24,18 @@ spec:
             port:
               # Le port exposé par le Service K8s (pas le targetPort du conteneur)
               number: 80 
+  # ---- NOUVELLE RÈGLE POUR LE FRONTEND ----
+  - host: exai-pipeline.fr # Votre domaine racine
+    http:
+      paths:
+      - path: / # Route tout le trafic pour ce domaine racine vers le frontend
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend # Nom du service K8s du frontend
+            port:
+              number: 80 # Port du service K8s du frontend
+  # ---- FIN NOUVELLE RÈGLE ----
   # Décommentez et configurez ceci pour HTTPS une fois que vous avez cert-manager
   # tls:
   # - hosts:

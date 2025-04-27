@@ -6,7 +6,7 @@ metadata:
   labels:
     app: frontend # Label pour identifier ce service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: frontend # Sélectionne les pods avec ce label (ceux créés par le déploiement)
   ports:
