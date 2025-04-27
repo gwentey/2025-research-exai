@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod # Nom différent pour la production
+  # Pas besoin de namespace pour un ClusterIssuer
+spec:
+  acme:
+    # IMPORTANT: Vérifie que c'est ton adresse email !
+    email: anthonyoutub@gmail.com
+    # URL du serveur ACME de PRODUCTION de Let's Encrypt
+    server: https://acme-v02.api.letsencrypt.org/directory # <-- URL de Production
+    privateKeySecretRef:
+      # Nom différent pour la clé privée du compte ACME de production
+      name: letsencrypt-prod-private-key
+    # Configuration du challenge HTTP01 (identique au staging)
+    solvers:
+    - http01:
+        ingress:
+          class: nginx 
