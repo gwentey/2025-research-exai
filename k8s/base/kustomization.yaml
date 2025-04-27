@@ -6,7 +6,8 @@ kind: Kustomization
 resources:
   # Common Resources (Ingress, Issuers, etc.)
   - common/ingress.yaml
-  - common/letsencrypt-staging-issuer.yaml
+  # - common/letsencrypt-staging-issuer.yaml # Supprimé/Commenté car on utilise Prod
+  - common/letsencrypt-prod-issuer.yaml
   # API Gateway
   - api-gateway/deployment.yaml
   - api-gateway/gateway-secrets.yaml # Les valeurs seront surchargées si nécessaire par les overlays ou secrets manuels
