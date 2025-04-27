@@ -20,10 +20,20 @@ spec:
         command: ["alembic"]
         args: ["upgrade", "head"]
         workingDir: /app # Répertoire où se trouve alembic.ini
-        envFrom:
-        # Monte les variables d'environnement depuis le même secret que le déploiement
-        - secretRef:
-            name: gateway-secrets # Le secret contenant DATABASE_URL et SECRET_KEY
+        env:
+        # Définir explicitement DATABASE_URL à partir de la clé du secret
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: gateway-secrets # Nom du Secret
+              key: database-url    # Nom de la clé DANS le Secret
+        # Monte également les autres clés du secret si nécessaire (ex: SECRET_KEY si alembic/env.py l'utilise)
+        # Si SECRET_KEY est aussi dans gateway-secrets avec la clé 'secret-key':
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gateway-secrets
+              key: secret-key # Assurez-vous que la clé est correcte dans le Secret
         # Optionnel: Si d'autres variables d'env sont nécessaires (ex: depuis ConfigMap)
         # - configMapRef:
         #     name: api-gateway-config
