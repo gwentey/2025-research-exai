@@ -1,0 +1,30 @@
+# api-gateway-migration-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # Nom du Job. Utiliser generateName pour éviter les conflits si relancé rapidement,
+  # ou un nom fixe si géré par un pipeline qui supprime l'ancien job avant.
+  # On utilise un nom fixe ici pour simplifier.
+  name: api-gateway-migration-job
+  namespace: exai # Assure-toi que c'est le bon namespace
+spec:
+  # ttlSecondsAfterFinished: 300 # Optionnel: Supprime le Job automatiquement après sa fin
+  backoffLimit: 1 # Nombre de tentatives avant d'échouer
+  template:
+    spec:
+      containers:
+      - name: alembic-migration
+        # Utilise l'image :latest (avec les mises en garde pour la prod)
+        image: exaimemoireacr.azurecr.io/exai-api-gateway:latest
+        imagePullPolicy: Always # Force la récupération de la dernière :latest
+        command: ["alembic"]
+        args: ["upgrade", "head"]
+        workingDir: /app # Répertoire où se trouve alembic.ini
+        envFrom:
+        # Monte les variables d'environnement depuis le même secret que le déploiement
+        - secretRef:
+            name: gateway-secrets # Le secret contenant DATABASE_URL et SECRET_KEY
+        # Optionnel: Si d'autres variables d'env sont nécessaires (ex: depuis ConfigMap)
+        # - configMapRef:
+        #     name: api-gateway-config
+      restartPolicy: Never # Ne redémarre pas le pod en cas d'échec 
