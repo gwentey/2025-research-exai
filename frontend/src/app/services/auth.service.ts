@@ -7,10 +7,6 @@ import { environment } from '../../environments/environment'; // Importer l'envi
 // Importer les nouvelles interfaces
 import { LoginCredentials, LoginResponse, SignupData, UserRead } from '../models/auth.models';
 
-// Définir l'URL de base de l'API Gateway
-// TODO: Déplacer cela dans les fichiers d'environnement (environment.ts)
-// const API_GATEWAY_URL = 'http://localhost:8000'; // Commenter ou supprimer l'ancienne constante
-
 // Définir la clé du token comme constante
 const AUTH_TOKEN_KEY = 'exai_access_token';
 
