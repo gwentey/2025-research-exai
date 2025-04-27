@@ -3,11 +3,11 @@ from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base
 from sqlalchemy import UUID as SQLAlchemyUUID, text # Import SQLAlchemy's UUID type and text
 from sqlalchemy.dialects.postgresql import UUID # Assurez-vous que UUID is importé
-from ...db import Base # Assurez-vous que Base est importé correctement depuis votre config DB
+from ..db import Base # Un seul niveau pour remonter de models à api_gateway
 
 # Define a local Base for models in this module (and potentially others in app/models)
 # This avoids depending on app.db for model definition
-Base = declarative_base()
+# Base = declarative_base() # Cette ligne est probablement incorrecte si Base vient de db.py
 
 # Modèle de table SQLAlchemy pour l'utilisateur
 # Utilise SQLAlchemyBaseUserTableUUID pour un ID de type UUID
