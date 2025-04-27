@@ -55,13 +55,13 @@ profiles:
     patches:
       - op: replace
         path: /build/artifacts/0/image
-        value: exaimemoireacr.azurecr.io/exai-api-gateway
+        value: exaiprodacr.azurecr.io/exai-api-gateway
       - op: replace
         path: /build/artifacts/1/image
-        value: exaimemoireacr.azurecr.io/service-selection
+        value: exaiprodacr.azurecr.io/service-selection
       - op: replace
         path: /build/artifacts/2/image
-        value: exaimemoireacr.azurecr.io/frontend
+        value: exaiprodacr.azurecr.io/frontend
       # Ajouter un patch pour surcharger les buildArgs du frontend pour Azure
       - op: add # Ou 'replace' si buildArgs existe déjà au path exact
         path: /build/artifacts/2/docker/buildArgs # Index 2 pour l'artefact frontend
