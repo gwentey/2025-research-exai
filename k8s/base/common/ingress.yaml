@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: exai-ingress
+  namespace: exai # Assurez-vous que ce namespace est correct ou retirez-le si vous utilisez 'default'
+  annotations:
+    # Spécifie explicitement la classe d'ingress à utiliser (important si plusieurs contrôleurs)
+    kubernetes.io/ingress.class: nginx
+    # Ajoutez ceci si vous voulez que cert-manager gère le HTTPS plus tard
+    # cert-manager.io/cluster-issuer: letsencrypt-prod 
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTP" # ou HTTPS si votre service écoute en HTTPS
+spec:
+  ingressClassName: nginx # Utilise le contrôleur Nginx installé
+  rules:
+  - host: api.exai-pipeline.fr # Votre nom d'hôte
+    http:
+      paths:
+      - path: / # Route tout le trafic pour cet hôte
+        pathType: Prefix
+        backend:
+          service:
+            # IMPORTANT: Le nom doit correspondre EXACTEMENT au nom du Service K8s
+            name: api-gateway-service 
+            port:
+              # Le port exposé par le Service K8s (pas le targetPort du conteneur)
+              number: 80 
+  # Décommentez et configurez ceci pour HTTPS une fois que vous avez cert-manager
+  # tls:
+  # - hosts:
+  #   - api.exai-pipeline.fr
+  #   secretName: api-exai-pipeline-fr-tls # Nom du secret qui contiendra le certificat 

@@ -7,7 +7,8 @@ bases:
 
 # Appliquer un namespace spécifique pour cet overlay
 # (Redondant si la base le fait déjà, mais peut être utile pour surcharger)
-namespace: exai
+# Commenté car le déploiement Azure cible probablement le namespace 'default'
+# namespace: exai
 
 # Remplacement des noms d'images spécifiques à Azure
 images:

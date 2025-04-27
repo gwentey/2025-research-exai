@@ -1,0 +1,18 @@
+controller:
+  replicaCount: 2
+  nodeSelector:
+    kubernetes.io/os: linux
+  service:
+    type: LoadBalancer
+    annotations:
+      # Indique à Azure LB comment vérifier la santé du contrôleur
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: /healthz
+  admissionWebhooks:
+    patch:
+      nodeSelector:
+        kubernetes.io/os: linux
+
+defaultBackend:
+  # Assure que le backend par défaut tourne sur un nœud Linux
+  nodeSelector:
+    kubernetes.io/os: linux

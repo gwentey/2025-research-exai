@@ -16,10 +16,10 @@ spec:
         image: postgres:15
         resources:
           limits:
-            cpu: "1"
-            memory: "2Gi"
-          requests:
             cpu: "500m"
             memory: "1Gi"
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
   strategy:
     type: Recreate  # Cela forcera la suppression de l'ancien pod avant d'en créer un nouveau 
