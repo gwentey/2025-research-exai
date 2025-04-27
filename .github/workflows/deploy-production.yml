@@ -27,6 +27,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # --- Connexion à Azure AVANT le build/push --- 
+      # Configure Docker pour utiliser les identifiants du SP pour l'ACR
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       # Obtenir le SHA court du commit pour le tag
       - name: Get short SHA
         id: sha
@@ -39,7 +46,7 @@ jobs:
           sudo install skaffold /usr/local/bin/
           skaffold version
 
-      # Builder et pusher chaque image
+      # --- Build et Push des images (maintenant après le login Azure) ---
       - name: Build and push API Gateway image
         uses: docker/build-push-action@v5
         with:
@@ -66,12 +73,7 @@ jobs:
           build-args: |
             ANGULAR_ENV=production
 
-      # --- Connexion à Azure et configuration kubectl ---
-      - name: Log in to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+      # --- Configuration kubectl (reste ici) ---
       - name: Set AKS context
         uses: azure/aks-set-context@v3
         with:
