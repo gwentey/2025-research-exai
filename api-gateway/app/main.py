@@ -69,8 +69,9 @@ async def health_check(session: AsyncSession = Depends(get_async_session)):
 
 # Configuration CORS
 origins = [
-    "*",  # Autorise toutes les origines (à restreindre en production)
-    # Exemple si le frontend Angular tourne sur localhost:4200 :
+    # Remplace "*" par l'origine exacte du frontend pour allow_credentials=True
+    "https://exai-pipeline.fr", 
+    # Tu peux ajouter d'autres origines si nécessaire (ex: localhost pour dev)
     # "http://localhost:4200",
 ]
 
