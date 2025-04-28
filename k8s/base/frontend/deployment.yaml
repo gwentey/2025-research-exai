@@ -29,13 +29,13 @@ spec:
               cpu: "200m"
           readinessProbe: # Vérifie si le conteneur est prêt à recevoir du trafic
             httpGet:
-              path: / # Vérifie la page d'accueil
+              path: /healthz # Chemin de la sonde de préparation
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe: # Vérifie si le conteneur est toujours en vie
             httpGet:
-              path: /
+              path: /healthz # Chemin de la sonde de vivacité
               port: 80
             initialDelaySeconds: 15
             periodSeconds: 20 
