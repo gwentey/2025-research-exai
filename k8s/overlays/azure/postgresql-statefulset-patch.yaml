@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  namespace: exai # Important d'inclure le namespace pour que Kustomize cible correctement
+spec:
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-data # Doit correspondre au nom dans la base
+      spec:
+        # Ajoute ou remplace le storageClassName pour Azure
+        storageClassName: default 
