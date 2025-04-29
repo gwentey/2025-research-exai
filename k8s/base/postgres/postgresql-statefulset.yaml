@@ -58,7 +58,7 @@ spec:
       name: postgresql-data # Nom du volume logique qui sera utilisé dans les volumeMounts
     spec:
       accessModes: [ "ReadWriteOnce" ] # Mode d'accès standard pour Azure Disk
-      storageClassName: default # Assure-toi que c'est la bonne storage class
+      storageClassName: standard # Explicitement défini pour Minikube
       resources:
         requests:
           storage: 1Gi # Taille du disque, correspond à ton ancien PVC 

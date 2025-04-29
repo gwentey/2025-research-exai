@@ -120,6 +120,28 @@ graph LR
 ## 5. Déploiement et CI/CD
 
 *   **Développement Local :** `skaffold dev` est utilisé pour builder les images Docker localement et déployer sur Minikube en utilisant Kustomize (`k8s/overlays/minikube`).
+
+## Développement Local
+
+L'environnement de développement local utilise Minikube pour simuler le cluster Kubernetes et Skaffold pour automatiser le cycle de build/déploiement.
+
+### Accès aux Services (Profil Local)
+
+Lorsque l'on utilise la commande `skaffold dev --profile=local`, l'accès aux principaux services se fait via des redirections de port gérées automatiquement par Skaffold :
+
+*   **Frontend:** Accessible sur `http://localhost:8080`
+*   **API Gateway:** Accessible sur `http://localhost:9000` (y compris `/docs` et `/redoc`)
+
+Cette méthode évite d'avoir besoin de `minikube tunnel` ou `minikube service` pour le workflow de développement standard.
+
+Il est crucial qu'aucun autre service (comme un serveur XAMPP/Apache local) n'utilise les ports `8080` ou `9000` sur la machine hôte.
+
+### Autres Composants
+
+(Description des autres aspects du développement local, base de données, etc.)
+
+## Déploiement
+
 *   **Déploiement Production (Azure) :**
     *   Un workflow GitHub Actions (`.github/workflows/deploy-production.yml`) est configuré.
     *   **Trigger :** Push sur la branche `production`.

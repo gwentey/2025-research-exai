@@ -29,9 +29,9 @@ curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffo
 sudo install skaffold /usr/local/bin/
 ----
 
-== Déploiement
+== Déploiement Local avec Minikube et Skaffold
 
-1. **Cloner le dépôt**:
+1.  **Cloner le dépôt** (si pas déjà fait):
 +
 [source,bash]
 ----
@@ -39,22 +39,28 @@ git clone <URL_DU_DEPOT_GIT_EXAI>
 cd <NOM_DU_DOSSIER_PROJET_EXAI>
 ----
 
-2. **Démarrer Minikube**:
+2.  **Démarrer Minikube**:
 +
 [source,bash]
 ----
 minikube start
 # Pour plus de ressources: minikube start --memory 4096 --cpus 2
 ----
++
+[NOTE]
+====
+Assurez-vous que l'addon `ingress` est activé si vous comptez tester le déploiement avec Ingress plus tard (bien que non utilisé pour l'accès local par défaut décrit ici). L'addon `storage-provisioner` est également nécessaire et généralement activé par défaut.
+====
 
-3. **Créer le namespace**:
+3.  **Créer le namespace** (si pas déjà fait):
 +
 [source,bash]
 ----
 kubectl create namespace exai
+# Ignorez l'erreur si le namespace existe déjà.
 ----
 
-4. **Configurer Docker pour Minikube**:
+4.  **Déployer avec Skaffold**:
 +
 [source,bash]
 ----
@@ -75,25 +81,22 @@ eval $(minikube docker-env)
 # Pour le mode local (développement)
 skaffold dev --profile=local
 
-# Pour un déploiement sur Azure (si configuré)
-# skaffold run --profile=azure
 ----
 +
 Skaffold va :
 +
 --
-* Construire les images Docker pour tous les microservices (frontend, api-gateway, service-selection)
-* Déployer les manifestes Kubernetes depuis le dossier `k8s/base/` (PostgreSQL, API Gateway, Service Selection, Frontend)
-* Configurer des redirections de port (notamment l'API Gateway sur le port 9000)
-* Surveiller les changements de code et redéployer automatiquement
-* Afficher les logs en temps réel
+* Détecter le contexte Minikube et utiliser son environnement Docker.
+* Construire les images Docker nécessaires (si le code a changé).
+* Déployer les manifestes Kubernetes définis dans `skaffold.yaml` pour le profil `local` (Base de données, API Gateway, Service Selection, Frontend) dans le namespace `exai`.
+* Mettre en place des redirections de port automatiques (voir section Accès).
+* Surveiller les changements de code et redéployer automatiquement.
+* Afficher les logs des conteneurs en temps réel dans la console.
 --
 +
 [IMPORTANT]
 ====
-Le premier déploiement peut prendre plusieurs minutes. Attendez que tous les pods passent à l'état `Running`.
-
-[.underline]#*ATTENTION*# : Contrairement à ce qui pourrait être affiché dans la console Skaffold, les services ne sont *PAS* directement accessibles via localhost. Vous devez utiliser les commandes `minikube service` décrites dans la section suivante.
+Le premier déploiement peut prendre plusieurs minutes. Attendez que Skaffold indique `Deployments stabilized` ou que tous les pods principaux (`postgresql`, `api-gateway`, `service-selection`, `frontend`) passent à l'état `Running` (vous pouvez vérifier avec `kubectl get pods -n exai`).
 ====
 
 === Initialisation de la Base de Données
@@ -129,32 +132,18 @@ Chaque service utilise sa propre table de version Alembic (`alembic_version_gate
 
 === Accéder à l'Application
 
-[.underline]#*IMPORTANT*# : Les services dans Minikube ne sont accessibles QUE via les commandes suivantes :
+Avec le profil `local`, Skaffold configure automatiquement des redirections de port (`port-forward`) pour faciliter l'accès. **Il n'est PAS nécessaire d'utiliser `minikube service` ou `minikube tunnel` pour ce workflow local par défaut.**
 
-[source,bash]
-----
-# Accéder au Frontend
-minikube service frontend-service -n exai
+Les services sont accessibles directement sur `localhost` via les ports suivants (tant que `skaffold dev --profile=local` est actif) :
 
-# Accéder au Service de Sélection
-minikube service service-selection-service -n exai
+*   **Frontend :** `http://localhost:8080`
+*   **API Gateway :** `http://localhost:9000`
+    **Documentation API (Swagger UI) :** `http://localhost:9000/docs`
+    **Documentation API (ReDoc) :** `http://localhost:9000/redoc`
 
-# Accéder à l'API Gateway
-minikube service api-gateway-service -n exai
-
-# Pour obtenir seulement l'URL (sans ouvrir le navigateur)
-minikube service service-selection-service -n exai --url
-----
-
-[IMPORTANT]
+[NOTE]
 ====
-Sur Windows avec le driver Docker, gardez la fenêtre du terminal ouverte pendant l'utilisation du service (elle maintient le tunnel actif).
-====
-
-[TIP]
-====
-Pour obtenir uniquement l'URL sans ouvrir de navigateur, ajoutez le flag `--url` :
-`minikube service service-selection-service -n exai --url`
+Le frontend est configuré (via `frontend/src/environments/environment.ts`) pour appeler l'API Gateway sur `http://localhost:9000`.
 ====
 
 == Workflow de Développement
@@ -195,7 +184,9 @@ Pour un workflow plus fluide, utilisez des outils comme **Lens**, **k9s** ou le 
 * *Minikube ne démarre pas* : Vérifiez Docker Desktop, essayez `minikube delete` puis `minikube start`
 * *Pod bloqué en `Pending`* : Augmentez les ressources (`minikube stop && minikube config set memory 4096 && minikube start`)
 * *Pod en `CrashLoopBackOff`* : Vérifiez les logs avec `kubectl logs -n exai <pod-name>`
-* *Services inaccessibles* : Assurez-vous d'utiliser les commandes `minikube service` plutôt que localhost
+* *Services inaccessibles* : Vérifiez que `skaffold dev --profile=local` est en cours d'exécution et qu'aucun autre programme n'utilise les ports locaux `8080` ou `9000`. Vérifiez les logs Skaffold pour des erreurs de port-forwarding. Assurez-vous que les pods sont `Running` (`kubectl get pods -n exai`).
+* *Pod PostgreSQL bloqué en `Pending`* : Vérifiez les PVC (`kubectl get pvc -n exai`) et la StorageClass (`kubectl get sc`). Assurez-vous que la configuration du volume dans `k8s/base/postgres/postgresql-statefulset.yaml` utilise la bonne `storageClassName` (`standard` pour Minikube par défaut).
+* *Erreurs "MIME type" sur le frontend* : Assurez-vous que la configuration Nginx (`frontend/nginx.conf`), le Dockerfile (`frontend/Dockerfile`), et le `baseHref` dans `angular.json` sont cohérents pour un service à la racine (`/`).
 
 === Étapes de Diagnostic
 1. Logs Skaffold

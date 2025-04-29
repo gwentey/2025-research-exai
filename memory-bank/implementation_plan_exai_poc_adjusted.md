@@ -31,7 +31,10 @@
     * **Test :** Pods 'Running', PVC 'Bound', Service existe. Connexion via `kubectl exec ... psql` réussit. BDD `exai_db` et user `exai_user` existent.
 * **[✅ Étape 0.8 : Initialisation Tables BDD (datasets, users)]** (Supposée faite via Alembic ou script)
     * **Test :** Vérifier existence des tables `datasets` et `user` (et `alembic_version`) dans la BDD.
-* **[⬜ Étape 0.9 : Déploiement Redis sur Minikube]**
+* **[✅ Étape 0.9 : Stabilisation Environnement Local & Accès]**
+    * **Description :** Résolution des problèmes de déploiement Minikube (PVC, ClusterIssuer, Ingress). Configuration de l'accès local via `skaffold dev --profile=local` et port-forwarding intégré (Frontend: `localhost:8080`, API Gateway: `localhost:9000`).
+    * **Statut :** Complété et Documenté.
+* **[⬜ Étape 0.10 : Déploiement Redis sur Minikube]**
     * **Instruction :** Crée `k8s/base/redis-deployment.yaml`. Utilise image `redis:alpine`. Crée `Service` (`redis-service`) ClusterIP port 6379. Applique.
     * **Test :** Pod Redis 'Running'. Connexion via `kubectl exec ... redis-cli PING` retourne `PONG`.
 

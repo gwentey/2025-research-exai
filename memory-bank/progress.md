@@ -86,4 +86,29 @@ L'infrastructure de base (K8s, Postgres, Skaffold, Kustomize) est en place. L'au
 *   [⬜] **Étape 8.2 : Test Scénario Principal E2E**
 *   [⬜] **Étape 8.3 : Mise à jour Documentation `memory-bank`** (Ceci est la première MAJ.)
 
+**Semaine du 22 Avril 2025:**
+
+*   **Déploiement Production (AKS) :**
+    *   Configuration et déploiement réussis de Nginx Ingress Controller et Cert-Manager via Helm.
+    *   Configuration de l'Ingress Kubernetes (`exai-ingress`) pour router le trafic vers le frontend et l'API Gateway.
+    *   Génération et application automatiques des certificats TLS Let's Encrypt via Cert-Manager.
+    *   Correction des sondes de santé (Health Probes) du Load Balancer Azure ciblant Nginx Ingress pour assurer la disponibilité du service.
+    *   Déploiement initial réussi des services (API Gateway, Service Selection, Frontend) via GitHub Actions et Skaffold (`--profile=azure`).
+*   **Environnement Local (Minikube + Skaffold) :**
+    *   [✅] **Stabilisation et Clarification :** Résolution des problèmes de PersistentVolumeClaim pour PostgreSQL avec Minikube.
+    *   [✅] **Configuration d'Accès Simplifiée :** Mise en place de l'accès local via `skaffold dev --profile=local` utilisant le port-forwarding intégré (Frontend: `localhost:8080`, API Gateway: `localhost:9000`). Abandon de l'utilisation de `minikube tunnel` ou Ingress pour le workflow local standard afin d'éviter les conflits et simplifier l'usage.
+    *   [✅] Mise à jour de la documentation (`getting-started.adoc`, `architecture.md`) pour refléter la méthode d'accès locale actuelle.
+
+**Semaine du 15 Avril 2025:**
+
+*   **Service Selection:**
+    *   Implémentation des endpoints CRUD de base pour les datasets.
+    *   Mise en place de la structure SQLAlchemy/Pydantic/Alembic.
+*   **API Gateway:**
+    *   Mise en place de l'authentification JWT avec `fastapi-users`.
+*   **Infrastructure:**
+    *   Déploiement initial de PostgreSQL sur Minikube.
+    *   Première configuration de Skaffold.
+    *   Mise en place de la structure Kustomize (base/overlays).
+
 ---

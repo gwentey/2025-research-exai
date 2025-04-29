@@ -50,6 +50,14 @@ images:
 #       kind: Deployment
 #       name: my-deployment
 
+# Ajout du patch pour le StorageClass de PostgreSQL
+patches:
+  - path: postgresql-statefulset-patch.yaml
+    target:
+      kind: StatefulSet
+      name: postgresql
+      # Le namespace est déjà défini globalement pour l'overlay, pas besoin ici
+
 # Important: Ne pas inclure explicitement les fichiers de secrets ou PVC ici
 # s'ils sont déjà dans les dossiers référencés par 'resources'.
 # Kustomize les prendra en compte automatiquement.
