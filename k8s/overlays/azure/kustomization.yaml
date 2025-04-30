@@ -7,7 +7,9 @@ resources:
   - ../../base/api-gateway/deployment.yaml
   - ../../base/api-gateway/gateway-secrets.yaml
   - ../../base/api-gateway/service.yaml
-  - ../../base/postgres/postgresql-statefulset.yaml
+  # Utilisation de notre propre StatefulSet au lieu de celui de base
+  # - ../../base/postgres/postgresql-statefulset.yaml
+  - postgresql-statefulset.yaml
   - ../../base/postgres/postgresql-service.yaml
   - ../../base/service-selection/deployment.yaml
   - ../../base/service-selection/db-secrets.yaml
@@ -50,13 +52,13 @@ images:
 #       kind: Deployment
 #       name: my-deployment
 
-# Ajout du patch pour le StorageClass de PostgreSQL
-patches:
-  - path: postgresql-statefulset-patch.yaml
-    target:
-      kind: StatefulSet
-      name: postgresql
-      # Le namespace est déjà défini globalement pour l'overlay, pas besoin ici
+# Supprimer le patch pour le StatefulSet PostgreSQL puisque nous utilisons notre propre StatefulSet
+# patches:
+#   - path: postgresql-statefulset-patch.yaml
+#     target:
+#       kind: StatefulSet
+#       name: postgresql
+#       # Le namespace est déjà défini globalement pour l'overlay, pas besoin ici
 
 # Important: Ne pas inclure explicitement les fichiers de secrets ou PVC ici
 # s'ils sont déjà dans les dossiers référencés par 'resources'.
