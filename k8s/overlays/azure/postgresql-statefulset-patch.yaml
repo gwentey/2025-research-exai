@@ -3,6 +3,10 @@ kind: StatefulSet
 metadata:
   name: postgresql
 spec:
+  serviceName: postgresql
+  selector:
+    matchLabels:
+      app: postgresql
   # Configuration Azure complète
   template:
     spec:
@@ -15,16 +19,4 @@ spec:
           requests:
             cpu: 500m
             memory: 1Gi
-  # Pour les StatefulSets existants en production, nous ne pouvons pas
-  # modifier volumeClaimTemplates car c'est un champ immuable
-  # Pour les nouveaux déploiements, décommenter ci-dessous:
-  # volumeClaimTemplates:
-  # - metadata:
-  #     name: postgresql-data
-  #   spec:
-  #     storageClassName: managed-premium # Azure Disk Premium
-  # Autres champs autorisés si nécessaire:
-  # replicas: 1
-  # updateStrategy:
-  #   type: RollingUpdate
-  # minReadySeconds: 30 
+            
