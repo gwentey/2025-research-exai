@@ -4,6 +4,18 @@ metadata:
   name: postgresql
   # Pas besoin de namespace ici, Kustomize l'ajoutera si nécessaire via kustomization.yaml
 spec:
+  # Configuration Minikube complète
+  template:
+    spec:
+      containers:
+      - name: postgresql
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
   volumeClaimTemplates:
     # Le nom doit correspondre à celui dans la base (postgresql-data)
     # On ne patch que le storageClassName

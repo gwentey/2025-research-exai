@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgresql # Nouveau nom pour la ressource StatefulSet
+  name: postgresql
   namespace: exai
   labels:
     app: postgresql
 spec:
-  serviceName: "postgresql-headless" # Doit correspondre au nom du Headless Service ci-dessus
+  serviceName: "postgresql-headless"
   replicas: 1
   selector:
     matchLabels:
-      app: postgresql # Doit correspondre aux labels du pod template
-  template: # La définition du Pod (très similaire à celle du Deployment)
+      app: postgresql
+  template:
     metadata:
       labels:
-        app: postgresql # Les pods auront ce label
+        app: postgresql
     spec:
-      terminationGracePeriodSeconds: 30 # Temps pour l'arrêt propre
-      initContainers: # Garde l'init container pour nettoyer lost+found
+      terminationGracePeriodSeconds: 30
+      initContainers:
       - name: remove-lost-found
         image: busybox:1.36
         command: ["/bin/sh", "-c"]
@@ -27,7 +27,7 @@ spec:
           rm -rf /var/lib/postgresql/data/lost+found
           echo "lost+found removed if it existed."
         volumeMounts:
-        - name: postgresql-data # Référence le volume défini dans volumeClaimTemplates
+        - name: postgresql-data
           mountPath: /var/lib/postgresql/data
       containers:
       - name: postgresql
@@ -35,30 +35,26 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5432
-          name: tcp-postgresql # Correspondance avec le port du service
-        env: # Garde les mêmes variables d'environnement
+          name: tcp-postgresql
+        env:
         - name: POSTGRES_DB
           value: exai_db
         - name: POSTGRES_USER
           value: exai_user
         - name: POSTGRES_PASSWORD
           value: password # RAPPEL: Mieux vaut utiliser un Secret ici !
-        resources: # Garde les mêmes ressources
-          limits:
-            cpu: 500m
-            memory: 1Gi
-          requests:
-            cpu: 250m
-            memory: 512Mi
+        # Pas de définition de resources au niveau de base
+        # Définies dans les patches spécifiques à chaque environnement
         volumeMounts:
-        - name: postgresql-data # Référence le volume défini dans volumeClaimTemplates
+        - name: postgresql-data
           mountPath: /var/lib/postgresql/data
-  volumeClaimTemplates: # Définit comment créer le PVC pour chaque pod
+  volumeClaimTemplates:
   - metadata:
-      name: postgresql-data # Nom du volume logique qui sera utilisé dans les volumeMounts
+      name: postgresql-data
     spec:
-      accessModes: [ "ReadWriteOnce" ] # Mode d'accès standard pour Azure Disk
-      storageClassName: default # Défini sur 'default' dans la base (pour Azure)
+      accessModes: [ "ReadWriteOnce" ]
+      # Pas de storageClassName spécifique au niveau de base
+      # Défini dans les patches spécifiques à chaque environnement
       resources:
         requests:
-          storage: 1Gi # Taille du disque, correspond à ton ancien PVC 
+          storage: 1Gi 
