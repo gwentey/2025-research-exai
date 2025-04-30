@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Référence la base commune
+resources:
+  - ../../base
+
+# Applique les patches spécifiques à Minikube
+patchesStrategicMerge:
+  - postgresql-statefulset-patch.yaml
+  # Ajoutez ici d'autres patches spécifiques à Minikube si nécessaire
+
+# (Optionnel) Vous pouvez aussi ajouter des préfixes/suffixes aux noms,
+# définir des namespaces, etc.
+# namespace: exai-minikube
+# namePrefix: minikube- 
