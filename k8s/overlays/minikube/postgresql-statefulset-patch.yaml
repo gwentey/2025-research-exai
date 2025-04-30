@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  # Pas besoin de namespace ici, Kustomize l'ajoutera si nécessaire via kustomization.yaml
+spec:
+  volumeClaimTemplates:
+    # Le nom doit correspondre à celui dans la base (postgresql-data)
+    # On ne patch que le storageClassName
+    - metadata:
+        name: postgresql-data
+      spec:
+        storageClassName: standard # Valeur spécifique pour Minikube 
