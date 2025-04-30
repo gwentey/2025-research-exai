@@ -3,10 +3,5 @@ kind: StatefulSet
 metadata:
   name: postgresql
   namespace: exai # Important d'inclure le namespace pour que Kustomize cible correctement
-spec:
-  volumeClaimTemplates:
-    - metadata:
-        name: postgresql-data # Doit correspondre au nom dans la base
-      spec:
-        # Ajoute ou remplace le storageClassName pour Azure
-        storageClassName: default 
+spec: {} # On laisse un spec vide, car le patch ne modifie plus le volumeClaimTemplates.
+# Supprimer toute la section volumeClaimTemplates d'ici. 
