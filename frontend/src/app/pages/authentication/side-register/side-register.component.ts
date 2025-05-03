@@ -63,7 +63,11 @@ export class AppSideRegisterComponent {
     const userData: SignupData = {
       email: this.f.email.value ?? '',
       password: this.f.password.value ?? '',
-      pseudo: this.f.pseudo.value ?? '',
+      pseudo: this.f.pseudo.value || undefined,
+      picture: undefined,
+      given_name: undefined,
+      family_name: undefined,
+      locale: undefined,
     };
 
     this.authService.signup(userData)
