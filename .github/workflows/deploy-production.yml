@@ -105,6 +105,13 @@ jobs:
           sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $LOCAL_REDIRECT_URL|g" k8s/base/api-gateway/gateway-secrets.yaml
           sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $OAUTH_REDIRECT_URL_PROD|g" k8s/overlays/azure/oauth-redirect-patch.yaml
 
+      # --- ÉTAPE DE DÉBOGAGE --- 
+      - name: Verify gateway-secrets.yaml content AFTER sed
+        run: |
+          echo "--- Content of k8s/base/api-gateway/gateway-secrets.yaml after sed: ---"
+          cat k8s/base/api-gateway/gateway-secrets.yaml
+          echo "--------------------------------------------------------------------"
+
       # --- Supprimer l'ancien Secret AVANT Skaffold Deploy --- 
       # Ceci force Skaffold à le recréer proprement basé sur les fichiers locaux modifiés.
       - name: Delete existing gateway-secrets (force recreation)
