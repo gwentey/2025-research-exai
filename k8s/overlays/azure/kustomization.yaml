@@ -37,11 +37,12 @@ images:
   #   newName: exaiprodacr.azurecr.io/postgres
 
 # Patches pour les configurations spécifiques à Azure
-patches:
-  - path: oauth-redirect-patch.yaml
-    target:
-      kind: Secret
-      name: gateway-secrets
+# Supprimer la référence au patch oauth-redirect-patch.yaml
+# patches:
+#   - path: oauth-redirect-patch.yaml
+#     target:
+#       kind: Secret
+#       name: gateway-secrets
 
 # Suppression du patch ciblant l'ancien Deployment
 # Patches pour les configurations spécifiques à Azure
