@@ -90,20 +90,21 @@ jobs:
         run: |
           # Encodage Base64 pour Kubernetes
           # Note: Utilisez -n pour éviter les sauts de ligne dans les valeurs
-          SECRET_KEY=$(echo -n "${{ secrets.JWT_SECRET_KEY }}" | base64 -w 0)
-          DATABASE_URL=$(echo -n "${{ secrets.DATABASE_URL }}" | base64 -w 0)
-          GOOGLE_CLIENT_ID=$(echo -n "${{ secrets.GOOGLE_CLIENT_ID }}" | base64 -w 0)
-          GOOGLE_CLIENT_SECRET=$(echo -n "${{ secrets.GOOGLE_CLIENT_SECRET }}" | base64 -w 0)
-          LOCAL_REDIRECT_URL=$(echo -n "http://localhost:4200/authentication/callback" | base64 -w 0)
-          OAUTH_REDIRECT_URL_PROD=$(echo -n "https://exai-pipeline.fr/authentication/callback" | base64 -w 0)
+          SECRET_KEY_B64=$(echo -n "${{ secrets.JWT_SECRET_KEY }}" | base64 -w 0)
+          DATABASE_URL_B64=$(echo -n "${{ secrets.DATABASE_URL }}" | base64 -w 0)
+          GOOGLE_CLIENT_ID_B64=$(echo -n "${{ secrets.GOOGLE_CLIENT_ID }}" | base64 -w 0)
+          GOOGLE_CLIENT_SECRET_B64=$(echo -n "${{ secrets.GOOGLE_CLIENT_SECRET }}" | base64 -w 0)
+          # Utiliser directement le secret OAUTH_REDIRECT_URL pour la production
+          OAUTH_REDIRECT_URL_PROD_B64=$(echo -n "${{ secrets.OAUTH_REDIRECT_URL }}" | base64 -w 0)
           
-          # Mise à jour des fichiers secrets
-          sed -i "s|secret-key: .*|secret-key: $SECRET_KEY|g" k8s/base/api-gateway/gateway-secrets.yaml
-          sed -i "s|database-url: .*|database-url: $DATABASE_URL|g" k8s/base/api-gateway/gateway-secrets.yaml
-          sed -i "s|google-client-id: .*|google-client-id: $GOOGLE_CLIENT_ID|g" k8s/base/api-gateway/gateway-secrets.yaml
-          sed -i "s|google-client-secret: .*|google-client-secret: $GOOGLE_CLIENT_SECRET|g" k8s/base/api-gateway/gateway-secrets.yaml
-          sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $LOCAL_REDIRECT_URL|g" k8s/base/api-gateway/gateway-secrets.yaml
-          sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $OAUTH_REDIRECT_URL_PROD|g" k8s/overlays/azure/oauth-redirect-patch.yaml
+          # Mise à jour du fichier secret de base AVEC L'URL DE PRODUCTION
+          sed -i "s|secret-key: .*|secret-key: $SECRET_KEY_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|database-url: .*|database-url: $DATABASE_URL_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|google-client-id: .*|google-client-id: $GOOGLE_CLIENT_ID_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|google-client-secret: .*|google-client-secret: $GOOGLE_CLIENT_SECRET_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          # Injecte l'URL de production (depuis secrets.OAUTH_REDIRECT_URL) dans le fichier de base
+          sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $OAUTH_REDIRECT_URL_PROD_B64|g" k8s/base/api-gateway/gateway-secrets.yaml 
+          # Plus besoin de modifier le fichier patch Kustomize
 
       # --- ÉTAPE DE DÉBOGAGE --- 
       - name: Verify gateway-secrets.yaml content AFTER sed

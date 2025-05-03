@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: gateway-secrets
-  namespace: exai
-data:
-  # Cette valeur (encodée en base64) remplacera uniquement
-  # la valeur de oauth-redirect-url dans le secret de base.
-  oauth-redirect-url: aHR0cHM6Ly9leGFpLXBpcGVsaW5lLmZyL2F1dGhlbnRpY2F0aW9uL2NhbGxiYWNr
