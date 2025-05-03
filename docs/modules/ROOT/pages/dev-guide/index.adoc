@@ -1,5 +1,13 @@
 = Guide Développeur
 
-Cette section fournit des informations techniques sur l'architecture, le développement et le déploiement du projet EXAI.
+Cette section contient la documentation technique destinée aux développeurs travaillant sur le projet EXAI.
+
+== Sections Disponibles
+
+* xref:dev-guide/architecture.adoc[Architecture Technique] - Vue d'ensemble de l'architecture microservices et des composants techniques
+* xref:dev-guide/secrets-management.adoc[Gestion des Secrets] - Comment gérer les secrets en développement et production
+* xref:development/database-migrations.adoc[Migrations Base de Données] - Utilisation d'Alembic pour gérer les migrations de schémas
+* xref:development/azure-deployment.adoc[Déploiement Azure] - Guide pour déployer l'application sur Azure avec GitHub Actions
+* xref:dev-guide/api-reference.adoc[Référence API] - Documentation des endpoints API et structures de données
 
 Contenu à venir... 

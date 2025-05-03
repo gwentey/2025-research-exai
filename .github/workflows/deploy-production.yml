@@ -85,8 +85,27 @@ jobs:
       - name: Create Kubernetes Namespace (if not exists)
         run: kubectl create namespace ${{ env.K8S_NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
 
-      # --- Déploiement initial/Mise à jour de TOUTES les ressources --- 
-      # Installer Skaffold
+      # --- Mise à jour des valeurs de secrets ---
+      - name: Update Secret Values
+        run: |
+          # Encodage Base64 pour Kubernetes
+          # Note: Utilisez -n pour éviter les sauts de ligne dans les valeurs
+          SECRET_KEY=$(echo -n "${{ secrets.JWT_SECRET_KEY }}" | base64 -w 0)
+          DATABASE_URL=$(echo -n "${{ secrets.DATABASE_URL }}" | base64 -w 0)
+          GOOGLE_CLIENT_ID=$(echo -n "${{ secrets.GOOGLE_CLIENT_ID }}" | base64 -w 0)
+          GOOGLE_CLIENT_SECRET=$(echo -n "${{ secrets.GOOGLE_CLIENT_SECRET }}" | base64 -w 0)
+          LOCAL_REDIRECT_URL=$(echo -n "http://localhost:4200/authentication/callback" | base64 -w 0)
+          PRODUCTION_REDIRECT_URL=$(echo -n "https://exai-pipeline.fr/authentication/callback" | base64 -w 0)
+          
+          # Mise à jour des fichiers secrets
+          sed -i "s|secret-key: .*|secret-key: $SECRET_KEY|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|database-url: .*|database-url: $DATABASE_URL|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|google-client-id: .*|google-client-id: $GOOGLE_CLIENT_ID|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|google-client-secret: .*|google-client-secret: $GOOGLE_CLIENT_SECRET|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $LOCAL_REDIRECT_URL|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $PRODUCTION_REDIRECT_URL|g" k8s/overlays/azure/oauth-redirect-patch.yaml
+
+      # --- Installer Skaffold
       - name: Install Skaffold
         run: |
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64

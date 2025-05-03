@@ -11,6 +11,7 @@ Installez les outils suivants:
 | Minikube | Kubernetes local - `choco install minikube` (Windows) ou `brew install minikube` (macOS)
 | kubectl | CLI Kubernetes - `choco install kubernetes-cli` (Windows) ou `brew install kubectl` (macOS)
 | Skaffold | Workflow Kubernetes - `choco install skaffold` (Windows) ou `brew install skaffold` (macOS)
+| Python 3.8+ | Avec le package python-dotenv - `pip install python-dotenv`
 |===
 
 Pour Linux (Debian/Ubuntu):
@@ -27,7 +28,66 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 # Skaffold
 curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
 sudo install skaffold /usr/local/bin/
+
+# Python-dotenv
+pip install python-dotenv
 ----
+
+== Configuration des Secrets
+
+Pour le développement local, EXAI utilise des scripts Python pour gérer les secrets Kubernetes de manière sécurisée.
+
+=== 1. Créer un fichier `.env`
+
+Créez un fichier `.env` à la racine du projet avec les variables suivantes :
+
+[source,properties]
+----
+# Clé secrète pour JWT
+JWT_SECRET_KEY=09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
+
+# URL Base de données pour l'API Gateway
+DATABASE_URL=postgresql+asyncpg://exai_user:password@postgresql-service.exai.svc.cluster.local:5432/exai_db
+
+# Client ID Google OAuth
+GOOGLE_CLIENT_ID=votre-client-id-google
+
+# Client Secret Google OAuth
+GOOGLE_CLIENT_SECRET=votre-client-secret-google
+
+# URLs de redirection OAuth
+LOCAL_REDIRECT_URL=http://localhost:4200/authentication/callback
+PRODUCTION_REDIRECT_URL=https://exai-pipeline.fr/authentication/callback
+----
+
+NOTE: Le fichier `.env` est déjà ajouté à `.gitignore` pour éviter de commiter des secrets.
+
+=== 2. Mettre à jour les secrets Kubernetes
+
+Avant de démarrer l'application avec Skaffold, exécutez :
+
+[source,bash]
+----
+# Met à jour les fichiers secrets avec les valeurs encodées en base64
+python -m scripts.update-local-secrets
+----
+
+Ce script lit le fichier `.env` et met à jour :
+- `k8s/base/api-gateway/gateway-secrets.yaml` pour les secrets locaux
+- `k8s/overlays/azure/oauth-redirect-patch.yaml` pour l'URL de redirection en production
+
+IMPORTANT: Exécutez ce script chaque fois que vous modifiez le fichier `.env`.
+
+=== 3. Restaurer les placeholders avant de commiter
+
+Avant de pousser votre code vers le dépôt Git, exécutez :
+
+[source,bash]
+----
+# Restaure les placeholders dans les fichiers de secrets
+python -m scripts.reset-placeholders
+----
+
 
 == Déploiement Local avec Minikube et Skaffold
 
@@ -60,7 +120,14 @@ kubectl create namespace exai
 # Ignorez l'erreur si le namespace existe déjà.
 ----
 
-4.  **Déployer avec Skaffold**:
+4.  **Mettre à jour les secrets Kubernetes** (voir section précédente) :
++
+[source,bash]
+----
+python -m scripts.update-local-secrets
+----
+
+5.  **Configurer l'environnement Docker** :
 +
 [source,bash]
 ----
@@ -74,7 +141,7 @@ eval $(minikube docker-env)
 @FOR /f "tokens=*" %i IN ('minikube -p minikube docker-env --shell cmd') DO @%i
 ----
 
-5. **Déployer avec Skaffold**:
+6. **Déployer avec Skaffold**:
 +
 [source,bash]
 ----
@@ -187,6 +254,7 @@ Pour un workflow plus fluide, utilisez des outils comme **Lens**, **k9s** ou le 
 * *Services inaccessibles* : Vérifiez que `skaffold dev --profile=local` est en cours d'exécution et qu'aucun autre programme n'utilise les ports locaux `8080` ou `9000`. Vérifiez les logs Skaffold pour des erreurs de port-forwarding. Assurez-vous que les pods sont `Running` (`kubectl get pods -n exai`).
 * *Pod PostgreSQL bloqué en `Pending`* : Vérifiez les PVC (`kubectl get pvc -n exai`) et la StorageClass (`kubectl get sc`). Assurez-vous que la configuration du volume dans `k8s/base/postgres/postgresql-statefulset.yaml` utilise la bonne `storageClassName` (`standard` pour Minikube par défaut).
 * *Erreurs "MIME type" sur le frontend* : Assurez-vous que la configuration Nginx (`frontend/nginx.conf`), le Dockerfile (`frontend/Dockerfile`), et le `baseHref` dans `angular.json` sont cohérents pour un service à la racine (`/`).
+* *Secrets incorrects* : Si vous rencontrez des erreurs d'authentification, vérifiez que vous avez bien exécuté `python -m scripts.update-local-secrets` après avoir mis à jour votre fichier `.env`.
 
 === Étapes de Diagnostic
 1. Logs Skaffold

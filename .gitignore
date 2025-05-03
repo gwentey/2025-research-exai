@@ -53,4 +53,9 @@ coverage/
 
 # NOTE: NE PAS ignorer les dossiers de migrations Alembic !
 # Les fichiers suivants sont essentiels et doivent être versionnés :
-# alembic/versions/ 
+# alembic/versions/
+
+# Scripts de secrets locaux
+scripts/update-local-secrets.sh
+scripts/update-local-secrets.py
+scripts/reset-placeholders.py 
