@@ -33,7 +33,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.drop_table('alembic_version_selection')
     op.add_column('user', sa.Column('pseudo', sa.String(length=64), nullable=True))
     op.add_column('user', sa.Column('picture', sa.String(length=1024), nullable=True))
     op.add_column('user', sa.Column('given_name', sa.String(length=320), nullable=True))
