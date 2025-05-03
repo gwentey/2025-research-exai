@@ -6,4 +6,4 @@ metadata:
 type: Opaque
 data:
   # URL de redirection OAuth (production)
-  oauth-redirect-url: REPLACE_WITH_PRODUCTION_REDIRECT_URL
+  oauth-redirect-url: REPLACE_WITH_OAUTH_REDIRECT_URL_PROD

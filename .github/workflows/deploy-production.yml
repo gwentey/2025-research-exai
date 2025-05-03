@@ -95,7 +95,7 @@ jobs:
           GOOGLE_CLIENT_ID=$(echo -n "${{ secrets.GOOGLE_CLIENT_ID }}" | base64 -w 0)
           GOOGLE_CLIENT_SECRET=$(echo -n "${{ secrets.GOOGLE_CLIENT_SECRET }}" | base64 -w 0)
           LOCAL_REDIRECT_URL=$(echo -n "http://localhost:4200/authentication/callback" | base64 -w 0)
-          PRODUCTION_REDIRECT_URL=$(echo -n "https://exai-pipeline.fr/authentication/callback" | base64 -w 0)
+          OAUTH_REDIRECT_URL_PROD=$(echo -n "https://exai-pipeline.fr/authentication/callback" | base64 -w 0)
           
           # Mise à jour des fichiers secrets
           sed -i "s|secret-key: .*|secret-key: $SECRET_KEY|g" k8s/base/api-gateway/gateway-secrets.yaml
@@ -103,7 +103,7 @@ jobs:
           sed -i "s|google-client-id: .*|google-client-id: $GOOGLE_CLIENT_ID|g" k8s/base/api-gateway/gateway-secrets.yaml
           sed -i "s|google-client-secret: .*|google-client-secret: $GOOGLE_CLIENT_SECRET|g" k8s/base/api-gateway/gateway-secrets.yaml
           sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $LOCAL_REDIRECT_URL|g" k8s/base/api-gateway/gateway-secrets.yaml
-          sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $PRODUCTION_REDIRECT_URL|g" k8s/overlays/azure/oauth-redirect-patch.yaml
+          sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $OAUTH_REDIRECT_URL_PROD|g" k8s/overlays/azure/oauth-redirect-patch.yaml
 
       # --- Installer Skaffold
       - name: Install Skaffold

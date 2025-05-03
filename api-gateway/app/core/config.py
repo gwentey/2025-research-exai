@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "EXAI API Gateway")
+    API_V1_STR: str = "/api/v1"
     # ATTENTION: Clé secrète pour JWT. DOIT être gardée secrète et idéalement chargée depuis l'environnement.
     # Pour le développement, une clé fixe est utilisée ici, mais elle devra être remplacée.
     # Générer une clé robuste avec: openssl rand -hex 32
@@ -24,11 +26,21 @@ class Settings(BaseSettings):
     
     # URL de redirection après authentification OAuth (frontend)
     # Par exemple: http://localhost:4200/auth/callback
-    OAUTH_REDIRECT_URL: str = os.getenv("OAUTH_REDIRECT_URL", "http://localhost:4200/auth/callback")
+    # Mettre à jour avec l'URL réelle du composant de callback Angular
+    OAUTH_REDIRECT_URL: str = os.getenv("OAUTH_REDIRECT_URL", "http://localhost:8080/authentication/callback")
+    
+    # CORS Origins (Optionnel, si vous voulez le configurer via env)
+    # Séparez les origines par des virgules si plusieurs.
+    # Listez TOUTES les origines de frontend autorisées, séparées par des virgules.
+    # Pas de "*" autorisé si allow_credentials=True dans main.py.
+    BACKEND_CORS_ORIGINS: str = os.getenv(
+        "BACKEND_CORS_ORIGINS",
+        "http://localhost:8080,https://exai-pipeline.fr" # Exemple pour local et prod
+    )
 
     class Config:
         # Si vous utilisez un fichier .env pour charger les variables d'environnement
-        env_file = ".env" 
+        env_file = ".env"
         env_file_encoding = 'utf-8'
 
 settings = Settings() 
