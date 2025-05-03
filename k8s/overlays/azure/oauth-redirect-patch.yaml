@@ -6,4 +6,4 @@ metadata:
 data:
   # Cette valeur (encodée en base64) remplacera uniquement
   # la valeur de oauth-redirect-url dans le secret de base.
-  oauth-redirect-url: REPLACE_WITH_OAUTH_REDIRECT_URL_PROD
+  oauth-redirect-url: aHR0cHM6Ly9leGFpLXBpcGVsaW5lLmZyL2F1dGhlbnRpY2F0aW9uL2NhbGxiYWNr

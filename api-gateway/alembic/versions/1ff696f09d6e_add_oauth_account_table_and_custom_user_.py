@@ -33,9 +33,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.drop_index('ix_datasets_id', table_name='datasets')
-    op.drop_index('ix_datasets_task_type', table_name='datasets')
-    op.drop_table('datasets')
     op.drop_table('alembic_version_selection')
     op.add_column('user', sa.Column('pseudo', sa.String(length=64), nullable=True))
     op.add_column('user', sa.Column('picture', sa.String(length=1024), nullable=True))
