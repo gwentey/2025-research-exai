@@ -15,13 +15,27 @@ export interface LoginResponse {
 }
 
 /**
+ * Interface pour un compte OAuth (comme Google)
+ */
+export interface OAuthAccount {
+  id: string;
+  oauth_name: string;
+  account_id: string;
+  account_email: string;
+}
+
+/**
  * Interface pour les données envoyées lors de l'inscription.
  * (Aligné avec le schéma UserCreate de FastAPI)
  */
 export interface SignupData {
   email: string;
   password: string;
-  // Ajoutez d'autres champs si UserCreate les requiert (ex: uname: string)
+  pseudo?: string;
+  picture?: string;
+  given_name?: string;
+  family_name?: string;
+  locale?: string;
 }
 
 /**
@@ -34,5 +48,17 @@ export interface UserRead {
   is_active: boolean;
   is_superuser: boolean;
   is_verified: boolean;
-  // Ajoutez d'autres champs si UserRead les définit (ex: first_name?: string)
+  pseudo?: string;
+  picture?: string;
+  given_name?: string;
+  family_name?: string;
+  locale?: string;
+  oauth_accounts?: OAuthAccount[];
+}
+
+/**
+ * Interface pour la réponse de l'autorisation OAuth
+ */
+export interface OAuthAuthorizationResponse {
+  authorization_url: string;
 } 

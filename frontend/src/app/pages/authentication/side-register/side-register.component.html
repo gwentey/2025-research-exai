@@ -33,8 +33,10 @@
                     >
 
                     <div class="row m-t-24">
-                      <div class="col-12 col-sm-6">
-                        <button mat-stroked-button class="w-100 m-b-4">
+                      <div class="col-12">
+                        <button mat-stroked-button class="w-100 m-b-4"
+                               (click)="loginWithGoogle()" 
+                               [disabled]="isGoogleLoading">
                           <div class="d-flex align-items-center">
                             <img
                               src="/assets/images/svgs/google-icon.svg"
@@ -42,23 +44,7 @@
                               width="16"
                               class="m-r-8"
                             />
-                            Sign up with Google
-                          </div>
-                        </button>
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <button
-                          mat-stroked-button
-                          class="w-100 d-flex align-items-center m-b-4"
-                        >
-                          <div class="d-flex align-items-center">
-                            <img
-                              src="/assets/images/svgs/facebook-icon.svg"
-                              alt="facebook"
-                              width="40"
-                              class="m-r-4"
-                            />
-                            Sign up with FB
+                            {{ isGoogleLoading ? 'Connexion en cours...' : 'S\'inscrire avec Google' }}
                           </div>
                         </button>
                       </div>
@@ -87,23 +73,23 @@
                     >
                       <mat-label
                         class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block"
-                        >Name</mat-label
+                        >Pseudo</mat-label
                       >
                       <mat-form-field
                         appearance="outline"
                         class="w-100"
                         color="primary"
                       >
-                        <input matInput formControlName="uname" />
-                        @if(f['uname'].touched && f['uname'].invalid) {
+                        <input matInput formControlName="pseudo" />
+                        @if(f['pseudo'].touched && f['pseudo'].invalid) {
                         <mat-hint class="m-b-16 error-msg">
-                          @if(f['uname'].errors &&
-                          f['uname'].errors['required']) {
-                          <div class="text-error">Name is required.</div>
-                          } @if(f['uname'].errors &&
-                          f['uname'].errors['minlength']) {
+                          @if(f['pseudo'].errors &&
+                          f['pseudo'].errors['required']) {
+                          <div class="text-error">Le pseudo est requis.</div>
+                          } @if(f['pseudo'].errors &&
+                          f['pseudo'].errors['minlength']) {
                           <div class="text-error">
-                            Name should be at least 3 characters.
+                            Le pseudo doit comporter au moins 3 caractères.
                           </div>
                           }
                         </mat-hint>

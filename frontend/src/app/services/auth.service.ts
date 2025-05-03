@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment'; // Importer l'environnement
 // Importer les nouvelles interfaces
-import { LoginCredentials, LoginResponse, SignupData, UserRead } from '../models/auth.models';
+import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse } from '../models/auth.models';
 
 // Définir la clé du token comme constante
 const AUTH_TOKEN_KEY = 'exai_access_token';
@@ -44,6 +44,35 @@ export class AuthService {
           this.storeToken(response.access_token);
           // Optionnel: rediriger ici ou laisser le composant le faire
           // this.router.navigate(['/starter']);
+        }
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Démarre le processus d'authentification Google OAuth.
+   * @returns Un Observable contenant l'URL d'autorisation Google.
+   */
+  googleLogin(): Observable<OAuthAuthorizationResponse> {
+    return this.http.get<OAuthAuthorizationResponse>(`${environment.apiUrl}/auth/google/authorize`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Complète le processus d'authentification Google OAuth après la redirection.
+   * @param code - Le code d'autorisation fourni par Google.
+   * @param state - L'état fourni par le serveur pour vérifier la requête.
+   * @returns Un Observable contenant la réponse LoginResponse.
+   */
+  completeGoogleAuth(code: string, state: string): Observable<LoginResponse> {
+    return this.http.get<LoginResponse>(
+      `${environment.apiUrl}/auth/google/callback?code=${code}&state=${state}`
+    ).pipe(
+      tap((response) => {
+        if (response && response.access_token) {
+          this.storeToken(response.access_token);
         }
       }),
       catchError(this.handleError)

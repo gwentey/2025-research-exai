@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gateway-secrets
+  namespace: exai
+type: Opaque
+data:
+  # URL de redirection OAuth (Base64 de https://exai-pipeline.fr/authentication/callback)
+  oauth-redirect-url: aHR0cHM6Ly9leGFpLXBpcGVsaW5lLmZyL2F1dGhlbnRpY2F0aW9uL2NhbGxiYWNr 

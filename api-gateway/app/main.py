@@ -8,15 +8,17 @@ from fastapi_users import FastAPIUsers
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 
+from httpx_oauth.clients.google import GoogleOAuth2
+
 from .core.config import settings
 from .db import get_async_session
 from .schemas.user import UserCreate, UserRead, UserUpdate
-from .models.user import User as UserModel
+from .models.user import User as UserModel, OAuthAccount
 from .managers.user import UserManager
 
 # 1. Database Adapter
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, UserModel)
+    yield SQLAlchemyUserDatabase(session, UserModel, OAuthAccount)
 
 # 2. UserManager dépendant de get_user_db
 async def get_user_manager(user_db=Depends(get_user_db)):
@@ -34,7 +36,13 @@ auth_backend = AuthenticationBackend(
     get_strategy=get_jwt_strategy,
 )
 
-# 5. FastAPIUsers Initialization
+# 5. Client OAuth Google
+google_oauth_client = GoogleOAuth2(
+    settings.GOOGLE_OAUTH_CLIENT_ID,
+    settings.GOOGLE_OAUTH_CLIENT_SECRET
+)
+
+# 6. FastAPIUsers Initialization
 fastapi_users = FastAPIUsers[UserModel, uuid.UUID](
     get_user_manager,
     [auth_backend],
@@ -114,6 +122,18 @@ app.include_router(
     prefix="/users",
     tags=["users"],
     dependencies=[Depends(current_superuser)],
+)
+
+# Google OAuth routes
+app.include_router(
+    fastapi_users.get_oauth_router(
+        google_oauth_client,
+        auth_backend,
+        settings.SECRET_KEY,
+        redirect_url=settings.OAUTH_REDIRECT_URL
+    ),
+    prefix="/auth/google",
+    tags=["auth"],
 )
 
 # Test route (ping)

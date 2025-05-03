@@ -34,11 +34,12 @@ export class AppSideRegisterComponent {
   options = this.settings.getOptions();
 
   isLoading = false;
+  isGoogleLoading = false;
   signupError: string | null = null;
   signupSuccess = false;
 
   form = new FormGroup({
-    uname: new FormControl('', [Validators.required, Validators.minLength(3)]),
+    pseudo: new FormControl('', [Validators.required, Validators.minLength(3)]),
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required, Validators.minLength(8)]),
   });
@@ -62,6 +63,7 @@ export class AppSideRegisterComponent {
     const userData: SignupData = {
       email: this.f.email.value ?? '',
       password: this.f.password.value ?? '',
+      pseudo: this.f.pseudo.value ?? '',
     };
 
     this.authService.signup(userData)
@@ -79,6 +81,29 @@ export class AppSideRegisterComponent {
           } else {
              this.signupError = error.message || 'Échec de l\'inscription. Veuillez réessayer.';
           }
+        }
+      });
+  }
+
+  /**
+   * Initie la connexion avec Google
+   */
+  loginWithGoogle() {
+    this.isGoogleLoading = true;
+    this.signupError = null;
+
+    this.authService.googleLogin()
+      .pipe(finalize(() => this.isGoogleLoading = false))
+      .subscribe({
+        next: (response) => {
+          if (response && response.authorization_url) {
+            // Rediriger vers l'URL d'autorisation Google
+            window.location.href = response.authorization_url;
+          }
+        },
+        error: (error) => {
+          console.error('Google login initiation failed:', error);
+          this.signupError = 'Impossible d\'initialiser la connexion avec Google. Veuillez réessayer.';
         }
       });
   }

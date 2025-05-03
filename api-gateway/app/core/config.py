@@ -18,6 +18,14 @@ class Settings(BaseSettings):
     # Sera chargée depuis l'environnement ou un fichier .env
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost:5432/db") # Dev default
 
+    # Configuration OAuth pour Google
+    GOOGLE_OAUTH_CLIENT_ID: str = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
+    GOOGLE_OAUTH_CLIENT_SECRET: str = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "")
+    
+    # URL de redirection après authentification OAuth (frontend)
+    # Par exemple: http://localhost:4200/auth/callback
+    OAUTH_REDIRECT_URL: str = os.getenv("OAUTH_REDIRECT_URL", "http://localhost:4200/auth/callback")
+
     class Config:
         # Si vous utilisez un fichier .env pour charger les variables d'environnement
         env_file = ".env" 
