@@ -36,6 +36,7 @@ export class AppSideLoginComponent {
   options = this.settings.getOptions();
 
   isLoading = false;
+  isGoogleLoading = false;
   loginError: string | null = null;
 
   // Update form to use email instead of uname
@@ -48,6 +49,9 @@ export class AppSideLoginComponent {
     return this.form.controls;
   }
 
+  /**
+   * Traite le formulaire de connexion standard
+   */
   submit() {
     if (this.form.invalid) {
       // Optionally mark fields as touched to show validation errors
@@ -78,6 +82,29 @@ export class AppSideLoginComponent {
           this.loginError = error.message?.includes('400')
             ? 'Email ou mot de passe incorrect.' // Specific message for 400 Bad Request from fastapi-users login
             : (error.message || 'Échec de la connexion. Veuillez réessayer.');
+        }
+      });
+  }
+
+  /**
+   * Initie la connexion avec Google
+   */
+  loginWithGoogle() {
+    this.isGoogleLoading = true;
+    this.loginError = null;
+
+    this.authService.googleLogin()
+      .pipe(finalize(() => this.isGoogleLoading = false))
+      .subscribe({
+        next: (response) => {
+          if (response && response.authorization_url) {
+            // Rediriger vers l'URL d'autorisation Google
+            window.location.href = response.authorization_url;
+          }
+        },
+        error: (error) => {
+          console.error('Google login initiation failed:', error);
+          this.loginError = 'Impossible d\'initialiser la connexion avec Google. Veuillez réessayer.';
         }
       });
   }

@@ -11,6 +11,7 @@ Installez les outils suivants:
 | Minikube | Kubernetes local - `choco install minikube` (Windows) ou `brew install minikube` (macOS)
 | kubectl | CLI Kubernetes - `choco install kubernetes-cli` (Windows) ou `brew install kubectl` (macOS)
 | Skaffold | Workflow Kubernetes - `choco install skaffold` (Windows) ou `brew install skaffold` (macOS)
+| Python 3.8+ | Avec le package python-dotenv - `pip install python-dotenv`
 |===
 
 Pour Linux (Debian/Ubuntu):
@@ -27,7 +28,68 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 # Skaffold
 curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
 sudo install skaffold /usr/local/bin/
+
+# Python-dotenv
+pip install python-dotenv
 ----
+
+== Configuration des Secrets
+
+Pour le développement local et les déploiements, EXAI utilise un fichier `.env` à la racine et des scripts Python pour gérer les secrets Kubernetes.
+
+=== 1. Créer un fichier `.env`
+
+Créez un fichier `.env` à la racine du projet avec les variables suivantes :
+
+[source,properties]
+----
+# Clé secrète pour JWT (doit être identique à celle utilisée pour générer les tokens)
+JWT_SECRET_KEY=09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
+
+# URL Base de données (généralement pointant vers le service K8s)
+DATABASE_URL=postgresql+asyncpg://exai_user:password@postgresql-service.exai.svc.cluster.local:5432/exai_db
+
+# Identifiants Google OAuth
+GOOGLE_CLIENT_ID=votre-client-id-google
+GOOGLE_CLIENT_SECRET=votre-client-secret-google
+
+# URL de redirection OAuth pour le développement LOCAL
+# Utilisée par k8s/base/api-gateway/gateway-secrets.yaml (placeholder: REPLACE_WITH_LOCAL_REDIRECT_URL)
+OAUTH_REDIRECT_URL_LOCAL=http://localhost:4200/authentication/callback
+
+# URL de redirection OAuth pour la PRODUCTION (ex: Azure)
+# Utilisée par k8s/overlays/azure/oauth-redirect-patch.yaml (placeholder: REPLACE_WITH_OAUTH_REDIRECT_URL_PROD)
+OAUTH_REDIRECT_URL_PROD=https://votre-domaine-production.com/authentication/callback
+----
+
+NOTE: Le fichier `.env` est déjà ajouté à `.gitignore` pour éviter de commiter des secrets. Adaptez les valeurs à votre propre configuration, notamment les identifiants Google et l'URL de production.
+
+=== 2. Mettre à jour les secrets Kubernetes
+
+Avant de démarrer l'application avec Skaffold ou de générer les manifestes finaux, exécutez :
+
+[source,bash]
+----
+# Met à jour les placeholders dans les fichiers secrets avec les valeurs du .env (encodées en base64)
+python -m scripts.update-secrets
+----
+
+Ce script (`scripts/update_secrets.py`) lit le fichier `.env` et remplace les placeholders correspondants dans les fichiers YAML de Kubernetes :
+- Il met à jour `k8s/base/api-gateway/gateway-secrets.yaml` avec les valeurs de `JWT_SECRET_KEY`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, et `OAUTH_REDIRECT_URL_LOCAL` (via `REPLACE_WITH_...`).
+- Il met à jour le patch spécifique à Azure `k8s/overlays/azure/oauth-redirect-patch.yaml` avec la valeur de `OAUTH_REDIRECT_URL_PROD` (via `REPLACE_WITH_OAUTH_REDIRECT_URL_PROD`).
+
+IMPORTANT: Exécutez ce script chaque fois que vous modifiez le fichier `.env`.
+
+=== 3. Restaurer les placeholders avant de commiter
+
+Avant de pousser votre code vers le dépôt Git, il est recommandé d'exécuter le script inverse pour remettre les placeholders génériques dans les fichiers YAML. Cela évite de commiter accidentellement des valeurs spécifiques à votre environnement local.
+
+[source,bash]
+----
+# Restaure les placeholders génériques (REPLACE_WITH_...) dans les fichiers de secrets
+python -m scripts.reset-placeholders
+----
+
 
 == Déploiement Local avec Minikube et Skaffold
 
@@ -60,7 +122,14 @@ kubectl create namespace exai
 # Ignorez l'erreur si le namespace existe déjà.
 ----
 
-4.  **Déployer avec Skaffold**:
+4.  **Mettre à jour les secrets Kubernetes** (voir section précédente) :
++
+[source,bash]
+----
+python -m scripts.update-local-secrets
+----
+
+5.  **Configurer l'environnement Docker** :
 +
 [source,bash]
 ----
@@ -74,7 +143,7 @@ eval $(minikube docker-env)
 @FOR /f "tokens=*" %i IN ('minikube -p minikube docker-env --shell cmd') DO @%i
 ----
 
-5. **Déployer avec Skaffold**:
+6. **Déployer avec Skaffold**:
 +
 [source,bash]
 ----
@@ -150,23 +219,29 @@ Le frontend est configuré (via `frontend/src/environments/environment.ts`) pour
 
 === Structure des Fichiers Kubernetes
 
-Le projet utilise maintenant une organisation centralisée des fichiers Kubernetes :
+Le projet utilise Kustomize pour gérer les configurations Kubernetes de manière structurée :
 
 ```
 k8s/
-├── base/                      # Configurations de base communes
-│   ├── api-gateway/           # API Gateway
-│   ├── frontend/              # Frontend
-│   ├── postgres/              # Base de données PostgreSQL
-│   ├── service-selection/     # Service de sélection de datasets
-│   └── kustomization.yaml     # Fichier déclarant toutes les ressources
-└── overlays/                  # Surcouches pour différents environnements
-    └── azure/                 # Configuration spécifique à Azure
+├── base/                      # Configurations communes à tous les environnements
+│   ├── api-gateway/           # Manifestes pour l'API Gateway (Deployment, Service, Secrets...)
+│   ├── frontend/              # Manifestes pour le Frontend
+│   ├── postgres/              # Manifestes pour PostgreSQL (StatefulSet, Service, PVC...)
+│   ├── service-selection/     # Manifestes pour le Service Selection
+│   └── kustomization.yaml     # Référence toutes les ressources de la base
+└── overlays/                  # Surcouches pour des environnements spécifiques
+    ├── minikube/              # Configurations pour le développement local (Minikube)
+    │   ├── kustomization.yaml # Référence la base et applique des patches spécifiques (ex: type Service)
+    │   └── ... (patches si nécessaire)
+    └── azure/                 # Configurations pour le déploiement en production (Azure)
+        ├── kustomization.yaml # Référence la base et applique des patches (ex: Ingress, Secrets)
+        ├── oauth-redirect-patch.yaml # Patch pour le secret de redirection OAuth
+        └── ... (autres patches ou ressources spécifiques)
 ```
 
-Cette structure suit les principes de Kustomize :
-- Le dossier `base/` contient les configurations communes à tous les environnements
-- Le dossier `overlays/` contient des surcouches spécifiques à chaque environnement (comme Azure)
+Cette structure permet de :
+- Définir les ressources principales une seule fois dans `base/`.
+- Personnaliser la configuration pour chaque environnement (local, production) dans `overlays/` en utilisant des patches ou des ressources supplémentaires. Par exemple, `overlays/azure/oauth-redirect-patch.yaml` modifie spécifiquement l'URL de redirection OAuth définie dans la base pour l'environnement Azure.
 
 === Cycle de Développement avec Skaffold
 1. Modifiez votre code dans l'un des microservices (frontend, api-gateway, service-selection)
@@ -187,6 +262,7 @@ Pour un workflow plus fluide, utilisez des outils comme **Lens**, **k9s** ou le 
 * *Services inaccessibles* : Vérifiez que `skaffold dev --profile=local` est en cours d'exécution et qu'aucun autre programme n'utilise les ports locaux `8080` ou `9000`. Vérifiez les logs Skaffold pour des erreurs de port-forwarding. Assurez-vous que les pods sont `Running` (`kubectl get pods -n exai`).
 * *Pod PostgreSQL bloqué en `Pending`* : Vérifiez les PVC (`kubectl get pvc -n exai`) et la StorageClass (`kubectl get sc`). Assurez-vous que la configuration du volume dans `k8s/base/postgres/postgresql-statefulset.yaml` utilise la bonne `storageClassName` (`standard` pour Minikube par défaut).
 * *Erreurs "MIME type" sur le frontend* : Assurez-vous que la configuration Nginx (`frontend/nginx.conf`), le Dockerfile (`frontend/Dockerfile`), et le `baseHref` dans `angular.json` sont cohérents pour un service à la racine (`/`).
+* *Secrets incorrects* : Si vous rencontrez des erreurs d'authentification, vérifiez que vous avez bien exécuté `python -m scripts.update-local-secrets` après avoir mis à jour votre fichier `.env`.
 
 === Étapes de Diagnostic
 1. Logs Skaffold
