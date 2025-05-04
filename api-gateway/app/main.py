@@ -169,6 +169,21 @@ async def exchange_google_token(
 ):
     """
     Endpoint simplifié pour échanger un code d'autorisation Google contre un token JWT.
+    
+    Cette fonction :
+    1. Récupère le code d'autorisation OAuth de Google
+    2. L'échange contre un token d'accès
+    3. Obtient les informations de l'utilisateur (principalement l'email)
+    4. Crée l'utilisateur s'il n'existe pas déjà
+    5. Génère un token JWT
+
+    Paramètres:
+        request: Objet FastAPI Request
+        oauth_client: Instance GoogleOAuth2 (injectée par dépendance)
+        user_manager: Instance UserManager (injectée par dépendance)
+
+    Retourne:
+        JSONResponse avec le token d'accès (JWT) et ses informations
     """
     try:
         # Récupérer le corps de la requête (JSON)
@@ -187,7 +202,7 @@ async def exchange_google_token(
             any(domain in request.base_url.netloc for domain in settings.PRODUCTION_DOMAINS) or
             settings.OAUTH_REDIRECT_URL.startswith("https://")
         )
-        
+            
         # Construire l'URL de callback backend avec le bon protocole
         scheme = "https" if is_production else request.base_url.scheme
         backend_callback_url = f"{scheme}://{request.base_url.netloc}/auth/google/callback"
@@ -199,7 +214,7 @@ async def exchange_google_token(
         except Exception as e:
             logger.exception(f"Error getting access token: {str(e)}")
             return JSONResponse(
-                status_code=400, 
+                status_code=400,
                 content={"detail": f"Could not obtain access token: {str(e)}"},
             )
         
@@ -309,14 +324,15 @@ async def exchange_google_token(
                 logger.exception(f"Error during database operation: {str(inner_error)}")
                 try:
                     await session.rollback()
-                except:
+                except Exception:
                     pass
-            
-            # Fermer la session proprement
-            try:
-                await db_gen.asend(None)
-            except StopAsyncIteration:
-                pass
+            finally:
+                # Fermer la session proprement
+                await session.close()
+                try:
+                    await db_gen.asend(None)
+                except StopAsyncIteration:
+                    pass
                 
         except Exception as e:
             logger.exception(f"Error during persistence: {str(e)}")
@@ -324,10 +340,18 @@ async def exchange_google_token(
         
         # Retourner le token JWT, indépendamment de la création en base
         return {
-            "access_token": token_data,
-            "token_type": "bearer"
+            "access_token": token_data["token"],
+            "token_type": "bearer",
+            "user": {
+                "id": str(user_id),
+                "email": account_email,
+                "is_active": True,
+                "is_verified": True,
+                "is_superuser": False,
+                "pseudo": None,
+                "picture": None
+            }
         }
-        
     except Exception as e:
         logger.exception(f"Unexpected error in exchange_google_token: {str(e)}")
         return JSONResponse(
@@ -383,6 +407,12 @@ async def register_user(
                 # Retourner les infos utilisateur sans le mot de passe
                 return UserRead.model_validate(created_user)
             except Exception as user_error:
+                # S'assurer que la session est annulée en cas d'erreur
+                try:
+                    await session.rollback()
+                except Exception:
+                    pass
+                    
                 logger.exception(f"Erreur lors de la création de l'utilisateur: {str(user_error)}")
                 return JSONResponse(
                     status_code=500,
@@ -390,6 +420,12 @@ async def register_user(
                 )
                 
         except Exception as db_error:
+            # S'assurer que la session est annulée en cas d'erreur
+            try:
+                await session.rollback()
+            except Exception:
+                pass
+                
             logger.exception(f"Erreur lors de la vérification en base de données: {str(db_error)}")
             return JSONResponse(
                 status_code=500,
@@ -397,6 +433,7 @@ async def register_user(
             )
         finally:
             # Fermer la session proprement
+            await session.close()
             try:
                 await db_gen.asend(None)
             except StopAsyncIteration:
