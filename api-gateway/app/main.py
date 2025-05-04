@@ -1,6 +1,6 @@
 import uuid
 import logging
-from fastapi import FastAPI, Depends, status, Request
+from fastapi import FastAPI, Depends, status, Request, Query
 from fastapi.responses import Response, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -97,6 +97,37 @@ google_oauth_client = GoogleOAuth2(
     # redirect_uri should not be set here; fastapi-users handles it based on request/config
 )
 
+# Ajouter une route personnalisée pour l'autorisation Google qui corrige le problème de protocole
+@app.get("/auth/google/authorize")
+async def google_oauth_authorize(request: Request, redirect_uri: str = Query(...)):
+    """
+    Endpoint personnalisé pour l'autorisation Google OAuth qui corrige le problème de HTTP vs HTTPS.
+    Remplace la route par défaut de fastapi-users pour plus de contrôle.
+    """
+    # Détection du mode production en utilisant les domaines configurés
+    is_production = (
+        any(domain in request.base_url.netloc for domain in settings.PRODUCTION_DOMAINS) or
+        settings.OAUTH_REDIRECT_URL.startswith("https://")
+    )
+    
+    # Forcer HTTPS en production, peu importe le protocole de la requête entrante
+    scheme = "https" if is_production else request.base_url.scheme
+    callback_url = f"{scheme}://{request.base_url.netloc}/auth/google/callback"
+    
+    logger.info(f"OAUTH: Using callback URL: {callback_url} (production: {is_production})")
+    logger.info(f"OAUTH: Frontend redirect URI: {redirect_uri}")
+    
+    # Obtenir l'URL d'autorisation
+    authorization_url = await google_oauth_client.get_authorization_url(
+        redirect_uri=callback_url,
+        state=await auth_backend.get_strategy().encode_jwt({
+            "aud": "fastapi-users:oauth-state",
+        })
+    )
+    
+    # Renvoyer l'URL comme dans la route par défaut
+    return {"authorization_url": authorization_url}
+
 # 6. FastAPIUsers Initialization
 fastapi_users = FastAPIUsers[UserModel, uuid.UUID](
     get_user_manager,
@@ -178,9 +209,16 @@ async def exchange_google_token(
                 content={"detail": "Missing code or state parameter"},
             )
         
-        # Construire l'URL de callback backend
-        backend_callback_url = f"{request.base_url.scheme}://{request.base_url.netloc}/auth/google/callback"
-        logger.info(f"Using callback URL for token exchange: {backend_callback_url}")
+        # Détection du mode production en utilisant les domaines configurés
+        is_production = (
+            any(domain in request.base_url.netloc for domain in settings.PRODUCTION_DOMAINS) or
+            settings.OAUTH_REDIRECT_URL.startswith("https://")
+        )
+        
+        # Construire l'URL de callback backend avec le bon protocole
+        scheme = "https" if is_production else request.base_url.scheme
+        backend_callback_url = f"{scheme}://{request.base_url.netloc}/auth/google/callback"
+        logger.info(f"Using callback URL for token exchange: {backend_callback_url} (production: {is_production})")
         
         # Obtenir le token d'accès auprès de Google
         try:
