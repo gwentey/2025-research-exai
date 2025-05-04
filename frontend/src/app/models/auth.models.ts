@@ -25,17 +25,17 @@ export interface OAuthAccount {
 }
 
 /**
- * Interface pour les données envoyées lors de l'inscription.
- * (Aligné avec le schéma UserCreate de FastAPI)
+ * Interface représentant les données d'inscription d'un utilisateur.
+ * TOUS les champs sont requis par l'API même s'ils sont null.
  */
 export interface SignupData {
   email: string;
   password: string;
-  pseudo?: string;
-  picture?: string;
-  given_name?: string;
-  family_name?: string;
-  locale?: string;
+  pseudo: string | null;
+  picture: string | null;
+  given_name: string | null;
+  family_name: string | null;
+  locale: string | null;
 }
 
 /**

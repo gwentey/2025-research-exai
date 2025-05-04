@@ -95,12 +95,23 @@ export class AuthService {
 
   /**
    * Inscrit un nouvel utilisateur.
-   * @param userData - Objet SignupData contenant email, password, etc.
+   * @param userData - Objet SignupData contenant email et password.
    * @returns Observable avec les informations UserRead de l'utilisateur créé.
    */
   signup(userData: SignupData): Observable<UserRead> {
+    // S'assurer que tous les champs obligatoires sont présents dans la requête
+    const completeUserData = {
+      email: userData.email,
+      password: userData.password,
+      pseudo: userData.pseudo || null,
+      picture: userData.picture || null,
+      given_name: userData.given_name || null,
+      family_name: userData.family_name || null,
+      locale: userData.locale || null
+    };
+    
     // Utiliser UserRead comme type de retour
-    return this.http.post<UserRead>(`${environment.apiUrl}/auth/register`, userData).pipe(
+    return this.http.post<UserRead>(`${environment.apiUrl}/auth/register`, completeUserData).pipe(
       tap(() => {
         // Optionnel : Rediriger vers la page de login après inscription réussie
         // this.router.navigate(['/authentication/login']);
@@ -162,15 +173,25 @@ export class AuthService {
    */
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'Une erreur inconnue est survenue !';
+    
+    // Erreur côté client ou réseau
     if (error.error instanceof ErrorEvent) {
-      // Erreur côté client ou réseau
-      errorMessage = `Erreur : ${error.error.message}`;
-    } else {
-      // Le backend a retourné un code d'échec.
-      // Le corps de la réponse peut contenir des indices sur ce qui n'a pas fonctionné.
-      errorMessage = `Code Erreur: ${error.status}\nMessage: ${error.error?.detail || error.message}`; // FastAPI retourne souvent les erreurs dans 'detail'
+      errorMessage = `Erreur client: ${error.error.message}`;
+      console.error('Erreur client:', error.error.message);
+    } 
+    // Erreur retournée par le backend
+    else if (error.status > 0) {
+      // Extraire le message d'erreur depuis la réponse FastAPI (detail)
+      const detail = error.error?.detail || error.message || 'Erreur serveur inconnue';
+      errorMessage = `Erreur ${error.status}: ${detail}`;
+      console.error(`Erreur serveur (${error.status}):`, detail);
     }
-    console.error(errorMessage);
+    // Erreur de connexion (status 0)
+    else {
+      errorMessage = 'Impossible de se connecter au serveur. Veuillez vérifier votre connexion ou réessayer plus tard.';
+      console.error('Erreur de connexion au serveur:', error);
+    }
+    
     // Retourne un observable avec une erreur orientée utilisateur
     return throwError(() => new Error(errorMessage));
   }

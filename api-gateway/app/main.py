@@ -40,33 +40,54 @@ app = FastAPI(
 # Custom Logging Middleware (déplacé APRÈS la création de `app`)
 @app.middleware("http")
 async def log_google_auth_requests(request: Request, call_next):
-    # Log only for the specific path we are debugging
-    if request.url.path == "/auth/google/authorize":
+    # Log only for the specific paths we are debugging
+    if request.url.path == "/auth/google/authorize" or request.url.path == "/auth/register":
         logger.info(f"AUTH_MIDDLEWARE: Incoming request to {request.url.path} with query params: {request.query_params}")
-    
-    response = await call_next(request)
-    
-    # Log details about the response for that path
-    if request.url.path == "/auth/google/authorize":
-        logger.info(f"AUTH_MIDDLEWARE: Outgoing response status: {response.status_code}")
-        # Log redirect location if it's a redirect response
-        if "location" in response.headers:
-            logger.info(f"AUTH_MIDDLEWARE: Outgoing response location header: {response.headers['location']}")
-        else:
-            # Try to read and log the body if it's not a redirect (might fail for streaming responses)
+        
+        # For POST requests, try to log the body (for debugging)
+        if request.method == "POST" and request.url.path == "/auth/register":
             try:
-                body_bytes = b""
-                async for chunk in response.body_iterator:
-                    body_bytes += chunk
-                # Decode assuming UTF-8, log first 500 chars
-                body_str = body_bytes.decode('utf-8', errors='replace')[:500]
-                logger.info(f"AUTH_MIDDLEWARE: Outgoing response body (first 500 chars): {body_str}")
-                # Need to recreate the response to be returned, as the iterator is consumed
-                response = Response(content=body_bytes, status_code=response.status_code, headers=dict(response.headers), media_type=response.media_type)
+                body = await request.body()
+                logger.info(f"AUTH_MIDDLEWARE: Request body: {body.decode('utf-8')[:500]}")
             except Exception as e:
-                logger.warning(f"AUTH_MIDDLEWARE: Could not read response body: {e}")
-                
-    return response
+                logger.warning(f"AUTH_MIDDLEWARE: Could not read request body: {e}")
+    
+    try:
+        response = await call_next(request)
+        
+        # Log details about the response for paths we're debugging
+        if request.url.path == "/auth/google/authorize" or request.url.path == "/auth/register":
+            logger.info(f"AUTH_MIDDLEWARE: Outgoing response status: {response.status_code}")
+            # Log redirect location if it's a redirect response
+            if "location" in response.headers:
+                logger.info(f"AUTH_MIDDLEWARE: Outgoing response location header: {response.headers['location']}")
+            else:
+                # Try to read and log the body if it's not a redirect (might fail for streaming responses)
+                try:
+                    body_bytes = b""
+                    async for chunk in response.body_iterator:
+                        body_bytes += chunk
+                    # Decode assuming UTF-8, log first 500 chars
+                    body_str = body_bytes.decode('utf-8', errors='replace')[:500]
+                    logger.info(f"AUTH_MIDDLEWARE: Outgoing response body (first 500 chars): {body_str}")
+                    # Need to recreate the response to be returned, as the iterator is consumed
+                    response = Response(content=body_bytes, status_code=response.status_code, headers=dict(response.headers), media_type=response.media_type)
+                except Exception as e:
+                    logger.warning(f"AUTH_MIDDLEWARE: Could not read response body: {e}")
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"AUTH_MIDDLEWARE: Unhandled exception: {e}")
+        # En cas d'erreur non gérée, retourner une réponse JSON
+        if request.url.path == "/auth/register":
+            # Pour le endpoint d'inscription, retourner une erreur plus détaillée
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Une erreur s'est produite lors de l'inscription: {str(e)}"}
+            )
+        # Pour les autres routes, laisser l'erreur remonter
+        raise
 
 # 1. Database Adapter
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
@@ -373,24 +394,86 @@ app.include_router(
     prefix="/auth/jwt",
     tags=["auth"],
 )
-# Registration routes
-app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
+
+# Route d'inscription personnalisée pour corriger le problème
+@app.post("/auth/register", tags=["auth"])
+async def register_user(
+    user_create: UserCreate,
+    user_manager: UserManager = Depends(get_user_manager),
+):
+    """
+    Route d'inscription personnalisée pour remplacer celle de fastapi-users
+    qui semble avoir un problème.
+    """
+    try:
+        logger.info(f"Tentative d'inscription pour: {user_create.email}")
+        
+        # Vérification préliminaire si l'utilisateur existe déjà
+        db_gen = get_async_session()
+        session = await anext(db_gen)
+        
+        try:
+            # Vérifier si l'email existe déjà
+            from sqlalchemy import select, func
+            query = select(func.count()).select_from(UserModel).where(UserModel.email == user_create.email)
+            result = await session.execute(query)
+            count = result.scalar()
+            
+            if count > 0:
+                # Email déjà utilisé
+                logger.warning(f"Tentative d'inscription avec un email déjà utilisé: {user_create.email}")
+                return JSONResponse(
+                    status_code=400,
+                    content={"detail": "Cet email est déjà utilisé"}
+                )
+            
+            # Créer l'utilisateur en utilisant le UserManager
+            try:
+                created_user = await user_manager.create(user_create)
+                logger.info(f"Utilisateur créé avec succès: {created_user.id}")
+                
+                # Retourner les infos utilisateur sans le mot de passe
+                return UserRead.model_validate(created_user)
+            except Exception as user_error:
+                logger.exception(f"Erreur lors de la création de l'utilisateur: {str(user_error)}")
+                return JSONResponse(
+                    status_code=500,
+                    content={"detail": f"Erreur lors de la création de l'utilisateur: {str(user_error)}"}
+                )
+                
+        except Exception as db_error:
+            logger.exception(f"Erreur lors de la vérification en base de données: {str(db_error)}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Erreur lors de la vérification en base de données: {str(db_error)}"}
+            )
+        finally:
+            # Fermer la session proprement
+            try:
+                await db_gen.asend(None)
+            except StopAsyncIteration:
+                pass
+    except Exception as e:
+        logger.exception(f"Erreur inattendue lors de l'inscription: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Erreur inattendue lors de l'inscription: {str(e)}"}
+        )
+
 # Reset password routes
 app.include_router(
     fastapi_users.get_reset_password_router(),
     prefix="/auth",
     tags=["auth"],
 )
+
 # Verify email routes
 app.include_router(
     fastapi_users.get_verify_router(UserRead),
     prefix="/auth",
     tags=["auth"],
 )
+
 # User management routes (protected by superuser requirement)
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
