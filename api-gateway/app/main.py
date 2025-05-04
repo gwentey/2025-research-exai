@@ -37,57 +37,14 @@ app = FastAPI(
     lifespan=lifespan # Utilisez lifespan si défini
 )
 
-# Custom Logging Middleware (déplacé APRÈS la création de `app`)
-@app.middleware("http")
-async def log_google_auth_requests(request: Request, call_next):
-    # Log only for the specific paths we are debugging
-    if request.url.path == "/auth/google/authorize" or request.url.path == "/auth/register":
-        logger.info(f"AUTH_MIDDLEWARE: Incoming request to {request.url.path} with query params: {request.query_params}")
-        
-        # For POST requests, try to log the body (for debugging)
-        if request.method == "POST" and request.url.path == "/auth/register":
-            try:
-                body = await request.body()
-                logger.info(f"AUTH_MIDDLEWARE: Request body: {body.decode('utf-8')[:500]}")
-            except Exception as e:
-                logger.warning(f"AUTH_MIDDLEWARE: Could not read request body: {e}")
-    
-    try:
-        response = await call_next(request)
-        
-        # Log details about the response for paths we're debugging
-        if request.url.path == "/auth/google/authorize" or request.url.path == "/auth/register":
-            logger.info(f"AUTH_MIDDLEWARE: Outgoing response status: {response.status_code}")
-            # Log redirect location if it's a redirect response
-            if "location" in response.headers:
-                logger.info(f"AUTH_MIDDLEWARE: Outgoing response location header: {response.headers['location']}")
-            else:
-                # Try to read and log the body if it's not a redirect (might fail for streaming responses)
-                try:
-                    body_bytes = b""
-                    async for chunk in response.body_iterator:
-                        body_bytes += chunk
-                    # Decode assuming UTF-8, log first 500 chars
-                    body_str = body_bytes.decode('utf-8', errors='replace')[:500]
-                    logger.info(f"AUTH_MIDDLEWARE: Outgoing response body (first 500 chars): {body_str}")
-                    # Need to recreate the response to be returned, as the iterator is consumed
-                    response = Response(content=body_bytes, status_code=response.status_code, headers=dict(response.headers), media_type=response.media_type)
-                except Exception as e:
-                    logger.warning(f"AUTH_MIDDLEWARE: Could not read response body: {e}")
-        
-        return response
-        
-    except Exception as e:
-        logger.error(f"AUTH_MIDDLEWARE: Unhandled exception: {e}")
-        # En cas d'erreur non gérée, retourner une réponse JSON
-        if request.url.path == "/auth/register":
-            # Pour le endpoint d'inscription, retourner une erreur plus détaillée
-            return JSONResponse(
-                status_code=500,
-                content={"detail": f"Une erreur s'est produite lors de l'inscription: {str(e)}"}
-            )
-        # Pour les autres routes, laisser l'erreur remonter
-        raise
+# Configuration CORS - Version ultra simple
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Autoriser toutes les origines temporairement 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 1. Database Adapter
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
@@ -164,37 +121,15 @@ current_active_user = fastapi_users.current_user(active=True)
 # Dependency for checking if a user is authenticated, active, and a superuser
 current_superuser = fastapi_users.current_user(active=True, superuser=True)
 
-# Configuration CORS
-# ATTENTION: Pour la production, soyez plus restrictif avec les origines autorisées.
-# Utilisez settings.BACKEND_CORS_ORIGINS si défini dans votre config.
-origins = [
-    "http://localhost:8080",       # Origine du frontend Angular en développement
-    "https://exai-pipeline.fr",    # Origine du frontend en production
-    "https://www.exai-pipeline.fr" # Variante avec www en production
-]
-
-# Utiliser les origines depuis les settings si possible, sinon la liste par défaut
-if settings.BACKEND_CORS_ORIGINS:
-    origins = [str(origin).strip("/") for origin in settings.BACKEND_CORS_ORIGINS.split(",")]
-    logger.info(f"CORS origins configured from settings: {origins}")
-else:
-    logger.info(f"Using default CORS origins: {origins}")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True, 
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
-    expose_headers=["Content-Length"],
-    max_age=600,  # Cache les préflight requests pendant 10 minutes
-)
-
-# Log the current CORS configuration on startup
-@app.on_event("startup")
-async def log_cors_config():
-    logger.info(f"CORS configuration: allowed origins = {origins}")
-    logger.info(f"PRODUCTION_DOMAINS configured = {settings.PRODUCTION_DOMAINS}")
+# Endpoint de diagnostic CORS pour le débogage en production
+@app.get("/cors-debug", tags=["status"], include_in_schema=True)
+async def cors_debug():
+    """Endpoint de débogage pour vérifier la configuration CORS."""
+    return {
+        "cors_origins": ["*"],
+        "production_domains": settings.PRODUCTION_DOMAINS,
+        "backend_cors_origins_setting": settings.BACKEND_CORS_ORIGINS
+    }
 
 # Endpoint personnalisé pour gérer la redirection de Google après authentification
 @app.get("/auth/google/callback", include_in_schema=True)
@@ -527,28 +462,6 @@ async def health_check(session: AsyncSession = Depends(get_async_session)):
         # sauf si la DB est absolument critique pour le démarrage même du service.
         # Pour une sonde readiness/liveness, un simple 200 est souvent suffisant.
         return {"status": "ok", "database": "error"}
-
-# Endpoint de diagnostic CORS pour le débogage en production
-@app.options("/cors-debug", tags=["status"], include_in_schema=True)
-async def cors_debug_options(request: Request):
-    """Endpoint de débogage pour vérifier les en-têtes CORS."""
-    # L'important est de voir si les en-têtes CORS sont correctement ajoutés à la réponse
-    return Response(
-        content="",
-        headers={
-            "X-Debug-Origin": request.headers.get("Origin", "No-Origin-Header"),
-            "X-Debug-Host": request.headers.get("Host", "No-Host-Header")
-        }
-    )
-
-@app.get("/cors-debug", tags=["status"], include_in_schema=True)
-async def cors_debug():
-    """Endpoint de débogage pour vérifier la configuration CORS."""
-    return {
-        "cors_origins": origins,
-        "production_domains": settings.PRODUCTION_DOMAINS,
-        "backend_cors_origins_setting": settings.BACKEND_CORS_ORIGINS
-    }
 
 # Example Protected Route
 @app.get("/users/me", tags=["users"])

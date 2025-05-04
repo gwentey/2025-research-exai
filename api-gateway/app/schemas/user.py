@@ -26,7 +26,8 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
 # Schéma Pydantic pour la création d'un utilisateur
 class UserCreate(schemas.BaseUserCreate):
     # Inclut par défaut: email, password
-    email: EmailStr  # S'assurer que c'est bien un email
+    email: EmailStr
+    password: str
     pseudo: Optional[str] = None
     picture: Optional[str] = None
     given_name: Optional[str] = None
