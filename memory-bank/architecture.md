@@ -120,6 +120,7 @@ graph LR
 ## 5. Déploiement et CI/CD
 
 *   **Développement Local :** `skaffold dev` est utilisé pour builder les images Docker localement et déployer sur Minikube en utilisant Kustomize (`k8s/overlays/minikube`).
+    *   La configuration, y compris l'URL de redirection OAuth locale (`OAUTH_REDIRECT_URL`), est chargée par les services (ex: API Gateway) depuis des variables d'environnement ou un fichier `.env`, avec des valeurs par défaut définies dans le code (ex: `api-gateway/app/core/config.py`).
 
 ## Développement Local
 
@@ -148,18 +149,21 @@ Il est crucial qu'aucun autre service (comme un serveur XAMPP/Apache local) n'ut
     *   **Étapes Principales :
         1.  Checkout du code.
         2.  Login sur Azure Container Registry (ACR).
-        3.  Build et Push des images Docker des services (`api-gateway`, `service-selection`, `frontend`, etc.) vers ACR, taguées avec le SHA court du commit et `latest`.
-        4.  (Placeholder) Exécution des tests unitaires/intégration.
+        3.  Build et Push des images Docker des services (`api-gateway`, `service-selection`, `frontend`, etc.) vers ACR.
+        4.  Mise à jour des manifestes de base K8s (`k8s/base/...`) via `sed` pour injecter les valeurs des secrets GitHub Actions (DB URL, JWT Key, Google Credentials, **URL de redirection OAuth de production**). Les valeurs sont encodées en Base64 pendant cette étape.
         5.  Login sur Azure (via Service Principal).
         6.  Configuration du contexte `kubectl` pour le cluster AKS cible.
-        7.  Déploiement sur AKS via `skaffold run --profile=azure --tag=<commit_sha>` qui utilise l'overlay Kustomize `k8s/overlays/azure`.
+        7.  (Ajouté) Suppression explicite des Secrets K8s existants (ex: `gateway-secrets`) pour forcer leur recréation par Skaffold.
+        8.  Déploiement sur AKS via `skaffold deploy --profile=azure --tag=<commit_sha>` qui utilise l'overlay Kustomize `k8s/overlays/azure`. Cet overlay applique des patches (ex: Ingress) mais **ne modifie plus** l'URL de redirection OAuth (qui est déjà la bonne dans le manifeste de base modifié à l'étape 4).
+        9.  Exécution des jobs de migration Alembic (`api-gateway-migration-job`, etc.).
+        10. Redémarrage des déploiements si nécessaire.
     *   **Gestion de la Configuration Production :
         *   **Frontend :** Utilisation de `frontend/src/environments/environment.prod.ts` (qui contient l'URL de l'API de production) activé par la configuration de build Angular et le Dockerfile.
-        *   **Backend :** Les configurations (URL BDD, secrets, etc.) sont injectées via des variables d'environnement définies dans les manifestes K8s (via ConfigMaps/Secrets) de l'overlay `k8s/overlays/azure`.
-        *   **Kubernetes :** L'overlay `k8s/overlays/azure` contient les manifestes/patches spécifiques à Azure (ex: nom d'images préfixé par l'ACR, configurations de ressources, Ingress, références aux secrets Azure Key Vault si utilisé).
-    *   **Secrets Requis (GitHub Actions) :** `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_CREDENTIALS`.
+        *   **Backend :** Les configurations sont injectées via les Secrets K8s, peuplés par le workflow GitHub Actions (voir étape 4 ci-dessus).
+        *   **Kubernetes :** L'overlay `k8s/overlays/azure` contient les manifestes/patches spécifiques à Azure (ex: nom d'images, Ingress) mais **ne gère plus** le patch spécifique pour l'URL de redirection OAuth.
+    *   **Secrets Requis (GitHub Actions) :** `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_CREDENTIALS`, `JWT_SECRET_KEY`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OAUTH_REDIRECT_URL` (contenant l'URL de production **frontend**).
     *   **Certificats TLS :** Gérés automatiquement par `cert-manager` via `ClusterIssuer` Let's Encrypt (requiert configuration Ingress correcte et accessibilité externe sur port 80 pour challenge HTTP-01).
-    *   **Note Infrastructure Azure (AKS) :
+    *   **Note Infrastructure Azure (AKS) :**
         *   Le service Nginx Ingress (type LoadBalancer) crée un Load Balancer public Azure.
         *   Des règles NSG sont configurées pour autoriser le trafic sur les ports 80 et 443 vers l'IP publique du Load Balancer.
         *   **Point critique (résolu le 2025-04-27):** Les sondes de santé (Health Probes) HTTP et HTTPS du Load Balancer Azure *doivent* cibler le chemin `/healthz` sur les NodePorts correspondants du service Nginx Ingress (par défaut `/` qui provoque des échecs) pour que le Load Balancer considère les nœuds comme sains et route le trafic correctement. 

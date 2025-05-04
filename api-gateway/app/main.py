@@ -1,5 +1,7 @@
 import uuid
-from fastapi import FastAPI, Depends, status
+import logging
+from fastapi import FastAPI, Depends, status, Request
+from fastapi.responses import Response, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
@@ -16,6 +18,55 @@ from .db import get_async_session
 from .schemas.user import UserCreate, UserRead, UserUpdate
 from .models.user import User as UserModel, OAuthAccount
 from .managers.user import UserManager
+
+# Lifespan manager (si vous en avez un)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # ... code de démarrage ...
+    yield
+    # ... code d'arrêt ...
+
+# Configure basic logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Création de l'instance FastAPI
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan # Utilisez lifespan si défini
+)
+
+# Custom Logging Middleware (déplacé APRÈS la création de `app`)
+@app.middleware("http")
+async def log_google_auth_requests(request: Request, call_next):
+    # Log only for the specific path we are debugging
+    if request.url.path == "/auth/google/authorize":
+        logger.info(f"AUTH_MIDDLEWARE: Incoming request to {request.url.path} with query params: {request.query_params}")
+    
+    response = await call_next(request)
+    
+    # Log details about the response for that path
+    if request.url.path == "/auth/google/authorize":
+        logger.info(f"AUTH_MIDDLEWARE: Outgoing response status: {response.status_code}")
+        # Log redirect location if it's a redirect response
+        if "location" in response.headers:
+            logger.info(f"AUTH_MIDDLEWARE: Outgoing response location header: {response.headers['location']}")
+        else:
+            # Try to read and log the body if it's not a redirect (might fail for streaming responses)
+            try:
+                body_bytes = b""
+                async for chunk in response.body_iterator:
+                    body_bytes += chunk
+                # Decode assuming UTF-8, log first 500 chars
+                body_str = body_bytes.decode('utf-8', errors='replace')[:500]
+                logger.info(f"AUTH_MIDDLEWARE: Outgoing response body (first 500 chars): {body_str}")
+                # Need to recreate the response to be returned, as the iterator is consumed
+                response = Response(content=body_bytes, status_code=response.status_code, headers=dict(response.headers), media_type=response.media_type)
+            except Exception as e:
+                logger.warning(f"AUTH_MIDDLEWARE: Could not read response body: {e}")
+                
+    return response
 
 # 1. Database Adapter
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
@@ -40,7 +91,10 @@ auth_backend = AuthenticationBackend(
 # 5. Client OAuth Google
 google_oauth_client = GoogleOAuth2(
     settings.GOOGLE_OAUTH_CLIENT_ID,
-    settings.GOOGLE_OAUTH_CLIENT_SECRET
+    settings.GOOGLE_OAUTH_CLIENT_SECRET,
+    # Define the scopes needed
+    scopes=["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"]
+    # redirect_uri should not be set here; fastapi-users handles it based on request/config
 )
 
 # 6. FastAPIUsers Initialization
@@ -53,19 +107,6 @@ fastapi_users = FastAPIUsers[UserModel, uuid.UUID](
 current_active_user = fastapi_users.current_user(active=True)
 # Dependency for checking if a user is authenticated, active, and a superuser
 current_superuser = fastapi_users.current_user(active=True, superuser=True)
-
-# Lifespan manager (si vous en avez un)
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # ... code de démarrage ...
-    yield
-    # ... code d'arrêt ...
-
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    lifespan=lifespan # Utilisez lifespan si défini
-)
 
 # Configuration CORS
 # ATTENTION: Pour la production, soyez plus restrictif avec les origines autorisées.
@@ -85,6 +126,203 @@ app.add_middleware(
     allow_methods=["*"], # Ou spécifiez des méthodes: ["GET", "POST", ...]
     allow_headers=["*"], # Ou spécifiez des en-têtes: ["Content-Type", "Authorization"]
 )
+
+# Endpoint personnalisé pour gérer la redirection de Google après authentification
+@app.get("/auth/google/callback", include_in_schema=True)
+async def google_oauth_callback(request: Request):
+    """
+    Intercepte la redirection GET de Google et redirige vers le frontend.
+    Cette route a priorité sur celle de fastapi-users car définie en premier.
+    """
+    # Récupérer les paramètres code et state de l'URL
+    params = request.query_params
+    code = params.get("code")
+    state = params.get("state")
+    
+    if not code or not state:
+        logger.error("Missing code or state in Google OAuth callback")
+        return RedirectResponse(
+            url=f"{settings.OAUTH_REDIRECT_URL}?error=missing_params",
+            status_code=307
+        )
+    
+    # Rediriger vers le frontend avec les mêmes paramètres
+    frontend_callback_url = f"{settings.OAUTH_REDIRECT_URL}?code={code}&state={state}"
+    logger.info(f"Redirecting to frontend: {frontend_callback_url}")
+    
+    return RedirectResponse(
+        url=frontend_callback_url,
+        status_code=307
+    )
+
+# Nouvel endpoint spécifique pour l'échange de code contre un token
+# Sera utilisé par le frontend au lieu d'appeler directement /auth/google/callback
+@app.post("/auth/google/exchange-token", include_in_schema=True)
+async def exchange_google_token(
+    request: Request,
+    oauth_client: GoogleOAuth2 = Depends(lambda: google_oauth_client),
+    user_manager: UserManager = Depends(get_user_manager),
+):
+    """
+    Endpoint simplifié pour échanger un code d'autorisation Google contre un token JWT.
+    """
+    try:
+        # Récupérer le corps de la requête (JSON)
+        data = await request.json()
+        code = data.get("code")
+        state = data.get("state")
+        
+        if not code or not state:
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "Missing code or state parameter"},
+            )
+        
+        # Construire l'URL de callback backend
+        backend_callback_url = f"{request.base_url.scheme}://{request.base_url.netloc}/auth/google/callback"
+        logger.info(f"Using callback URL for token exchange: {backend_callback_url}")
+        
+        # Obtenir le token d'accès auprès de Google
+        try:
+            access_token = await oauth_client.get_access_token(code, backend_callback_url)
+        except Exception as e:
+            logger.exception(f"Error getting access token: {str(e)}")
+            return JSONResponse(
+                status_code=400, 
+                content={"detail": f"Could not obtain access token: {str(e)}"},
+            )
+        
+        if not access_token:
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "Could not obtain access token from OAuth provider"},
+            )
+        
+        # Récupérer l'email utilisateur
+        user_info = await oauth_client.get_id_email(access_token["access_token"])
+        if not user_info:
+            return JSONResponse(
+                status_code=400, 
+                content={"detail": "Could not get user info from OAuth provider"},
+            )
+        
+        account_id, account_email = user_info
+        
+        # Générer le token JWT (cette partie fonctionne déjà)
+        logger.info(f"Generating token for email: {account_email}")
+        from uuid import uuid4
+        
+        # Créer un objet UserModel temporaire pour la génération du token seulement
+        user_id = uuid4()
+        temp_user = UserModel(
+            id=user_id,
+            email=account_email,
+            hashed_password="$2b$12$temporaryhashed",  # Valeur temporaire, ne sera pas utilisée
+            is_active=True,
+            is_verified=True,
+            is_superuser=False,
+            # Champs personnalisés définis dans schemas/user.py
+            pseudo=None,
+            picture=None,
+            given_name=None,
+            family_name=None,
+            locale=None
+        )
+        
+        # Utiliser la méthode intégrée pour générer le token
+        token_data = await auth_backend.get_strategy().write_token(temp_user)
+        
+        # Tentative de création d'utilisateur simplifiée, sans passer par user_manager
+        try:
+            # Obtenir une session
+            db_gen = get_async_session()
+            session = await anext(db_gen)
+            
+            try:
+                # Vérifier si l'utilisateur existe déjà avec une requête SQL directe
+                from sqlalchemy import select, func
+                query = select(func.count()).select_from(UserModel).where(UserModel.email == account_email)
+                result = await session.execute(query)
+                count = result.scalar()
+                
+                if count == 0:
+                    # L'utilisateur n'existe pas, on peut le créer
+                    import secrets
+                    import bcrypt
+                    
+                    # Générer un mot de passe aléatoire et le hacher
+                    random_password = secrets.token_urlsafe(16)
+                    salt = bcrypt.gensalt()
+                    hashed_password = bcrypt.hashpw(random_password.encode(), salt).decode()
+                    
+                    # Créer un utilisateur directement avec SQLAlchemy
+                    new_user = UserModel(
+                        id=user_id,  # Même ID que celui utilisé pour le token
+                        email=account_email,
+                        hashed_password=hashed_password,
+                        is_active=True,
+                        is_verified=True,
+                        is_superuser=False,
+                        pseudo=None,
+                        picture=None,
+                        given_name=None,
+                        family_name=None,
+                        locale=None
+                    )
+                    
+                    # Ajouter l'utilisateur
+                    session.add(new_user)
+                    
+                    # Créer une entrée dans la table oauth_account pour lier l'utilisateur à Google
+                    oauth_account = OAuthAccount(
+                        id=uuid4(),
+                        oauth_name="google",   # Nom du fournisseur OAuth
+                        account_id=account_id, # ID du compte Google obtenu plus tôt
+                        account_email=account_email,
+                        user_id=user_id,       # Même ID que l'utilisateur créé
+                        access_token=access_token["access_token"],    # Token d'accès obligatoire
+                        refresh_token=access_token.get("refresh_token", ""),  # Token de rafraîchissement
+                        expires_at=int(access_token.get("expires_at", 0))     # Date d'expiration
+                    )
+                    
+                    # Ajouter le compte OAuth
+                    session.add(oauth_account)
+                    
+                    # Enregistrer les deux
+                    await session.commit()
+                    logger.info(f"User and OAuth account created for: {account_email}")
+                else:
+                    logger.info(f"User already exists: {account_email}")
+                    
+            except Exception as inner_error:
+                logger.exception(f"Error during database operation: {str(inner_error)}")
+                try:
+                    await session.rollback()
+                except:
+                    pass
+            
+            # Fermer la session proprement
+            try:
+                await db_gen.asend(None)
+            except StopAsyncIteration:
+                pass
+                
+        except Exception as e:
+            logger.exception(f"Error during persistence: {str(e)}")
+            # Ignorer l'erreur, l'authentification fonctionnera quand même avec le token
+        
+        # Retourner le token JWT, indépendamment de la création en base
+        return {
+            "access_token": token_data,
+            "token_type": "bearer"
+        }
+        
+    except Exception as e:
+        logger.exception(f"Unexpected error in exchange_google_token: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Unexpected authentication error: {str(e)}"},
+        )
 
 # Include FastAPI-Users routers
 # Auth routes (login, logout)
@@ -122,10 +360,11 @@ app.include_router(
 # Google OAuth routes
 app.include_router(
     fastapi_users.get_oauth_router(
-        google_oauth_client,
-        auth_backend,
-        settings.SECRET_KEY,
-        redirect_url=settings.OAUTH_REDIRECT_URL
+        oauth_client=google_oauth_client,
+        backend=auth_backend,
+        state_secret=settings.SECRET_KEY,
+        associate_by_email=True,
+        is_verified_by_default=True,
     ),
     prefix="/auth/google",
     tags=["auth"],

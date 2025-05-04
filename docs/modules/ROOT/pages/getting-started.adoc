@@ -53,16 +53,14 @@ DATABASE_URL=postgresql+asyncpg://exai_user:password@postgresql-service.exai.svc
 GOOGLE_CLIENT_ID=votre-client-id-google
 GOOGLE_CLIENT_SECRET=votre-client-secret-google
 
-# URL de redirection OAuth pour le développement LOCAL
-# Utilisée par k8s/base/api-gateway/gateway-secrets.yaml (placeholder: REPLACE_WITH_LOCAL_REDIRECT_URL)
-OAUTH_REDIRECT_URL_LOCAL=http://localhost:4200/authentication/callback
-
-# URL de redirection OAuth pour la PRODUCTION (ex: Azure)
-# Utilisée par k8s/overlays/azure/oauth-redirect-patch.yaml (placeholder: REPLACE_WITH_OAUTH_REDIRECT_URL_PROD)
-OAUTH_REDIRECT_URL_PROD=https://votre-domaine-production.com/authentication/callback
+# URL de redirection OAuth (FRONTEND) pour le développement LOCAL
+# Cette valeur sera utilisée par défaut par l'API Gateway.
+# Elle sera surchargée en production par un secret GitHub Actions.
+# Utilisée par k8s/base/api-gateway/gateway-secrets.yaml (placeholder: REPLACE_WITH_OAUTH_REDIRECT_URL)
+OAUTH_REDIRECT_URL=http://localhost:8080/authentication/callback
 ----
 
-NOTE: Le fichier `.env` est déjà ajouté à `.gitignore` pour éviter de commiter des secrets. Adaptez les valeurs à votre propre configuration, notamment les identifiants Google et l'URL de production.
+NOTE: Le fichier `.env` est déjà ajouté à `.gitignore` pour éviter de commiter des secrets. Adaptez les valeurs à votre propre configuration, notamment les identifiants Google.
 
 === 2. Mettre à jour les secrets Kubernetes
 
@@ -71,12 +69,12 @@ Avant de démarrer l'application avec Skaffold ou de générer les manifestes fi
 [source,bash]
 ----
 # Met à jour les placeholders dans les fichiers secrets avec les valeurs du .env (encodées en base64)
-python -m scripts.update-secrets
+python -m scripts.update-local-secrets
 ----
 
-Ce script (`scripts/update_secrets.py`) lit le fichier `.env` et remplace les placeholders correspondants dans les fichiers YAML de Kubernetes :
-- Il met à jour `k8s/base/api-gateway/gateway-secrets.yaml` avec les valeurs de `JWT_SECRET_KEY`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, et `OAUTH_REDIRECT_URL_LOCAL` (via `REPLACE_WITH_...`).
-- Il met à jour le patch spécifique à Azure `k8s/overlays/azure/oauth-redirect-patch.yaml` avec la valeur de `OAUTH_REDIRECT_URL_PROD` (via `REPLACE_WITH_OAUTH_REDIRECT_URL_PROD`).
+Ce script (`scripts/update_local_secrets.py`) lit le fichier `.env` et remplace les placeholders correspondants dans les fichiers YAML de Kubernetes :
+- Il met à jour `k8s/base/api-gateway/gateway-secrets.yaml` avec les valeurs de `JWT_SECRET_KEY`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, et `OAUTH_REDIRECT_URL` (via `REPLACE_WITH_...`).
+- Il *ne modifie plus* de patch spécifique pour l'URL de redirection en production.
 
 IMPORTANT: Exécutez ce script chaque fois que vous modifiez le fichier `.env`.
 
@@ -234,14 +232,14 @@ k8s/
     │   ├── kustomization.yaml # Référence la base et applique des patches spécifiques (ex: type Service)
     │   └── ... (patches si nécessaire)
     └── azure/                 # Configurations pour le déploiement en production (Azure)
-        ├── kustomization.yaml # Référence la base et applique des patches (ex: Ingress, Secrets)
-        ├── oauth-redirect-patch.yaml # Patch pour le secret de redirection OAuth
+        ├── kustomization.yaml # Référence la base et applique des patches (ex: Ingress)
         └── ... (autres patches ou ressources spécifiques)
 ```
 
 Cette structure permet de :
 - Définir les ressources principales une seule fois dans `base/`.
-- Personnaliser la configuration pour chaque environnement (local, production) dans `overlays/` en utilisant des patches ou des ressources supplémentaires. Par exemple, `overlays/azure/oauth-redirect-patch.yaml` modifie spécifiquement l'URL de redirection OAuth définie dans la base pour l'environnement Azure.
+- Personnaliser la configuration pour chaque environnement (local, production) dans `overlays/` en utilisant des patches ou des ressources supplémentaires.
+- Pour la production (Azure), les secrets sensibles comme l'URL de la base de données ou l'URL de redirection OAuth sont injectés via le pipeline CI/CD (GitHub Actions) qui modifie directement les manifestes de base avant le déploiement par Skaffold/Kustomize.
 
 === Cycle de Développement avec Skaffold
 1. Modifiez votre code dans l'un des microservices (frontend, api-gateway, service-selection)
