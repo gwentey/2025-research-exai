@@ -205,3 +205,58 @@ Cette logique permet d'assurer un affichage cohérent, qu'il s'agisse d'un utili
 * Considérer l'implémentation d'un refresh token pour une meilleure expérience utilisateur
 * Pour les boutons de déconnexion, n'utilisez jamais simultanément `[routerLink]` et `(click)="logout()"`; la méthode `logout()` se charge déjà de la redirection
 * Prévoir des fallbacks pour l'affichage des informations utilisateur quand certaines données sont manquantes 
+
+== Authentification OAuth2 (Google)
+
+L'application prend en charge l'authentification via Google OAuth2. Ce processus comporte plusieurs étapes:
+
+=== Flux d'authentification OAuth2
+
+1. L'utilisateur clique sur le bouton "Se connecter avec Google" dans le formulaire de connexion
+2. Le frontend demande une URL d'autorisation au backend (`/auth/google/authorize`)
+3. L'utilisateur est redirigé vers Google pour s'authentifier
+4. Google redirige l'utilisateur vers le callback backend (`/auth/google/callback`)
+5. Le backend redirige vers le frontend avec un code et un state
+6. Le frontend envoie ce code et state au backend (`/auth/google/exchange-token`)
+7. Le backend échange ce code contre un token d'accès Google
+8. Le backend récupère les informations utilisateur depuis Google
+9. Le backend crée/récupère l'utilisateur dans la base de données
+10. Le backend génère un token JWT et le renvoie au frontend
+11. Le frontend stocke le token JWT dans le localStorage
+
+=== Particularités de l'authentification OAuth2
+
+L'authentification OAuth2 présente quelques particularités à prendre en compte:
+
+* Les utilisateurs OAuth n'ont pas de mot de passe dans la base de données
+* Les informations utilisateur (nom, prénom, photo) sont récupérées depuis Google
+* Le token JWT doit être généré avec l'ID correct de l'utilisateur
+* Les utilisateurs doivent être marqués comme "vérifiés" pour accéder à toutes les fonctionnalités
+
+=== Gestion des erreurs OAuth2
+
+Pour les utilisateurs OAuth, des erreurs spécifiques peuvent survenir:
+
+* Token d'accès Google expiré
+* Problème dans la génération du token JWT 
+* Écart entre l'ID utilisateur dans le token et celui en base de données
+
+Pour gérer ces cas, l'intercepteur HTTP inclut une logique spéciale:
+
+```typescript
+if (error.status === 401 || error.status === 403) {
+  // Si l'erreur est sur /users/me, cela peut indiquer un problème avec le token OAuth
+  if (req.url.includes('/users/me')) {
+    // Déconnecter l'utilisateur et rediriger vers la page de connexion
+    authService.logout();
+    router.navigate(['/authentication/login'], { 
+      queryParams: { 
+        auth_error: 'token_expired',
+        msg: 'Votre session a expiré, veuillez vous reconnecter.'
+      } 
+    });
+  }
+}
+```
+
+Cette approche permet de déconnecter automatiquement l'utilisateur en cas de problème avec son token OAuth, assurant une expérience utilisateur plus fluide. 

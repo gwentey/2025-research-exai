@@ -234,31 +234,53 @@ async def exchange_google_token(
         
         account_id, account_email = user_info
         
+        # Récupérer des informations supplémentaires de l'utilisateur depuis Google
+        import httpx
+        try:
+            # Récupérer les données utilisateur (profil, nom, prénom, image) depuis Google
+            async with httpx.AsyncClient() as client:
+                userinfo_response = await client.get(
+                    "https://www.googleapis.com/oauth2/v3/userinfo",
+                    headers={"Authorization": f"Bearer {access_token['access_token']}"}
+                )
+                
+                if userinfo_response.status_code == 200:
+                    google_userinfo = userinfo_response.json()
+                    logger.info(f"Retrieved user info from Google: {google_userinfo}")
+                    
+                    # Extraire des informations utiles du profil
+                    google_picture = google_userinfo.get("picture")
+                    google_given_name = google_userinfo.get("given_name")
+                    google_family_name = google_userinfo.get("family_name")
+                    google_locale = google_userinfo.get("locale")
+                    
+                    # Créer un pseudo basé sur le prénom et nom de famille
+                    google_pseudo = None
+                    if google_given_name:
+                        google_pseudo = google_given_name.lower()
+                        if google_family_name:
+                            # Ajouter initiale du nom de famille
+                            google_pseudo += google_family_name[0].lower()
+                else:
+                    logger.warning(f"Failed to get user profile from Google: {userinfo_response.status_code}")
+                    google_picture = None
+                    google_given_name = None
+                    google_family_name = None
+                    google_locale = None
+                    google_pseudo = None
+        except Exception as user_info_error:
+            logger.exception(f"Error fetching additional user info: {str(user_info_error)}")
+            google_picture = None
+            google_given_name = None
+            google_family_name = None
+            google_locale = None
+            google_pseudo = None
+        
         # Générer le token JWT (cette partie fonctionne déjà)
         logger.info(f"Generating token for email: {account_email}")
         from uuid import uuid4
         
-        # Créer un objet UserModel temporaire pour la génération du token seulement
-        user_id = uuid4()
-        temp_user = UserModel(
-            id=user_id,
-            email=account_email,
-            hashed_password="$2b$12$temporaryhashed",  # Valeur temporaire, ne sera pas utilisée
-            is_active=True,
-            is_verified=True,
-            is_superuser=False,
-            # Champs personnalisés définis dans schemas/user.py
-            pseudo=None,
-            picture=None,
-            given_name=None,
-            family_name=None,
-            locale=None
-        )
-        
-        # Utiliser la méthode intégrée pour générer le token
-        token_data = await auth_backend.get_strategy().write_token(temp_user)
-        
-        # Tentative de création d'utilisateur simplifiée, sans passer par user_manager
+        # Vérifier si l'utilisateur existe déjà et récupérer son ID
         try:
             # Obtenir une session
             db_gen = get_async_session()
@@ -266,13 +288,23 @@ async def exchange_google_token(
             
             try:
                 # Vérifier si l'utilisateur existe déjà avec une requête SQL directe
-                from sqlalchemy import select, func
-                query = select(func.count()).select_from(UserModel).where(UserModel.email == account_email)
+                from sqlalchemy import select
+                query = select(UserModel).where(UserModel.email == account_email)
                 result = await session.execute(query)
-                count = result.scalar()
+                existing_user = result.scalars().first()
                 
-                if count == 0:
-                    # L'utilisateur n'existe pas, on peut le créer
+                if existing_user:
+                    # Utilisateur existe déjà, utiliser son ID pour le token
+                    user_id = existing_user.id
+                    # S'assurer que l'utilisateur est vérifié
+                    if not existing_user.is_verified:
+                        existing_user.is_verified = True
+                        session.add(existing_user)
+                        await session.commit()
+                    logger.info(f"Using existing user {user_id} for token generation")
+                else:
+                    # L'utilisateur n'existe pas, on le crée avec un nouvel ID
+                    user_id = uuid4()
                     import secrets
                     import bcrypt
                     
@@ -283,17 +315,17 @@ async def exchange_google_token(
                     
                     # Créer un utilisateur directement avec SQLAlchemy
                     new_user = UserModel(
-                        id=user_id,  # Même ID que celui utilisé pour le token
+                        id=user_id,  # Nouvel ID pour le nouvel utilisateur
                         email=account_email,
                         hashed_password=hashed_password,
                         is_active=True,
-                        is_verified=True,
+                        is_verified=True,  # Important: marquer comme vérifié
                         is_superuser=False,
-                        pseudo=None,
-                        picture=None,
-                        given_name=None,
-                        family_name=None,
-                        locale=None
+                        pseudo=google_pseudo,
+                        picture=google_picture,
+                        given_name=google_given_name,
+                        family_name=google_family_name,
+                        locale=google_locale
                     )
                     
                     # Ajouter l'utilisateur
@@ -317,8 +349,26 @@ async def exchange_google_token(
                     # Enregistrer les deux
                     await session.commit()
                     logger.info(f"User and OAuth account created for: {account_email}")
-                else:
-                    logger.info(f"User already exists: {account_email}")
+                
+                # Créer un objet UserModel temporaire pour la génération du token
+                # avec les bonnes valeurs pour s'assurer que JWTStrategy générera le bon token
+                temp_user = UserModel(
+                    id=user_id,
+                    email=account_email,
+                    hashed_password="$2b$12$temporaryhashed",  # Valeur temporaire, ne sera pas utilisée
+                    is_active=True,
+                    is_verified=True,
+                    is_superuser=False,
+                    # Champs personnalisés définis dans schemas/user.py
+                    pseudo=None,
+                    picture=None,
+                    given_name=None,
+                    family_name=None,
+                    locale=None
+                )
+                
+                # Utiliser la méthode intégrée pour générer le token avec le bon ID utilisateur
+                token_data = await auth_backend.get_strategy().write_token(temp_user)
                     
             except Exception as inner_error:
                 logger.exception(f"Error during database operation: {str(inner_error)}")
@@ -326,6 +376,23 @@ async def exchange_google_token(
                     await session.rollback()
                 except Exception:
                     pass
+                # Créer un ID factice pour pouvoir continuer avec un token valide
+                user_id = uuid4()
+                # Générer un token avec cet ID factice (pourrait ne pas fonctionner correctement)
+                temp_user = UserModel(
+                    id=user_id, 
+                    email=account_email, 
+                    hashed_password="", 
+                    is_active=True, 
+                    is_verified=True, 
+                    is_superuser=False,
+                    pseudo=google_pseudo,
+                    picture=google_picture,
+                    given_name=google_given_name,
+                    family_name=google_family_name,
+                    locale=google_locale
+                )
+                token_data = await auth_backend.get_strategy().write_token(temp_user)
             finally:
                 # Fermer la session proprement
                 await session.close()
@@ -335,11 +402,26 @@ async def exchange_google_token(
                     pass
                 
         except Exception as e:
-            logger.exception(f"Error during persistence: {str(e)}")
-            # Ignorer l'erreur, l'authentification fonctionnera quand même avec le token
+            logger.exception(f"Error during token generation: {str(e)}")
+            # Créer un ID factice pour pouvoir continuer
+            user_id = uuid4()
+            # Générer un token avec cet ID factice (pourrait ne pas fonctionner correctement)
+            temp_user = UserModel(
+                id=user_id, 
+                email=account_email, 
+                hashed_password="", 
+                is_active=True, 
+                is_verified=True, 
+                is_superuser=False,
+                pseudo=google_pseudo,
+                picture=google_picture,
+                given_name=google_given_name,
+                family_name=google_family_name,
+                locale=google_locale
+            )
+            token_data = await auth_backend.get_strategy().write_token(temp_user)
         
         # Retourner le token JWT, indépendamment de la création en base
-        # Note: token_data est déjà une chaîne de caractères, pas besoin d'accéder à ["token"]
         return {
             "access_token": token_data,
             "token_type": "bearer",
@@ -349,8 +431,11 @@ async def exchange_google_token(
                 "is_active": True,
                 "is_verified": True,
                 "is_superuser": False,
-                "pseudo": None,
-                "picture": None
+                "pseudo": google_pseudo,
+                "picture": google_picture,
+                "given_name": google_given_name,
+                "family_name": google_family_name,
+                "locale": google_locale
             }
         }
     except Exception as e:
