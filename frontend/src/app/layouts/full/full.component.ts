@@ -21,6 +21,8 @@ import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.comp
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
 import { BrandingComponent } from './vertical/sidebar/branding.component';
+import { AuthService } from 'src/app/services/auth.service';
+import { UserRead } from 'src/app/models/auth.models';
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
 const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
@@ -65,6 +67,13 @@ interface quicklinks {
 })
 export class FullComponent implements OnInit {
   navItems = navItems;
+
+  // Informations de l'utilisateur actuel
+  currentUser: UserRead | null = null;
+  userDisplayName: string = 'Chargement...';
+  userRole: string = 'Utilisateur';
+  userEmail: string = '';
+  userProfileImage: string = '/assets/images/profile/user5.jpg'; // Image par défaut
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
@@ -194,7 +203,8 @@ export class FullComponent implements OnInit {
     private mediaMatcher: MediaMatcher,
     private router: Router,
     private breakpointObserver: BreakpointObserver,
-    private navService: NavService
+    private navService: NavService,
+    private authService: AuthService
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -221,7 +231,80 @@ export class FullComponent implements OnInit {
       });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Charger les informations de l'utilisateur connecté
+    this.loadUserInfo();
+  }
+
+  /**
+   * Charge les informations de l'utilisateur connecté
+   */
+  loadUserInfo(): void {
+    if (this.authService.isAuthenticated()) {
+      this.authService.getCurrentUser().subscribe({
+        next: (user) => {
+          this.currentUser = user;
+          this.userEmail = user.email;
+          
+          // Déterminer le nom à afficher par ordre de priorité
+          if (user.pseudo) {
+            // 1. Utiliser le pseudo s'il existe
+            this.userDisplayName = user.pseudo;
+          } else if (user.given_name && user.family_name) {
+            // 2. Sinon utiliser le nom complet s'il existe (prénom + nom)
+            this.userDisplayName = `${user.given_name} ${user.family_name}`;
+          } else if (user.given_name) {
+            // 3. Sinon juste le prénom s'il existe
+            this.userDisplayName = user.given_name;
+          } else {
+            // 4. Sinon fallback sur l'email
+            this.userDisplayName = user.email.split('@')[0];
+          }
+          
+          // Utiliser l'image de profil si disponible
+          if (user.picture) {
+            this.userProfileImage = this.sanitizeGoogleImageUrl(user.picture);
+          }
+          
+          // Définir le rôle
+          if (user.is_superuser) {
+            this.userRole = 'Admin';
+          } else {
+            this.userRole = 'Utilisateur';
+          }
+        },
+        error: (error) => {
+          console.error('Erreur lors du chargement des informations utilisateur', error);
+          // Fallback sur des valeurs par défaut
+          this.userDisplayName = 'Utilisateur';
+        }
+      });
+    }
+  }
+
+  /**
+   * Sanitize Google profile image URLs to ensure they are displayable in Angular
+   * and handle CORS issues with Google images
+   */
+  sanitizeGoogleImageUrl(url: string): string {
+    // Vérifier si c'est une URL Google Photos
+    if (url && url.includes('googleusercontent.com')) {
+      // Ajouter un paramètre pour éviter la mise en cache et les problèmes CORS
+      // On ajoute =s200-c comme paramètre pour spécifier la taille et le recadrage
+      if (!url.includes('=s')) {
+        url = url.includes('?') ? `${url}&s=200-c` : `${url}=s200-c`;
+      }
+      return url;
+    }
+    return url;
+  }
+
+  /**
+   * Déconnecte l'utilisateur
+   */
+  logout(): void {
+    this.authService.logout();
+  }
 
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();

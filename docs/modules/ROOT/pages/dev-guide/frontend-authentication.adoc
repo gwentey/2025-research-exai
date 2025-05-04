@@ -205,3 +205,111 @@ Cette logique permet d'assurer un affichage cohérent, qu'il s'agisse d'un utili
 * Considérer l'implémentation d'un refresh token pour une meilleure expérience utilisateur
 * Pour les boutons de déconnexion, n'utilisez jamais simultanément `[routerLink]` et `(click)="logout()"`; la méthode `logout()` se charge déjà de la redirection
 * Prévoir des fallbacks pour l'affichage des informations utilisateur quand certaines données sont manquantes 
+
+== Authentification OAuth2 (Google)
+
+L'application prend en charge l'authentification via Google OAuth2. Ce processus comporte plusieurs étapes:
+
+=== Flux d'authentification OAuth2
+
+1. L'utilisateur clique sur le bouton "Se connecter avec Google" dans le formulaire de connexion
+2. Le frontend demande une URL d'autorisation au backend (`/auth/google/authorize`)
+3. L'utilisateur est redirigé vers Google pour s'authentifier
+4. Google redirige l'utilisateur vers le callback backend (`/auth/google/callback`)
+5. Le backend redirige vers le frontend avec un code et un state
+6. Le frontend envoie ce code et state au backend (`/auth/google/exchange-token`)
+7. Le backend échange ce code contre un token d'accès Google
+8. Le backend récupère les informations utilisateur depuis Google
+9. Le backend crée/récupère l'utilisateur dans la base de données
+10. Le backend génère un token JWT et le renvoie au frontend
+11. Le frontend stocke le token JWT dans le localStorage
+
+=== Particularités de l'authentification OAuth2
+
+L'authentification OAuth2 présente quelques particularités à prendre en compte:
+
+* Les utilisateurs OAuth n'ont pas de mot de passe dans la base de données
+* Les informations utilisateur (nom, prénom, photo) sont récupérées depuis Google
+* Le token JWT doit être généré avec l'ID correct de l'utilisateur
+* Les utilisateurs doivent être marqués comme "vérifiés" pour accéder à toutes les fonctionnalités
+
+=== Gestion des erreurs OAuth2
+
+Pour les utilisateurs OAuth, des erreurs spécifiques peuvent survenir:
+
+* Token d'accès Google expiré
+* Problème dans la génération du token JWT 
+* Écart entre l'ID utilisateur dans le token et celui en base de données
+
+Pour gérer ces cas, l'intercepteur HTTP inclut une logique spéciale:
+
+```typescript
+if (error.status === 401 || error.status === 403) {
+  // Si l'erreur est sur /users/me, cela peut indiquer un problème avec le token OAuth
+  if (req.url.includes('/users/me')) {
+    // Déconnecter l'utilisateur et rediriger vers la page de connexion
+    authService.logout();
+    router.navigate(['/authentication/login'], { 
+      queryParams: { 
+        auth_error: 'token_expired',
+        msg: 'Votre session a expiré, veuillez vous reconnecter.'
+      } 
+    });
+  }
+}
+```
+
+Cette approche permet de déconnecter automatiquement l'utilisateur en cas de problème avec son token OAuth, assurant une expérience utilisateur plus fluide. 
+
+== Gestion des Images de Profil Google
+
+Les URL d'images de profil Google (`https://lh3.googleusercontent.com/...`) présentent certains défis techniques dans une application Angular:
+
+=== Problèmes courants avec les images Google
+
+* *Problèmes CORS*: Google peut bloquer les requêtes cross-origin pour les images de profil
+* *Mise en cache agressive*: Les navigateurs peuvent mettre en cache les images, causant des problèmes lors des changements
+* *Taille d'image non optimisée*: Les images peuvent être trop grandes ou trop petites pour l'affichage prévu
+
+=== Solution implémentée
+
+Pour résoudre ces problèmes, nous avons mis en place la stratégie suivante:
+
+1. *Sanitisation des URLs*: Une méthode `sanitizeGoogleImageUrl` traite les URLs Google pour les optimiser
+
+[source,typescript]
+----
+sanitizeGoogleImageUrl(url: string): string {
+  // Vérifier si c'est une URL Google Photos
+  if (url && url.includes('googleusercontent.com')) {
+    // Ajouter un paramètre pour spécifier la taille et le recadrage
+    if (!url.includes('=s')) {
+      url = url.includes('?') ? `${url}&s=200-c` : `${url}=s200-c`;
+    }
+    
+    // Vérifier si l'URL est accessible
+    const img = new Image();
+    img.onerror = () => {
+      console.warn('Google profile image failed to load, using default image');
+      this.userProfileImage = '/assets/images/profile/user5.jpg';
+    };
+    img.src = url;
+    
+    return url;
+  }
+  return url;
+}
+----
+
+2. *Fallbacks HTML*: Utilisation de l'attribut `onerror` pour remplacer les images qui échouent au chargement
+
+[source,html]
+----
+<img 
+  [src]="userProfileImage" 
+  class="rounded-circle" 
+  onerror="this.src='/assets/images/profile/user5.jpg';"
+/>
+----
+
+Cette double approche (sanitisation côté TypeScript + fallback côté HTML) garantit que les utilisateurs auront toujours une image de profil affichée, même en cas de problème avec l'URL Google. 

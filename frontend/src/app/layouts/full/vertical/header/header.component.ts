@@ -328,7 +328,7 @@ export class VerticalHeaderComponent implements OnInit {
           
           // Utiliser l'image de profil si disponible
           if (user.picture) {
-            this.userProfileImage = user.picture;
+            this.userProfileImage = this.sanitizeGoogleImageUrl(user.picture);
           }
           
           // Définir le rôle
@@ -374,6 +374,34 @@ export class VerticalHeaderComponent implements OnInit {
 
   private emitOptions() {
     this.optionsChange.emit(this.options);
+  }
+
+  /**
+   * Sanitize Google profile image URLs to ensure they are displayable in Angular
+   * and handle CORS issues with Google images
+   */
+  sanitizeGoogleImageUrl(url: string): string {
+    // Vérifier si c'est une URL Google Photos
+    if (url && url.includes('googleusercontent.com')) {
+      console.log('Sanitizing Google image URL:', url);
+      
+      // Ajouter un paramètre pour éviter la mise en cache et les problèmes CORS
+      // On ajoute =s200-c comme paramètre pour spécifier la taille et le recadrage
+      if (!url.includes('=s')) {
+        url = url.includes('?') ? `${url}&s=200-c` : `${url}=s200-c`;
+      }
+      
+      // Vérifier si l'URL est accessible
+      const img = new Image();
+      img.onerror = () => {
+        console.warn('Google profile image failed to load, using default image');
+        this.userProfileImage = '/assets/images/profile/user5.jpg';
+      };
+      img.src = url;
+      
+      return url;
+    }
+    return url;
   }
 }
 

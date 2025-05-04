@@ -1,0 +1,89 @@
+= Affichage Dynamique du Profil Utilisateur dans la Sidebar
+:toc:
+
+== Introduction
+
+Ce document technique explique les modifications apportées pour afficher dynamiquement les informations de l'utilisateur connecté dans la barre latérale (sidebar) de l'application.
+
+== Contexte
+
+Initialement, la sidebar affichait des informations utilisateur statiques ("Mathew"/"Mike" et "Designer"/"Admin"). Ces informations ont été remplacées par les données réelles de l'utilisateur connecté, cohérentes avec les informations affichées dans les en-têtes.
+
+== Modifications Apportées
+
+=== 1. Ajout des Propriétés Utilisateur dans `FullComponent`
+
+Le fichier `frontend/src/app/layouts/full/full.component.ts` a été mis à jour pour inclure :
+
+* Injection du service `AuthService`
+* Nouvelles propriétés pour stocker les informations utilisateur :
+** `currentUser: UserRead | null`
+** `userDisplayName: string`
+** `userRole: string`
+** `userEmail: string`
+** `userProfileImage: string`
+
+=== 2. Implémentation de la Méthode `loadUserInfo()`
+
+Cette méthode, appelée dans `ngOnInit()`, récupère les informations de l'utilisateur connecté et définit :
+
+* Le nom d'affichage (pseudo, nom complet, prénom ou email)
+* L'URL de l'image de profil
+* Le rôle de l'utilisateur
+
+=== 3. Ajout de la Méthode `sanitizeGoogleImageUrl()`
+
+Cette méthode traite spécifiquement les URLs d'images Google pour :
+
+* Ajouter des paramètres de taille et de recadrage (`=s200-c`)
+* Prévenir les problèmes CORS
+
+=== 4. Implémentation de la Méthode `logout()`
+
+Cette méthode utilise le service `AuthService` pour déconnecter l'utilisateur.
+
+=== 5. Mise à Jour du Template HTML
+
+Le fichier `frontend/src/app/layouts/full/full.component.html` a été modifié pour :
+
+* Remplacer les noms statiques par `{{ userDisplayName }}`
+* Remplacer les rôles statiques par `{{ userRole }}`
+* Remplacer les images statiques par `[src]="userProfileImage"`
+* Ajouter un attribut `onerror` pour charger une image par défaut en cas d'échec
+* Remplacer `[routerLink]="['/authentication/login']"` par `(click)="logout()"`
+
+== Détails d'Implémentation
+
+=== Priorité pour l'Affichage du Nom
+
+Le nom d'affichage est déterminé selon l'ordre de priorité suivant :
+
+1. Pseudo de l'utilisateur (`user.pseudo`)
+2. Nom complet (`${user.given_name} ${user.family_name}`)
+3. Prénom seul (`user.given_name`)
+4. Partie locale de l'email (`email.split('@')[0]`)
+
+=== Détermination du Rôle
+
+Le rôle affiché est basé sur l'attribut `is_superuser` :
+
+* Si `is_superuser` est vrai → "Admin"
+* Sinon → "Utilisateur"
+
+=== Gestion des Images de Profil Google
+
+Les images provenant de Google Photos (`googleusercontent.com`) sont traitées spécifiquement :
+
+* Ajout du paramètre `=s200-c` pour définir une taille de 200px et un recadrage centré
+* Attribut `onerror` pour charger une image par défaut en cas d'échec
+
+== Avantages
+
+* Expérience utilisateur cohérente entre l'en-tête et la barre latérale
+* Gestion correcte de la déconnexion
+* Affichage des informations réelles de l'utilisateur
+* Robustesse face aux échecs de chargement d'images
+
+== Conclusion
+
+Ces modifications permettent d'afficher de manière cohérente et dynamique le profil de l'utilisateur connecté dans toute l'application, améliorant ainsi l'expérience utilisateur et la cohérence visuelle. 

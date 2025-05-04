@@ -1,5 +1,6 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../environments/environment';
 import { catchError, throwError } from 'rxjs';
@@ -14,40 +15,61 @@ import { catchError, throwError } from 'rxjs';
  */
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
   const authService = inject(AuthService);
+  const router = inject(Router);
   const authToken = authService.getToken();
 
   // Debug info
   console.log(`[Intercepteur] URL: ${req.url}`);
   console.log(`[Intercepteur] Token présent: ${!!authToken}`);
   
-  // Ajouter le token à toutes les requêtes vers l'API, quelle que soit l'URL
-  if (authToken) {
-    // Cloner la requête et ajouter l'en-tête Authorization
+  // Test si la requête va vers l'API
+  const isApiRequest = req.url.startsWith(environment.apiUrl) || 
+                      (!req.url.startsWith('http') && !req.url.startsWith('./assets'));
+
+  // Si on a un token, l'ajouter à toutes les requêtes vers l'API
+  if (authToken && isApiRequest) {
+    // Clone la requête et ajoute le header d'authentification
     const authReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${authToken}`
-      }
+      headers: req.headers.set('Authorization', `Bearer ${authToken}`)
     });
     
     // Log la requête modifiée
-    console.log(`[Intercepteur] Requête authentifiée: ${authReq.url} avec token: ${authToken.substring(0, 15)}...`);
+    console.log(`[Intercepteur] Requête authentifiée: ${req.url} avec token: ${authToken.substring(0, 15)}...`);
     
-    // Passer la requête clonée avec l'en-tête et gérer les erreurs
+    // Utiliser la requête modifiée dans la chaîne d'intercepteurs
     return next(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        console.error(`[Intercepteur] Erreur HTTP ${error.status} pour ${req.url}:`, error);
+        console.log(`\n[Intercepteur] Erreur HTTP ${error.status} pour ${req.url}:`, error);
         
-        // Si erreur 401 ou 403, cela pourrait indiquer un problème avec le token
+        // Gestion spéciale pour les erreurs d'authentification
         if (error.status === 401 || error.status === 403) {
-          console.warn('[Intercepteur] Erreur d\'authentification détectée, vérifiez le token et les permissions');
+          console.log(`\n[Intercepteur] Erreur d'authentification détectée, vérifiez le token et les permissions`);
+          
+          // Si l'erreur est sur /users/me, cela peut indiquer un problème avec le token OAuth
+          if (req.url.includes('/users/me')) {
+            console.log('[Intercepteur] Erreur sur /users/me, possible problème de token OAuth');
+            
+            // Déconnecter l'utilisateur après une erreur d'authentification persistante
+            // et rediriger vers la page de connexion
+            setTimeout(() => {
+              authService.logout();
+              router.navigate(['/authentication/login'], { 
+                queryParams: { 
+                  auth_error: 'token_expired',
+                  msg: 'Votre session a expiré, veuillez vous reconnecter.'
+                } 
+              });
+            }, 100);
+          }
         }
         
+        // Propager l'erreur
         return throwError(() => error);
       })
     );
   }
 
-  // Si pas de token, passer la requête originale
+  // Si pas de token ou pas une requête API, laisse passer la requête sans modification
   console.log(`[Intercepteur] Requête sans authentification: ${req.url}`);
   return next(req);
 }; 
