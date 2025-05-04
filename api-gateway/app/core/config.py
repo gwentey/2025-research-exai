@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # Pas de "*" autorisé si allow_credentials=True dans main.py.
     BACKEND_CORS_ORIGINS: str = os.getenv(
         "BACKEND_CORS_ORIGINS",
-        "http://localhost:8080,https://exai-pipeline.fr" # Exemple pour local et prod
+        "http://localhost:8080,https://exai-pipeline.fr,https://www.exai-pipeline.fr" # Local et production
     )
 
     class Config:
