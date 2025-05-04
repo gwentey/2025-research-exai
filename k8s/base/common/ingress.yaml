@@ -33,7 +33,7 @@ spec:
             # IMPORTANT: Le nom doit correspondre EXACTEMENT au nom du Service K8s
             name: api-gateway-service 
             port:
-              # Le port exposé par le Service K8s (pas le targetPort du conteneur)
+              # Le port exposé par le Service K8s (pas le targetPort du    conteneur)
               number: 80 
   # ---- NOUVELLE RÈGLE POUR LE FRONTEND ----
   - host: exai-pipeline.fr # Votre domaine racine
