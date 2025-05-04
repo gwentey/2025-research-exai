@@ -55,8 +55,14 @@ export class AuthService {
    * @returns Un Observable contenant l'URL d'autorisation Google.
    */
   getGoogleAuthorizeUrl(): Observable<string> {
-    // URL vers notre endpoint backend avec redirect_uri du frontend
-    const frontendCallbackUrl = `${window.location.origin}/authentication/callback`;
+    // Utiliser HTTPS pour le callback en production, sinon le protocole actuel
+    const protocol = environment.production ? 'https' : window.location.protocol.replace(':', '');
+    const hostname = window.location.host;
+    
+    // Construire l'URL complète avec le bon protocole selon l'environnement
+    const frontendCallbackUrl = `${protocol}://${hostname}/authentication/callback`;
+    console.log(`Frontend callback URL: ${frontendCallbackUrl} (production: ${environment.production})`);
+    
     const encodedRedirectUri = encodeURIComponent(frontendCallbackUrl);
     const apiUrl = `${environment.apiUrl}/auth/google/authorize?redirect_uri=${encodedRedirectUri}`;
     

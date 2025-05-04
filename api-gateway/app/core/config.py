@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     # Mettre à jour avec l'URL réelle du composant de callback Angular
     OAUTH_REDIRECT_URL: str = os.getenv("OAUTH_REDIRECT_URL", "http://localhost:8080/authentication/callback")
     
+    # Domaines de production pour détection automatique
+    PRODUCTION_DOMAINS: list[str] = os.getenv("PRODUCTION_DOMAINS", "exai-pipeline.fr,api.exai-pipeline.fr").split(",")
+    
     # CORS Origins (Optionnel, si vous voulez le configurer via env)
     # Séparez les origines par des virgules si plusieurs.
     # Listez TOUTES les origines de frontend autorisées, séparées par des virgules.
