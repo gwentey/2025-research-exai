@@ -117,12 +117,16 @@ async def google_oauth_authorize(request: Request, redirect_uri: str = Query(...
     logger.info(f"OAUTH: Using callback URL: {callback_url} (production: {is_production})")
     logger.info(f"OAUTH: Frontend redirect URI: {redirect_uri}")
     
+    # Générer un state simple pour l'autorisation
+    from uuid import uuid4
+    
+    # Préparer un token simple qui servira de state
+    token = str(uuid4())
+    
     # Obtenir l'URL d'autorisation
     authorization_url = await google_oauth_client.get_authorization_url(
         redirect_uri=callback_url,
-        state=await auth_backend.get_strategy().encode_jwt({
-            "aud": "fastapi-users:oauth-state",
-        })
+        state=token
     )
     
     # Renvoyer l'URL comme dans la route par défaut
