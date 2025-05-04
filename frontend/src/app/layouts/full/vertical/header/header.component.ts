@@ -20,6 +20,7 @@ import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSettings } from 'src/app/config';
 import { AuthService } from 'src/app/services/auth.service';
+import { UserRead } from 'src/app/models/auth.models';
 // Assuming search dialog is defined here or imported, comment out for now if causing issues
 // import { AppSearchDialogComponent } from './search-dialog.component';
 
@@ -76,6 +77,13 @@ export class VerticalHeaderComponent implements OnInit {
   @Output() optionsChange = new EventEmitter<AppSettings>();
 
   isCollapse: boolean = false; // Initially hidden
+  
+  // Informations de l'utilisateur actuel
+  currentUser: UserRead | null = null;
+  userDisplayName: string = 'Chargement...';
+  userRole: string = 'Utilisateur';
+  userEmail: string = '';
+  userProfileImage: string = '/assets/images/profile/user5.jpg'; // Image par défaut
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -289,7 +297,54 @@ export class VerticalHeaderComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // this.options = this.settings.getOptions();
+    // Charger les informations de l'utilisateur connecté
+    this.loadUserInfo();
+  }
+  
+  /**
+   * Charge les informations de l'utilisateur connecté
+   */
+  loadUserInfo(): void {
+    if (this.authService.isAuthenticated()) {
+      this.authService.getCurrentUser().subscribe({
+        next: (user) => {
+          this.currentUser = user;
+          this.userEmail = user.email;
+          
+          // Déterminer le nom à afficher par ordre de priorité
+          if (user.pseudo) {
+            // 1. Utiliser le pseudo s'il existe
+            this.userDisplayName = user.pseudo;
+          } else if (user.given_name && user.family_name) {
+            // 2. Sinon utiliser le nom complet s'il existe (prénom + nom)
+            this.userDisplayName = `${user.given_name} ${user.family_name}`;
+          } else if (user.given_name) {
+            // 3. Sinon juste le prénom s'il existe
+            this.userDisplayName = user.given_name;
+          } else {
+            // 4. Sinon fallback sur l'email
+            this.userDisplayName = user.email.split('@')[0];
+          }
+          
+          // Utiliser l'image de profil si disponible
+          if (user.picture) {
+            this.userProfileImage = user.picture;
+          }
+          
+          // Définir le rôle
+          if (user.is_superuser) {
+            this.userRole = 'Admin';
+          } else {
+            this.userRole = 'Utilisateur';
+          }
+        },
+        error: (error) => {
+          console.error('Erreur lors du chargement des informations utilisateur', error);
+          // Fallback sur des valeurs par défaut
+          this.userDisplayName = 'Utilisateur';
+        }
+      });
+    }
   }
 
   // Commented out openDialog to avoid compilation error

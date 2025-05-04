@@ -151,18 +151,48 @@ export class AuthService {
    */
   logout(): void {
     localStorage.removeItem(this.tokenKey);
-    this.router.navigate(['/authentication/login']);
+    // Ajout d'un court délai pour s'assurer que le token est bien supprimé avant la redirection
+    setTimeout(() => {
+      this.router.navigate(['/authentication/login']);
+    }, 50);
   }
 
   /**
    * Récupère les informations de l'utilisateur actuellement connecté.
-   * Nécessite un intercepteur pour ajouter le token aux en-têtes.
    * @returns Observable avec les informations UserRead de l'utilisateur.
    */
   getCurrentUser(): Observable<UserRead> {
-    // Note: Assurez-vous qu'un intercepteur ajoute le token 'Authorization: Bearer <token>'
-    return this.http.get<UserRead>(`${environment.apiUrl}/users/me`).pipe(
-      catchError(this.handleError)
+    // Vérifier si un token est présent avant de faire la requête
+    const token = this.getToken();
+    if (!token) {
+      console.error("getCurrentUser - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("getCurrentUser - Début de la requête, URL:", `${environment.apiUrl}/users/me`);
+    console.log("getCurrentUser - Token:", token.substring(0, 15) + '...');
+    
+    // Utiliser l'URL complète de l'API
+    return this.http.get<UserRead>(`${environment.apiUrl}/users/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}` // Ajouter explicitement le token en plus de l'intercepteur
+      }
+    }).pipe(
+      tap(user => {
+        console.log("getCurrentUser - Succès, utilisateur récupéré:", user);
+      }),
+      catchError((error) => {
+        console.error("getCurrentUser - Erreur:", error);
+        
+        // Si l'erreur est 401 ou 403, cela peut signifier que le token est expiré ou invalide
+        if (error.status === 401 || error.status === 403) {
+          console.warn("getCurrentUser - Token potentiellement invalide ou expiré, vérifier le format du token et les droits.");
+          // Considérer une déconnexion automatique ou un rafraîchissement du token
+          // this.logout(); // Décommenter pour déconnecter automatiquement en cas de token invalide
+        }
+        
+        return this.handleError(error);
+      })
     );
   }
 

@@ -360,7 +360,15 @@ async def exchange_google_token(
             content={"detail": f"Unexpected authentication error: {str(e)}"},
         )
 
-# Include FastAPI-Users routers
+# Example Protected Route - MOVED ABOVE THE USER ROUTER INCLUSION
+@app.get("/users/me", tags=["users"])
+def read_users_me(current_user: UserModel = Depends(current_active_user)):
+    """
+    Renvoie les informations de l'utilisateur actuellement authentifié.
+    Nécessite seulement que l'utilisateur soit actif (pas de vérification).
+    """
+    return current_user
+
 # Auth routes (login, logout)
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
@@ -402,8 +410,21 @@ async def register_user(
             
             # Créer l'utilisateur en utilisant le UserManager
             try:
-                created_user = await user_manager.create(user_create)
+                # Définir is_verified=True pour l'utilisateur avant de le créer
+                user_dict = user_create.model_dump()
+                user_dict["is_verified"] = True
+                user_create_verified = UserCreate(**user_dict)
+                
+                created_user = await user_manager.create(user_create_verified)
                 logger.info(f"Utilisateur créé avec succès: {created_user.id}")
+                
+                # Vérifier si l'utilisateur est bien marqué comme vérifié
+                if not created_user.is_verified:
+                    # Si ce n'est pas le cas, mettre à jour manuellement
+                    logger.info(f"Mise à jour manuelle de is_verified pour l'utilisateur {created_user.id}")
+                    created_user.is_verified = True
+                    session.add(created_user)
+                    await session.commit()
                 
                 # Retourner les infos utilisateur sans le mot de passe
                 return UserRead.model_validate(created_user)
@@ -500,11 +521,3 @@ async def health_check(session: AsyncSession = Depends(get_async_session)):
         # sauf si la DB est absolument critique pour le démarrage même du service.
         # Pour une sonde readiness/liveness, un simple 200 est souvent suffisant.
         return {"status": "ok", "database": "error"}
-
-# Example Protected Route
-@app.get("/users/me", tags=["users"])
-def read_users_me(current_user: UserModel = Depends(current_active_user)):
-    """
-    Renvoie les informations de l'utilisateur actuellement authentifié.
-    """
-    return current_user

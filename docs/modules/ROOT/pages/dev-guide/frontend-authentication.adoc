@@ -1,0 +1,207 @@
+= Authentification Frontend
+:icons: font
+:source-highlighter: highlight.js
+:toc: left
+:toclevels: 3
+
+Cette documentation décrit l'implémentation technique de l'authentification côté frontend dans l'application Angular.
+
+== Aperçu
+
+Le système d'authentification frontend est basé sur un mécanisme de token JWT et utilise plusieurs composants:
+
+* Service d'authentification (`AuthService`)
+* Guards de routes pour protéger l'accès
+* Intercepteurs HTTP pour ajouter automatiquement le token aux requêtes
+* Composants de login et register
+
+== Guards d'Authentification
+
+Deux guards sont implémentés pour gérer les accès aux différentes routes:
+
+=== AuthGuard (`auth.guard.ts`)
+
+Ce guard protège les routes nécessitant une authentification. Il vérifie si l'utilisateur est connecté et, si ce n'est pas le cas, le redirige vers la page de login.
+
+[source,typescript]
+----
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (authService.isAuthenticated()) {
+    return true; // Autorise l'accès à la route
+  }
+
+  // Non authentifié : rediriger vers la page de login
+  router.navigate(['/authentication/login'], { queryParams: { returnUrl: state.url } });
+  return false; // Bloque l'accès à la route actuelle
+};
+----
+
+=== NonAuthGuard (`non-auth.guard.ts`)
+
+Ce guard empêche les utilisateurs déjà connectés d'accéder aux pages d'authentification (login et register). Si un utilisateur connecté tente d'accéder à ces pages, il est automatiquement redirigé vers la page d'accueil.
+
+[source,typescript]
+----
+export const nonAuthGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    return true; // Autorise l'accès à la route car l'utilisateur n'est pas connecté
+  }
+
+  // Déjà authentifié : rediriger vers la page d'accueil
+  router.navigate(['/starter']);
+  return false; // Bloque l'accès à la route actuelle
+};
+----
+
+== Configuration des Routes
+
+La configuration des routes pour les composants d'authentification utilise le `nonAuthGuard` pour protéger les routes de login et register:
+
+[source,typescript]
+----
+export const AuthenticationRoutes: Routes = [
+  {
+    path: '',
+    children: [
+      {
+        path: 'error',
+        component: AppErrorComponent,
+      },
+      {
+        path: 'login',
+        component: AppSideLoginComponent,
+        canActivate: [nonAuthGuard], // Empêche les utilisateurs connectés d'accéder à cette route
+      },
+      {
+        path: 'register',
+        component: AppSideRegisterComponent,
+        canActivate: [nonAuthGuard], // Empêche les utilisateurs connectés d'accéder à cette route
+      },
+      {
+        path: 'callback',
+        component: OAuthCallbackComponent,
+      },
+    ],
+  },
+];
+----
+
+== Service d'Authentification
+
+Le `AuthService` gère toutes les opérations liées à l'authentification, y compris:
+
+* Connexion par identifiants (email/mot de passe)
+* Inscription de nouveaux utilisateurs
+* Connexion via OAuth (Google)
+* Gestion du token JWT (stockage, récupération)
+* Vérification de l'état d'authentification
+* Récupération des informations de l'utilisateur connecté
+
+La méthode `isAuthenticated()` est utilisée par les guards pour déterminer si l'utilisateur est connecté:
+
+[source,typescript]
+----
+isAuthenticated(): boolean {
+  return this.getToken() !== null;
+  // TODO: Ajouter une vérification de validité/expiration du token
+}
+----
+
+La méthode `getCurrentUser()` permet de récupérer les informations de l'utilisateur connecté:
+
+[source,typescript]
+----
+getCurrentUser(): Observable<UserRead> {
+  // Note: Assurez-vous qu'un intercepteur ajoute le token 'Authorization: Bearer <token>'
+  return this.http.get<UserRead>(`${environment.apiUrl}/users/me`).pipe(
+    catchError(this.handleError)
+  );
+}
+----
+
+=== Déconnexion
+
+La méthode `logout()` du service d'authentification supprime le token JWT du localStorage et redirige l'utilisateur vers la page de login après un court délai:
+
+[source,typescript]
+----
+logout(): void {
+  localStorage.removeItem(this.tokenKey);
+  // Ajout d'un court délai pour s'assurer que le token est bien supprimé 
+  // avant la redirection et éviter des conflits avec le nonAuthGuard
+  setTimeout(() => {
+    this.router.navigate(['/authentication/login']);
+  }, 50);
+}
+----
+
+Cette méthode est appelée par les boutons de déconnexion dans les composants header (horizontal et vertical). Les boutons de déconnexion doivent utiliser uniquement l'événement `(click)` pour appeler la méthode `logout()`, sans utiliser `[routerLink]` pour éviter des conflits de navigation:
+
+[source,html]
+----
+<button
+  mat-flat-button
+  color="primary"
+  class="w-100"
+  (click)="logout()"
+>
+  Logout
+</button>
+----
+
+== Affichage des Informations Utilisateur
+
+Les composants header (horizontal et vertical) affichent les informations de l'utilisateur connecté, récupérées via le service d'authentification:
+
+[source,typescript]
+----
+loadUserInfo(): void {
+  if (this.authService.isAuthenticated()) {
+    this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        // Déterminer le nom à afficher par ordre de priorité
+        if (user.pseudo) {
+          // 1. Utiliser le pseudo s'il existe
+          this.userDisplayName = user.pseudo;
+        } else if (user.given_name && user.family_name) {
+          // 2. Sinon utiliser le nom complet s'il existe
+          this.userDisplayName = `${user.given_name} ${user.family_name}`;
+        } else if (user.given_name) {
+          // 3. Sinon juste le prénom s'il existe
+          this.userDisplayName = user.given_name;
+        } else {
+          // 4. Sinon fallback sur l'email
+          this.userDisplayName = user.email.split('@')[0];
+        }
+        
+        // Autres traitements...
+      }
+    });
+  }
+}
+----
+
+Cette logique permet d'assurer un affichage cohérent, qu'il s'agisse d'un utilisateur enregistré via formulaire classique (avec pseudo) ou via authentification OAuth (avec given_name/family_name de Google).
+
+== Flux d'Authentification
+
+. L'utilisateur accède à l'application
+. Si une route protégée est demandée et que l'utilisateur n'est pas connecté, `authGuard` le redirige vers la page de login
+. Si l'utilisateur est déjà connecté et tente d'accéder aux pages de login ou register, `nonAuthGuard` le redirige vers la page d'accueil
+. Après connexion réussie, le token JWT est stocké dans le localStorage et l'utilisateur est redirigé vers la page d'accueil
+. Les informations de l'utilisateur sont récupérées et affichées dans les composants header
+
+== Bonnes Pratiques
+
+* Toujours utiliser les guards appropriés pour protéger les routes
+* Ne jamais stocker d'informations sensibles autres que le token JWT dans le localStorage
+* Implémenter une vérification d'expiration du token pour améliorer la sécurité
+* Considérer l'implémentation d'un refresh token pour une meilleure expérience utilisateur
+* Pour les boutons de déconnexion, n'utilisez jamais simultanément `[routerLink]` et `(click)="logout()"`; la méthode `logout()` se charge déjà de la redirection
+* Prévoir des fallbacks pour l'affichage des informations utilisateur quand certaines données sont manquantes 

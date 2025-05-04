@@ -2,6 +2,11 @@
 
 Bienvenue sur la plateforme EXAI ! Pour accéder à toutes les fonctionnalités et gérer vos projets, vous devez d'abord vous connecter à votre compte ou en créer un nouveau.
 
+[NOTE]
+====
+Si vous êtes déjà connecté, vous serez automatiquement redirigé vers votre tableau de bord si vous tentez d'accéder aux pages de connexion ou d'inscription.
+====
+
 == Se Connecter
 
 Si vous possédez déjà un compte, vous pouvez vous connecter en suivant ces étapes :
