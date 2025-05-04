@@ -122,7 +122,7 @@ if settings.BACKEND_CORS_ORIGINS:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True, # Important pour les cookies/auth
+    allow_credentials=True, 
     allow_methods=["*"], # Ou spécifiez des méthodes: ["GET", "POST", ...]
     allow_headers=["*"], # Ou spécifiez des en-têtes: ["Content-Type", "Authorization"]
 )
