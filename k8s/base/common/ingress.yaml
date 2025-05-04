@@ -13,14 +13,13 @@ metadata:
     # cert-manager.io/cluster-issuer: letsencrypt-staging # Ancienne ligne commentée si besoin
     # nginx.ingress.kubernetes.io/backend-protocol: "HTTP" # ou HTTPS si votre service écoute en HTTPS
     
-    # --- Ajout d'annotations CORS pour l'Ingress Controller ---
+    # --- Configuration CORS simplifiée pour l'Ingress Controller ---
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization, X-Requested-With"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://exai-pipeline.fr,https://www.exai-pipeline.fr,http://localhost:8080"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "*"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://exai-pipeline.fr,https://www.exai-pipeline.fr,http://localhost:8080,http://localhost:9000"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
-    nginx.ingress.kubernetes.io/cors-max-age: "600"
-    # --- Fin ajout CORS ---
+    # --- Fin configuration CORS ---
 spec:
   ingressClassName: nginx # Utilise le contrôleur Nginx installé
   rules:
