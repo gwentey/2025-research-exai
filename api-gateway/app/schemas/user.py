@@ -21,7 +21,7 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     oauth_accounts: List[OAuthAccountRead] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Schéma Pydantic pour la création d'un utilisateur
 class UserCreate(schemas.BaseUserCreate):

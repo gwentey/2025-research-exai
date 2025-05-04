@@ -51,12 +51,18 @@ export class AuthService {
   }
 
   /**
-   * Démarre le processus d'authentification Google OAuth.
+   * Obtient l'URL d'autorisation Google auprès du backend.
    * @returns Un Observable contenant l'URL d'autorisation Google.
    */
-  googleLogin(): Observable<OAuthAuthorizationResponse> {
-    return this.http.get<OAuthAuthorizationResponse>(`${environment.apiUrl}/auth/google/authorize`).pipe(
-      catchError(this.handleError)
+  getGoogleAuthorizeUrl(): Observable<string> {
+    // URL vers notre endpoint backend avec redirect_uri du frontend
+    const frontendCallbackUrl = `${window.location.origin}/authentication/callback`;
+    const encodedRedirectUri = encodeURIComponent(frontendCallbackUrl);
+    const apiUrl = `${environment.apiUrl}/auth/google/authorize?redirect_uri=${encodedRedirectUri}`;
+    
+    // Fait une requête HTTP à l'API Gateway pour obtenir l'URL d'autorisation
+    return this.http.get<{authorization_url: string}>(apiUrl).pipe(
+      map(response => response.authorization_url) // Extrait uniquement l'URL de la réponse
     );
   }
 
@@ -67,8 +73,10 @@ export class AuthService {
    * @returns Un Observable contenant la réponse LoginResponse.
    */
   completeGoogleAuth(code: string, state: string): Observable<LoginResponse> {
-    return this.http.get<LoginResponse>(
-      `${environment.apiUrl}/auth/google/callback?code=${code}&state=${state}`
+    // Utiliser la nouvelle route dédiée pour échanger le code contre un token
+    return this.http.post<LoginResponse>(
+      `${environment.apiUrl}/auth/google/exchange-token`,
+      { code, state } // Envoyer dans le corps JSON
     ).pipe(
       tap((response) => {
         if (response && response.access_token) {

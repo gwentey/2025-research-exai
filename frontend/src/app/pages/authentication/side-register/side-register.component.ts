@@ -90,23 +90,22 @@ export class AppSideRegisterComponent {
   }
 
   /**
-   * Initie la connexion avec Google
+   * Initie la connexion/inscription avec Google
    */
   loginWithGoogle() {
     this.isGoogleLoading = true;
     this.signupError = null;
-
-    this.authService.googleLogin()
+    
+    // S'abonne à l'Observable qui va récupérer l'URL d'autorisation Google
+    this.authService.getGoogleAuthorizeUrl()
       .pipe(finalize(() => this.isGoogleLoading = false))
       .subscribe({
-        next: (response) => {
-          if (response && response.authorization_url) {
-            // Rediriger vers l'URL d'autorisation Google
-            window.location.href = response.authorization_url;
-          }
+        next: (googleAuthUrl) => {
+          // Redirige vers l'URL d'autorisation Google (pas vers notre backend)
+          window.location.href = googleAuthUrl;
         },
         error: (error) => {
-          console.error('Google login initiation failed:', error);
+          console.error('Échec de récupération de l\'URL d\'autorisation Google:', error);
           this.signupError = 'Impossible d\'initialiser la connexion avec Google. Veuillez réessayer.';
         }
       });
