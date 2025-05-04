@@ -1,7 +1,8 @@
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../environments/environment';
+import { catchError, throwError } from 'rxjs';
 
 // Récupérer l'URL de l'API Gateway (idéalement depuis l'environnement)
 // Assurez-vous que cette valeur correspond à celle dans auth.service.ts
@@ -15,19 +16,38 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   const authService = inject(AuthService);
   const authToken = authService.getToken();
 
-  // Vérifier si la requête est destinée à notre API et si un token existe
-  // Utiliser environment.apiUrl
-  if (authToken && req.url.startsWith(environment.apiUrl)) {
+  // Debug info
+  console.log(`[Intercepteur] URL: ${req.url}`);
+  console.log(`[Intercepteur] Token présent: ${!!authToken}`);
+  
+  // Ajouter le token à toutes les requêtes vers l'API, quelle que soit l'URL
+  if (authToken) {
     // Cloner la requête et ajouter l'en-tête Authorization
     const authReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${authToken}`
       }
     });
-    // Passer la requête clonée avec l'en-tête
-    return next(authReq);
+    
+    // Log la requête modifiée
+    console.log(`[Intercepteur] Requête authentifiée: ${authReq.url} avec token: ${authToken.substring(0, 15)}...`);
+    
+    // Passer la requête clonée avec l'en-tête et gérer les erreurs
+    return next(authReq).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error(`[Intercepteur] Erreur HTTP ${error.status} pour ${req.url}:`, error);
+        
+        // Si erreur 401 ou 403, cela pourrait indiquer un problème avec le token
+        if (error.status === 401 || error.status === 403) {
+          console.warn('[Intercepteur] Erreur d\'authentification détectée, vérifiez le token et les permissions');
+        }
+        
+        return throwError(() => error);
+      })
+    );
   }
 
-  // Pour les autres requêtes ou si pas de token, passer la requête originale
+  // Si pas de token, passer la requête originale
+  console.log(`[Intercepteur] Requête sans authentification: ${req.url}`);
   return next(req);
 }; 

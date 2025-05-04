@@ -228,13 +228,13 @@
         >
           <div class="d-flex align-items-center gap-12">
             <img
-              src="/assets/images/profile/user5.jpg"
+              [src]="userProfileImage"
               class="rounded-circle object-cover"
               width="40"
             />
             <div class="d-none d-lg-flex text-left flex-col">
-              <h5 class="f-s-16 f-w-600">Mike Nielsen</h5>
-              <span class="f-s-14">Admin</span>
+              <h5 class="f-s-16 f-w-600">{{ userDisplayName }}</h5>
+              <span class="f-s-14">{{ userRole }}</span>
             </div>
           </div>
         </button>
@@ -425,13 +425,13 @@
     >
       <div class="d-flex align-items-center gap-12">
         <img
-          src="/assets/images/profile/user5.jpg"
+          [src]="userProfileImage"
           class="rounded-circle object-cover"
           width="40"
         />
         <div class="d-none d-lg-flex text-left flex-col">
-          <h5 class="f-s-16 f-w-600">Mike Nielsen</h5>
-          <span class="f-s-14">Admin</span>
+          <h5 class="f-s-16 f-w-600">{{ userDisplayName }}</h5>
+          <span class="f-s-14">{{ userRole }}</span>
         </div>
       </div>
     </button>
@@ -446,16 +446,16 @@
 
           <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
             <img
-              src="/assets/images/profile/user5.jpg"
+              [src]="userProfileImage"
               class="rounded-circle"
               width="95"
             />
             <div class="m-l-16">
-              <h6 class="f-s-16 f-w-600 m-0">Mike Nielsen</h6>
-              <span class="f-s-14 text-body d-block m-b-4">Admin</span>
+              <h6 class="f-s-16 f-w-600 m-0">{{ userDisplayName }}</h6>
+              <span class="f-s-14 text-body d-block m-b-4">{{ userRole }}</span>
               <span class="d-flex align-items-center">
                 <i-tabler name="mail" class="icon-15 m-r-4"></i-tabler>
-                info&#64;spike.com
+                {{ userEmail }}
               </span>
             </div>
           </div>
@@ -488,7 +488,6 @@
 
         <div class="p-y-12 p-x-32">
           <button
-            [routerLink]="['/authentication/login']"
             mat-flat-button
             color="primary"
             class="w-100"
