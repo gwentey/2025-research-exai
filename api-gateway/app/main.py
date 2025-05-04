@@ -339,8 +339,9 @@ async def exchange_google_token(
             # Ignorer l'erreur, l'authentification fonctionnera quand même avec le token
         
         # Retourner le token JWT, indépendamment de la création en base
+        # Note: token_data est déjà une chaîne de caractères, pas besoin d'accéder à ["token"]
         return {
-            "access_token": token_data["token"],
+            "access_token": token_data,
             "token_type": "bearer",
             "user": {
                 "id": str(user_id),
