@@ -260,3 +260,56 @@ if (error.status === 401 || error.status === 403) {
 ```
 
 Cette approche permet de déconnecter automatiquement l'utilisateur en cas de problème avec son token OAuth, assurant une expérience utilisateur plus fluide. 
+
+== Gestion des Images de Profil Google
+
+Les URL d'images de profil Google (`https://lh3.googleusercontent.com/...`) présentent certains défis techniques dans une application Angular:
+
+=== Problèmes courants avec les images Google
+
+* *Problèmes CORS*: Google peut bloquer les requêtes cross-origin pour les images de profil
+* *Mise en cache agressive*: Les navigateurs peuvent mettre en cache les images, causant des problèmes lors des changements
+* *Taille d'image non optimisée*: Les images peuvent être trop grandes ou trop petites pour l'affichage prévu
+
+=== Solution implémentée
+
+Pour résoudre ces problèmes, nous avons mis en place la stratégie suivante:
+
+1. *Sanitisation des URLs*: Une méthode `sanitizeGoogleImageUrl` traite les URLs Google pour les optimiser
+
+[source,typescript]
+----
+sanitizeGoogleImageUrl(url: string): string {
+  // Vérifier si c'est une URL Google Photos
+  if (url && url.includes('googleusercontent.com')) {
+    // Ajouter un paramètre pour spécifier la taille et le recadrage
+    if (!url.includes('=s')) {
+      url = url.includes('?') ? `${url}&s=200-c` : `${url}=s200-c`;
+    }
+    
+    // Vérifier si l'URL est accessible
+    const img = new Image();
+    img.onerror = () => {
+      console.warn('Google profile image failed to load, using default image');
+      this.userProfileImage = '/assets/images/profile/user5.jpg';
+    };
+    img.src = url;
+    
+    return url;
+  }
+  return url;
+}
+----
+
+2. *Fallbacks HTML*: Utilisation de l'attribut `onerror` pour remplacer les images qui échouent au chargement
+
+[source,html]
+----
+<img 
+  [src]="userProfileImage" 
+  class="rounded-circle" 
+  onerror="this.src='/assets/images/profile/user5.jpg';"
+/>
+----
+
+Cette double approche (sanitisation côté TypeScript + fallback côté HTML) garantit que les utilisateurs auront toujours une image de profil affichée, même en cas de problème avec l'URL Google. 
