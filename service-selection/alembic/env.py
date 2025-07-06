@@ -41,6 +41,10 @@ def run_migrations_offline() -> None:
         # Fallback to config file if env var not set for offline
         offline_url = config.get_main_option("sqlalchemy.url")
     
+    # Convert PostgreSQL URL to asyncpg for consistency
+    if offline_url and offline_url.startswith("postgresql://"):
+        offline_url = offline_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
     if target_metadata is None:
         print("ERROR: Target metadata could not be determined. Cannot run offline migrations.")
         return
@@ -81,6 +85,10 @@ async def run_migrations_online() -> None:
     if not db_url:
         raise ValueError("Environment variable DATABASE_URL is not set.")
 
+    # Convert PostgreSQL URL to asyncpg for async SQLAlchemy
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
     print(f"DEBUG [Alembic env.py - service-selection]: Connecting to database with URL: {db_url}")
 
     # Create an async engine specifically for Alembic online mode
