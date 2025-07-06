@@ -2,8 +2,16 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
-import models
-import database
+
+# Approche hybride pour gérer les imports en local et dans Docker
+try:
+    # Imports relatifs pour le développement local
+    from . import models
+    from . import database
+except ImportError:
+    # Imports absolus pour le conteneur Docker
+    import models
+    import database
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -61,10 +69,10 @@ class Dataset(DatasetBase):
     updated_at: datetime
     last_modified_by: Optional[str] = None
 
-    # `Config.orm_mode = True` permet à Pydantic de lire les données directement
+    # `Config.from_attributes = True` permet à Pydantic de lire les données directement
     # depuis un objet modèle SQLAlchemy (mode ORM).
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Routes de l'API ---
 

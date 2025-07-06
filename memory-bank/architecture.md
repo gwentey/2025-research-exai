@@ -62,15 +62,22 @@ graph LR
     *   **Technos :** FastAPI, Uvicorn, SQLAlchemy, Pydantic, Alembic, `psycopg2-binary`/`asyncpg`.
     *   **Statut :**
         *   [✅] Configuration FastAPI de base.
-        *   [✅] Modèle SQLAlchemy `Dataset` défini et complet.
-        *   [✅] Schémas Pydantic de base (`DatasetBase`, `Create`, `Update`, `Read`) définis.
-        *   [✅] Endpoints CRUD de base (`POST`, `GET /`, `GET /id`, `PUT`, `DELETE`) implémentés.
-        *   [✅] Table `datasets` gérée par Alembic.
-        *   [🚧] Endpoint `GET /datasets` a une pagination simple, mais **pas de filtrage avancé**.
-        *   [⬜] Schémas Pydantic avancés (`FilterCriteria`, `ScoreRequest`, etc.) **non implémentés**.
-        *   [⬜] Logique de scoring **non implémentée**.
-        *   [⬜] Endpoints `/score`, `/preview`, `/stats` **non implémentés**.
+        *   [✅] **Structure BDD normalisée (2025-07-06)** : 5 tables liées (`datasets`, `dataset_files`, `file_columns`, `dataset_relationships`, `dataset_relationship_column_links`) avec UUID comme clés primaires.
+        *   [✅] **Modèles SQLAlchemy complets** pour toutes les tables avec relations ORM.
+        *   [✅] **Schémas Pydantic exhaustifs** : Base/Create/Update/Read pour chaque modèle + schémas composés et filtrage.
+        *   [✅] **Migration Alembic** : Refonte complète de la structure BDD (migration `71ec68fa0302`).
+        *   [⬜] Endpoints CRUD adaptés à la nouvelle structure **à implémenter**.
+        *   [⬜] Logique de scoring avancée basée sur critères éthiques **à implémenter**.
+        *   [⬜] Endpoints `/score`, `/preview`, `/stats` **à réimplémenter**.
         *   [🚧] Déploiement K8s à finaliser (configuration probes, secrets).
+    
+    *   **Structure Base de Données Normalisée (2025-07-06) :**
+        *   **`datasets`** (Table principale) : Métadonnées complètes organisées en sections (identification, caractéristiques techniques, critères éthiques)
+        *   **`dataset_files`** : Fichiers associés à un dataset (train.csv, test.csv, metadata.json, etc.)
+        *   **`file_columns`** : Colonnes/features de chaque fichier avec métadonnées détaillées (types, statistiques, PII)
+        *   **`dataset_relationships`** : Relations logiques entre fichiers (foreign key, join, reference)
+        *   **`dataset_relationship_column_links`** : Liens précis entre colonnes dans les relations
+        *   **Avantages :** Normalisation complète, métadonnées éthiques étendues, support multi-fichiers, traçabilité des relations
 
 *   **`ml-pipeline/` :**
     *   **Rôle :** Orchestration entraînement ML.

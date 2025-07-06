@@ -14,16 +14,13 @@ Installez les outils suivants:
 | Python 3.8+ | Avec le package python-dotenv - `pip install python-dotenv`
 |===
 
-=== 🪟 Spécial Windows
+=== Lancement rapide
 
-**IMPORTANT:** Le Makefile utilise des commandes Unix. Sur Windows 2 options :
+**IMPORTANT:** Le Makefile utilise des commandes Unix et permet de remplacer l'ensemble des commandesq si dessous.
 
-====Git Bash
 [source,bash]
 ----
 # Utiliser Git Bash au lieu de PowerShell
-# Télécharger : https://git-scm.com/download/win
-
 # Dans Git Bash
 make dev
 ----
