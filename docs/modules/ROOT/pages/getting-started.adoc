@@ -23,6 +23,8 @@ Installez les outils suivants:
 # Utiliser Git Bash au lieu de PowerShell
 # Dans Git Bash
 make dev
+# Installation complète + données de test
+make dev-with-data  
 ----
 
 ====  Commandes manuelles (PowerShell)

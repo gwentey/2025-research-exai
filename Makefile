@@ -1,4 +1,4 @@
-.PHONY: help dev quick-dev update-secrets start-minikube create-namespace docker-env deploy wait-services migrate migrate-jobs clean clean-migrations logs stop reset check-prerequisites
+.PHONY: help dev quick-dev update-secrets start-minikube create-namespace docker-env deploy wait-services migrate migrate-jobs init-data dev-with-data clean clean-migrations logs stop reset check-prerequisites
 
 # Configuration
 NAMESPACE ?= exai
@@ -90,7 +90,15 @@ migrate-jobs: ## Lance les migrations via les jobs Kubernetes
 
 migrate: wait-services migrate-jobs ## Lance les migrations (attend les services puis lance les jobs)
 
+init-data: ## Initialise les données de test dans la base de données
+	@echo "$(BLUE)Initialisation des donnees de test...$(NC)"
+	@echo "$(YELLOW)Execution du script d'initialisation EdNet...$(NC)"
+	@kubectl exec -n $(NAMESPACE) deployment/service-selection -- python scripts/init_ednet_dataset.py
+	@echo "$(GREEN)Donnees de test initialisees avec succes$(NC)"
+
 dev: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy migrate logs ## Installation complète et démarrage en mode développement
+
+dev-with-data: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy migrate init-data logs ## Installation complète avec données de test
 
 quick-dev: update-secrets deploy migrate ## Déploiement rapide (si Minikube déjà démarré)
 

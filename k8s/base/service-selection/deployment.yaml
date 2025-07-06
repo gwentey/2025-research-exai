@@ -45,9 +45,12 @@ spec:
             # Le conteneur écoute sur le port 8081 (port d'Uvicorn).
             - containerPort: 8081
           # Variables d'environnement injectées dans le conteneur.
-          envFrom:
-            - secretRef:
-                name: db-secrets
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: database-url
           # Définition des ressources (CPU, mémoire) requises et limitées pour le conteneur.
           resources:
             # Ressources minimales garanties pour le conteneur.

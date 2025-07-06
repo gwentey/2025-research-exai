@@ -65,7 +65,8 @@ graph LR
         *   [✅] **Structure BDD normalisée (2025-07-06)** : 5 tables liées (`datasets`, `dataset_files`, `file_columns`, `dataset_relationships`, `dataset_relationship_column_links`) avec UUID comme clés primaires.
         *   [✅] **Modèles SQLAlchemy complets** pour toutes les tables avec relations ORM.
         *   [✅] **Schémas Pydantic exhaustifs** : Base/Create/Update/Read pour chaque modèle + schémas composés et filtrage.
-        *   [✅] **Migration Alembic** : Refonte complète de la structure BDD (migration `71ec68fa0302`).
+        *   [✅] **Migration Alembic** : Refonte complète de la structure BDD (migration `6eb0a0e360e3`).
+        *   [✅] **Scripts d'initialisation** : Dossier `scripts/` avec script d'initialisation dataset EdNet.
         *   [⬜] Endpoints CRUD adaptés à la nouvelle structure **à implémenter**.
         *   [⬜] Logique de scoring avancée basée sur critères éthiques **à implémenter**.
         *   [⬜] Endpoints `/score`, `/preview`, `/stats` **à réimplémenter**.
@@ -78,6 +79,12 @@ graph LR
         *   **`dataset_relationships`** : Relations logiques entre fichiers (foreign key, join, reference)
         *   **`dataset_relationship_column_links`** : Liens précis entre colonnes dans les relations
         *   **Avantages :** Normalisation complète, métadonnées éthiques étendues, support multi-fichiers, traçabilité des relations
+
+    *   **Scripts d'Initialisation (2025-07-06) :**
+        *   **`scripts/`** : Dossier dédié aux scripts de maintenance du service
+        *   **`scripts/init_ednet_dataset.py`** : Script d'initialisation pour dataset EdNet avec 5 fichiers et 29 colonnes
+        *   **Structure organisée** : Imports relatifs, gestion d'erreurs, documentation intégrée
+        *   **Usage** : `cd service-selection && python scripts/init_ednet_dataset.py`
 
 *   **`ml-pipeline/` :**
     *   **Rôle :** Orchestration entraînement ML.
