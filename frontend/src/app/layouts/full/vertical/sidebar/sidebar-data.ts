@@ -11,6 +11,18 @@ export const navItems: NavItem[] = [
     route: '/starter',
   },
   {
+    navCap: 'Données & Ressources',
+  },
+  {
+    displayName: 'Datasets',
+    iconName: 'database',
+    bgcolor: 'accent',
+    route: '/datasets',
+  },
+  {
+    navCap: 'Authentification',
+  },
+  {
     displayName: 'Login',
     iconName: 'lock',
     bgcolor: 'secondary',

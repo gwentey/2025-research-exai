@@ -41,6 +41,11 @@ class Settings(BaseSettings):
         "http://localhost:8080,https://exai-pipeline.fr,https://www.exai-pipeline.fr" # Local et production
     )
 
+    # URLs des services backend pour le reverse proxy
+    SERVICE_SELECTION_URL: str = os.getenv("SERVICE_SELECTION_URL", "http://service-selection-service.exai.svc.cluster.local")
+    ML_PIPELINE_URL: str = os.getenv("ML_PIPELINE_URL", "http://ml-pipeline-service.exai.svc.cluster.local")
+    XAI_ENGINE_URL: str = os.getenv("XAI_ENGINE_URL", "http://xai-engine-service.exai.svc.cluster.local")
+
     class Config:
         # Si vous utilisez un fichier .env pour charger les variables d'environnement
         env_file = ".env"

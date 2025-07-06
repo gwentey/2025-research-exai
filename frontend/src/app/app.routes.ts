@@ -24,6 +24,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./pages/pages.routes').then((m) => m.PagesRoutes),
       },
+      {
+        path: 'datasets',
+        loadChildren: () =>
+          import('./pages/datasets/datasets.routes').then((m) => m.DatasetsRoutes),
+      },
     ],
   },
   {

@@ -74,6 +74,33 @@ GOOGLE_CLIENT_SECRET=votre-client-secret-google
 # Elle sera surchargée en production par un secret GitHub Actions.
 # Utilisée par k8s/base/api-gateway/gateway-secrets.yaml (placeholder: REPLACE_WITH_OAUTH_REDIRECT_URL)
 OAUTH_REDIRECT_URL=http://localhost:8080/authentication/callback
+
+# URLs des services backend pour le reverse proxy de l'API Gateway
+# Ces URLs permettent à l'API Gateway de rediriger les requêtes vers les bons services
+
+# Service de sélection des datasets
+# Développement local (Minikube) - valeur par défaut
+SERVICE_SELECTION_URL=http://service-selection-service.exai.svc.cluster.local
+# Développement local (services en local)
+# SERVICE_SELECTION_URL=http://localhost:8001
+
+# Pipeline ML
+# Développement local (Minikube) - valeur par défaut
+ML_PIPELINE_URL=http://ml-pipeline-service.exai.svc.cluster.local
+# Développement local (services en local)
+# ML_PIPELINE_URL=http://localhost:8002
+
+# Moteur XAI
+# Développement local (Minikube) - valeur par défaut
+XAI_ENGINE_URL=http://xai-engine-service.exai.svc.cluster.local
+# Développement local (services en local)
+# XAI_ENGINE_URL=http://localhost:8003
+
+# Domaines de production pour la détection automatique HTTPS
+PRODUCTION_DOMAINS=your-domain.com,api.your-domain.com
+
+# Origins autorisées pour CORS (séparées par des virgules)
+BACKEND_CORS_ORIGINS=http://localhost:8080,https://your-domain.com,https://www.your-domain.com
 ----
 
 NOTE: Le fichier `.env` est déjà ajouté à `.gitignore` pour éviter de commiter des secrets. Adaptez les valeurs à votre propre configuration, notamment les identifiants Google.

@@ -54,8 +54,8 @@ graph LR
         *   [✅] Table `user` gérée par Alembic.
         *   [✅] Endpoint `/health` présent.
         *   [✅] CORS configuré (permissif).
-        *   [⬜] Routage Reverse Proxy vers les autres services **non implémenté**.
-        *   [🚧] Déploiement K8s à finaliser (configuration probes, secrets).
+        *   [✅] Routage Reverse Proxy vers les autres services.
+        *   [⬜] Déploiement K8s à finaliser (configuration probes, secrets).
 
 *   **`service-selection/` :**
     *   **Rôle :** Gestion des métadonnées des datasets.
@@ -67,7 +67,8 @@ graph LR
         *   [✅] **Schémas Pydantic exhaustifs** : Base/Create/Update/Read pour chaque modèle + schémas composés et filtrage.
         *   [✅] **Migration Alembic** : Refonte complète de la structure BDD (migration `6eb0a0e360e3`).
         *   [✅] **Scripts d'initialisation** : Dossier `scripts/` avec script d'initialisation dataset EdNet.
-        *   [⬜] Endpoints CRUD adaptés à la nouvelle structure **à implémenter**.
+        *   [✅] **Endpoints CRUD complets** : API REST avec filtrage avancé, pagination, tri et recherche.
+        *   [✅] **Endpoints spécialisés** : `/datasets/domains` et `/datasets/tasks` pour les filtres frontend.
         *   [⬜] Logique de scoring avancée basée sur critères éthiques **à implémenter**.
         *   [⬜] Endpoints `/score`, `/preview`, `/stats` **à réimplémenter**.
         *   [🚧] Déploiement K8s à finaliser (configuration probes, secrets).
@@ -102,10 +103,13 @@ graph LR
     *   **Statut :**
         *   [✅] Projet Angular initialisé.
         *   [✅] Angular Material ajouté comme dépendance.
-        *   [🚧] Structure de base présente (`services`, `pages`, `layouts`...).
-        *   [🚧] Service `AuthService` et module/pages d'authentification en cours de développement.
-        *   [⬜] Services API dédiés (`DatasetService`, `PipelineService`...) **non implémentés**.
-        *   [⬜] Modules/Composants fonctionnels principaux (Sélection Dataset, Pipeline ML, XAI) **non implémentés** ou structurés différemment du plan.
+        *   [✅] Structure de base présente (`services`, `pages`, `layouts`...).
+        *   [✅] Service `AuthService` et module/pages d'authentification fonctionnels.
+        *   [✅] **Interface Datasets complète** : Service, composants, models et routing intégrés.
+        *   [✅] **Composants Angular Material** : Cards, filtres, pagination, recherche, tri.
+        *   [✅] **Fonctionnalités avancées** : Filtrage multi-critères, recherche textuelle, interface responsive.
+        *   [⬜] Services API dédiés (`PipelineService`, `XAIService`) **non implémentés**.
+        *   [⬜] Modules/Composants pour Pipeline ML et XAI **non implémentés**.
         *   [⬜] Déploiement K8s non configuré.
 
 *   **Infrastructure :**

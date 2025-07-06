@@ -1,6 +1,7 @@
 import uuid
 import logging
-from fastapi import FastAPI, Depends, status, Request, Query
+import httpx
+from fastapi import FastAPI, Depends, status, Request, Query, HTTPException
 from fastapi.responses import Response, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -586,6 +587,85 @@ app.include_router(
     prefix="/auth/google",
     tags=["auth"],
 )
+
+# Fonction helper pour faire des requêtes vers les services backend
+async def proxy_request(
+    request: Request,
+    service_url: str,
+    path: str,
+    current_user: UserModel
+):
+    """
+    Fonction générique pour faire du reverse proxy vers les services backend.
+    Transmet les paramètres de query, le body et les headers nécessaires.
+    """
+    try:
+        # Construire l'URL complète vers le service backend
+        target_url = f"{service_url.rstrip('/')}/{path.lstrip('/')}"
+        
+        # Récupérer les paramètres de query
+        query_params = dict(request.query_params)
+        
+        # Préparer les headers à transmettre
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "API-Gateway-Proxy/1.0"
+        }
+        
+        # Récupérer le body si c'est une requête POST/PUT/PATCH
+        body = None
+        if request.method in ["POST", "PUT", "PATCH"]:
+            body = await request.body()
+        
+        # Faire la requête vers le service backend
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.request(
+                method=request.method,
+                url=target_url,
+                params=query_params,
+                headers=headers,
+                content=body
+            )
+            
+            # Retourner la réponse du service backend
+            return JSONResponse(
+                status_code=response.status_code,
+                content=response.json() if response.content else None
+            )
+            
+    except httpx.RequestError as e:
+        logger.error(f"Error proxying request to {service_url}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Service temporairement indisponible"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error in proxy_request: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur interne du serveur"
+        )
+
+# Routes pour les datasets (service-selection)
+@app.api_route("/datasets", methods=["GET", "POST"], tags=["datasets"])
+async def datasets_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour les opérations sur les datasets"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets", current_user)
+
+@app.api_route("/datasets/{dataset_id}", methods=["GET", "PUT", "DELETE"], tags=["datasets"])
+async def dataset_detail_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour les opérations sur un dataset spécifique"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}", current_user)
+
+@app.get("/datasets/domains", tags=["datasets"])
+async def datasets_domains_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les domaines d'application"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/domains", current_user)
+
+@app.get("/datasets/tasks", tags=["datasets"])
+async def datasets_tasks_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les tâches ML"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/tasks", current_user)
 
 # Route racine simple (optionnel)
 @app.get("/")
