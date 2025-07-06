@@ -38,6 +38,14 @@ build/
 *.log
 *.tmp
 
+# Images Docker sauvegardées (trop volumineuses pour GitHub)
+*.tar
+busybox-*.tar
+postgres-*.tar
+node-*.tar
+nginx-*.tar
+python-*.tar
+
 # Node.js / Angular
 node_modules/
 npm-debug.log
