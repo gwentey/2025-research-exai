@@ -7,20 +7,26 @@ Datasets supportés:
 - OULAD: Open University Learning Analytics Dataset pour l'analyse d'apprentissage en ligne
 - Students Performance in Exams: Dataset sur l'impact des facteurs socio-éducatifs sur les scores aux examens
 - Students' Social Media Addiction: Dataset sur l'usage des réseaux sociaux et impact académique/relationnel
+- Student Academic Performance Dataset: Dataset d'analyse des performances académiques avec facteurs démographiques et comportementaux
+- Student Depression Dataset: Dataset d'analyse des tendances et prédicteurs de dépression chez les étudiants
+- Student Stress Factors: Dataset sur les facteurs de stress chez les étudiants en ingénierie
 
 Ce script peut être exécuté pour réinsérer les données de test à chaque fois.
 
 Usage:
     cd service-selection
-    python scripts/init_datasets.py [ednet|oulad|students|social|all]
+    python scripts/init_datasets.py [ednet|oulad|students|social|academic|depression|stress|all]
     
     Exemples:
-    python scripts/init_datasets.py ednet     # Initialise seulement EdNet
-    python scripts/init_datasets.py oulad     # Initialise seulement OULAD
-    python scripts/init_datasets.py students  # Initialise seulement Students Performance
-    python scripts/init_datasets.py social    # Initialise seulement Social Media Addiction
-    python scripts/init_datasets.py all       # Initialise tous les datasets
-    python scripts/init_datasets.py           # Initialise tous les datasets (défaut)
+    python scripts/init_datasets.py ednet       # Initialise seulement EdNet
+    python scripts/init_datasets.py oulad       # Initialise seulement OULAD
+    python scripts/init_datasets.py students    # Initialise seulement Students Performance
+    python scripts/init_datasets.py social      # Initialise seulement Social Media Addiction
+    python scripts/init_datasets.py academic    # Initialise seulement Student Academic Performance
+    python scripts/init_datasets.py depression  # Initialise seulement Student Depression
+    python scripts/init_datasets.py stress      # Initialise seulement Student Stress Factors
+    python scripts/init_datasets.py all         # Initialise tous les datasets
+    python scripts/init_datasets.py             # Initialise tous les datasets (défaut)
 
 Requirements:
     - Base de données PostgreSQL accessible
@@ -617,46 +623,46 @@ def init_students_performance_dataset():
                 # === IDENTIFICATION & INFORMATIONS GÉNÉRALES ===
                 dataset_name='Students Performance in Exams',
                 year=2018,
-                objective='Analyser les effets des facteurs socio-éducatifs sur les scores aux examens',
+                objective='Understand influence of parents background, test preparation on students performance',
                 access='public',
-                availability='online_download',
-                num_citations=250,
-                citation_link='https://www.kaggle.com/datasets/spscientist/students-performance-in-exams',
-                sources='US educational sample',
-                storage_uri=None,  # Vide pour le moment
+                availability='public',
+                num_citations=None,  # Pas de nombre spécifique donné
+                citation_link='http://roycekimmons.com/tools/generated_data/exams',
+                sources='Kaggle, roycekimmons.com',
+                storage_uri='https://www.kaggle.com/datasets/jessemostipak/student-performance',
                 
                 # === CARACTÉRISTIQUES TECHNIQUES ===
                 instances_number=1000,
-                features_description='Genre, origine, repas, éducation parents, scores',
+                features_description='gender, race/ethnicity, parental level of education, lunch, test preparation course, math score, reading score, writing score',
                 features_number=8,
                 domain=['éducation'],
-                representativity_description='Échantillon US',
+                representativity_description='US high school students',
                 representativity_level='moyenne',
                 sample_balance_description=None,
                 sample_balance_level=None,
                 split=False,
-                missing_values_description='Non',
+                missing_values_description='No missing values',
                 has_missing_values=False,
                 global_missing_percentage=0.0,
                 missing_values_handling_method='none',
                 temporal_factors=False,
                 metadata_provided_with_dataset=False,
-                external_documentation_available=True,
+                external_documentation_available=False,
                 documentation_link=None,
-                task=['regression', 'classification'],
+                task=['exploratory_analysis', 'prediction'],
                 
                 # === CRITÈRES ÉTHIQUES ===
-                informed_consent=False,
-                transparency=False,
-                user_control=False,
-                equity_non_discrimination=False,
-                security_measures_in_place=True,
+                informed_consent=None,  # Unknown
+                transparency=False,     # Medium -> False pour boolean
+                user_control=None,      # Unknown
+                equity_non_discrimination=None,  # Unknown
+                security_measures_in_place=False,  # None -> False
                 data_quality_documented=True,
                 data_errors_description=None,
                 anonymization_applied=True,
-                record_keeping_policy_exists=False,
+                record_keeping_policy_exists=None,  # Unknown
                 purpose_limitation_respected=True,
-                accountability_defined=True
+                accountability_defined=None  # Unknown
             )
             
             session.add(dataset)
@@ -990,6 +996,649 @@ def init_social_media_addiction_dataset():
             session.close()
 
 
+def init_student_academic_performance_dataset():
+    """
+    Initialise le dataset Student Academic Performance Dataset avec son fichier et colonnes.
+    
+    Supprime les données existantes et recrée tout.
+    """
+    
+    # Configuration de la base de données
+    try:
+        database_url = DATABASE_URL
+        print(f"🔌 Connexion à la base de données...")
+    except Exception as e:
+        print(f"❌ Erreur de configuration base de données: {e}")
+        print("💡 Vérifiez que DATABASE_URL est définie dans les variables d'environnement")
+        sys.exit(1)
+    
+    # Créer l'engine et la session
+    engine = create_engine(database_url)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
+    with SessionLocal() as session:
+        try:
+            # === SUPPRESSION DES DONNÉES EXISTANTES ===
+            print("🗑️  Suppression des données existantes pour 'Student Academic Performance Dataset'...")
+            
+            # Supprimer le dataset Student Academic Performance s'il existe déjà (cascade supprimera fichiers et colonnes)
+            existing_dataset = session.query(Dataset).filter(
+                Dataset.dataset_name == "Student Academic Performance Dataset"
+            ).first()
+            
+            if existing_dataset:
+                session.delete(existing_dataset)
+                session.commit()
+                print("✅ Données existantes supprimées")
+            
+            # === CRÉATION DU DATASET ===
+            print("📊 Création du dataset Student Academic Performance Dataset...")
+            
+            dataset = Dataset(
+                # UUID sera généré automatiquement
+                
+                # === IDENTIFICATION & INFORMATIONS GÉNÉRALES ===
+                dataset_name="Student Academic Performance Dataset",
+                year=2025,
+                objective="To help users explore how various factors (study time, family background, extracurricular activities) affect student academic performance using demographic and behavioral data.",
+                access="public",
+                availability="online_download",
+                num_citations=None,  # Pas de nombre spécifique donné (x dans le CSV)
+                citation_link=None,  # x dans le CSV
+                sources="student_info.csv",
+                storage_uri=None,  # Vide dans le CSV
+                
+                # === CARACTÉRISTIQUES TECHNIQUES ===
+                instances_number=1000,
+                features_description="student_id, name, gender, age, grade_level, math_score, reading_score, writing_score, attendance_rate, parent_education",
+                features_number=10,
+                domain=["éducation"],
+                representativity_description="Sample of 1000 anonymized student records from unspecified population",
+                representativity_level="moyenne",  # "Moderate" dans le CSV
+                sample_balance_description=None,
+                sample_balance_level=None,
+                split=False,  # "No predefined split"
+                missing_values_description="No missing values mentioned",
+                has_missing_values=False,
+                global_missing_percentage=0.0,
+                missing_values_handling_method="none",  # "N/A"
+                temporal_factors=False,  # "Static snapshot"
+                metadata_provided_with_dataset=True,
+                external_documentation_available=False,
+                documentation_link=None,
+                task=["exploratory_analysis", "classification", "regression"],
+                
+                # === CRITÈRES ÉTHIQUES ===
+                informed_consent=None,  # "Not specified"
+                transparency=False,     # "Limited"
+                user_control=None,      # "Not specified"
+                equity_non_discrimination=None,  # "Not guaranteed"
+                security_measures_in_place=True,  # "Basic anonymization"
+                data_quality_documented=False,
+                data_errors_description=None,
+                anonymization_applied=True,
+                record_keeping_policy_exists=None,  # "Not specified"
+                purpose_limitation_respected=None,  # "Unknown"
+                accountability_defined=None  # "Unknown"
+            )
+            
+            session.add(dataset)
+            session.flush()  # Pour obtenir l'ID du dataset
+            
+            print(f"✅ Dataset créé avec ID: {dataset.id}")
+            
+            # === CRÉATION DU FICHIER ===
+            print("📁 Création du fichier student_info.csv...")
+            
+            dataset_file = DatasetFile(
+                dataset_id=dataset.id,
+                file_name_in_storage='student_info.csv',
+                logical_role='main_data',
+                format='csv',
+                mime_type='text/csv',
+                size_bytes=107460,  # 107.46 kB
+                row_count=1000,
+                description='Anonymized student-level data capturing academic, demographic, and behavioral features for performance analysis'
+            )
+            
+            session.add(dataset_file)
+            session.flush()  # Pour obtenir l'ID du fichier
+            
+            print(f"✅ Fichier créé avec ID: {dataset_file.id}")
+            
+            # === CRÉATION DES COLONNES ===
+            print("🔢 Création des 10 colonnes...")
+            
+            columns_data = [
+                # Identifiant et informations personnelles
+                {
+                    'name': 'student_id', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Unique identifier for each student', 'pos': 1, 'is_pk': True, 'is_null': False, 
+                    'is_pii': False, 'examples': ['S1', 'S2', 'S3', 'S1000']
+                },
+                {
+                    'name': 'name', 'type_orig': 'string', 'type_interp': 'text', 
+                    'desc': 'Anonymized full name', 'pos': 2, 'is_pk': False, 'is_null': False, 
+                    'is_pii': True, 'examples': ['Student_1', 'Student_2', 'Student_3']
+                },
+                
+                # Données démographiques
+                {
+                    'name': 'gender', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Student gender identity', 'pos': 3, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['Male', 'Female', 'Other']
+                },
+                {
+                    'name': 'age', 'type_orig': 'int', 'type_interp': 'numerical', 
+                    'desc': 'Age in years', 'pos': 4, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['15', '16', '17']
+                },
+                {
+                    'name': 'grade_level', 'type_orig': 'int', 'type_interp': 'categorical', 
+                    'desc': 'Current grade in school', 'pos': 5, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['9', '10', '11', '12']
+                },
+                
+                # Scores académiques
+                {
+                    'name': 'math_score', 'type_orig': 'int', 'type_interp': 'numerical', 
+                    'desc': 'Marks in mathematics (50-99)', 'pos': 6, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['50', '74', '85', '99']
+                },
+                {
+                    'name': 'reading_score', 'type_orig': 'int', 'type_interp': 'numerical', 
+                    'desc': 'Marks in reading (50-99)', 'pos': 7, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['50', '61', '77', '99']
+                },
+                {
+                    'name': 'writing_score', 'type_orig': 'int', 'type_interp': 'numerical', 
+                    'desc': 'Marks in writing (50-99)', 'pos': 8, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['50', '69', '90', '99']
+                },
+                
+                # Facteurs comportementaux et familiaux
+                {
+                    'name': 'attendance_rate', 'type_orig': 'float', 'type_interp': 'numerical', 
+                    'desc': 'School attendance percentage (80-100)', 'pos': 9, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['80.0', '89.3', '94.7', '99.9']
+                },
+                {
+                    'name': 'parent_education', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Highest education level of parents', 'pos': 10, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['High School', 'Bachelor\'s', 'Master\'s', 'PhD']
+                }
+            ]
+            
+            # Créer les colonnes
+            for col_info in columns_data:
+                file_column = FileColumn(
+                    dataset_file_id=dataset_file.id,
+                    column_name=col_info['name'],
+                    data_type_original=col_info['type_orig'],
+                    data_type_interpreted=col_info['type_interp'],
+                    description=col_info['desc'],
+                    is_primary_key_component=col_info['is_pk'],
+                    is_nullable=col_info['is_null'],
+                    is_pii=col_info['is_pii'],
+                    example_values=col_info['examples'],
+                    position=col_info['pos'],
+                    stats=None  # Pas de statistiques pour le moment
+                )
+                session.add(file_column)
+                print(f"   ✓ Colonne {col_info['pos']}/10: {col_info['name']}")
+            
+            # Valider toutes les modifications
+            session.commit()
+            
+            print("\n🎉 Dataset 'Student Academic Performance Dataset' initialisé avec succès !")
+            print(f"📊 Dataset ID: {dataset.id}")
+            print(f"📁 1 fichier créé")
+            print(f"📋 10 colonnes créées")
+            
+        except Exception as e:
+            session.rollback()
+            print(f"❌ Erreur lors de l'initialisation: {e}")
+            raise
+        finally:
+            session.close()
+
+
+def init_student_depression_dataset():
+    """
+    Initialise le dataset Student Depression Dataset avec son fichier et colonnes.
+    
+    Supprime les données existantes et recrée tout.
+    """
+    
+    # Configuration de la base de données
+    try:
+        database_url = DATABASE_URL
+        print(f"🔌 Connexion à la base de données...")
+    except Exception as e:
+        print(f"❌ Erreur de configuration base de données: {e}")
+        print("💡 Vérifiez que DATABASE_URL est définie dans les variables d'environnement")
+        sys.exit(1)
+    
+    # Créer l'engine et la session
+    engine = create_engine(database_url)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
+    with SessionLocal() as session:
+        try:
+            # === SUPPRESSION DES DONNÉES EXISTANTES ===
+            print("🗑️  Suppression des données existantes pour 'Student Depression Dataset'...")
+            
+            # Supprimer le dataset Student Depression s'il existe déjà (cascade supprimera fichiers et colonnes)
+            existing_dataset = session.query(Dataset).filter(
+                Dataset.dataset_name == "Student Depression Dataset"
+            ).first()
+            
+            if existing_dataset:
+                session.delete(existing_dataset)
+                session.commit()
+                print("✅ Données existantes supprimées")
+            
+            # === CRÉATION DU DATASET ===
+            print("📊 Création du dataset Student Depression Dataset...")
+            
+            dataset = Dataset(
+                # UUID sera généré automatiquement
+                
+                # === IDENTIFICATION & INFORMATIONS GÉNÉRALES ===
+                dataset_name="Student Depression Dataset",
+                year=2024,
+                objective="Analyzing mental health trends and predictors among students",
+                access="public",
+                availability="online_download",
+                num_citations=None,  # x dans le CSV
+                citation_link=None,  # x dans le CSV
+                sources="https://www.kaggle.com/datasets",
+                storage_uri="student_depression_dataset.csv",
+                
+                # === CARACTÉRISTIQUES TECHNIQUES ===
+                instances_number=28000,
+                features_description="Demographics, academic indicators, lifestyle habits, and mental health indicators",
+                features_number=18,
+                domain=["santé mentale", "éducation"],
+                representativity_description="Wide range of students from various cities and backgrounds",
+                representativity_level="moyenne",  # "Medium"
+                sample_balance_description=None,
+                sample_balance_level=None,
+                split=False,
+                missing_values_description="Some features may have nulls, especially sensitive ones",
+                has_missing_values=True,
+                global_missing_percentage=0.5,
+                missing_values_handling_method="none",
+                temporal_factors=False,
+                metadata_provided_with_dataset=True,
+                external_documentation_available=False,
+                documentation_link=None,
+                task=["classification"],  # "Binary classification (Depression: Yes/No)"
+                
+                # === CRITÈRES ÉTHIQUES ===
+                informed_consent=True,
+                transparency=True,
+                user_control=False,
+                equity_non_discrimination=True,
+                security_measures_in_place=True,
+                data_quality_documented=True,
+                data_errors_description=None,
+                anonymization_applied=True,
+                record_keeping_policy_exists=False,
+                purpose_limitation_respected=True,
+                accountability_defined=True
+            )
+            
+            session.add(dataset)
+            session.flush()  # Pour obtenir l'ID du dataset
+            
+            print(f"✅ Dataset créé avec ID: {dataset.id}")
+            
+            # === CRÉATION DU FICHIER ===
+            print("📁 Création du fichier student_depression_dataset.csv...")
+            
+            dataset_file = DatasetFile(
+                dataset_id=dataset.id,
+                file_name_in_storage='student_depression_dataset.csv',
+                logical_role='main_data',
+                format='csv',
+                mime_type='text/csv',
+                size_bytes=2900000,  # 2.9 MB
+                row_count=28000,
+                description='Comprehensive information about students mental health and related factors for analyzing depression trends and predictors'
+            )
+            
+            session.add(dataset_file)
+            session.flush()  # Pour obtenir l'ID du fichier
+            
+            print(f"✅ Fichier créé avec ID: {dataset_file.id}")
+            
+            # === CRÉATION DES COLONNES ===
+            print("🔢 Création des 18 colonnes...")
+            
+            columns_data = [
+                # Identifiant
+                {
+                    'name': 'id', 'type_orig': 'int', 'type_interp': 'categorical', 
+                    'desc': 'Unique identifier assigned to each student record', 'pos': 1, 'is_pk': True, 'is_null': False, 
+                    'is_pii': False, 'examples': ['2', '8', '26', '28000']
+                },
+                
+                # Données démographiques
+                {
+                    'name': 'Gender', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Gender of the student for analyzing gender-specific mental health trends', 'pos': 2, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['Male', 'Female', 'Other']
+                },
+                {
+                    'name': 'Age', 'type_orig': 'float', 'type_interp': 'numerical', 
+                    'desc': 'Age of the student in years', 'pos': 3, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['18.0', '24.0', '31.0', '59.0']
+                },
+                {
+                    'name': 'City', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'City or region where student resides, providing geographical context', 'pos': 4, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['Kalyan', 'Srinagar', 'Visakhapatnam', 'Bangalore', 'Chennai']
+                },
+                {
+                    'name': 'Profession', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Field of work or study offering insights into occupational stress factors', 'pos': 5, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['Student', 'Architect']
+                },
+                
+                # Facteurs de stress académique et professionnel
+                {
+                    'name': 'Academic Pressure', 'type_orig': 'float', 'type_interp': 'numerical', 
+                    'desc': 'Level of pressure faced in academic settings (0-5 scale)', 'pos': 6, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['1.0', '2.0', '3.0', '4.0', '5.0']
+                },
+                {
+                    'name': 'Work Pressure', 'type_orig': 'float', 'type_interp': 'numerical', 
+                    'desc': 'Pressure related to work or job responsibilities (0-5 scale)', 'pos': 7, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['0.0', '1.0', '2.0', '3.0', '4.0', '5.0']
+                },
+                
+                # Performance académique et satisfaction
+                {
+                    'name': 'CGPA', 'type_orig': 'float', 'type_interp': 'numerical', 
+                    'desc': 'Cumulative grade point average reflecting overall academic performance (0-10)', 'pos': 8, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['5.59', '7.03', '8.97', '9.79']
+                },
+                {
+                    'name': 'Study Satisfaction', 'type_orig': 'float', 'type_interp': 'numerical', 
+                    'desc': 'How satisfied student is with studies, correlating with mental well-being (0-5)', 'pos': 9, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['1.0', '2.0', '3.0', '4.0', '5.0']
+                },
+                {
+                    'name': 'Job Satisfaction', 'type_orig': 'float', 'type_interp': 'numerical', 
+                    'desc': 'Satisfaction with job or work environment if applicable (0-4)', 'pos': 10, 'is_pk': False, 'is_null': False, 
+                    'is_pii': False, 'examples': ['0.0', '1.0', '2.0', '3.0', '4.0']
+                },
+                
+                # Facteurs de style de vie
+                {
+                    'name': 'Sleep Duration', 'type_orig': 'string', 'type_interp': 'text', 
+                    'desc': 'Average number of hours student sleeps per day, important mental health factor', 'pos': 11, 'is_pk': False, 'is_null': True, 
+                    'is_pii': False, 'examples': ['7-8 hours', '5-6 hours', '6-7 hours', '8+ hours']
+                },
+                {
+                    'name': 'Dietary Habits', 'type_orig': 'string', 'type_interp': 'text', 
+                    'desc': 'Assessment of eating patterns and nutritional habits impacting health and mood', 'pos': 12, 'is_pk': False, 'is_null': True, 
+                    'is_pii': False, 'examples': ['Healthy', 'Moderate', 'Unhealthy']
+                },
+                {
+                    'name': 'Degree', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Academic degree or program that student is pursuing', 'pos': 13, 'is_pk': False, 'is_null': True, 
+                    'is_pii': False, 'examples': ['Bachelor', 'Master', 'PhD', 'High School']
+                },
+                
+                # Indicateurs de santé mentale critiques
+                {
+                    'name': 'Have you ever had suicidal thoughts ?', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Binary indicator reflecting whether student has experienced suicidal ideation', 'pos': 14, 'is_pk': False, 'is_null': True, 
+                    'is_pii': True, 'examples': ['Yes', 'No']
+                },
+                {
+                    'name': 'Work/Study Hours', 'type_orig': 'string', 'type_interp': 'text', 
+                    'desc': 'Average hours per day dedicated to work or study, influencing stress levels', 'pos': 15, 'is_pk': False, 'is_null': True, 
+                    'is_pii': False, 'examples': ['1-3 hours', '4-6 hours', '7-9 hours', '10+ hours']
+                },
+                {
+                    'name': 'Financial Stress', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Stress experienced due to financial concerns affecting mental health', 'pos': 16, 'is_pk': False, 'is_null': True, 
+                    'is_pii': False, 'examples': ['Low', 'Moderate', 'High']
+                },
+                {
+                    'name': 'Family History of Mental Illness', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Whether there is family history of mental illness, significant predisposition factor', 'pos': 17, 'is_pk': False, 'is_null': True, 
+                    'is_pii': True, 'examples': ['Yes', 'No']
+                },
+                
+                # Variable cible
+                {
+                    'name': 'Depression', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Target variable indicating whether student is experiencing depression (primary focus)', 'pos': 18, 'is_pk': False, 'is_null': False, 
+                    'is_pii': True, 'examples': ['Yes', 'No']
+                }
+            ]
+            
+            # Créer les colonnes
+            for col_info in columns_data:
+                file_column = FileColumn(
+                    dataset_file_id=dataset_file.id,
+                    column_name=col_info['name'],
+                    data_type_original=col_info['type_orig'],
+                    data_type_interpreted=col_info['type_interp'],
+                    description=col_info['desc'],
+                    is_primary_key_component=col_info['is_pk'],
+                    is_nullable=col_info['is_null'],
+                    is_pii=col_info['is_pii'],
+                    example_values=col_info['examples'],
+                    position=col_info['pos'],
+                    stats=None  # Pas de statistiques pour le moment
+                )
+                session.add(file_column)
+                print(f"   ✓ Colonne {col_info['pos']}/18: {col_info['name']}")
+            
+            # Valider toutes les modifications
+            session.commit()
+            
+            print("\n🎉 Dataset 'Student Depression Dataset' initialisé avec succès !")
+            print(f"📊 Dataset ID: {dataset.id}")
+            print(f"📁 1 fichier créé")
+            print(f"📋 18 colonnes créées")
+            
+        except Exception as e:
+            session.rollback()
+            print(f"❌ Erreur lors de l'initialisation: {e}")
+            raise
+        finally:
+            session.close()
+
+
+def init_student_stress_factors_dataset():
+    """
+    Initialise le dataset Student Stress Factors avec tous ses fichiers et colonnes.
+    
+    Ce dataset analyse les facteurs de stress chez les étudiants en ingénierie
+    basé sur la qualité du sommeil, maux de tête, performance académique, 
+    charge d'étude et activités extrascolaires.
+    
+    Supprime les données existantes et recrée tout.
+    """
+    
+    # Configuration de la base de données
+    try:
+        database_url = DATABASE_URL
+        print(f"🔌 Connexion à la base de données...")
+    except Exception as e:
+        print(f"❌ Erreur de configuration base de données: {e}")
+        print("💡 Vérifiez que DATABASE_URL est définie dans l'environnement")
+        sys.exit(1)
+    
+    # Créer l'engine et la session
+    engine = create_engine(database_url)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
+    with SessionLocal() as session:
+        try:
+            print("🗑️  Suppression des données existantes du dataset Student Stress Factors...")
+            
+            # Supprimer le dataset s'il existe déjà (cascade supprimera fichiers et colonnes)
+            existing_dataset = session.query(Dataset).filter(
+                Dataset.dataset_name == "Student Stress Factors"
+            ).first()
+            
+            if existing_dataset:
+                session.delete(existing_dataset)
+                session.commit()
+                print("✅ Données existantes supprimées")
+            
+            print("📊 Création du dataset Student Stress Factors...")
+            
+            # === CRÉATION DU DATASET PRINCIPAL ===
+            dataset = Dataset(
+                # UUID sera généré automatiquement
+                
+                # === IDENTIFICATION & INFORMATIONS GÉNÉRALES ===
+                dataset_name="Student Stress Factors",
+                year=2023,
+                objective="Understanding what impacts stress levels among engineering students based on sleep, headaches, academic performance, study load, extracurricular activities.",
+                access="public",
+                availability="online_download",
+                num_citations=None,  # x dans les données originales
+                citation_link="https://www.kaggle.com/datasets/samyakbavadekar/student-stress-factors",
+                sources="https://www.kaggle.com/datasets/samyakbavadekar/student-stress-factors",
+                storage_uri=None,  # Vide pour le moment
+                
+                # === CARACTÉRISTIQUES TECHNIQUES ===
+                instances_number=520,
+                features_description="Sleep quality, headaches frequency, academic performance, study load, extracurricular activity frequency, stress level (all on scales from 1 to 5).",
+                features_number=6,
+                domain=["éducation"],
+                representativity_description="Survey mainly among engineering students; voluntary participation via Google Forms.",
+                representativity_level="low",
+                sample_balance_description=None,
+                sample_balance_level=None,
+                split=False,  # no split specified
+                missing_values_description="No missing values reported.",
+                has_missing_values=False,
+                global_missing_percentage=0.0,
+                missing_values_handling_method="not applicable",
+                temporal_factors=False,  # Single time point (2023)
+                metadata_provided_with_dataset=False,
+                external_documentation_available=False,
+                documentation_link=None,
+                task=["regression"],
+                
+                # === CRITÈRES ÉTHIQUES ===
+                informed_consent=False,
+                transparency=True,
+                user_control=None,  # unknown
+                equity_non_discrimination=None,  # unknown
+                security_measures_in_place=None,  # unknown
+                data_quality_documented=False,
+                data_errors_description=None,
+                anonymization_applied=True,
+                record_keeping_policy_exists=None,  # unknown
+                purpose_limitation_respected=None,  # not specified
+                accountability_defined=None  # not specified
+            )
+            
+            session.add(dataset)
+            session.flush()  # Pour obtenir l'ID du dataset
+            
+            print(f"✅ Dataset créé avec ID: {dataset.id}")
+            
+            # === CRÉATION DU FICHIER ===
+            print("📁 Création du fichier CSV...")
+            
+            dataset_file = DatasetFile(
+                dataset_id=dataset.id,
+                file_name_in_storage="Student Stress Factors (2).csv",
+                logical_role="main_data",
+                format="csv",
+                mime_type="text/csv",
+                size_bytes=7050,  # 7.05 kB d'après description
+                row_count=520,
+                description="CSV file collected from Google Forms - survey data on engineering student stress factors including sleep quality, academic performance, and stress levels"
+            )
+            
+            session.add(dataset_file)
+            session.flush()  # Pour obtenir l'ID du fichier
+            
+            print(f"✅ Fichier créé avec ID: {dataset_file.id}")
+            
+            # === CRÉATION DES COLONNES ===
+            print("📋 Création des colonnes...")
+            
+            columns_data = [
+                {
+                    'name': 'Kindly Rate your Sleep Quality 😴', 'type_orig': 'integer', 'type_interp': 'numerical',
+                    'desc': 'Sleep quality rating from 1 (very poor) to 5 (excellent) - primary lifestyle factor affecting stress', 'pos': 1, 'is_pk': False, 'is_null': False,
+                    'is_pii': False, 'examples': ['1', '2', '3', '4', '5']
+                },
+                {
+                    'name': 'How many times a week do you suffer headaches 🤕?', 'type_orig': 'integer', 'type_interp': 'numerical',
+                    'desc': 'Frequency of headaches per week from 1 (rare) to 5 (very frequent) - potential stress indicator', 'pos': 2, 'is_pk': False, 'is_null': False,
+                    'is_pii': False, 'examples': ['1', '2', '3', '4', '5']
+                },
+                {
+                    'name': 'How would you rate you academic performance 👩‍🎓?', 'type_orig': 'integer', 'type_interp': 'numerical',
+                    'desc': 'Self-assessed academic performance from 1 (poor) to 5 (excellent) - key academic stress factor', 'pos': 3, 'is_pk': False, 'is_null': False,
+                    'is_pii': False, 'examples': ['1', '2', '3', '4', '5']
+                },
+                {
+                    'name': 'how would you rate your study load?', 'type_orig': 'integer', 'type_interp': 'numerical',
+                    'desc': 'Perceived study workload intensity from 1 (light) to 5 (very heavy) - major stress contributor', 'pos': 4, 'is_pk': False, 'is_null': False,
+                    'is_pii': False, 'examples': ['1', '2', '3', '4', '5']
+                },
+                {
+                    'name': 'How many times a week you practice extracurricular activities 🎾?', 'type_orig': 'integer', 'type_interp': 'numerical',
+                    'desc': 'Frequency of extracurricular participation per week from 1 (rare) to 5 (very frequent) - stress relief factor', 'pos': 5, 'is_pk': False, 'is_null': False,
+                    'is_pii': False, 'examples': ['1', '2', '3', '4', '5']
+                },
+                {
+                    'name': 'How would you rate your stress levels?', 'type_orig': 'integer', 'type_interp': 'numerical',
+                    'desc': 'Overall stress level self-assessment from 1 (very low) to 5 (very high) - target variable for regression analysis', 'pos': 6, 'is_pk': False, 'is_null': False,
+                    'is_pii': False, 'examples': ['1', '2', '3', '4', '5']
+                }
+            ]
+            
+            # Créer les colonnes
+            for col_info in columns_data:
+                file_column = FileColumn(
+                    dataset_file_id=dataset_file.id,
+                    column_name=col_info['name'],
+                    data_type_original=col_info['type_orig'],
+                    data_type_interpreted=col_info['type_interp'],
+                    description=col_info['desc'],
+                    is_primary_key_component=col_info['is_pk'],
+                    is_nullable=col_info['is_null'],
+                    is_pii=col_info['is_pii'],
+                    example_values=col_info['examples'],
+                    position=col_info['pos'],
+                    stats=None  # Pas de statistiques pour le moment
+                )
+                session.add(file_column)
+                print(f"   ✓ Colonne {col_info['pos']}/6: {col_info['name']}")
+            
+            # Valider toutes les modifications
+            session.commit()
+            
+            print("\n🎉 Dataset 'Student Stress Factors' initialisé avec succès !")
+            print(f"📊 Dataset ID: {dataset.id}")
+            print(f"📁 1 fichier créé")
+            print(f"📋 6 colonnes créées")
+            
+        except Exception as e:
+            session.rollback()
+            print(f"❌ Erreur lors de l'initialisation: {e}")
+            raise
+        finally:
+            session.close()
+
+
 def main():
     """Point d'entrée principal du script."""
     print("🚀 Initialisation des datasets")
@@ -1029,6 +1678,30 @@ def main():
             except Exception as e:
                 print(f"\n❌ Échec de l'initialisation Social Media Addiction: {e}")
                 sys.exit(1)
+        elif dataset_name == "academic":
+            print("📊 Initialisation du dataset Student Academic Performance uniquement")
+            try:
+                init_student_academic_performance_dataset()
+                print("\n✅ Dataset Student Academic Performance initialisé avec succès !")
+            except Exception as e:
+                print(f"\n❌ Échec de l'initialisation Student Academic Performance: {e}")
+                sys.exit(1)
+        elif dataset_name == "depression":
+            print("📊 Initialisation du dataset Student Depression uniquement")
+            try:
+                init_student_depression_dataset()
+                print("\n✅ Dataset Student Depression initialisé avec succès !")
+            except Exception as e:
+                print(f"\n❌ Échec de l'initialisation Student Depression: {e}")
+                sys.exit(1)
+        elif dataset_name == "stress":
+            print("📊 Initialisation du dataset Student Stress Factors uniquement")
+            try:
+                init_student_stress_factors_dataset()
+                print("\n✅ Dataset Student Stress Factors initialisé avec succès !")
+            except Exception as e:
+                print(f"\n❌ Échec de l'initialisation Student Stress Factors: {e}")
+                sys.exit(1)
         elif dataset_name == "all":
             print("📊 Initialisation de tous les datasets")
             try:
@@ -1040,13 +1713,19 @@ def main():
                 print("\n✅ Dataset Students Performance initialisé avec succès !")
                 init_social_media_addiction_dataset()
                 print("\n✅ Dataset Social Media Addiction initialisé avec succès !")
+                init_student_academic_performance_dataset()
+                print("\n✅ Dataset Student Academic Performance initialisé avec succès !")
+                init_student_depression_dataset()
+                print("\n✅ Dataset Student Depression initialisé avec succès !")
+                init_student_stress_factors_dataset()
+                print("\n✅ Dataset Student Stress Factors initialisé avec succès !")
                 print("\n🎉 Tous les datasets ont été initialisés avec succès !")
             except Exception as e:
                 print(f"\n❌ Échec de l'initialisation: {e}")
                 sys.exit(1)
         else:
             print(f"❌ Dataset inconnu: {dataset_name}")
-            print("💡 Usage: python scripts/init_datasets.py [ednet|oulad|students|social|all]")
+            print("💡 Usage: python scripts/init_datasets.py [ednet|oulad|students|social|academic|depression|stress|all]")
             sys.exit(1)
     else:
         # Par défaut, initialiser tous les datasets
@@ -1060,6 +1739,12 @@ def main():
             print("\n✅ Dataset Students Performance initialisé avec succès !")
             init_social_media_addiction_dataset()
             print("\n✅ Dataset Social Media Addiction initialisé avec succès !")
+            init_student_academic_performance_dataset()
+            print("\n✅ Dataset Student Academic Performance initialisé avec succès !")
+            init_student_depression_dataset()
+            print("\n✅ Dataset Student Depression initialisé avec succès !")
+            init_student_stress_factors_dataset()
+            print("\n✅ Dataset Student Stress Factors initialisé avec succès !")
             print("\n🎉 Tous les datasets ont été initialisés avec succès !")
         except Exception as e:
             print(f"\n❌ Échec de l'initialisation: {e}")

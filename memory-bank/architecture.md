@@ -110,9 +110,25 @@ graph LR
         *   [✅] **Composants Angular Material** : Cards, filtres, pagination, recherche, tri.
         *   [✅] **Fonctionnalités avancées** : Filtrage multi-critères, recherche textuelle, interface responsive.
         *   [✅] **Menu de navigation optimisé (2025-01-07)** : Menu de gauche nettoyé pour ne conserver que les fonctionnalités EXAI essentielles (Tableau de bord, Datasets, Pipeline ML, Explications XAI). Suppression des éléments de démonstration du thème Spike.
+        *   [✅] **Header optimisé pour EXAI (2025-01-07)** : Suppression du menu Apps inutile, des liens Chat/Calendar/Email. Recherche élargie pour datasets/modèles. Notifications et raccourcis adaptés au contexte EXAI. Profil utilisateur conservé avec traduction française.
+        *   [✅] **Interface Sidebar Collapsible Moderne (2025-07-07)** : Architecture révolutionnaire pour la sélection des datasets.
         *   [⬜] Services API dédiés (`PipelineService`, `XAIService`) **non implémentés**.
         *   [⬜] Modules/Composants pour Pipeline ML et XAI **non implémentés**.
         *   [⬜] Déploiement K8s non configuré.
+
+    *   **Architecture Interface Modal Moderne (2025-07-07) :**
+        *   **Layout Principal Simple** : Header + Recherche rapide + Zone datasets (100% espace)
+        *   **Modal de Filtrage** : Interface spacieuse et claire dédiée au filtrage avancé
+        *   **Preview Temps Réel** : Compteur de résultats pendant modification des filtres
+        *   **Gestion d'État Propre** : `currentFilters` (actuel) + `tempFilters` (modification)
+        *   **Actions Explicites** : Boutons "Annuler", "Effacer tout", "Appliquer" bien visibles
+        *   **UX Intuitive** : Interface non encombrée, focus total sur filtrage quand nécessaire
+        *   **Responsive Excellente** : Modal adaptative desktop/tablet/mobile avec gestures
+        *   **Performance Optimisée** : Debounce recherche, preview asynchrone, animations fluides
+        *   **Fichiers impactés** :
+            *   `frontend/src/app/pages/datasets/dataset-listing.component.html` : Template modal complet
+            *   `frontend/src/app/pages/datasets/dataset-listing.component.scss` : CSS modal moderne
+            *   `frontend/src/app/pages/datasets/dataset-listing.component.ts` : Logique modal + preview
 
 *   **Infrastructure :**
     *   [✅] PostgreSQL déployé sur K8s et accessible.

@@ -22,85 +22,6 @@
   </button>
   }
 
-  <!-- --------------------------------------------------------------- -->
-
-  <div class="d-none d-lg-flex">
-    <!-- --------------------------------------------------------------- -->
-    <!--  Links -->
-    <!-- --------------------------------------------------------------- -->
-    <button
-      mat-button
-      [matMenuTriggerFor]="appsmenu"
-      aria-label="Notifications"
-    >
-      <div class="d-flex align-items-center">
-        Apps <i-tabler name="chevron-down" class="icon-16 m-l-4"></i-tabler>
-      </div>
-    </button>
-    <mat-menu #appsmenu="matMenu" class="apps-dd cardWithShadow">
-      <div class="row">
-        <div class="col-sm-8 b-r-1 p-r-0">
-          <div class="p-32 p-b-0">
-            <div class="row">
-              @for(appdd of apps; track appdd.title) {
-              <div class="col-sm-6 text-hover-primary">
-                <a
-                  [routerLink]="[appdd.link]"
-                  class="d-flex align-items-center text-decoration-none m-b-24"
-                >
-                  <span
-                    class="text-primary bg-light-primary rounded icon-40 d-flex align-items-center justify-content-center"
-                  >
-                    <img [src]="appdd.img" width="20" />
-                  </span>
-
-                  <div class="m-l-16">
-                    <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
-                      {{ appdd.title }}
-                    </h5>
-                    <span class="text-body f-s-12">{{ appdd.subtitle }}</span>
-                  </div>
-                </a>
-              </div>
-              }
-            </div>
-          </div>
-          <div
-            class="b-t-1 p-24 d-none d-lg-flex align-items-center justify-content-between"
-          >
-            <span class="d-flex align-items-center f-s-16 f-w-500">
-              <i-tabler name="help" class="icon-20 m-r-8"></i-tabler>Frequently
-              Asked Questions
-            </span>
-            <a
-              [routerLink]="['/theme-pages/faq']"
-              mat-flat-button
-              color="primary"
-              >Check</a
-            >
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="p-x-16 p-y-32">
-            <h4 class="f-s-18 f-w-600 m-b-16">Quick Links</h4>
-            @for(quicklink of quicklinks; track quicklink.title) {
-            <div class="text-hover-primary">
-              <a
-                [routerLink]="[quicklink.link]"
-                class="hover-text text-decoration-none text-body f-w-600 d-block p-y-8"
-                >{{ quicklink.title }}</a
-              >
-            </div>
-            }
-          </div>
-        </div>
-      </div>
-    </mat-menu>
-    <a mat-button href="javascript:void(0)">Chat</a>
-    <a mat-button href="javascript:void(0)">Calendar</a>
-    <a mat-button href="javascript:void(0)">Email</a>
-  </div>
-
   <span class="flex-1-auto"></span>
 
   <!-- Mobile Menu -->
@@ -113,17 +34,19 @@
   </button>
 
   <!-- --------------------------------------------------------------- -->
-  <!--  Search -->
+  <!--  Recherche EXAI Élargie -->
   <!-- --------------------------------------------------------------- -->
-  <button
-    mat-stroked-button
-    class="d-none d-lg-flex custom-outline-btn"
-  >
-    <div class="d-flex align-items-center">
-      <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> Try to
-      Searching...
-    </div>
-  </button>
+  <div class="search-container d-none d-lg-flex flex-1 max-width-400 m-r-16">
+    <button
+      mat-stroked-button
+      class="w-100 custom-outline-btn search-btn-expanded"
+    >
+      <div class="d-flex align-items-center w-100">
+        <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> 
+        <span class="text-muted">Rechercher datasets, modèles, explications...</span>
+      </div>
+    </button>
+  </div>
 
   <!-- --------------------------------------------------------------- -->
   <!-- langugage Dropdown -->
@@ -199,32 +122,17 @@
       </button>
 
       <!-- --------------------------------------------------------------- -->
-      <!-- shortcut Dropdown -->
+      <!-- Notifications EXAI -->
       <!-- --------------------------------------------------------------- -->
       <button
         mat-icon-button
         [matMenuTriggerFor]="notificationMenu"
         aria-label="Notifications"
       >
-        <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
+        <i-tabler class="d-flex" name="bell"></i-tabler>
         <div class="pulse">
           <span class="heartbit border-success"></span>
           <span class="point bg-success"></span>
-        </div>
-      </button>
-
-      <!-- --------------------------------------------------------------- -->
-      <!-- Messages Dropdown -->
-      <!-- --------------------------------------------------------------- -->
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="msgMenu"
-        aria-label="Messages"
-      >
-        <i-tabler class="d-flex" name="message-2"></i-tabler>
-        <div class="pulse">
-          <span class="heartbit border-primary"></span>
-          <span class="point bg-primary"></span>
         </div>
       </button>
 
@@ -237,7 +145,7 @@
         color="inherit"
         [matMenuTriggerFor]="profileMenu"
         class="profile-btn"
-        aria-label="Notifications"
+        aria-label="Profile"
       >
         <div class="d-flex align-items-center gap-12">
           <img
@@ -257,57 +165,7 @@
   }
 
   <!-- --------------------------------------------------------------- -->
-  <!-- Messages Dropdown -->
-  <!-- --------------------------------------------------------------- -->
-  <button
-    mat-icon-button
-    [matMenuTriggerFor]="msgMenu"
-    aria-label="Messages"
-    class="d-none d-lg-block align-items-center justify-content-center"
-  >
-    <i-tabler class="d-flex" name="message-2"></i-tabler>
-    <div class="pulse">
-      <span class="heartbit border-primary"></span>
-      <span class="point bg-primary"></span>
-    </div>
-  </button>
-  <mat-menu
-    #msgMenu="matMenu"
-    xPosition="before"
-    class="topbar-dd cardWithShadow"
-  >
-    <div class="d-flex align-items-center p-x-32 p-y-16">
-      <h6 class="f-s-16 f-w-600 m-0">Messages</h6>
-      <span class="m-l-16">
-        <span class="bg-warning text-white p-x-8 p-y-4 f-w-500 rounded f-s-12"
-          >5 new</span
-        >
-      </span>
-    </div>
-
-    @for(notification of notifications; track notification.title) {
-    <button mat-menu-item class="p-x-32 p-y-16">
-      <div class="d-flex align-items-center">
-        <img [src]="notification.img" class="rounded-circle" width="48" />
-        <div class="m-l-16">
-          <h5 class="f-s-14 f-w-600 m-0">
-            {{ notification.title }}
-          </h5>
-          <span>{{ notification.subtitle }}</span>
-        </div>
-      </div>
-    </button>
-    }
-
-    <div class="p-y-12 p-x-32">
-      <button mat-flat-button color="primary" class="w-100">
-        See All Messages
-      </button>
-    </div>
-  </mat-menu>
-
-  <!-- --------------------------------------------------------------- -->
-  <!-- Shortcuts Dropdown -->
+  <!-- Notifications EXAI Desktop -->
   <!-- --------------------------------------------------------------- -->
   <button
     mat-icon-button
@@ -315,7 +173,7 @@
     aria-label="Notifications"
     class="d-none d-lg-block align-items-center justify-content-center"
   >
-    <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
+    <i-tabler class="d-flex" name="bell"></i-tabler>
     <div class="pulse">
       <span class="heartbit border-success"></span>
       <span class="point bg-success"></span>
@@ -327,94 +185,63 @@
     class="topbar-dd cardWithShadow"
   >
     <div class="d-flex align-items-center p-x-32 p-y-16">
-      <h6 class="f-s-16 f-w-600 m-0">Shortcuts</h6>
+      <h6 class="f-s-16 f-w-600 m-0">Raccourcis EXAI</h6>
     </div>
     <div class="row m-x-0">
       <div class="col-6 p-x-0">
         <a
           class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-t-1 b-b-1 b-r-1"
-          [routerLink]="['/']"
+          [routerLink]="['/datasets']"
         >
           <div
-            class="icon-45 bg-light-success rounded-circle m-auto round d-flex align-items-center justify-content-center"
+            class="icon-45 bg-light-primary rounded-circle m-auto round d-flex align-items-center justify-content-center"
           >
-            <i-tabler name="list-check" class="icon-20 text-success"></i-tabler>
+            <i-tabler name="database" class="icon-20 text-primary"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Invoice</h6>
-          <p class="d-block m-0 text-body f-w-500">Get latest invoice</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">Datasets</h6>
+          <p class="d-block m-0 text-body f-w-500">Explorer les données</p>
         </a>
       </div>
       <div class="col-6 p-x-0">
         <a
           class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-t-1 b-b-1"
-          [routerLink]="['/']"
+          [routerLink]="['/ml-pipeline']"
         >
           <div
-            class="icon-45 bg-light-primary rounded-circle m-auto round d-flex align-items-center justify-content-center"
+            class="icon-45 bg-light-warning rounded-circle m-auto round d-flex align-items-center justify-content-center"
           >
-            <i-tabler name="message-2" class="icon-20 text-primary"></i-tabler>
+            <i-tabler name="chart-dots" class="icon-20 text-warning"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Chat</h6>
-          <p class="d-block m-0 text-body f-w-500">New messages</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">Pipeline ML</h6>
+          <p class="d-block m-0 text-body f-w-500">Créer des modèles</p>
         </a>
       </div>
       <div class="col-6 p-x-0">
         <a
           class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-b-1 b-r-1"
-          [routerLink]="['/']"
+          [routerLink]="['/xai-explanations']"
         >
           <div
-            class="icon-45 bg-light-secondary rounded-circle m-auto round d-flex align-items-center justify-content-center"
+            class="icon-45 bg-light-success rounded-circle m-auto round d-flex align-items-center justify-content-center"
           >
-            <i-tabler
-              name="phone-call"
-              class="icon-20 text-secondary"
-            ></i-tabler>
+            <i-tabler name="bulb" class="icon-20 text-success"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Contact</h6>
-          <p class="d-block m-0 text-body f-w-500">2 Unsaved Contacts</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">Explications XAI</h6>
+          <p class="d-block m-0 text-body f-w-500">Comprendre les modèles</p>
         </a>
       </div>
       <div class="col-6 p-x-0">
         <a
           class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-b-1"
-          [routerLink]="['/']"
+          [routerLink]="['/starter']"
         >
           <div
-            class="icon-45 bg-light-error rounded-circle m-auto round d-flex align-items-center justify-content-center"
+            class="icon-45 bg-light-secondary rounded-circle m-auto round d-flex align-items-center justify-content-center"
           >
-            <i-tabler name="mail" class="icon-20 text-error"></i-tabler>
+            <i-tabler name="dashboard" class="icon-20 text-secondary"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Email</h6>
-          <p class="d-block m-0 text-body f-w-500">Get new emails</p>
-        </a>
-      </div>
-      <div class="col-6 p-x-0">
-        <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-r-1"
-          [routerLink]="['/']"
-        >
-          <div
-            class="icon-45 bg-light-warning rounded-circle m-auto round d-flex align-items-center justify-content-center"
-          >
-            <i-tabler name="edit" class="icon-20 text-warning"></i-tabler>
-          </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">ToDo</h6>
-          <p class="d-block m-0 text-body f-w-500">Daily tasks</p>
-        </a>
-      </div>
-      <div class="col-6 p-x-0">
-        <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center"
-          [routerLink]="['/']"
-        >
-          <div
-            class="icon-45 bg-light-success rounded-circle m-auto round d-flex align-items-center justify-content-center"
-          >
-            <i-tabler name="calendar" class="icon-20 text-success"></i-tabler>
-          </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Calendar</h6>
-          <p class="d-block m-0 text-body f-w-500">Get dates</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">Tableau de bord</h6>
+          <p class="d-block m-0 text-body f-w-500">Vue d'ensemble</p>
         </a>
       </div>
     </div>
@@ -428,7 +255,7 @@
     extended
     color="inherit"
     [matMenuTriggerFor]="profileMenu"
-    aria-label="Notifications"
+    aria-label="Profile"
     class="profile-btn d-none d-lg-flex align-items-center justify-content-center"
   >
     <div class="d-flex align-items-center gap-12">
@@ -451,7 +278,7 @@
   >
     <ng-scrollbar class="position-relative" style="height: 495px">
       <div class="p-x-32 p-y-16">
-        <h6 class="f-s-16 f-w-600 m-0">User Profile</h6>
+        <h6 class="f-s-16 f-w-600 m-0">Profil Utilisateur</h6>
 
         <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
           <img
@@ -503,7 +330,7 @@
           class="w-100"
           (click)="logout()"
         >
-          Logout
+          Déconnexion
         </button>
       </div>
     </ng-scrollbar>
