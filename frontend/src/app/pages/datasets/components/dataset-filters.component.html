@@ -1,187 +1,205 @@
-<form [formGroup]="filterForm" class="dataset-filters">
-  <!-- En-tête des filtres -->
+<form [formGroup]="filterForm" class="modern-filters">
+  <!-- Header moderne et spacieux -->
   <div class="filters-header">
-    <div class="header-left">
-      <mat-icon>filter_alt</mat-icon>
-      <h3>Filtres</h3>
-      <mat-chip 
-        *ngIf="hasActiveFilters()" 
-        class="active-filters-count"
-        color="primary">
-        {{ getActiveFiltersCount() }}
-      </mat-chip>
-    </div>
-    <div class="header-actions">
-      <button 
-        mat-icon-button 
-        *ngIf="hasActiveFilters()"
-        (click)="resetFilters()"
-        matTooltip="Réinitialiser tous les filtres">
-        <mat-icon>clear_all</mat-icon>
-      </button>
-      <button 
-        mat-icon-button 
-        *ngIf="collapsible"
-        (click)="toggleExpansion()"
-        matTooltip="Masquer/Afficher les filtres">
-        <mat-icon>{{ isExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-      </button>
+    <div class="header-content">
+      <div class="header-title">
+        <mat-icon class="header-icon">tune</mat-icon>
+        <h2>Filtres avancés</h2>
+        <mat-chip 
+          *ngIf="hasActiveFilters()" 
+          class="filters-count">
+          {{ getActiveFiltersCount() }}
+        </mat-chip>
+      </div>
+      <div class="header-actions">
+        <button 
+          mat-stroked-button 
+          color="primary"
+          *ngIf="hasActiveFilters()"
+          (click)="resetFilters()"
+          class="reset-btn">
+          <mat-icon>refresh</mat-icon>
+          Réinitialiser
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Contenu des filtres -->
-  <div class="filters-content" [ngClass]="{'collapsed': !isExpanded}">
+  <!-- Contenu des filtres avec sections cards -->
+  <div class="filters-body">
     
     <!-- Section Recherche textuelle -->
-    <mat-expansion-panel class="filter-section" expanded="true">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon>search</mat-icon>
-          Recherche textuelle
-        </mat-panel-title>
-        <mat-panel-description>
-          Nom et description du dataset
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+    <div class="filter-card">
+      <div class="card-header">
+        <div class="section-title">
+          <mat-icon class="section-icon">search</mat-icon>
+          <h3>Recherche textuelle</h3>
+        </div>
+        <p class="section-description">Rechercher par nom ou description du dataset</p>
+      </div>
       
-      <div class="filter-section-content">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nom du dataset</mat-label>
-          <input 
-            matInput 
-            formControlName="dataset_name"
-            placeholder="Ex: EdNet, MNIST, etc."
-            autocomplete="off">
-          <mat-icon matSuffix>label</mat-icon>
-        </mat-form-field>
+      <div class="card-content">
+        <div class="input-group">
+          <mat-form-field appearance="outline" class="modern-input">
+            <mat-label>Nom du dataset</mat-label>
+            <input 
+              matInput 
+              formControlName="dataset_name"
+              placeholder="Ex: EdNet, MNIST, ImageNet..."
+              autocomplete="off">
+            <mat-icon matSuffix>label_outline</mat-icon>
+          </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Description/Objectif</mat-label>
-          <input 
-            matInput 
-            formControlName="objective"
-            placeholder="Ex: prédiction, classification, etc."
-            autocomplete="off">
-          <mat-icon matSuffix>description</mat-icon>
-        </mat-form-field>
+        <div class="input-group">
+          <mat-form-field appearance="outline" class="modern-input">
+            <mat-label>Description/Objectif</mat-label>
+            <textarea 
+              matInput 
+              formControlName="objective"
+              placeholder="Mots-clés sur l'objectif ou le contenu du dataset..."
+              rows="2"
+              autocomplete="off"></textarea>
+            <mat-icon matSuffix>description</mat-icon>
+          </mat-form-field>
+        </div>
 
-        <div class="section-actions">
+        <div class="card-actions" *ngIf="filterForm.get('dataset_name')?.value || filterForm.get('objective')?.value">
           <button 
             mat-button 
             color="warn"
             (click)="resetSection('text')"
-            [disabled]="!filterForm.get('dataset_name')?.value && !filterForm.get('objective')?.value">
+            class="clear-section-btn">
             <mat-icon>clear</mat-icon>
-            Effacer
+            Effacer cette section
           </button>
         </div>
       </div>
-    </mat-expansion-panel>
+    </div>
 
     <!-- Section Domaines et Tâches -->
-    <mat-expansion-panel class="filter-section" expanded="false">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon>category</mat-icon>
-          Domaines et Tâches ML
-        </mat-panel-title>
-        <mat-panel-description>
-          Filtrer par domaine d'application et type de tâche
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+    <div class="filter-card">
+      <div class="card-header">
+        <div class="section-title">
+          <mat-icon class="section-icon">category</mat-icon>
+          <h3>Domaines et Tâches ML</h3>
+        </div>
+        <p class="section-description">Filtrer par domaine d'application et type de tâche</p>
+      </div>
       
-      <div class="filter-section-content">
+      <div class="card-content">
         <!-- Domaines -->
         <div class="subsection">
-          <h4>Domaines d'application</h4>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Sélectionner des domaines</mat-label>
-            <mat-select 
-              formControlName="domain"
-              multiple
-              placeholder="Choisir des domaines">
-              <mat-option *ngFor="let domain of availableDomains" [value]="domain">
-                {{ domain }}
-              </mat-option>
-            </mat-select>
-            <mat-icon matSuffix>domain</mat-icon>
-          </mat-form-field>
+          <h4 class="subsection-title">
+            <mat-icon>domain</mat-icon>
+            Domaines d'application
+          </h4>
+          
+          <div class="input-group">
+            <mat-form-field appearance="outline" class="modern-input">
+              <mat-label>Sélectionner des domaines</mat-label>
+              <mat-select 
+                formControlName="domain"
+                multiple
+                placeholder="Choisir un ou plusieurs domaines">
+                <mat-option *ngFor="let domain of availableDomains" [value]="domain">
+                  {{ domain }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>expand_more</mat-icon>
+            </mat-form-field>
+          </div>
 
           <!-- Chips des domaines sélectionnés -->
           <div class="selected-chips" *ngIf="getSelectedDomains().length > 0">
-            <mat-chip 
-              *ngFor="let domain of getSelectedDomains()"
-              [removable]="true"
-              (removed)="removeDomain(domain)"
-              [color]="getDomainColor(domain)">
-              {{ domain }}
-              <mat-icon matChipRemove>cancel</mat-icon>
-            </mat-chip>
+            <div class="chips-label">Domaines sélectionnés :</div>
+            <div class="chips-container">
+              <mat-chip 
+                *ngFor="let domain of getSelectedDomains()"
+                [removable]="true"
+                (removed)="removeDomain(domain)"
+                class="domain-chip">
+                <mat-icon matChipAvatar>domain</mat-icon>
+                {{ domain }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            </div>
           </div>
         </div>
 
         <!-- Tâches ML -->
         <div class="subsection">
-          <h4>Types de tâches ML</h4>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Sélectionner des tâches</mat-label>
-            <mat-select 
-              formControlName="task"
-              multiple
-              placeholder="Choisir des tâches">
-              <mat-option *ngFor="let task of availableTasks" [value]="task">
-                <mat-icon>{{ getTaskIcon(task) }}</mat-icon>
-                {{ task }}
-              </mat-option>
-            </mat-select>
-            <mat-icon matSuffix>psychology</mat-icon>
-          </mat-form-field>
+          <h4 class="subsection-title">
+            <mat-icon>psychology</mat-icon>
+            Types de tâches ML
+          </h4>
+          
+          <div class="input-group">
+            <mat-form-field appearance="outline" class="modern-input">
+              <mat-label>Sélectionner des tâches</mat-label>
+              <mat-select 
+                formControlName="task"
+                multiple
+                placeholder="Choisir un ou plusieurs types de tâches">
+                <mat-option *ngFor="let task of availableTasks" [value]="task">
+                  <mat-icon>{{ getTaskIcon(task) }}</mat-icon>
+                  {{ task }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>expand_more</mat-icon>
+            </mat-form-field>
+          </div>
 
           <!-- Chips des tâches sélectionnées -->
           <div class="selected-chips" *ngIf="getSelectedTasks().length > 0">
-            <mat-chip 
-              *ngFor="let task of getSelectedTasks()"
-              [removable]="true"
-              (removed)="removeTask(task)"
-              color="primary">
-              <mat-icon matChipAvatar>{{ getTaskIcon(task) }}</mat-icon>
-              {{ task }}
-              <mat-icon matChipRemove>cancel</mat-icon>
-            </mat-chip>
+            <div class="chips-label">Tâches sélectionnées :</div>
+            <div class="chips-container">
+              <mat-chip 
+                *ngFor="let task of getSelectedTasks()"
+                [removable]="true"
+                (removed)="removeTask(task)"
+                class="task-chip">
+                <mat-icon matChipAvatar>{{ getTaskIcon(task) }}</mat-icon>
+                {{ task }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            </div>
           </div>
         </div>
 
-        <div class="section-actions">
+        <div class="card-actions" *ngIf="getSelectedDomains().length > 0 || getSelectedTasks().length > 0">
           <button 
             mat-button 
             color="warn"
             (click)="resetSection('category')"
-            [disabled]="getSelectedDomains().length === 0 && getSelectedTasks().length === 0">
+            class="clear-section-btn">
             <mat-icon>clear</mat-icon>
-            Effacer
+            Effacer cette section
           </button>
         </div>
       </div>
-    </mat-expansion-panel>
+    </div>
 
     <!-- Section Caractéristiques numériques -->
-    <mat-expansion-panel class="filter-section" expanded="false">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon>bar_chart</mat-icon>
-          Caractéristiques numériques
-        </mat-panel-title>
-        <mat-panel-description>
-          Taille, nombre de features, année
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+    <div class="filter-card">
+      <div class="card-header">
+        <div class="section-title">
+          <mat-icon class="section-icon">analytics</mat-icon>
+          <h3>Caractéristiques numériques</h3>
+        </div>
+        <p class="section-description">Filtrer par taille, nombre de features et année</p>
+      </div>
       
-      <div class="filter-section-content">
+      <div class="card-content">
         <!-- Nombre d'instances -->
         <div class="subsection">
-          <h4>Nombre d'instances</h4>
-          <div class="range-inputs">
-            <mat-form-field appearance="outline" class="range-field">
+          <h4 class="subsection-title">
+            <mat-icon>storage</mat-icon>
+            Nombre d'instances
+          </h4>
+          
+          <div class="range-group">
+            <mat-form-field appearance="outline" class="range-input">
               <mat-label>Minimum</mat-label>
               <input 
                 matInput 
@@ -189,12 +207,15 @@
                 formControlName="instances_number_min"
                 [min]="instancesRange.min"
                 [max]="instancesRange.max"
-                [step]="instancesRange.step"
-                placeholder="0">
-              <mat-icon matSuffix>storage</mat-icon>
+                placeholder="Ex: 1000">
+              <span matTextSuffix>instances</span>
             </mat-form-field>
-            <span class="range-separator">-</span>
-            <mat-form-field appearance="outline" class="range-field">
+            
+            <div class="range-separator">
+              <mat-icon>trending_flat</mat-icon>
+            </div>
+            
+            <mat-form-field appearance="outline" class="range-input">
               <mat-label>Maximum</mat-label>
               <input 
                 matInput 
@@ -202,18 +223,21 @@
                 formControlName="instances_number_max"
                 [min]="instancesRange.min"
                 [max]="instancesRange.max"
-                [step]="instancesRange.step"
-                placeholder="∞">
-              <mat-icon matSuffix>storage</mat-icon>
+                placeholder="Ex: 1000000">
+              <span matTextSuffix>instances</span>
             </mat-form-field>
           </div>
         </div>
 
         <!-- Nombre de features -->
         <div class="subsection">
-          <h4>Nombre de features</h4>
-          <div class="range-inputs">
-            <mat-form-field appearance="outline" class="range-field">
+          <h4 class="subsection-title">
+            <mat-icon>view_column</mat-icon>
+            Nombre de features
+          </h4>
+          
+          <div class="range-group">
+            <mat-form-field appearance="outline" class="range-input">
               <mat-label>Minimum</mat-label>
               <input 
                 matInput 
@@ -221,12 +245,15 @@
                 formControlName="features_number_min"
                 [min]="featuresRange.min"
                 [max]="featuresRange.max"
-                [step]="featuresRange.step"
-                placeholder="0">
-              <mat-icon matSuffix>view_column</mat-icon>
+                placeholder="Ex: 5">
+              <span matTextSuffix>features</span>
             </mat-form-field>
-            <span class="range-separator">-</span>
-            <mat-form-field appearance="outline" class="range-field">
+            
+            <div class="range-separator">
+              <mat-icon>trending_flat</mat-icon>
+            </div>
+            
+            <mat-form-field appearance="outline" class="range-input">
               <mat-label>Maximum</mat-label>
               <input 
                 matInput 
@@ -234,18 +261,21 @@
                 formControlName="features_number_max"
                 [min]="featuresRange.min"
                 [max]="featuresRange.max"
-                [step]="featuresRange.step"
-                placeholder="∞">
-              <mat-icon matSuffix>view_column</mat-icon>
+                placeholder="Ex: 100">
+              <span matTextSuffix>features</span>
             </mat-form-field>
           </div>
         </div>
 
         <!-- Année -->
         <div class="subsection">
-          <h4>Année de publication</h4>
-          <div class="range-inputs">
-            <mat-form-field appearance="outline" class="range-field">
+          <h4 class="subsection-title">
+            <mat-icon>calendar_today</mat-icon>
+            Année de création
+          </h4>
+          
+          <div class="range-group">
+            <mat-form-field appearance="outline" class="range-input">
               <mat-label>Depuis</mat-label>
               <input 
                 matInput 
@@ -253,12 +283,14 @@
                 formControlName="year_min"
                 [min]="yearRange.min"
                 [max]="yearRange.max"
-                [step]="yearRange.step"
-                placeholder="1990">
-              <mat-icon matSuffix>calendar_today</mat-icon>
+                placeholder="Ex: 2015">
             </mat-form-field>
-            <span class="range-separator">-</span>
-            <mat-form-field appearance="outline" class="range-field">
+            
+            <div class="range-separator">
+              <mat-icon>trending_flat</mat-icon>
+            </div>
+            
+            <mat-form-field appearance="outline" class="range-input">
               <mat-label>Jusqu'à</mat-label>
               <input 
                 matInput 
@@ -266,113 +298,163 @@
                 formControlName="year_max"
                 [min]="yearRange.min"
                 [max]="yearRange.max"
-                [step]="yearRange.step"
-                [placeholder]="yearRange.max.toString()">
-              <mat-icon matSuffix>calendar_today</mat-icon>
+                placeholder="Ex: 2024">
             </mat-form-field>
           </div>
         </div>
 
-        <div class="section-actions">
+        <div class="card-actions" *ngIf="hasNumericalFilters()">
           <button 
             mat-button 
             color="warn"
-            (click)="resetSection('numeric')">
+            (click)="resetSection('numerical')"
+            class="clear-section-btn">
             <mat-icon>clear</mat-icon>
-            Effacer
+            Effacer cette section
           </button>
         </div>
       </div>
-    </mat-expansion-panel>
+    </div>
 
     <!-- Section Critères de qualité -->
-    <mat-expansion-panel class="filter-section" expanded="false">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon>verified</mat-icon>
-          Critères de qualité
-        </mat-panel-title>
-        <mat-panel-description>
-          Propriétés et critères éthiques
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+    <div class="filter-card">
+      <div class="card-header">
+        <div class="section-title">
+          <mat-icon class="section-icon">verified</mat-icon>
+          <h3>Critères de qualité</h3>
+        </div>
+        <p class="section-description">Propriétés éthiques et critères de qualité</p>
+      </div>
       
-      <div class="filter-section-content">
-        <!-- Propriétés techniques -->
+      <div class="card-content">
+        <!-- Score éthique -->
         <div class="subsection">
-          <h4>Propriétés techniques</h4>
-          <div class="checkbox-group">
+          <h4 class="subsection-title">
+            <mat-icon>security</mat-icon>
+            Score éthique minimum
+          </h4>
+          
+          <div class="input-group">
+            <mat-form-field appearance="outline" class="modern-input">
+              <mat-label>Score minimum requis</mat-label>
+              <mat-select formControlName="ethical_score_min">
+                <mat-option [value]="null">Aucun critère</mat-option>
+                <mat-option [value]="80">Excellent (80%+)</mat-option>
+                <mat-option [value]="60">Bon (60%+)</mat-option>
+                <mat-option [value]="40">Acceptable (40%+)</mat-option>
+                <mat-option [value]="0">Tous scores</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>shield</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Représentativité -->
+        <div class="subsection">
+          <h4 class="subsection-title">
+            <mat-icon>analytics</mat-icon>
+            Niveau de représentativité
+          </h4>
+          
+          <div class="input-group">
+            <mat-form-field appearance="outline" class="modern-input">
+              <mat-label>Niveau minimum</mat-label>
+              <mat-select formControlName="representativity_level">
+                <mat-option [value]="null">Tous niveaux</mat-option>
+                <mat-option value="élevée">Élevée uniquement</mat-option>
+                <mat-option value="moyenne">Moyenne et plus</mat-option>
+                <mat-option value="faible">Tous (y compris faible)</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>trending_up</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Options booléennes -->
+        <div class="subsection">
+          <h4 class="subsection-title">
+            <mat-icon>checklist</mat-icon>
+            Caractéristiques requises
+          </h4>
+          
+          <div class="checkbox-grid">
             <mat-checkbox 
-              formControlName="has_missing_values"
-              [indeterminate]="filterForm.get('has_missing_values')?.value === null">
-              <mat-icon class="checkbox-icon">warning</mat-icon>
-              Contient des valeurs manquantes
+              formControlName="is_split"
+              class="quality-checkbox">
+              <div class="checkbox-content">
+                <mat-icon>call_split</mat-icon>
+                <span>Dataset divisé (train/test)</span>
+              </div>
             </mat-checkbox>
+            
             <mat-checkbox 
-              formControlName="split"
-              [indeterminate]="filterForm.get('split')?.value === null">
-              <mat-icon class="checkbox-icon">call_split</mat-icon>
-              Déjà divisé (train/test)
+              formControlName="is_anonymized"
+              class="quality-checkbox">
+              <div class="checkbox-content">
+                <mat-icon>verified_user</mat-icon>
+                <span>Données anonymisées</span>
+              </div>
+            </mat-checkbox>
+            
+            <mat-checkbox 
+              formControlName="has_temporal_factors"
+              class="quality-checkbox">
+              <div class="checkbox-content">
+                <mat-icon>schedule</mat-icon>
+                <span>Facteurs temporels</span>
+              </div>
+            </mat-checkbox>
+            
+            <mat-checkbox 
+              formControlName="is_public"
+              class="quality-checkbox">
+              <div class="checkbox-content">
+                <mat-icon>public</mat-icon>
+                <span>Accès public uniquement</span>
+              </div>
             </mat-checkbox>
           </div>
         </div>
 
-        <!-- Critères éthiques -->
-        <div class="subsection">
-          <h4>Critères éthiques</h4>
-          <div class="checkbox-group">
-            <mat-checkbox 
-              formControlName="anonymization_applied"
-              [indeterminate]="filterForm.get('anonymization_applied')?.value === null">
-              <mat-icon class="checkbox-icon">privacy_tip</mat-icon>
-              Anonymisation appliquée
-            </mat-checkbox>
-            <mat-checkbox 
-              formControlName="informed_consent"
-              [indeterminate]="filterForm.get('informed_consent')?.value === null">
-              <mat-icon class="checkbox-icon">how_to_reg</mat-icon>
-              Consentement éclairé
-            </mat-checkbox>
-            <mat-checkbox 
-              formControlName="transparency"
-              [indeterminate]="filterForm.get('transparency')?.value === null">
-              <mat-icon class="checkbox-icon">visibility</mat-icon>
-              Transparence des données
-            </mat-checkbox>
-          </div>
-        </div>
-
-        <div class="section-actions">
+        <div class="card-actions" *ngIf="hasQualityFilters()">
           <button 
             mat-button 
             color="warn"
-            (click)="resetSection('boolean')">
+            (click)="resetSection('quality')"
+            class="clear-section-btn">
             <mat-icon>clear</mat-icon>
-            Effacer
+            Effacer cette section
           </button>
         </div>
       </div>
-    </mat-expansion-panel>
+    </div>
 
   </div>
 
-  <!-- Actions principales -->
-  <div class="filters-actions" *ngIf="showApplyButton && !autoApply">
-    <button 
-      mat-raised-button 
-      color="primary"
-      (click)="applyFilters()"
-      [disabled]="!hasActiveFilters()">
-      <mat-icon>search</mat-icon>
-      Appliquer les filtres
-    </button>
-    <button 
-      mat-button 
-      color="warn"
-      (click)="resetFilters()"
-      [disabled]="!hasActiveFilters()">
-      <mat-icon>clear_all</mat-icon>
-      Réinitialiser
-    </button>
+  <!-- Footer avec actions principales -->
+  <div class="filters-footer" *ngIf="hasActiveFilters()">
+    <div class="footer-content">
+      <div class="active-filters-summary">
+        <mat-icon>filter_list</mat-icon>
+        <span><strong>{{ getActiveFiltersCount() }}</strong> filtre(s) actif(s)</span>
+      </div>
+      <div class="footer-actions">
+        <button 
+          mat-button 
+          (click)="resetFilters()"
+          class="reset-all-btn">
+          <mat-icon>clear_all</mat-icon>
+          Tout effacer
+        </button>
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="applyFilters()"
+          class="apply-btn">
+          <mat-icon>done</mat-icon>
+          Appliquer les filtres
+        </button>
+      </div>
+    </div>
   </div>
 </form> 

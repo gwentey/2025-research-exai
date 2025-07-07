@@ -133,12 +133,22 @@ export interface DatasetFilterCriteria {
   year_min?: number;
   year_max?: number;
   
+  // Filtres de qualité et éthique
+  ethical_score_min?: number;
+  representativity_level?: string;
+  
   // Filtres booléens
   has_missing_values?: boolean;
   split?: boolean;
   anonymization_applied?: boolean;
   informed_consent?: boolean;
   transparency?: boolean;
+  
+  // Nouveaux filtres booléens pour l'interface moderne
+  is_split?: boolean;
+  is_anonymized?: boolean;
+  has_temporal_factors?: boolean;
+  is_public?: boolean;
 }
 
 /**

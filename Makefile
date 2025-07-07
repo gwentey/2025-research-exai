@@ -92,8 +92,8 @@ migrate: wait-services migrate-jobs ## Lance les migrations (attend les services
 
 init-data: ## Initialise les données de test dans la base de données
 	@echo "$(BLUE)Initialisation des donnees de test...$(NC)"
-	@echo "$(YELLOW)Execution du script d'initialisation EdNet...$(NC)"
-	@kubectl exec -n $(NAMESPACE) deployment/service-selection -- python scripts/init_ednet_dataset.py
+	@echo "$(YELLOW)Execution du script d'initialisation des datasets...$(NC)"
+	@kubectl exec -n $(NAMESPACE) deployment/service-selection -- python scripts/init_datasets.py all
 	@echo "$(GREEN)Donnees de test initialisees avec succes$(NC)"
 
 dev: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy migrate logs ## Installation complète et démarrage en mode développement

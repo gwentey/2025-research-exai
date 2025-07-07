@@ -66,7 +66,7 @@ export class DatasetFiltersComponent implements OnInit, OnDestroy {
   // État de l'expansion des sections
   isExpanded = true;
   
-  // Ranges pour les sliders
+  // Ranges pour les inputs numériques
   instancesRange = { min: 0, max: 1000000000, step: 1000 };
   featuresRange = { min: 0, max: 1000, step: 1 };
   yearRange = { min: 1990, max: new Date().getFullYear(), step: 1 };
@@ -107,12 +107,15 @@ export class DatasetFiltersComponent implements OnInit, OnDestroy {
       year_min: [this.initialFilters.year_min || null],
       year_max: [this.initialFilters.year_max || null],
       
+      // Filtres de qualité
+      ethical_score_min: [this.initialFilters.ethical_score_min || null],
+      representativity_level: [this.initialFilters.representativity_level || null],
+      
       // Filtres booléens
-      has_missing_values: [this.initialFilters.has_missing_values],
-      split: [this.initialFilters.split],
-      anonymization_applied: [this.initialFilters.anonymization_applied],
-      informed_consent: [this.initialFilters.informed_consent],
-      transparency: [this.initialFilters.transparency]
+      is_split: [this.initialFilters.is_split || false],
+      is_anonymized: [this.initialFilters.is_anonymized || false],
+      has_temporal_factors: [this.initialFilters.has_temporal_factors || false],
+      is_public: [this.initialFilters.is_public || false]
     });
   }
 
@@ -217,21 +220,26 @@ export class DatasetFiltersComponent implements OnInit, OnDestroy {
       filters.year_max = formValue.year_max;
     }
 
-    // Filtres booléens
-    if (formValue.has_missing_values !== null && formValue.has_missing_values !== undefined) {
-      filters.has_missing_values = formValue.has_missing_values;
+    // Filtres de qualité
+    if (formValue.ethical_score_min !== null && formValue.ethical_score_min !== undefined) {
+      filters.ethical_score_min = formValue.ethical_score_min;
     }
-    if (formValue.split !== null && formValue.split !== undefined) {
-      filters.split = formValue.split;
+    if (formValue.representativity_level !== null && formValue.representativity_level !== undefined) {
+      filters.representativity_level = formValue.representativity_level;
     }
-    if (formValue.anonymization_applied !== null && formValue.anonymization_applied !== undefined) {
-      filters.anonymization_applied = formValue.anonymization_applied;
+
+    // Filtres booléens (seulement si cochés)
+    if (formValue.is_split === true) {
+      filters.is_split = formValue.is_split;
     }
-    if (formValue.informed_consent !== null && formValue.informed_consent !== undefined) {
-      filters.informed_consent = formValue.informed_consent;
+    if (formValue.is_anonymized === true) {
+      filters.is_anonymized = formValue.is_anonymized;
     }
-    if (formValue.transparency !== null && formValue.transparency !== undefined) {
-      filters.transparency = formValue.transparency;
+    if (formValue.has_temporal_factors === true) {
+      filters.has_temporal_factors = formValue.has_temporal_factors;
+    }
+    if (formValue.is_public === true) {
+      filters.is_public = formValue.is_public;
     }
 
     return filters;
@@ -270,7 +278,7 @@ export class DatasetFiltersComponent implements OnInit, OnDestroy {
           task: []
         });
         break;
-      case 'numeric':
+      case 'numerical':
         this.filterForm.patchValue({
           instances_number_min: null,
           instances_number_max: null,
@@ -280,13 +288,14 @@ export class DatasetFiltersComponent implements OnInit, OnDestroy {
           year_max: null
         });
         break;
-      case 'boolean':
+      case 'quality':
         this.filterForm.patchValue({
-          has_missing_values: null,
-          split: null,
-          anonymization_applied: null,
-          informed_consent: null,
-          transparency: null
+          ethical_score_min: null,
+          representativity_level: null,
+          is_split: false,
+          is_anonymized: false,
+          has_temporal_factors: false,
+          is_public: false
         });
         break;
     }
@@ -306,6 +315,36 @@ export class DatasetFiltersComponent implements OnInit, OnDestroy {
   getActiveFiltersCount(): number {
     const filters = this.getFiltersFromForm();
     return Object.keys(filters).length;
+  }
+
+  /**
+   * Vérifie si des filtres numériques sont actifs
+   */
+  hasNumericalFilters(): boolean {
+    const formValue = this.filterForm.value;
+    return !!(
+      formValue.instances_number_min !== null ||
+      formValue.instances_number_max !== null ||
+      formValue.features_number_min !== null ||
+      formValue.features_number_max !== null ||
+      formValue.year_min !== null ||
+      formValue.year_max !== null
+    );
+  }
+
+  /**
+   * Vérifie si des filtres de qualité sont actifs
+   */
+  hasQualityFilters(): boolean {
+    const formValue = this.filterForm.value;
+    return !!(
+      formValue.ethical_score_min !== null ||
+      formValue.representativity_level !== null ||
+      formValue.is_split === true ||
+      formValue.is_anonymized === true ||
+      formValue.has_temporal_factors === true ||
+      formValue.is_public === true
+    );
   }
 
   /**

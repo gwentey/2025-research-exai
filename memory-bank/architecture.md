@@ -83,9 +83,10 @@ graph LR
 
     *   **Scripts d'Initialisation (2025-07-06) :**
         *   **`scripts/`** : Dossier dédié aux scripts de maintenance du service
-        *   **`scripts/init_ednet_dataset.py`** : Script d'initialisation pour dataset EdNet avec 5 fichiers et 29 colonnes
+        *   **`scripts/init_datasets.py`** : Script d'initialisation pour datasets multiples avec gestion sélective
+        *   **Datasets supportés** : EdNet (5 fichiers, 29 colonnes), OULAD (14 fichiers, 93 colonnes), Students Performance (1 fichier, 8 colonnes)
         *   **Structure organisée** : Imports relatifs, gestion d'erreurs, documentation intégrée
-        *   **Usage** : `cd service-selection && python scripts/init_ednet_dataset.py`
+        *   **Usage** : `cd service-selection && python scripts/init_datasets.py [ednet|oulad|students|all]`
 
 *   **`ml-pipeline/` :**
     *   **Rôle :** Orchestration entraînement ML.
@@ -108,6 +109,7 @@ graph LR
         *   [✅] **Interface Datasets complète** : Service, composants, models et routing intégrés.
         *   [✅] **Composants Angular Material** : Cards, filtres, pagination, recherche, tri.
         *   [✅] **Fonctionnalités avancées** : Filtrage multi-critères, recherche textuelle, interface responsive.
+        *   [✅] **Menu de navigation optimisé (2025-01-07)** : Menu de gauche nettoyé pour ne conserver que les fonctionnalités EXAI essentielles (Tableau de bord, Datasets, Pipeline ML, Explications XAI). Suppression des éléments de démonstration du thème Spike.
         *   [⬜] Services API dédiés (`PipelineService`, `XAIService`) **non implémentés**.
         *   [⬜] Modules/Composants pour Pipeline ML et XAI **non implémentés**.
         *   [⬜] Déploiement K8s non configuré.

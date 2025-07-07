@@ -16,6 +16,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { RouterModule } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil, finalize } from 'rxjs';
 
@@ -52,6 +53,7 @@ import { DatasetFiltersComponent } from './components/dataset-filters.component'
     MatBadgeModule,
     MatMenuModule,
     MatDividerModule,
+    MatButtonToggleModule,
     RouterModule,
     DatasetCardComponent,
     DatasetFiltersComponent
@@ -89,7 +91,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   // Interface utilisateur
   sidenavOpened = false;
   viewMode: 'grid' | 'list' = 'grid';
-  showFilters = true;
+  showFilters = false; // Filtres cachés par défaut pour le nouveau design
   compactCards = false;
 
   ngOnInit(): void {

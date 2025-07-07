@@ -457,4 +457,544 @@ $transition: all 0.3s ease;
   background-color: rgba(0, 0, 0, 0.12) !important;
   color: rgba(0, 0, 0, 0.26) !important;
   box-shadow: none !important;
+}
+
+// Design moderne et spacieux pour les filtres
+.modern-filters {
+  display: flex;
+  flex-direction: column;
+  min-width: 420px;
+  max-width: 500px;
+  max-height: 80vh;
+  background: white;
+  border-radius: var(--mat-sys-corner-large);
+  box-shadow: var(--mat-sys-level4);
+  overflow: hidden;
+
+  // Header moderne et spacieux
+  .filters-header {
+    background: linear-gradient(135deg, var(--mat-sys-primary) 0%, var(--mat-sys-primary-dark) 100%);
+    color: white;
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+
+      .header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+
+        .header-icon {
+          font-size: 28px;
+          height: 28px;
+          width: 28px;
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        h2 {
+          margin: 0;
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: white;
+        }
+
+        .filters-count {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          font-weight: 700;
+          font-size: 0.875rem;
+          height: 28px;
+          border-radius: var(--mat-sys-corner-medium);
+          padding: 0 8px;
+          display: flex;
+          align-items: center;
+          backdrop-filter: blur(4px);
+        }
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 8px;
+
+        .reset-btn {
+          border-color: rgba(255, 255, 255, 0.3);
+          color: white;
+          font-weight: 500;
+          border-radius: var(--mat-sys-corner-medium);
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+          }
+
+          mat-icon {
+            margin-right: 4px;
+          }
+        }
+      }
+    }
+  }
+
+  // Corps des filtres avec scroll
+  .filters-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #fafafa;
+
+    // Custom scrollbar
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.3);
+      }
+    }
+  }
+
+  // Cards des sections de filtres
+  .filter-card {
+    background: white;
+    border-radius: var(--mat-sys-corner-large);
+    box-shadow: var(--mat-sys-level1);
+    overflow: hidden;
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: var(--mat-sys-level2);
+      transform: translateY(-1px);
+    }
+
+    // Header de chaque card
+    .card-header {
+      padding: 20px 24px 16px 24px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      background: linear-gradient(135deg, rgba(var(--mat-sys-primary-rgb), 0.02) 0%, rgba(var(--mat-sys-primary-rgb), 0.05) 100%);
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+
+        .section-icon {
+          font-size: 24px;
+          height: 24px;
+          width: 24px;
+          color: var(--mat-sys-primary);
+          background: rgba(var(--mat-sys-primary-rgb), 0.1);
+          border-radius: var(--mat-sys-corner-medium);
+          padding: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        h3 {
+          margin: 0;
+          font-size: 1.2rem;
+          font-weight: 600;
+          color: rgb(var(--theme-text-primary));
+        }
+      }
+
+      .section-description {
+        margin: 0;
+        color: rgb(var(--theme-text-secondary));
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin-left: 48px; // Alignement avec le titre
+      }
+    }
+
+    // Contenu de chaque card
+    .card-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+
+      // Groupes d'inputs
+      .input-group {
+        .modern-input {
+          width: 100%;
+
+          .mat-mdc-form-field-wrapper {
+            border-radius: var(--mat-sys-corner-medium);
+            background: rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+
+            &:hover {
+              background: rgba(0, 0, 0, 0.04);
+            }
+          }
+
+          .mat-mdc-form-field-infix {
+            padding: 16px 14px;
+          }
+
+          // Style pour textarea
+          textarea {
+            resize: vertical;
+            min-height: 60px;
+          }
+        }
+      }
+
+      // Sous-sections
+      .subsection {
+        .subsection-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0 0 16px 0;
+          font-size: 1rem;
+          font-weight: 600;
+          color: rgb(var(--theme-text-primary));
+
+          mat-icon {
+            font-size: 20px;
+            height: 20px;
+            width: 20px;
+            color: var(--mat-sys-primary);
+          }
+        }
+      }
+
+      // Ranges d'inputs numériques
+      .range-group {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .range-input {
+          flex: 1;
+
+          .mat-mdc-form-field-wrapper {
+            border-radius: var(--mat-sys-corner-medium);
+            background: rgba(0, 0, 0, 0.02);
+          }
+
+          .mat-mdc-form-field-infix {
+            padding: 14px 12px;
+          }
+        }
+
+        .range-separator {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          background: rgba(var(--mat-sys-primary-rgb), 0.1);
+          border-radius: var(--mat-sys-corner-medium);
+          color: var(--mat-sys-primary);
+          margin-top: -8px; // Compensation pour l'alignement avec les champs
+        }
+      }
+
+      // Chips sélectionnés avec style moderne
+      .selected-chips {
+        margin-top: 16px;
+
+        .chips-label {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: rgb(var(--theme-text-secondary));
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          &::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--mat-sys-primary);
+            border-radius: 50%;
+          }
+        }
+
+        .chips-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+
+          mat-chip {
+            border-radius: var(--mat-sys-corner-medium);
+            font-size: 0.875rem;
+            font-weight: 500;
+            height: 36px;
+            padding: 0 12px;
+            transition: all 0.2s ease;
+
+            &.domain-chip {
+              background: rgba(63, 81, 181, 0.1);
+              color: #1976D2;
+              border: 1px solid rgba(63, 81, 181, 0.2);
+            }
+
+            &.task-chip {
+              background: rgba(156, 39, 176, 0.1);
+              color: #7B1FA2;
+              border: 1px solid rgba(156, 39, 176, 0.2);
+            }
+
+            &:hover {
+              transform: translateY(-1px);
+              box-shadow: var(--mat-sys-level2);
+            }
+
+            mat-icon {
+              font-size: 18px;
+              height: 18px;
+              width: 18px;
+            }
+          }
+        }
+      }
+
+      // Grille de checkboxes
+      .checkbox-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+
+        .quality-checkbox {
+          .checkbox-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+
+            mat-icon {
+              font-size: 18px;
+              height: 18px;
+              width: 18px;
+              color: var(--mat-sys-primary);
+            }
+          }
+
+          &.mat-mdc-checkbox-checked {
+            .checkbox-content {
+              color: var(--mat-sys-primary);
+            }
+          }
+        }
+
+        // Responsive pour mobile
+        @media (max-width: 480px) {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      // Actions de section
+      .card-actions {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: flex-end;
+
+        .clear-section-btn {
+          color: var(--mat-sys-error);
+          font-weight: 500;
+          border-radius: var(--mat-sys-corner-medium);
+
+          &:hover {
+            background: rgba(var(--mat-sys-error-rgb), 0.04);
+          }
+
+          mat-icon {
+            margin-right: 4px;
+          }
+        }
+      }
+    }
+  }
+
+  // Footer avec actions principales
+  .filters-footer {
+    background: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 20px 24px;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+
+      .active-filters-summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgb(var(--theme-text-secondary));
+        font-size: 0.9rem;
+
+        mat-icon {
+          color: var(--mat-sys-primary);
+        }
+
+        strong {
+          color: var(--mat-sys-primary);
+        }
+      }
+
+      .footer-actions {
+        display: flex;
+        gap: 12px;
+
+        .reset-all-btn {
+          color: rgb(var(--theme-text-secondary));
+          border-radius: var(--mat-sys-corner-medium);
+
+          &:hover {
+            background: rgba(0, 0, 0, 0.04);
+          }
+
+          mat-icon {
+            margin-right: 4px;
+          }
+        }
+
+        .apply-btn {
+          background: var(--mat-sys-primary);
+          color: white;
+          font-weight: 600;
+          border-radius: var(--mat-sys-corner-medium);
+          padding: 0 20px;
+          height: 40px;
+
+          &:hover {
+            background: var(--mat-sys-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--mat-sys-level3);
+          }
+
+          mat-icon {
+            margin-right: 6px;
+          }
+        }
+      }
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    min-width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    margin: 0;
+    border-radius: var(--mat-sys-corner-large) var(--mat-sys-corner-large) 0 0;
+
+    .filters-header {
+      padding: 20px;
+
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+
+        .header-title {
+          width: 100%;
+
+          h2 {
+            font-size: 1.3rem;
+          }
+        }
+
+        .header-actions {
+          width: 100%;
+          justify-content: flex-end;
+        }
+      }
+    }
+
+    .filters-body {
+      padding: 16px;
+      gap: 16px;
+    }
+
+    .filter-card {
+      .card-header {
+        padding: 16px 20px 12px 20px;
+
+        .section-title {
+          .section-icon {
+            font-size: 22px;
+            height: 22px;
+            width: 22px;
+          }
+
+          h3 {
+            font-size: 1.1rem;
+          }
+        }
+
+        .section-description {
+          font-size: 0.85rem;
+          margin-left: 42px;
+        }
+      }
+
+      .card-content {
+        padding: 20px;
+        gap: 20px;
+
+        .range-group {
+          flex-direction: column;
+          gap: 12px;
+
+          .range-separator {
+            transform: rotate(90deg);
+            margin: 0;
+          }
+        }
+      }
+    }
+
+    .filters-footer {
+      padding: 16px 20px;
+
+      .footer-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+
+        .active-filters-summary {
+          justify-content: center;
+        }
+
+        .footer-actions {
+          width: 100%;
+
+          .apply-btn {
+            flex: 1;
+          }
+        }
+      }
+    }
+  }
 } 

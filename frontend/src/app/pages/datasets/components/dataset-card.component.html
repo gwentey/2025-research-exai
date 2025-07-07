@@ -1,193 +1,144 @@
-<mat-card class="dataset-card" [ngClass]="{'compact': compact}">
-  <!-- En-tête avec titre et badges -->
-  <mat-card-header>
-    <div mat-card-avatar class="dataset-avatar">
-      <mat-icon>dataset</mat-icon>
+<div class="dataset-card" [ngClass]="{'compact': compact, 'modern': modern}">
+  <!-- Header compact avec titre et badges -->
+  <div class="card-header">
+    <div class="header-content">
+      <div class="title-row">
+        <h3 class="dataset-title">{{ dataset.dataset_name }}</h3>
+        <div class="badges">
+          <span class="access-badge" [ngClass]="isPublic() ? 'public' : 'private'" 
+                [matTooltip]="isPublic() ? 'Dataset public' : 'Dataset privé'">
+            <mat-icon>{{ isPublic() ? 'public' : 'lock' }}</mat-icon>
+          </span>
+          <span class="ethical-badge" [ngClass]="getEthicalScoreClass()" 
+                matTooltip="Score éthique : évalue la conformité RGPD, anonymisation, consentement">
+            <mat-icon>security</mat-icon>
+            <span class="badge-label">Éthique</span>
+            <span class="badge-value">{{ getEthicalScore() }}%</span>
+          </span>
+        </div>
+      </div>
+      
+      <div class="meta-info">
+        <span class="year">{{ getYear() }}</span>
+        <span class="citations" *ngIf="getCitations() > 0">
+          <mat-icon>format_quote</mat-icon>
+          {{ getCitations() }}
+        </span>
+        <span class="representativity-badge" [ngClass]="getRepresentativityClass()"
+              matTooltip="Niveau de représentativité : indique si le dataset est représentatif de la population étudiée">
+          <mat-icon>analytics</mat-icon>
+          <span class="badge-label">Représentativité</span>
+          <span class="badge-value">{{ getRepresentativityLevel() }}</span>
+        </span>
+      </div>
     </div>
-    <mat-card-title class="dataset-title">
-      {{ dataset.dataset_name }}
-      <mat-icon 
-        *ngIf="isPublic()" 
-        class="access-icon public" 
-        matTooltip="Dataset public">
-        public
-      </mat-icon>
-      <mat-icon 
-        *ngIf="!isPublic()" 
-        class="access-icon private" 
-        matTooltip="Dataset privé">
-        lock
-      </mat-icon>
-    </mat-card-title>
-    <mat-card-subtitle>
-      <span class="year">{{ getYear() }}</span>
-      <span class="citations" *ngIf="getCitations() > 0">
-        <mat-icon class="citation-icon">format_quote</mat-icon>
-        {{ getCitations() }}
-      </span>
-    </mat-card-subtitle>
-  </mat-card-header>
+  </div>
 
   <!-- Contenu principal -->
-  <mat-card-content>
-    <!-- Description -->
-    <p class="description" *ngIf="!compact">
+  <div class="card-content">
+    <!-- Description (seulement en mode grid) -->
+    <p class="description" *ngIf="!compact && !modern">
       {{ getTruncatedDescription() }}
     </p>
 
-    <!-- Statistiques principales -->
-    <div class="stats-grid">
-      <div class="stat-item">
+    <!-- Stats compactes en une ligne -->
+    <div class="stats-row">
+      <div class="stat">
         <mat-icon>storage</mat-icon>
-        <div class="stat-info">
-          <span class="stat-label">Instances</span>
-          <span class="stat-value">{{ getFormattedInstancesCount() }}</span>
-        </div>
+        <span class="value">{{ getFormattedInstancesCount() }}</span>
+        <span class="label">instances</span>
       </div>
-      <div class="stat-item">
+      <div class="stat">
         <mat-icon>view_column</mat-icon>
-        <div class="stat-info">
-          <span class="stat-label">Features</span>
-          <span class="stat-value">{{ getFeaturesCount() }}</span>
+        <span class="value">{{ getFeaturesCount() }}</span>
+        <span class="label">features</span>
+      </div>
+      <div class="stat" *ngIf="hasMissingValues()">
+        <mat-icon class="text-warn">warning</mat-icon>
+        <span class="value">{{ getMissingPercentage() }}%</span>
+        <span class="label">manquant</span>
+      </div>
+    </div>
+
+    <!-- Indicateurs compacts -->
+    <div class="indicators-row">
+      <div class="indicator" [class.active]="isSplit()" matTooltip="Dataset divisé train/test">
+        <mat-icon>{{ isSplit() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+        <span>Split</span>
+      </div>
+      <div class="indicator" [class.active]="isAnonymized()" matTooltip="Dataset anonymisé">
+        <mat-icon>{{ isAnonymized() ? 'verified_user' : 'radio_button_unchecked' }}</mat-icon>
+        <span>Anonyme</span>
+      </div>
+      <div class="indicator" [class.active]="hasTemporalFactors()" matTooltip="Facteurs temporels présents">
+        <mat-icon>{{ hasTemporalFactors() ? 'schedule' : 'radio_button_unchecked' }}</mat-icon>
+        <span>Temporel</span>
+      </div>
+    </div>
+
+    <!-- Tags compacts -->
+    <div class="tags-section" *ngIf="getDisplayedDomains().length > 0 || getDisplayedTasks().length > 0">
+      <!-- Domaines -->
+      <div class="tag-group" *ngIf="getDisplayedDomains().length > 0">
+        <mat-icon class="tag-icon">domain</mat-icon>
+        <div class="tags">
+          <span class="tag domain-tag" *ngFor="let domain of getDisplayedDomains()">
+            {{ domain }}
+          </span>
+          <span class="tag more-tag" *ngIf="getRemainingDomainsCount() > 0">
+            +{{ getRemainingDomainsCount() }}
+          </span>
         </div>
       </div>
-      <div class="stat-item">
-        <mat-icon>security</mat-icon>
-        <div class="stat-info">
-          <span class="stat-label">Score éthique</span>
-          <span class="stat-value" [ngClass]="getEthicalScoreClass()">
-            {{ getEthicalScore() }}%
+
+      <!-- Tâches ML -->
+      <div class="tag-group" *ngIf="getDisplayedTasks().length > 0">
+        <mat-icon class="tag-icon">psychology</mat-icon>
+        <div class="tags">
+          <span class="tag task-tag" *ngFor="let task of getDisplayedTasks()">
+            {{ task }}
+          </span>
+          <span class="tag more-tag" *ngIf="getRemainingTasksCount() > 0">
+            +{{ getRemainingTasksCount() }}
           </span>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Indicateurs de qualité -->
-    <div class="quality-indicators" *ngIf="!compact">
-      <div class="indicator-row">
-        <div class="indicator">
-          <mat-icon 
-            [color]="isSplit() ? 'primary' : 'warn'" 
-            matTooltip="Dataset divisé (train/test)">
-            {{ isSplit() ? 'check_circle' : 'cancel' }}
-          </mat-icon>
-          <span class="indicator-label">Divisé</span>
-        </div>
-        <div class="indicator">
-          <mat-icon 
-            [color]="isAnonymized() ? 'primary' : 'warn'" 
-            matTooltip="Dataset anonymisé">
-            {{ isAnonymized() ? 'check_circle' : 'cancel' }}
-          </mat-icon>
-          <span class="indicator-label">Anonymisé</span>
-        </div>
-        <div class="indicator">
-          <mat-icon 
-            [color]="hasTemporalFactors() ? 'primary' : 'accent'" 
-            matTooltip="Facteurs temporels présents">
-            {{ hasTemporalFactors() ? 'schedule' : 'schedule_disabled' }}
-          </mat-icon>
-          <span class="indicator-label">Temporel</span>
-        </div>
-      </div>
-      
-      <!-- Valeurs manquantes -->
-      <div class="missing-values" *ngIf="hasMissingValues()">
-        <mat-icon color="warn">warning</mat-icon>
-        <span>{{ getMissingPercentage() }}% valeurs manquantes</span>
-      </div>
-    </div>
-
-    <!-- Domaines d'application -->
-    <div class="domains-section" *ngIf="getDisplayedDomains().length > 0">
-      <div class="section-title">
-        <mat-icon>domain</mat-icon>
-        <span>Domaines</span>
-      </div>
-      <div class="chips-container">
-        <mat-chip 
-          *ngFor="let domain of getDisplayedDomains()" 
-          [color]="getDomainColor(domain)">
-          {{ domain }}
-        </mat-chip>
-        <mat-chip 
-          *ngIf="getRemainingDomainsCount() > 0" 
-          color="accent">
-          +{{ getRemainingDomainsCount() }}
-        </mat-chip>
-      </div>
-    </div>
-
-    <!-- Tâches ML -->
-    <div class="tasks-section" *ngIf="getDisplayedTasks().length > 0">
-      <div class="section-title">
-        <mat-icon>psychology</mat-icon>
-        <span>Tâches ML</span>
-      </div>
-      <div class="chips-container">
-        <mat-chip 
-          *ngFor="let task of getDisplayedTasks()"
-          color="primary">
-          <mat-icon matChipAvatar>{{ getTaskIcon(task) }}</mat-icon>
-          {{ task }}
-        </mat-chip>
-        <mat-chip 
-          *ngIf="getRemainingTasksCount() > 0" 
-          color="accent">
-          +{{ getRemainingTasksCount() }}
-        </mat-chip>
-      </div>
-    </div>
-
-    <!-- Représentativité -->
-    <div class="representativity" *ngIf="!compact">
-      <div class="section-title">
-        <mat-icon>analytics</mat-icon>
-        <span>Représentativité</span>
-      </div>
-      <div class="repr-badge" [ngClass]="getRepresentativityClass()">
-        {{ getRepresentativityLevel() }}
-      </div>
-    </div>
-  </mat-card-content>
-
-  <!-- Actions -->
-  <mat-card-actions *ngIf="showActions">
-    <button 
-      mat-button 
-      color="primary" 
-      (click)="viewDataset()"
-      matTooltip="Voir les détails">
-      <mat-icon>visibility</mat-icon>
-      Voir
-    </button>
-    <button 
-      mat-button 
-      color="accent" 
-      (click)="selectDataset()"
-      matTooltip="Sélectionner ce dataset">
-      <mat-icon>add_task</mat-icon>
-      Sélectionner
-    </button>
-    <button 
-      mat-icon-button 
-      (click)="toggleFavorite()"
-      matTooltip="Ajouter aux favoris">
-      <mat-icon>favorite_border</mat-icon>
-    </button>
-  </mat-card-actions>
-
-  <!-- Footer avec dates -->
-  <div class="card-footer" *ngIf="!compact">
-    <div class="footer-info">
-      <span class="created-date">
-        <mat-icon>add_circle</mat-icon>
-        Créé le {{ getCreatedDate() }}
-      </span>
+  <!-- Footer avec actions -->
+  <div class="card-footer" *ngIf="showActions">
+    <div class="actions-left">
       <span class="updated-date">
         <mat-icon>update</mat-icon>
-        Mis à jour le {{ getUpdatedDate() }}
+        {{ getUpdatedDate() }}
       </span>
     </div>
+    
+    <div class="actions-right">
+      <button 
+        mat-button 
+        color="primary" 
+        (click)="viewDataset()"
+        class="action-btn">
+        <mat-icon>visibility</mat-icon>
+        Voir
+      </button>
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="selectDataset()"
+        class="action-btn select-btn">
+        <mat-icon>add</mat-icon>
+        Sélectionner
+      </button>
+      <button 
+        mat-icon-button 
+        (click)="toggleFavorite()"
+        matTooltip="Favoris"
+        class="favorite-btn">
+        <mat-icon>favorite_border</mat-icon>
+      </button>
+    </div>
   </div>
-</mat-card> 
+</div> 

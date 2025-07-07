@@ -1,525 +1,375 @@
-// Variables
-$primary-color: #3f51b5;
-$accent-color: #ff4081;
-$warn-color: #f44336;
-$success-color: #4caf50;
-$light-gray: #f5f5f5;
-$medium-gray: #9e9e9e;
-$dark-gray: #424242;
-$border-radius: 8px;
-$transition: all 0.3s ease;
-$toolbar-height: 64px;
-$sidenav-width: 400px;
+// Interface moderne et compacte inspirée de GitHub/Linear
+.page-header {
+  background: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 20px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
 
-.dataset-listing-container {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #fafafa;
+  .title-section {
+    h1 {
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+  }
 
-  // Toolbar principal
-  .listing-toolbar {
-    background: white;
-    color: $dark-gray;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    height: $toolbar-height;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px;
+  .view-toggle-compact {
+    border-radius: var(--mat-sys-corner-medium);
+    height: 32px;
+    box-shadow: var(--mat-sys-level1);
+    overflow: hidden;
+    
+    .mat-button-toggle {
+      border: none;
+      
+      .mat-button-toggle-label-content {
+        line-height: 32px;
+        padding: 0 8px;
+        
+        mat-icon {
+          font-size: 16px;
+          height: 16px;
+          width: 16px;
+        }
+      }
+    }
+  }
+}
+
+// Barre de recherche moderne avec design Spike
+.search-bar-container {
+  .search-input-wrapper {
     position: relative;
-    z-index: 10;
+    
+    .search-field-modern {
+      width: 100%;
+      
+      .mat-mdc-form-field-wrapper {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: var(--mat-sys-corner-medium);
+        box-shadow: var(--mat-sys-level1);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        transition: all 0.2s ease;
+        
+        &:hover {
+          box-shadow: var(--mat-sys-level2);
+          border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        &:focus-within {
+          box-shadow: var(--mat-sys-level3);
+          border-color: var(--mat-sys-primary);
+        }
+      }
+      
+      .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+      }
+      
+      .mat-mdc-form-field-infix {
+        padding: 14px 16px;
+        min-height: auto;
+      }
+      
+      input {
+        font-size: 14px;
+        font-weight: 400;
+        
+        &::placeholder {
+          color: rgba(0, 0, 0, 0.5);
+          font-weight: 400;
+        }
+      }
+    }
+  }
 
-    .toolbar-left {
+  .filters-button {
+    height: 42px;
+    border-radius: var(--mat-sys-corner-medium);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: var(--mat-sys-level1);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      box-shadow: var(--mat-sys-level2);
+      transform: translateY(-1px);
+    }
+    
+    &.active-filters {
+      background: rgba(var(--mat-sys-primary-rgb), 0.1);
+      border-color: var(--mat-sys-primary);
+      color: var(--mat-sys-primary);
+      box-shadow: var(--mat-sys-level2);
+    }
+    
+    .filter-count {
+      background: var(--mat-sys-primary);
+      color: white;
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 4px;
+      min-width: 16px;
+      text-align: center;
+    }
+    
+    mat-icon {
+      margin-right: 4px;
+      font-size: 16px;
+      height: 16px;
+      width: 16px;
+    }
+  }
+
+  .sort-field-compact {
+    min-width: 140px;
+    
+    .mat-mdc-form-field-wrapper {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: var(--mat-sys-corner-medium);
+      box-shadow: var(--mat-sys-level1);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        box-shadow: var(--mat-sys-level2);
+      }
+    }
+    
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+    
+    .mat-mdc-form-field-infix {
+      padding: 14px 16px;
+      min-height: auto;
+    }
+  }
+}
+
+// Dropdown des filtres moderne
+.filters-dropdown {
+  .mat-mdc-menu-panel {
+    min-width: 320px;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  
+  .filters-content {
+    padding: 16px;
+    
+    .filters-header {
       display: flex;
+      justify-content: space-between;
       align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      
+      h4 {
+        font-size: 16px;
+        color: var(--text-primary);
+      }
+      
+      .reset-button {
+        font-size: 12px;
+        min-width: auto;
+        padding: 4px 8px;
+        height: 28px;
+      }
+    }
+  }
+}
+
+// Filtres actifs compacts
+.active-filters-compact {
+  .mat-mdc-chip-set {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    
+    .mat-mdc-chip {
+      height: 28px;
+      border-radius: 14px;
+      font-size: 12px;
+      background: rgba(var(--primary-color-rgb), 0.1);
+      color: var(--primary-color);
+      
+      .mat-mdc-chip-remove {
+        margin-left: 4px;
+        
+        mat-icon {
+          font-size: 14px;
+          height: 14px;
+          width: 14px;
+        }
+      }
+    }
+  }
+}
+
+// Contenu principal optimisé
+.main-content {
+  padding: 24px;
+  min-height: calc(100vh - 200px);
+}
+
+// États compacts (pas de grosses cartes)
+.content-states {
+  .loading-state,
+  .error-state,
+  .no-results-state {
+    display: flex;
+    align-items: center;
+    padding: 24px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px dashed rgba(0, 0, 0, 0.1);
+    
+    mat-icon {
+      flex-shrink: 0;
+    }
+    
+    .mat-mdc-progress-spinner {
+      flex-shrink: 0;
+    }
+  }
+  
+  .loading-state {
+    color: var(--text-muted);
+  }
+  
+  .error-state {
+    border-color: rgba(var(--error-color-rgb), 0.2);
+    background: rgba(var(--error-color-rgb), 0.05);
+  }
+  
+  .no-results-state {
+    color: var(--text-muted);
+  }
+}
+
+// Grid moderne pour les datasets
+.datasets-section {
+  .datasets-container {
+    margin-top: 24px;
+    
+    &.grid-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 16px;
-      flex: 0 0 auto;
-
-      .filter-badge {
-        position: absolute;
-        top: -4px;
-        right: -4px;
-        background: $accent-color;
-        color: white;
-        border-radius: 10px;
-        padding: 2px 6px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        min-width: 16px;
-        text-align: center;
-      }
-
-      .title-section {
-        h1 {
-          margin: 0;
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: $dark-gray;
-        }
-
-        .subtitle {
-          font-size: 0.9rem;
-          color: $medium-gray;
-          margin-top: 2px;
-          display: block;
-        }
-      }
     }
-
-    .toolbar-center {
-      flex: 1 1 auto;
-      max-width: 500px;
-      margin: 0 32px;
-
-      .search-field {
-        width: 100%;
-        
-        .mat-mdc-form-field-subscript-wrapper {
-          display: none;
-        }
-      }
-    }
-
-    .toolbar-right {
+    
+    &.list-layout {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 0 0 auto;
-
-      .sort-field {
-        min-width: 160px;
-        
-        .mat-mdc-form-field-subscript-wrapper {
-          display: none;
-        }
-
-        .sort-option {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-
-          mat-icon {
-            font-size: 18px;
-            height: 18px;
-            width: 18px;
-          }
-        }
-      }
-
-      .view-controls {
-        display: flex;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-        overflow: hidden;
-
-        button {
-          border-radius: 0;
-          border: none;
-          background: transparent;
-          
-          &.active {
-            background: $primary-color;
-            color: white;
-          }
-
-          &:not(:last-child) {
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-          }
-        }
-      }
-
-      .spinning {
-        animation: spin 1s linear infinite;
-      }
-    }
-  }
-
-  // Container principal
-  .sidenav-container {
-    flex: 1;
-    height: calc(100vh - #{$toolbar-height});
-
-    // Sidenav pour les filtres
-    .filters-sidenav {
-      width: $sidenav-width;
-      border-right: 1px solid rgba(0, 0, 0, 0.1);
-
-      .sidenav-content {
-        height: 100%;
-        overflow-y: auto;
-      }
-    }
-
-    // Contenu principal
-    .main-content {
-      padding: 0;
-      background: #fafafa;
-
-      // Chips des filtres actifs
-      .active-filters {
-        background: white;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        padding: 16px 24px;
-
-        .filters-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 12px;
-          font-weight: 600;
-          color: $dark-gray;
-
-          mat-icon {
-            color: $primary-color;
-            font-size: 20px;
-            height: 20px;
-            width: 20px;
-          }
-        }
-
-        .filters-chips {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          align-items: center;
-
-          mat-chip {
-            border-radius: 16px;
-            font-size: 0.85rem;
-            
-            mat-icon {
-              font-size: 16px;
-              height: 16px;
-              width: 16px;
-            }
-          }
-
-          .clear-all-btn {
-            margin-left: 8px;
-            min-width: auto;
-            
-            mat-icon {
-              font-size: 18px;
-              height: 18px;
-              width: 18px;
-              margin-right: 4px;
-            }
-          }
-        }
-      }
-
-      // États de contenu
-      .content-states {
-        padding: 48px 24px;
-        text-align: center;
-
-        .loading-state,
-        .error-state,
-        .no-results-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 16px;
-          max-width: 400px;
-          margin: 0 auto;
-
-          mat-icon {
-            font-size: 64px;
-            height: 64px;
-            width: 64px;
-            color: $medium-gray;
-          }
-
-          h3 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: $dark-gray;
-          }
-
-          p {
-            margin: 0;
-            color: $medium-gray;
-            line-height: 1.5;
-          }
-        }
-
-        .error-state {
-          mat-icon {
-            color: $warn-color;
-          }
-        }
-
-        .no-results-actions {
-          display: flex;
-          gap: 12px;
-          flex-wrap: wrap;
-          justify-content: center;
-        }
-      }
-
-      // Container des datasets
-      .datasets-container {
-        padding: 24px;
-
-        .datasets-grid {
-          margin-bottom: 32px;
-
-          &.grid-mode {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 24px;
-            justify-items: center;
-          }
-
-          &.list-mode {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            max-width: 1200px;
-            margin: 0 auto;
-          }
-        }
-
-        .pagination-container {
-          display: flex;
-          justify-content: center;
-          margin-top: 32px;
-          padding: 16px;
-          background: white;
-          border-radius: $border-radius;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-      }
-    }
-  }
-
-  // Responsive design
-  @media (max-width: 1200px) {
-    .datasets-grid.grid-mode {
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
-      gap: 16px !important;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .listing-toolbar {
-      height: auto;
-      min-height: $toolbar-height;
       flex-direction: column;
       gap: 12px;
-      padding: 12px;
-
-      .toolbar-left,
-      .toolbar-center,
-      .toolbar-right {
-        width: 100%;
-      }
-
-      .toolbar-center {
-        margin: 0;
-        max-width: none;
-      }
-
-      .toolbar-right {
-        justify-content: space-between;
-        
-        .sort-field {
-          min-width: 120px;
-        }
-      }
-    }
-
-    .sidenav-container {
-      height: calc(100vh - 120px); // Ajustement pour toolbar responsive
-    }
-
-    .filters-sidenav {
-      width: 100vw !important;
-    }
-
-    .datasets-grid {
-      &.grid-mode {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-      }
-
-      &.list-mode {
-        gap: 12px !important;
-      }
-    }
-
-    .active-filters {
-      padding: 12px 16px !important;
-
-      .filters-chips {
-        gap: 6px !important;
-        
-        mat-chip {
-          font-size: 0.8rem !important;
-        }
-      }
-    }
-
-    .content-states {
-      padding: 32px 16px !important;
-    }
-
-    .datasets-container {
-      padding: 16px !important;
     }
   }
+}
 
-  @media (max-width: 480px) {
-    .listing-toolbar {
-      .toolbar-right {
-        flex-direction: column;
-        gap: 8px;
-        align-items: stretch;
+// Pagination moderne et simple
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  
+  .pagination-modern {
+    .mat-mdc-paginator {
+      background: transparent;
+      border-radius: 6px;
+    }
+    
+    .mat-mdc-paginator-page-size-select {
+      margin-right: 8px;
+    }
+    
+    .mat-mdc-paginator-range-label {
+      margin: 0 16px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+  }
+}
 
-        .view-controls {
-          align-self: center;
-        }
+// Animation rotation
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Responsive design moderne
+@media (max-width: 768px) {
+  .page-header {
+    padding: 16px;
+    
+    .d-flex.justify-content-between {
+      flex-direction: column;
+      gap: 16px;
+      align-items: stretch;
+    }
+    
+    .search-bar-container {
+      flex-direction: column;
+      gap: 12px;
+      
+      .search-input-wrapper {
+        order: -1;
+      }
+      
+      .filters-button,
+      .sort-field-compact {
+        flex: 1;
       }
     }
-
-    .datasets-container {
-      padding: 12px !important;
-    }
-
-    .pagination-container {
-      margin-top: 16px !important;
-      padding: 12px !important;
-    }
+  }
+  
+  .main-content {
+    padding: 16px;
+  }
+  
+  .datasets-container.grid-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .filters-dropdown .mat-mdc-menu-panel {
+    min-width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
   }
 }
 
-// Animations
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
+@media (max-width: 480px) {
+  .page-header {
+    padding: 12px;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .main-content {
+    padding: 12px;
   }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.datasets-grid {
-  app-dataset-card {
-    animation: fadeIn 0.3s ease-out;
-  }
-}
-
-// États de focus et hover
-.view-controls button:focus,
-.listing-toolbar button:focus {
-  outline: 2px solid $primary-color;
-  outline-offset: 2px;
-}
-
-.view-controls button:hover:not(.active) {
-  background: rgba($primary-color, 0.04);
-}
-
-// Customisation du paginator
-.pagination-container {
-  .mat-mdc-paginator {
-    background: transparent;
-  }
-
-  .mat-mdc-paginator-range-label {
-    margin: 0 16px;
-  }
-}
-
-// Customisation du sidenav
-.mat-drawer-side {
-  border: none;
-}
-
-.mat-drawer-inner-container {
-  overflow: visible !important;
-}
-
-// Customisation des form fields dans la toolbar
-.listing-toolbar {
-  .mat-mdc-form-field {
-    .mat-mdc-form-field-wrapper {
-      padding-bottom: 0;
-    }
-
-    .mat-mdc-form-field-infix {
-      min-height: 40px;
-      padding: 8px 0;
-    }
-  }
-}
-
-// States spéciaux
-.loading-state mat-spinner {
-  margin-bottom: 16px;
-}
-
-// Print styles
-@media print {
-  .listing-toolbar {
-    display: none;
-  }
-
-  .filters-sidenav {
-    display: none;
-  }
-
-  .active-filters {
-    display: none;
-  }
-
-  .pagination-container {
-    display: none;
-  }
-
-  .datasets-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-}
-
-// Accessibilité
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-// High contrast mode
-@media (prefers-contrast: high) {
-  .listing-toolbar {
-    border-bottom: 2px solid $dark-gray;
-  }
-
-  .active-filters {
-    border-bottom: 2px solid $dark-gray;
-  }
-
-  .datasets-container {
-    .datasets-grid {
-      gap: 32px;
+  
+  .search-bar-container {
+    .filters-button {
+      font-size: 13px;
+      
+      mat-icon {
+        margin-right: 2px;
+      }
     }
   }
 } 

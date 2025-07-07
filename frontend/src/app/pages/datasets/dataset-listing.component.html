@@ -1,124 +1,88 @@
 <div class="dataset-listing-container">
-  <!-- Toolbar principal -->
-  <mat-toolbar class="listing-toolbar">
-    <div class="toolbar-left">
-      <!-- Bouton de menu pour les filtres -->
-      <button 
-        mat-icon-button 
-        (click)="toggleSidenav()"
-        matTooltip="Afficher/Masquer les filtres">
-        <mat-icon>filter_list</mat-icon>
-        <span *ngIf="hasActiveFilters()" class="filter-badge">{{ getActiveFiltersCount() }}</span>
-      </button>
-      
-      <!-- Titre et stats -->
+  <!-- Header compact avec recherche et actions intégrées -->
+  <div class="page-header">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-16">
+      <!-- Titre et stats compacts -->
       <div class="title-section">
-        <h1>Datasets</h1>
-        <span class="subtitle" *ngIf="!isLoading">
-          {{ totalCount }} dataset{{ totalCount > 1 ? 's' : '' }} trouvé{{ totalCount > 1 ? 's' : '' }}
-          <span *ngIf="totalCount > 0"> ({{ getDisplayRange() }} sur {{ totalCount }})</span>
+        <h1 class="f-w-600 m-0 f-s-24">Datasets</h1>
+        <span class="text-muted f-s-14" *ngIf="!isLoading">
+          {{ totalCount }} résultat{{ totalCount > 1 ? 's' : '' }}
+          <span *ngIf="totalCount > 0 && hasActiveFilters()" class="text-primary"> • filtré{{ totalCount > 1 ? 's' : '' }}</span>
         </span>
       </div>
+
+      <!-- Actions rapides -->
+      <div class="d-flex align-items-center gap-8">
+        <button 
+          mat-icon-button 
+          (click)="refreshDatasets()"
+          matTooltip="Actualiser"
+          [disabled]="isLoading">
+          <mat-icon [class.rotating]="isLoading">refresh</mat-icon>
+        </button>
+        
+        <mat-button-toggle-group 
+          [value]="viewMode" 
+          (change)="setViewMode($event.value)"
+          class="view-toggle-compact">
+          <mat-button-toggle value="grid" matTooltip="Grille">
+            <mat-icon>grid_view</mat-icon>
+          </mat-button-toggle>
+          <mat-button-toggle value="list" matTooltip="Liste">
+            <mat-icon>view_list</mat-icon>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
     </div>
 
-    <div class="toolbar-center">
-      <!-- Barre de recherche -->
-      <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Rechercher des datasets</mat-label>
-        <input 
-          matInput 
-          [formControl]="searchControl"
-          placeholder="Nom, description, domaine..."
-          autocomplete="off">
-        <mat-icon matPrefix>search</mat-icon>
-        <button 
-          mat-icon-button 
-          matSuffix 
-          *ngIf="getCurrentSearchTerm()"
-          (click)="clearSearch()"
-          matTooltip="Effacer la recherche">
-          <mat-icon>clear</mat-icon>
-        </button>
-      </mat-form-field>
-    </div>
-
-    <div class="toolbar-right">
-      <!-- Contrôles de tri -->
-      <mat-form-field appearance="outline" class="sort-field">
-        <mat-label>Trier par</mat-label>
-        <mat-select [value]="currentSort" (selectionChange)="onSortChange($event.value)">
-          <mat-option *ngFor="let option of sortOptions" [value]="option">
-            <div class="sort-option">
-              <span>{{ option.label }}</span>
-              <mat-icon *ngIf="isCurrentSort(option)">{{ getSortIcon() }}</mat-icon>
-            </div>
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <!-- Contrôles d'affichage -->
-      <div class="view-controls">
-        <button 
-          mat-icon-button 
-          [class.active]="viewMode === 'grid'"
-          (click)="setViewMode('grid')"
-          matTooltip="Affichage en grille">
-          <mat-icon>grid_view</mat-icon>
-        </button>
-        <button 
-          mat-icon-button 
-          [class.active]="viewMode === 'list'"
-          (click)="setViewMode('list')"
-          matTooltip="Affichage en liste">
-          <mat-icon>view_list</mat-icon>
-        </button>
+    <!-- Barre de recherche moderne avec filtres intégrés -->
+    <div class="search-bar-container d-flex align-items-center gap-12 m-t-16">
+      <!-- Recherche principale -->
+      <div class="search-input-wrapper flex-fill">
+        <mat-form-field appearance="outline" class="search-field-modern">
+          <mat-icon matPrefix class="text-muted">search</mat-icon>
+          <input 
+            matInput 
+            [formControl]="searchControl"
+            placeholder="Rechercher par nom, description, domaine..."
+            autocomplete="off">
+          <button 
+            mat-icon-button 
+            matSuffix 
+            *ngIf="getCurrentSearchTerm()"
+            (click)="clearSearch()"
+            matTooltip="Effacer">
+            <mat-icon>clear</mat-icon>
+          </button>
+        </mat-form-field>
       </div>
 
-      <!-- Bouton d'actualisation -->
+      <!-- Dropdown des filtres -->
       <button 
-        mat-icon-button 
-        (click)="refreshDatasets()"
-        matTooltip="Actualiser"
-        [disabled]="isLoading">
-        <mat-icon [class.spinning]="isLoading">refresh</mat-icon>
+        mat-stroked-button 
+        [matMenuTriggerFor]="filtersMenu"
+        [class.active-filters]="hasActiveFilters()"
+        class="filters-button">
+        <mat-icon>tune</mat-icon>
+        Filtres
+        <span *ngIf="hasActiveFilters()" class="filter-count">{{ getActiveFiltersCount() }}</span>
       </button>
-
-      <!-- Menu d'actions -->
-      <button 
-        mat-icon-button 
-        [matMenuTriggerFor]="actionsMenu"
-        matTooltip="Plus d'actions">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-      <mat-menu #actionsMenu="matMenu">
-        <button mat-menu-item (click)="exportResults()" [disabled]="datasets.length === 0">
-          <mat-icon>download</mat-icon>
-          <span>Exporter les résultats</span>
-        </button>
-        <button mat-menu-item (click)="openDisplaySettings()">
-          <mat-icon>settings</mat-icon>
-          <span>Paramètres d'affichage</span>
-        </button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item (click)="onFiltersReset()" [disabled]="!hasActiveFilters()">
-          <mat-icon>clear_all</mat-icon>
-          <span>Réinitialiser les filtres</span>
-        </button>
-      </mat-menu>
-    </div>
-  </mat-toolbar>
-
-  <!-- Container principal avec sidenav -->
-  <mat-sidenav-container class="sidenav-container">
-    <!-- Sidenav pour les filtres -->
-    <mat-sidenav 
-      #sidenav
-      mode="side"
-      [opened]="sidenavOpened"
-      position="start"
-      class="filters-sidenav">
-      <div class="sidenav-content">
-        <app-dataset-filters
+      
+      <mat-menu #filtersMenu="matMenu" class="filters-dropdown" [hasBackdrop]="true">
+        <div class="filters-content" (click)="$event.stopPropagation()">
+          <div class="filters-header">
+            <h4 class="m-0 f-w-600">Filtres avancés</h4>
+            <button 
+              mat-button 
+              color="warn" 
+              *ngIf="hasActiveFilters()"
+              (click)="onFiltersReset()"
+              class="reset-button">
+              Réinitialiser
+            </button>
+          </div>
+          
+                  <app-dataset-filters
           [initialFilters]="currentFilters"
           [autoApply]="true"
           [showApplyButton]="false"
@@ -126,128 +90,123 @@
           (filtersChange)="onFiltersChange($event)"
           (filtersReset)="onFiltersReset()">
         </app-dataset-filters>
-      </div>
-    </mat-sidenav>
-
-    <!-- Contenu principal -->
-    <mat-sidenav-content class="main-content">
-      <!-- Chips des filtres actifs -->
-      <div class="active-filters" *ngIf="hasActiveFilters()">
-        <div class="filters-header">
-          <mat-icon>filter_alt</mat-icon>
-          <span>Filtres actifs :</span>
         </div>
-        <div class="filters-chips">
-          <!-- Chips pour recherche textuelle -->
-          <mat-chip 
-            *ngIf="getCurrentSearchTerm()"
-            [removable]="true"
-            (removed)="clearSearch()">
-            Recherche: "{{ getCurrentSearchTerm() }}"
-            <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip>
-          
-          <!-- Chips pour autres filtres -->
-          <mat-chip 
-            *ngIf="hasDomainFilter()"
-            [removable]="true"
-            (removed)="removeDomainFilter()">
-            Domaines ({{ getDomainCount() }})
-            <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip>
-          
-          <mat-chip 
-            *ngIf="hasTaskFilter()"
-            [removable]="true"
-            (removed)="removeTaskFilter()">
-            Tâches ML ({{ getTaskCount() }})
-            <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip>
+      </mat-menu>
 
-          <!-- Bouton pour effacer tous les filtres -->
-          <button 
-            mat-button 
-            color="warn"
-            (click)="onFiltersReset()"
-            class="clear-all-btn">
-            <mat-icon>clear_all</mat-icon>
-            Tout effacer
-          </button>
-        </div>
-      </div>
+      <!-- Tri -->
+      <mat-form-field appearance="outline" class="sort-field-compact">
+        <mat-select [value]="currentSort" (selectionChange)="onSortChange($event.value)" placeholder="Trier">
+          <mat-option *ngFor="let option of sortOptions" [value]="option">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-      <!-- États de chargement et d'erreur -->
-      <div class="content-states">
-        <!-- Chargement -->
-        <div class="loading-state" *ngIf="isLoading">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p>Chargement des datasets...</p>
-        </div>
+    <!-- Filtres actifs compacts -->
+    <div class="active-filters-compact m-t-12" *ngIf="hasActiveFilters()">
+      <mat-chip-set>
+        <mat-chip 
+          *ngIf="getCurrentSearchTerm()"
+          [removable]="true"
+          (removed)="clearSearch()">
+          "{{ getCurrentSearchTerm() }}"
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        
+        <mat-chip 
+          *ngIf="hasDomainFilter()"
+          [removable]="true"
+          (removed)="removeDomainFilter()">
+          {{ getDomainCount() }} domaine{{ getDomainCount() > 1 ? 's' : '' }}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        
+        <mat-chip 
+          *ngIf="hasTaskFilter()"
+          [removable]="true"
+          (removed)="removeTaskFilter()">
+          {{ getTaskCount() }} tâche{{ getTaskCount() > 1 ? 's' : '' }}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+  </div>
 
-        <!-- Erreur -->
-        <div class="error-state" *ngIf="hasError && !isLoading">
-          <mat-icon color="warn">error</mat-icon>
-          <h3>Erreur de chargement</h3>
-          <p>{{ errorMessage }}</p>
-          <button mat-raised-button color="primary" (click)="refreshDatasets()">
-            <mat-icon>refresh</mat-icon>
-            Réessayer
-          </button>
-        </div>
-
-        <!-- Aucun résultat -->
-        <div class="no-results-state" *ngIf="!isLoading && !hasError && datasets.length === 0">
-          <mat-icon>search_off</mat-icon>
-          <h3>Aucun dataset trouvé</h3>
-          <p>Aucun dataset ne correspond à vos critères de recherche.</p>
-          <div class="no-results-actions">
-            <button mat-raised-button color="primary" (click)="onFiltersReset()">
-              <mat-icon>clear_all</mat-icon>
-              Effacer les filtres
-            </button>
-            <button mat-button (click)="loadRecommendedDatasets()">
-              <mat-icon>star</mat-icon>
-              Voir les recommandations
-            </button>
-          </div>
-        </div>
+  <!-- Contenu principal -->
+  <div class="main-content">
+    <!-- États de chargement et d'erreur (compacts) -->
+    <div class="content-states" *ngIf="isLoading || hasError || (!isLoading && !hasError && datasets.length === 0)">
+      <!-- Chargement -->
+      <div class="loading-state" *ngIf="isLoading">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span class="m-l-12 text-muted">Chargement...</span>
       </div>
 
-      <!-- Grille/Liste des datasets -->
-      <div class="datasets-container" *ngIf="!isLoading && !hasError && datasets.length > 0">
-        <div 
-          class="datasets-grid"
-          [ngClass]="{
-            'grid-mode': viewMode === 'grid',
-            'list-mode': viewMode === 'list'
-          }">
-          <app-dataset-card
-            *ngFor="let dataset of datasets; trackBy: trackByDatasetId"
-            [dataset]="dataset"
-            [compact]="compactCards"
-            [showActions]="true"
-            (onView)="onViewDataset($event)"
-            (onSelect)="onSelectDataset($event)"
-            (onFavorite)="onFavoriteDataset($event)">
-          </app-dataset-card>
+      <!-- Erreur -->
+      <div class="error-state" *ngIf="hasError && !isLoading">
+        <mat-icon class="text-error">error_outline</mat-icon>
+        <div class="m-l-12">
+          <div class="f-w-600">Erreur de chargement</div>
+          <div class="text-muted f-s-14">{{ errorMessage }}</div>
         </div>
-
-        <!-- Pagination -->
-        <div class="pagination-container">
-          <mat-paginator
-            #paginator
-            [length]="totalCount"
-            [pageSize]="pageSize"
-            [pageSizeOptions]="availablePageSizes"
-            [pageIndex]="currentPage"
-            (page)="onPageChange($event)"
-            showFirstLastButtons="true"
-            [hidePageSize]="false">
-          </mat-paginator>
-        </div>
+        <button mat-button color="primary" (click)="refreshDatasets()" class="m-l-12">
+          Réessayer
+        </button>
       </div>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+
+      <!-- Aucun résultat -->
+      <div class="no-results-state" *ngIf="!isLoading && !hasError && datasets.length === 0">
+        <mat-icon class="text-muted">search_off</mat-icon>
+        <div class="m-l-12">
+          <div class="f-w-600">Aucun dataset trouvé</div>
+          <div class="text-muted f-s-14">Essayez de modifier vos critères de recherche</div>
+        </div>
+        <button 
+          mat-button 
+          color="primary" 
+          *ngIf="hasActiveFilters()"
+          (click)="onFiltersReset()" 
+          class="m-l-12">
+          Effacer les filtres
+        </button>
+      </div>
+    </div>
+
+    <!-- Grille/Liste des datasets -->
+    <div class="datasets-section" *ngIf="!isLoading && !hasError && datasets.length > 0">
+      <div 
+        class="datasets-container"
+        [ngClass]="{
+          'grid-layout': viewMode === 'grid',
+          'list-layout': viewMode === 'list'
+        }">
+        <app-dataset-card
+          *ngFor="let dataset of datasets; trackBy: trackByDatasetId"
+          [dataset]="dataset"
+          [compact]="viewMode === 'list'"
+          [showActions]="true"
+          [modern]="true"
+          (onView)="onViewDataset($event)"
+          (onSelect)="onSelectDataset($event)"
+          (onFavorite)="onFavoriteDataset($event)">
+        </app-dataset-card>
+      </div>
+
+      <!-- Pagination compacte -->
+      <div class="pagination-wrapper" *ngIf="totalCount > pageSize">
+        <mat-paginator
+          [length]="totalCount"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="availablePageSizes"
+          [pageIndex]="currentPage"
+          (page)="onPageChange($event)"
+          showFirstLastButtons="true"
+          class="pagination-modern">
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Fonction de tracking pour le ngFor -->

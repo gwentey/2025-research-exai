@@ -5,6 +5,7 @@
 * Guide Utilisateur
 ** xref:user-guide/index.adoc[Présentation]
 ** xref:user-guide/dataset-selection.adoc[📊 Sélection de Datasets]
+*** xref:user-guide/datasets-oulad.adoc[📚 Dataset OULAD]
 ** xref:user-guide/ml-pipeline.adoc[🛠️ Pipeline ML Interactif]
 ** xref:user-guide/xai-recommendation.adoc[💡 Recommandations XAI]
 
