@@ -194,7 +194,9 @@
     <!-- Corps de la modal -->
     <div class="modal-body">
       <app-dataset-filters
-        [initialFilters]="currentFilters"
+        [initialFilters]="tempFilters"
+        [autoApply]="false"
+        [showApplyButton]="false"
         (filtersChange)="onFiltersPreview($event)"
         class="modal-filters">
       </app-dataset-filters>

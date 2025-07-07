@@ -1,147 +1,184 @@
 <!-- ============================================================== -->
-<!-- Simple four boxes Row -->
+<!-- Dashboard EXAI Principal -->
 <!-- ============================================================== -->
-<mat-card class="cardWithShadow">
-  <mat-card-content>
-    <mat-card-title>Sample Page</mat-card-title>
-    <mat-card-subtitle class="m-b-10">This is test page</mat-card-subtitle>
 
-    <div class="d-flex flex-wrap gap-10">
-      <button mat-flat-button>Primary</button>
-      <button mat-flat-button class="bg-success">Success</button>
-      <button mat-flat-button class="bg-secondary">Secondary</button>
-      <button mat-flat-button class="bg-warning">Warning</button>
-      <button mat-flat-button class="bg-error">Error</button>
-      <button mat-flat-button class="bg-light-primary text-primary">
-        Light Primary
+<!-- Header du Dashboard -->
+<div class="dashboard-header mb-24">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="dashboard-title">Tableau de Bord EXAI</h1>
+      <p class="dashboard-subtitle text-muted">Vue d'ensemble de votre plateforme d'IA explicable</p>
+    </div>
+    <div class="d-flex gap-12">
+      <button mat-stroked-button color="primary">
+        <i-tabler name="refresh" class="icon-18 m-r-8"></i-tabler>
+        Actualiser
       </button>
-      <button mat-flat-button class="bg-light-success text-success">
-        Light Success
-      </button>
-      <button mat-flat-button class="bg-light-secondary text-secondary">
-        Light Secondary
-      </button>
-      <button mat-flat-button class="bg-light-warning text-warning">
-        Light Warning
-      </button>
-      <button mat-flat-button class="bg-light-error text-error">
-        Light Error
+      <button mat-flat-button color="primary" [routerLink]="['/datasets']">
+        <i-tabler name="plus" class="icon-18 m-r-8"></i-tabler>
+        Nouveau Projet
       </button>
     </div>
+  </div>
+</div>
 
-    <div class="d-flex flex-wrap gap-10 m-t-12">
-      <button mat-raised-button>Basic</button>
-      <button mat-stroked-button>Basic</button>
-      <button mat-button>Basic</button>
-      <button
-        mat-icon-button
-        aria-label="Example icon button with a vertical three dot icon"
-      >
-        <mat-icon>more_vert</mat-icon>
-      </button>
-      <button mat-fab aria-label="Example icon button with a delete icon">
-        <mat-icon>delete</mat-icon>
-      </button>
-      <button mat-mini-fab aria-label="Example icon button with a menu icon">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <button mat-fab extended>
-        <mat-icon>favorite</mat-icon>
-        Basic
-      </button>
-    </div>
-  </mat-card-content>
-</mat-card>
+<!-- Métriques principales -->
+<div class="row mb-24">
+  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12" *ngFor="let metric of dashboardMetrics">
+    <mat-card class="metric-card cardWithShadow">
+      <mat-card-content class="p-24">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="metric-content">
+            <div class="metric-icon {{ metric.color }} mb-16">
+              <i-tabler [name]="metric.icon" class="icon-24"></i-tabler>
+            </div>
+            <h3 class="metric-value">{{ metric.value }}</h3>
+            <p class="metric-title">{{ metric.title }}</p>
+            <span class="metric-change" [ngClass]="getChangeClass(metric.changeType)" *ngIf="metric.change">
+              {{ metric.change }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
 
-<mat-card class="cardWithShadow">
-  <mat-card-content>
-    <mat-card-title class="m-b-15">Ordrinary Form</mat-card-title>
+<!-- Contenu principal du dashboard -->
+<div class="row">
+  <!-- Section gauche -->
+  <div class="col-xl-8 col-lg-8">
+    
+    <!-- Activité récente -->
+    <mat-card class="activity-card cardWithShadow mb-24">
+      <mat-card-header class="card-header-custom">
+        <div class="d-flex justify-content-between align-items-center w-100">
+          <div>
+            <mat-card-title class="card-title-modern">Activité Récente</mat-card-title>
+            <mat-card-subtitle>Dernières actions sur la plateforme</mat-card-subtitle>
+          </div>
+          <button mat-icon-button>
+            <i-tabler name="dots" class="icon-20"></i-tabler>
+          </button>
+        </div>
+      </mat-card-header>
+      <mat-card-content class="p-0">
+        <div class="activity-list">
+          <div class="activity-item" *ngFor="let activity of recentActivities">
+            <div class="activity-icon {{ activity.color }}">
+              <i-tabler [name]="activity.icon" class="icon-18"></i-tabler>
+            </div>
+            <div class="activity-details">
+              <h6 class="activity-title">{{ activity.title }}</h6>
+              <p class="activity-description">{{ activity.description }}</p>
+              <span class="activity-time">{{ activity.timestamp }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
 
-    <form>
-      <!-- input -->
-      <mat-label class="f-w-500 m-b-8 d-block">Email</mat-label>
-      <mat-form-field appearance="outline" class="w-100" color="primary">
-        <input matInput />
-        <mat-hint> We'll never share your email with anyone else.</mat-hint>
-      </mat-form-field>
-      <!-- input -->
-      <mat-label class="f-w-500 m-b-8 d-block m-t-12">Password</mat-label>
-      <mat-form-field appearance="outline" class="w-100" color="primary">
-        <input matInput type="password" />
-      </mat-form-field>
-      <!-- input -->
-      <mat-checkbox color="primary">Check Me Out!</mat-checkbox>
-      <div class="m-t-12">
-        <button mat-flat-button color="primary">Submit</button>
-      </div>
-    </form>
-  </mat-card-content>
-</mat-card>
+    <!-- Statistiques des datasets -->
+    <mat-card class="stats-card cardWithShadow">
+      <mat-card-header class="card-header-custom">
+        <mat-card-title class="card-title-modern">Répartition des Datasets</mat-card-title>
+        <mat-card-subtitle>{{ datasetStats.total }} datasets disponibles</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stats-grid">
+          <div class="stat-item" *ngFor="let stat of datasetStats.byDomain">
+            <div class="stat-bar">
+              <div class="stat-fill" [style.background-color]="stat.color" 
+                   [style.width.%]="datasetStats.total > 0 ? (stat.value / datasetStats.total) * 100 : 0">
+              </div>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">{{ stat.name }}</span>
+              <span class="stat-value">{{ stat.value }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-<mat-card class="cardWithShadow">
-  <mat-card-content>
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-      <!--- Note that these columns can be defined in any order.
-          The actual rendered columns are set as a property on the row definition" -->
+  <!-- Section droite -->
+  <div class="col-xl-4 col-lg-4">
+    
+    <!-- Actions rapides -->
+    <mat-card class="quick-actions-card cardWithShadow mb-24">
+      <mat-card-header class="card-header-custom">
+        <mat-card-title class="card-title-modern">Actions Rapides</mat-card-title>
+        <mat-card-subtitle>Démarrez votre analyse</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="p-16">
+        <div class="quick-actions-grid">
+          <button 
+            mat-flat-button 
+            class="quick-action-btn"
+            *ngFor="let action of quickActions"
+            [disabled]="action.disabled"
+            [routerLink]="action.disabled ? null : [action.route]"
+            [ngClass]="'quick-action-' + action.color">
+            <div class="quick-action-content">
+              <div class="quick-action-icon">
+                <i-tabler [name]="action.icon" class="icon-20"></i-tabler>
+              </div>
+              <div class="quick-action-text">
+                <h6 class="quick-action-title">{{ action.title }}</h6>
+                <p class="quick-action-desc">{{ action.description }}</p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
 
-      <!-- Position Column -->
-      <ng-container matColumnDef="position">
-        <th mat-header-cell *matHeaderCellDef>No.</th>
-        <td mat-cell *matCellDef="let element">{{ element.position }}</td>
-      </ng-container>
+    <!-- État du système -->
+    <mat-card class="system-status-card cardWithShadow">
+      <mat-card-header class="card-header-custom">
+        <mat-card-title class="card-title-modern">État du Système</mat-card-title>
+        <mat-card-subtitle>Services EXAI</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="p-20">
+        <div class="status-list">
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-details">
+              <span class="status-name">API Gateway</span>
+              <span class="status-value">En ligne</span>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator online"></div>
+            <div class="status-details">
+              <span class="status-name">Service Datasets</span>
+              <span class="status-value">En ligne</span>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator offline"></div>
+            <div class="status-details">
+              <span class="status-name">Pipeline ML</span>
+              <span class="status-value">En développement</span>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-indicator offline"></div>
+            <div class="status-details">
+              <span class="status-name">Moteur XAI</span>
+              <span class="status-value">En développement</span>
+            </div>
+          </div>
+        </div>
 
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let element">{{ element.name }}</td>
-      </ng-container>
-
-      <!-- Weight Column -->
-      <ng-container matColumnDef="weight">
-        <th mat-header-cell *matHeaderCellDef>Weight</th>
-        <td mat-cell *matCellDef="let element">{{ element.weight }}</td>
-      </ng-container>
-
-      <!-- Symbol Column -->
-      <ng-container matColumnDef="symbol">
-        <th mat-header-cell *matHeaderCellDef>Symbol</th>
-        <td mat-cell *matCellDef="let element">{{ element.symbol }}</td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
-  </mat-card-content>
-</mat-card>
-
-<mat-card class="cardWithShadow">
-  <mat-card-content>
-    <mat-card-title class="m-b-15">Chip</mat-card-title>
-    <mat-chip-set aria-label="Dog selection">
-      <mat-chip>
-        <img
-          matChipAvatar
-          src="https://material.angular.io/assets/img/examples/shiba1.jpg"
-          alt="Photo of a Shiba Inu"
-        />
-        Dog one
-      </mat-chip>
-      <mat-chip>
-        <img
-          matChipAvatar
-          src="https://material.angular.io/assets/img/examples/shiba1.jpg"
-          alt="Photo of a Shiba Inu"
-        />
-        Dog two
-      </mat-chip>
-      <mat-chip>
-        <img
-          matChipAvatar
-          src="https://material.angular.io/assets/img/examples/shiba1.jpg"
-          alt="Photo of a Shiba Inu"
-        />
-        Dog three
-      </mat-chip>
-    </mat-chip-set>
-  </mat-card-content>
-</mat-card>
+        <div class="system-info mt-20">
+          <div class="info-item">
+            <i-tabler name="clock" class="icon-16 text-muted"></i-tabler>
+            <span class="text-muted">Dernière mise à jour: il y a 5 min</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
