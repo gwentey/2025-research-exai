@@ -1,0 +1,103 @@
+<mat-card class="cardWithShadow theme-card h-100">
+  <!-- Header avec nom et statut -->
+  <mat-card-header class="p-16 border-bottom">
+    <div class="d-flex justify-content-between align-items-start w-100">
+      <div class="flex-1">
+        <mat-card-title class="mat-h6 m-b-8 f-w-600">{{ project.name }}</mat-card-title>
+        <div class="d-flex align-items-center" [matTooltip]="getProjectStatusText()">
+          <mat-icon 
+            class="icon-16 m-r-4" 
+            [ngClass]="{
+              'text-success': getProjectStatusClass() === 'active',
+              'text-primary': getProjectStatusClass() === 'draft',
+              'text-muted': getProjectStatusClass() === 'archived'
+            }">
+            {{ getProjectStatusIcon() }}
+          </mat-icon>
+          <span class="mat-caption text-muted">{{ getProjectStatusText() }}</span>
+        </div>
+      </div>
+      
+      <!-- Menu d'actions -->
+      <button mat-icon-button [matMenuTriggerFor]="projectMenu" matTooltip="Actions" class="text-muted">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #projectMenu="matMenu">
+        <button mat-menu-item (click)="viewProject()">
+          <mat-icon class="m-r-8">visibility</mat-icon>
+          <span>Voir les recommandations</span>
+        </button>
+        <button mat-menu-item (click)="editProject()">
+          <mat-icon class="m-r-8">edit</mat-icon>
+          <span>Modifier</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="deleteProject()" class="text-warn">
+          <mat-icon class="m-r-8">delete</mat-icon>
+          <span>Supprimer</span>
+        </button>
+      </mat-menu>
+    </div>
+  </mat-card-header>
+
+  <!-- Description -->
+  <mat-card-content class="p-16 flex-1">
+    <p class="mat-body-2 text-muted m-b-16 line-height-1-5">
+      {{ getTruncatedDescription() }}
+    </p>
+    
+    <!-- Statistiques -->
+    <div class="d-flex align-items-center gap-16 m-b-16">
+      <div class="d-flex align-items-center" matTooltip="Nombre de critères de filtrage configurés">
+        <mat-icon class="icon-16 m-r-4 text-primary">tune</mat-icon>
+        <span class="mat-caption">{{ getCriteriaCount() }} critère{{ getCriteriaCount() > 1 ? 's' : '' }}</span>
+      </div>
+      
+      <div class="d-flex align-items-center" matTooltip="Nombre de poids de scoring configurés">
+        <mat-icon class="icon-16 m-r-4 text-primary">balance</mat-icon>
+        <span class="mat-caption">{{ getWeightsCount() }} poids</span>
+      </div>
+    </div>
+
+    <!-- Résumé des critères -->
+    <div class="d-flex align-items-center p-8 bg-light-primary rounded" *ngIf="getCriteriaCount() > 0">
+      <mat-icon class="icon-16 m-r-8 text-primary">filter_list</mat-icon>
+      <span class="mat-caption text-primary">{{ getCriteriaSummary() }}</span>
+    </div>
+  </mat-card-content>
+
+  <!-- Footer avec dates et actions -->
+  <mat-card-actions class="p-16 border-top bg-light">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-8">
+      <!-- Dates -->
+      <div class="flex-1">
+        <div class="d-flex align-items-center m-b-4">
+          <mat-icon class="icon-14 m-r-4 text-muted">calendar_today</mat-icon>
+          <span class="mat-caption text-muted">{{ getCreatedDate() }}</span>
+        </div>
+        <div class="d-flex align-items-center" *ngIf="project.updated_at !== project.created_at">
+          <mat-icon class="icon-14 m-r-4 text-muted">update</mat-icon>
+          <span class="mat-caption text-muted">{{ getUpdatedDate() }}</span>
+          <mat-icon 
+            *ngIf="isRecentlyUpdated()" 
+            class="icon-14 m-l-4 text-primary" 
+            matTooltip="Modifié récemment">
+            fiber_new
+          </mat-icon>
+        </div>
+      </div>
+      
+      <!-- Actions principales -->
+      <div class="d-flex gap-8">
+        <button mat-stroked-button (click)="editProject()" color="primary" size="small">
+          <mat-icon class="icon-16 m-r-4">edit</mat-icon>
+          Modifier
+        </button>
+        <button mat-raised-button (click)="viewProject()" color="primary" size="small">
+          <mat-icon class="icon-16 m-r-4">visibility</mat-icon>
+          Voir
+        </button>
+      </div>
+    </div>
+  </mat-card-actions>
+</mat-card> 

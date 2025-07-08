@@ -1,0 +1,275 @@
+<div class="project-detail-container" *ngIf="!isLoading && project">
+  <!-- Header -->
+  <div class="detail-header">
+    <div class="header-content">
+      <div class="header-info">
+        <button mat-icon-button (click)="goBack()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="project-title">
+          <h1>{{ project.name }}</h1>
+          <p class="project-description" *ngIf="project.description">{{ project.description }}</p>
+          <div class="project-meta">
+            <span class="created-date">
+              <mat-icon>calendar_today</mat-icon>
+              Créé le {{ project.created_at | date:'dd/MM/yyyy' }}
+            </span>
+            <span class="criteria-count" *ngIf="getCriteriaCount() > 0">
+              <mat-icon>filter_list</mat-icon>
+              {{ getCriteriaCount() }} critère{{ getCriteriaCount() > 1 ? 's' : '' }}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button mat-stroked-button (click)="refreshRecommendations()" [disabled]="isLoadingRecommendations">
+          <mat-icon>refresh</mat-icon>
+          Actualiser
+        </button>
+        <button mat-stroked-button (click)="editProject()">
+          <mat-icon>edit</mat-icon>
+          Modifier
+        </button>
+        <button mat-button [matMenuTriggerFor]="actionMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #actionMenu="matMenu">
+          <button mat-menu-item (click)="deleteProject()">
+            <mat-icon color="warn">delete</mat-icon>
+            <span>Supprimer</span>
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="detail-content">
+    <mat-tab-group [(selectedIndex)]="selectedTab" class="detail-tabs">
+      <!-- Onglet Résumé -->
+      <mat-tab label="Résumé du Projet">
+        <div class="tab-content">
+          <div class="summary-grid">
+            <!-- Configuration du projet -->
+            <mat-card class="config-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>settings</mat-icon>
+                <mat-card-title>Configuration</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="config-section">
+                  <h4><mat-icon>filter_list</mat-icon> Critères de Filtrage</h4>
+                  <p class="config-value">{{ getFormattedCriteria() }}</p>
+                </div>
+                
+                <mat-divider></mat-divider>
+                
+                <div class="config-section">
+                  <h4><mat-icon>tune</mat-icon> Pondération</h4>
+                  <p class="config-value">{{ getFormattedWeights() }}</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Statistiques des recommandations -->
+            <mat-card class="stats-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>insights</mat-icon>
+                <mat-card-title>Recommandations</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <div class="stat-value">{{ totalRecommendations }}</div>
+                    <div class="stat-label">Datasets trouvés</div>
+                  </div>
+                  <div class="stat-item" *ngIf="recommendations.length > 0">
+                    <div class="stat-value">{{ formatScore(recommendations[0].score) }}</div>
+                    <div class="stat-label">Meilleur score</div>
+                  </div>
+                  <div class="stat-item" *ngIf="recommendations.length > 0">
+                    <div class="stat-value">{{ getAverageScore() | number:'1.0-0' }}%</div>
+                    <div class="stat-label">Score moyen</div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <!-- Top 3 des recommandations -->
+          <mat-card class="top-recommendations-card" *ngIf="recommendations.length > 0">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>star</mat-icon>
+              <mat-card-title>Top 3 des Recommandations</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="top-recommendations">
+                <div *ngFor="let dataset of recommendations.slice(0, 3); index as i" class="top-recommendation">
+                  <div class="rank-badge">{{ i + 1 }}</div>
+                  <div class="dataset-info">
+                    <h4>{{ dataset.dataset_name }}</h4>
+                    <p>{{ dataset.objective || 'Objectif non spécifié' }}</p>
+                    <div class="dataset-stats">
+                      <span><mat-icon>storage</mat-icon> {{ dataset.instances_number | number }} instances</span>
+                      <span *ngIf="dataset.features_number"><mat-icon>view_column</mat-icon> {{ dataset.features_number }} features</span>
+                    </div>
+                  </div>
+                  <div class="dataset-score">
+                    <div class="score-circle" [style.background]="getScoreColor(dataset.score)">
+                      {{ formatScore(dataset.score) }}
+                    </div>
+                  </div>
+                  <div class="dataset-actions">
+                    <button mat-icon-button matTooltip="Voir les détails" (click)="onViewDataset(dataset)">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button mat-raised-button color="primary" (click)="onSelectDataset(dataset)">
+                      Sélectionner
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Onglet Recommandations détaillées -->
+      <mat-tab label="Toutes les Recommandations">
+        <div class="tab-content">
+          <!-- Contrôles de vue -->
+          <div class="view-controls">
+            <div class="controls-left">
+              <span class="results-count">{{ totalRecommendations }} datasets trouvés</span>
+            </div>
+            <div class="controls-right">
+              <button mat-stroked-button (click)="toggleHeatmap()">
+                <mat-icon>{{ showHeatmap ? 'table_view' : 'grid_view' }}</mat-icon>
+                {{ showHeatmap ? 'Vue liste' : 'Vue heatmap' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Vue Heatmap -->
+          <div *ngIf="showHeatmap && recommendations.length > 0" class="heatmap-view">
+            <mat-card class="heatmap-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>grid_view</mat-icon>
+                <mat-card-title>Heatmap des Scores par Critère</mat-card-title>
+                <mat-card-subtitle>Analyse détaillée des performances de chaque dataset</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="heatmap-container">
+                  <div class="heatmap-table">
+                    <!-- Header -->
+                    <div class="heatmap-header">
+                      <div class="dataset-name-col">Dataset</div>
+                      <div class="score-col">Score Final</div>
+                      <div *ngFor="let criterion of getHeatmapCriteria()" class="criterion-col">
+                        {{ criterion.replace('_', ' ') | titlecase }}
+                      </div>
+                    </div>
+                    
+                    <!-- Lignes de données -->
+                    <div *ngFor="let dataset of recommendations" class="heatmap-row">
+                      <div class="dataset-name-col">
+                        <span class="dataset-name" [matTooltip]="dataset.objective">{{ dataset.dataset_name }}</span>
+                      </div>
+                      <div class="score-col">
+                        <div class="score-badge" [style.background]="getScoreColor(dataset.score)">
+                          {{ formatScore(dataset.score) }}
+                        </div>
+                      </div>
+                      <div *ngFor="let criterion of getHeatmapCriteria()" class="criterion-col">
+                        <div class="criterion-score" 
+                             [style.background]="getCriterionScoreColor(getCriterionScore(dataset, criterion))"
+                             [matTooltip]="criterion + ': ' + (getCriterionScore(dataset, criterion) * 100 | number:'1.0-0') + '%'">
+                          {{ (getCriterionScore(dataset, criterion) * 100) | number:'1.0-0' }}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <!-- Vue Liste -->
+          <div *ngIf="!showHeatmap && recommendations.length > 0" class="list-view">
+            <div class="recommendations-list">
+              <mat-card *ngFor="let dataset of recommendations; index as i" class="recommendation-card">
+                <mat-card-content>
+                  <div class="recommendation-content">
+                    <div class="rank-badge">{{ i + 1 }}</div>
+                    <div class="dataset-details">
+                      <h3>{{ dataset.dataset_name }}</h3>
+                      <p class="dataset-objective">{{ dataset.objective || 'Objectif non spécifié' }}</p>
+                      <div class="dataset-metadata">
+                        <mat-chip-set>
+                          <mat-chip>{{ dataset.instances_number | number }} instances</mat-chip>
+                          <mat-chip *ngIf="dataset.features_number">{{ dataset.features_number }} features</mat-chip>
+                          <mat-chip *ngIf="dataset.year">{{ dataset.year }}</mat-chip>
+                        </mat-chip-set>
+                      </div>
+                    </div>
+                    <div class="score-section">
+                      <div class="main-score">
+                        <div class="score-circle" [style.background]="getScoreColor(dataset.score)">
+                          {{ formatScore(dataset.score) }}
+                        </div>
+                        <span class="score-label">Score global</span>
+                      </div>
+                    </div>
+                    <div class="actions-section">
+                      <button mat-stroked-button (click)="onViewDataset(dataset)">
+                        <mat-icon>visibility</mat-icon>
+                        Voir
+                      </button>
+                      <button mat-raised-button color="primary" (click)="onSelectDataset(dataset)">
+                        <mat-icon>play_arrow</mat-icon>
+                        Utiliser
+                      </button>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <!-- État de chargement des recommandations -->
+          <div *ngIf="isLoadingRecommendations" class="loading-recommendations">
+            <mat-spinner diameter="60"></mat-spinner>
+            <p>Chargement des recommandations...</p>
+          </div>
+
+          <!-- Aucune recommandation -->
+          <div *ngIf="!isLoadingRecommendations && recommendations.length === 0" class="no-recommendations">
+            <mat-icon>search_off</mat-icon>
+            <h3>Aucune recommandation trouvée</h3>
+            <p>Modifiez les critères de votre projet pour obtenir des recommandations.</p>
+            <button mat-raised-button color="primary" (click)="editProject()">
+              <mat-icon>edit</mat-icon>
+              Modifier le projet
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
+
+<!-- État de chargement -->
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner diameter="60"></mat-spinner>
+  <p>Chargement du projet...</p>
+</div>
+
+<!-- Erreur -->
+<div *ngIf="error" class="error-container">
+  <mat-icon color="warn">error</mat-icon>
+  <p>{{ error }}</p>
+  <button mat-raised-button (click)="goBack()">
+    Retour à la liste
+  </button>
+</div> 

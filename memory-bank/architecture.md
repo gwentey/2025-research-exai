@@ -54,23 +54,27 @@ graph LR
         *   [✅] Table `user` gérée par Alembic.
         *   [✅] Endpoint `/health` présent.
         *   [✅] CORS configuré (permissif).
-        *   [✅] Routage Reverse Proxy vers les autres services.
+        *   [✅] **Routage Reverse Proxy complet (2025-01-21)** : Routes `/datasets` et `/projects` vers service-selection.
+        *   [✅] **Routes Projets intégrées** : `/projects`, `/projects/{id}`, `/projects/{id}/recommendations`.
+        *   [✅] **Configuration multi-environnements** : URLs services adaptées local/Kubernetes.
         *   [⬜] Déploiement K8s à finaliser (configuration probes, secrets).
 
 *   **`service-selection/` :**
-    *   **Rôle :** Gestion des métadonnées des datasets.
+    *   **Rôle :** Gestion des métadonnées des datasets et des projets utilisateur.
     *   **Technos :** FastAPI, Uvicorn, SQLAlchemy, Pydantic, Alembic, `psycopg2-binary`/`asyncpg`.
     *   **Statut :**
         *   [✅] Configuration FastAPI de base.
         *   [✅] **Structure BDD normalisée (2025-07-06)** : 5 tables liées (`datasets`, `dataset_files`, `file_columns`, `dataset_relationships`, `dataset_relationship_column_links`) avec UUID comme clés primaires.
+        *   [✅] **Table Projects (2025-01-21)** : Gestion projets utilisateur avec critères personnalisés et poids de scoring.
         *   [✅] **Modèles SQLAlchemy complets** pour toutes les tables avec relations ORM.
         *   [✅] **Schémas Pydantic exhaustifs** : Base/Create/Update/Read pour chaque modèle + schémas composés et filtrage.
-        *   [✅] **Migration Alembic** : Refonte complète de la structure BDD (migration `6eb0a0e360e3`).
+        *   [✅] **Migration Alembic** : Refonte complète de la structure BDD (migration `6eb0a0e360e3`) + ajout projets (`a7b8c9d0e1f2`).
         *   [✅] **Scripts d'initialisation** : Dossier `scripts/` avec script d'initialisation dataset EdNet.
         *   [✅] **Endpoints CRUD complets** : API REST avec filtrage avancé, pagination, tri et recherche.
         *   [✅] **Endpoints spécialisés** : `/datasets/domains` et `/datasets/tasks` pour les filtres frontend.
-        *   [⬜] Logique de scoring avancée basée sur critères éthiques **à implémenter**.
-        *   [⬜] Endpoints `/score`, `/preview`, `/stats` **à réimplémenter**.
+        *   [✅] **Endpoints Projets** : CRUD complet `/projects` avec recommandations personnalisées `/projects/{id}/recommendations`.
+        *   [✅] **Système de scoring sophistiqué** : Algorithmes multi-critères (éthique, technique, popularité) avec endpoint `/datasets/score`.
+        *   [✅] **Filtrage backend-first optimisé** : Élimination du double filtrage client/serveur pour performance maximale.
         *   [🚧] Déploiement K8s à finaliser (configuration probes, secrets).
     
     *   **Structure Base de Données Normalisée (2025-07-06) :**
@@ -107,8 +111,11 @@ graph LR
         *   [✅] Structure de base présente (`services`, `pages`, `layouts`...).
         *   [✅] Service `AuthService` et module/pages d'authentification fonctionnels.
         *   [✅] **Interface Datasets complète** : Service, composants, models et routing intégrés.
+        *   [✅] **Interface Projets complète (2025-01-21)** : Gestion complète des projets avec création/édition/visualisation.
         *   [✅] **Composants Angular Material** : Cards, filtres, pagination, recherche, tri.
         *   [✅] **Fonctionnalités avancées** : Filtrage multi-critères, recherche textuelle, interface responsive.
+        *   [✅] **Visualisation Heatmap (2025-01-21)** : Analyse visuelle des scores de recommandation par critère.
+        *   [✅] **Recommandations Temps Réel** : Preview automatique des datasets recommandés lors de la configuration.
         *   [✅] **Menu de navigation optimisé (2025-01-07)** : Menu de gauche nettoyé pour ne conserver que les fonctionnalités EXAI essentielles (Tableau de bord, Datasets, Pipeline ML, Explications XAI). Suppression des éléments de démonstration du thème Spike.
         *   [✅] **Header optimisé pour EXAI (2025-01-07)** : Suppression du menu Apps inutile, des liens Chat/Calendar/Email. Recherche élargie pour datasets/modèles. Notifications et raccourcis adaptés au contexte EXAI. Profil utilisateur conservé avec traduction française.
         *   [✅] **Interface Sidebar Collapsible Moderne (2025-07-07)** : Architecture révolutionnaire pour la sélection des datasets.
@@ -129,6 +136,22 @@ graph LR
             *   `frontend/src/app/pages/datasets/dataset-listing.component.html` : Template modal complet
             *   `frontend/src/app/pages/datasets/dataset-listing.component.scss` : CSS modal moderne
             *   `frontend/src/app/pages/datasets/dataset-listing.component.ts` : Logique modal + preview
+
+    *   **Architecture Gestion de Projets (2025-01-21) :**
+        *   **Modèles TypeScript** : Interfaces complètes dans `project.models.ts` (Project, ProjectCreate, ProjectRecommendationResponse, etc.)
+        *   **Service Angular** : `ProjectService` avec méthodes CRUD complètes et recommandations
+        *   **Composants Principaux** :
+            *   `ProjectListComponent` : Liste paginée avec recherche et actions CRUD
+            *   `ProjectFormComponent` : Formulaire de création/édition avec preview temps réel
+            *   `ProjectDetailComponent` : Visualisation complète avec heatmap et recommandations
+            *   `ProjectCardComponent` : Carte de projet réutilisable
+        *   **Navigation Intégrée** : Routes `/projects` configurées dans `app.routes.ts` + menu sidebar
+        *   **Fonctionnalités Avancées** :
+            *   Configuration de critères personnalisés via composant de filtres réutilisé
+            *   Ajustement de poids de scoring avec sliders interactifs
+            *   Preview automatique des recommandations pendant la configuration
+            *   Visualisation heatmap des scores par critère pour analyse comparative
+            *   Interface responsive desktop/tablet/mobile
 
 *   **Infrastructure :**
     *   [✅] PostgreSQL déployé sur K8s et accessible.

@@ -667,6 +667,22 @@ async def datasets_tasks_proxy(request: Request, current_user: UserModel = Depen
     """Proxy vers le service-selection pour récupérer les tâches ML"""
     return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/tasks", current_user)
 
+# Routes pour les projets (service-selection)
+@app.api_route("/projects", methods=["GET", "POST"], tags=["projects"])
+async def projects_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour les opérations sur les projets"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "projects", current_user)
+
+@app.api_route("/projects/{project_id}", methods=["GET", "PUT", "DELETE"], tags=["projects"])
+async def project_detail_proxy(project_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour les opérations sur un projet spécifique"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"projects/{project_id}", current_user)
+
+@app.get("/projects/{project_id}/recommendations", tags=["projects"])
+async def project_recommendations_proxy(project_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les recommandations d'un projet"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"projects/{project_id}/recommendations", current_user)
+
 # Route racine simple (optionnel)
 @app.get("/")
 def read_root():

@@ -10,6 +10,7 @@ import {
   DatasetListResponse, 
   DatasetFilterCriteria, 
   DatasetScoreRequest, 
+  CriterionWeight,
   PaginationParams,
   DatasetStats 
 } from '../models/dataset.models';
@@ -112,14 +113,54 @@ export class DatasetService {
   }
 
   /**
-   * Récupère les datasets avec scoring selon des critères
+   * Récupère les datasets avec scoring selon des critères (endpoint backend amélioré)
    * @param scoreRequest - Critères de filtrage et poids pour le scoring
-   * @returns Observable avec la liste des datasets scorés
+   * @returns Observable avec la liste des datasets scorés triés par pertinence
    */
   getDatasetsByScore(scoreRequest: DatasetScoreRequest): Observable<DatasetScored[]> {
     return this.http.post<DatasetScored[]>(`${this.baseUrl}/score`, scoreRequest).pipe(
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * Récupère les datasets avec scoring automatique basé sur des critères prédéfinis
+   * @param filters - Critères de filtrage (optionnel)
+   * @param scoringProfile - Profil de scoring prédéfini ('ethical', 'technical', 'popularity', 'balanced')
+   * @returns Observable avec la liste des datasets scorés
+   */
+  getDatasetsByAutoScore(filters?: DatasetFilterCriteria, scoringProfile: string = 'balanced'): Observable<DatasetScored[]> {
+    // Profils de scoring prédéfinis
+    const scoringProfiles: { [key: string]: CriterionWeight[] } = {
+      'ethical': [
+        { criterion_name: 'ethical_score', weight: 0.7 },
+        { criterion_name: 'anonymization', weight: 0.2 },
+        { criterion_name: 'informed_consent', weight: 0.1 }
+      ],
+      'technical': [
+        { criterion_name: 'technical_score', weight: 0.6 },
+        { criterion_name: 'data_quality', weight: 0.3 },
+        { criterion_name: 'documentation', weight: 0.1 }
+      ],
+      'popularity': [
+        { criterion_name: 'popularity_score', weight: 0.8 },
+        { criterion_name: 'citations', weight: 0.2 }
+      ],
+      'balanced': [
+        { criterion_name: 'ethical_score', weight: 0.4 },
+        { criterion_name: 'technical_score', weight: 0.4 },
+        { criterion_name: 'popularity_score', weight: 0.2 }
+      ]
+    };
+
+    const weights = scoringProfiles[scoringProfile] || scoringProfiles['balanced'];
+    
+    const scoreRequest: DatasetScoreRequest = {
+      filters: filters || {},
+      weights: weights
+    };
+
+    return this.getDatasetsByScore(scoreRequest);
   }
 
   /**

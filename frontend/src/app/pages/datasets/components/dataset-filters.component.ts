@@ -156,17 +156,17 @@ export class DatasetFiltersComponent implements OnInit, OnDestroy {
    * Configure les souscriptions au formulaire
    */
   private setupFormSubscriptions(): void {
-    if (this.autoApply) {
-      this.filterForm.valueChanges
-        .pipe(
-          debounceTime(300),
-          distinctUntilChanged(),
-          takeUntil(this.destroy$)
-        )
-        .subscribe(() => {
-          this.emitFiltersChange();
-        });
-    }
+    // Toujours écouter les changements pour émettre filtersChange (pour le preview)
+    this.filterForm.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        // Toujours émettre les changements pour le preview
+        this.emitFiltersChange();
+      });
   }
 
   /**
@@ -175,6 +175,11 @@ export class DatasetFiltersComponent implements OnInit, OnDestroy {
   private emitFiltersChange(): void {
     const filters = this.getFiltersFromForm();
     this.filtersChange.emit(filters);
+    
+    // Si auto-application activée, émettre aussi filtersApply
+    if (this.autoApply) {
+      this.filtersApply.emit(filters);
+    }
   }
 
   /**

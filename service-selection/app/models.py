@@ -203,3 +203,31 @@ class DatasetRelationshipColumnLink(Base):
     dataset_relationship = relationship("DatasetRelationship", back_populates="column_links")
     from_column = relationship("FileColumn", foreign_keys="DatasetRelationshipColumnLink.from_column_id", back_populates="links_from")
     to_column = relationship("FileColumn", foreign_keys="DatasetRelationshipColumnLink.to_column_id", back_populates="links_to")
+
+
+class Project(Base):
+    """
+    Modèle SQLAlchemy pour la table des projets utilisateur.
+    
+    Cette table contient les projets créés par les utilisateurs avec leurs critères
+    de filtrage personnalisés et les poids pour le scoring des datasets.
+    """
+    __tablename__ = "projects"
+
+    # === IDENTIFICATION & PK ===
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    
+    # === CLÉ ÉTRANGÈRE ===
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)  # Foreign key vers la table users de l'api-gateway
+    
+    # === INFORMATIONS DU PROJET ===
+    name = Column(String(255), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    
+    # === CRITÈRES ET CONFIGURATION ===
+    criteria = Column(JSONB, nullable=True)  # Critères de filtrage stockés au format DatasetFilterCriteria
+    weights = Column(JSONB, nullable=True)  # Poids des critères pour le scoring
+    
+    # === TIMESTAMPS ===
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)

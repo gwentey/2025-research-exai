@@ -6,6 +6,7 @@
 ** xref:user-guide/index.adoc[Présentation]
 ** xref:user-guide/dataset-selection.adoc[📊 Sélection de Datasets]
 *** xref:user-guide/datasets-oulad.adoc[📚 Dataset OULAD]
+** xref:user-guide/project-management.adoc[📁 Gestion des Projets]
 ** xref:user-guide/ml-pipeline.adoc[🛠️ Pipeline ML Interactif]
 ** xref:user-guide/xai-recommendation.adoc[💡 Recommandations XAI]
 
@@ -13,6 +14,7 @@
 ** xref:dev-guide/index.adoc[Présentation]
 ** xref:dev-guide/architecture.adoc[Architecture Technique]
 ** xref:dev-guide/database-schema.adoc[🗄️ Structure Base de Données]
+** xref:dev-guide/datasets-filtering-scoring.adoc[🔍 Filtrage & Scoring des Datasets]
 ** xref:dev-guide/secrets-management.adoc[🔐 Gestion des Secrets]
 ** xref:development/database-migrations.adoc[Migrations Base de Données (Alembic)]
 ** xref:development/azure-deployment.adoc[Déploiement Azure]

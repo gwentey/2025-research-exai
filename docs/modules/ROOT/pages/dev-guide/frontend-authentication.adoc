@@ -313,3 +313,45 @@ sanitizeGoogleImageUrl(url: string): string {
 ----
 
 Cette double approche (sanitisation côté TypeScript + fallback côté HTML) garantit que les utilisateurs auront toujours une image de profil affichée, même en cas de problème avec l'URL Google. 
+
+== Amélioration de l'Interface Utilisateur
+
+=== Modernisation des Pages de Formulaires
+
+La page de création/édition de projet a été entièrement refactorisée pour suivre les standards modernes du design system :
+
+==== Structure Adoptée
+* **Layout en grille** : Utilisation de la structure Bootstrap (`row`, `col-lg-X`) pour une disposition responsive
+* **Cartes unifiées** : Remplacement des composants personnalisés par des `mat-card` avec les classes standards `cardWithShadow theme-card`
+* **Classes utilitaires** : Adoption des classes CSS du thème existant (`m-b-20`, `f-w-600`, `text-primary`, etc.)
+
+==== Améliorations Apportées
+[cols="1,2"]
+|===
+|Aspect |Amélioration
+
+|CSS Personnalisé
+|Suppression complète du fichier SCSS pour utiliser uniquement les styles du thème
+
+|Structure HTML
+|Refactorisation en structure 2 colonnes (8/4) pour optimiser l'espace d'écran
+
+|Composants Material
+|Migration vers les composants Angular Material standards avec apparence cohérente
+
+|Responsive Design
+|Amélioration de l'affichage sur tous les formats d'écran
+|===
+
+==== Structure de la Page
+```
+├── Header (Titre + Actions)
+├── Colonne principale (col-lg-8)
+│   ├── Informations du projet
+│   ├── Critères de sélection
+│   └── Pondération des critères
+└── Colonne latérale (col-lg-4)
+    └── Aperçu en temps réel
+```
+
+Cette approche garantit la cohérence visuelle avec le reste de l'application et améliore l'expérience utilisateur. 

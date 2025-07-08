@@ -430,23 +430,45 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Met à jour le compteur d'aperçu en temps réel
+   * Met à jour le compteur d'aperçu en temps réel via un appel API
    */
   private updatePreviewCount(): void {
-    // Simule un appel API pour compter les résultats
-    // En production, ceci devrait être un appel au service
     const hasFilters = Object.keys(this.tempFilters).length > 0;
-    const baseCount = this.totalDatasets || this.datasets.length || 24; // Nombre de base réaliste
     
     if (!hasFilters) {
-      this.previewCount = baseCount;
-    } else {
-      // Simulation réaliste - filtre réduit le nombre
-      setTimeout(() => {
-        const reduction = Math.random() * 0.7 + 0.1; // Réduit de 10% à 80%
-        this.previewCount = Math.max(1, Math.floor(baseCount * reduction));
-      }, 200);
+      // Aucun filtre = nombre total actuel
+      this.previewCount = this.totalDatasets || 0;
+      return;
     }
+
+    // Préparer les filtres temporaires pour le preview
+    const previewFilters: DatasetFilterCriteria = { ...this.tempFilters };
+    
+    // Ajouter la recherche rapide si présente
+    if (this.quickSearchTerm) {
+      previewFilters.dataset_name = this.quickSearchTerm;
+    }
+
+    // Appel API pour obtenir le count réel avec les filtres temporaires
+    const previewParams: PaginationParams = {
+      page: 1,
+      page_size: 1, // On veut juste le count, pas les données
+      sort_by: this.currentSort,
+      sort_order: 'desc'
+    };
+
+    this.datasetService.getDatasets(previewParams, previewFilters)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.previewCount = response.total_count;
+        },
+        error: (error) => {
+          console.warn('Erreur lors du calcul du preview:', error);
+          // Fallback sur une estimation
+          this.previewCount = Math.max(0, Math.floor((this.totalDatasets || 0) * 0.7));
+        }
+      });
   }
 
   /**
@@ -476,15 +498,9 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          // Appliquer filtrage côté frontend pour les données de test
-          let filteredDatasets = response.datasets;
-          
-          if (this.hasActiveFilters() || this.quickSearchTerm) {
-            filteredDatasets = this.applyClientSideFilters(response.datasets);
-          }
-          
-          this.datasets = filteredDatasets;
-          this.totalDatasets = filteredDatasets.length;
+          // Le filtrage est maintenant entièrement géré côté backend
+          this.datasets = response.datasets;
+          this.totalDatasets = response.total_count;
           this.isLoading = false;
         },
         error: (error) => {
@@ -497,115 +513,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
       });
   }
 
-  /**
-   * Applique les filtres côté frontend (solution temporaire pour les données de test)
-   */
-  private applyClientSideFilters(datasets: Dataset[]): Dataset[] {
-    return datasets.filter(dataset => {
-      // Filtre par recherche rapide
-      if (this.quickSearchTerm) {
-        const searchTerm = this.quickSearchTerm.toLowerCase();
-        if (!dataset.dataset_name.toLowerCase().includes(searchTerm) && 
-            !dataset.objective?.toLowerCase().includes(searchTerm)) {
-          return false;
-        }
-      }
-
-      // Filtre par instances
-      if (this.currentFilters.instances_number_min !== undefined) {
-        if (!dataset.instances_number || dataset.instances_number < this.currentFilters.instances_number_min) {
-          return false;
-        }
-      }
-      if (this.currentFilters.instances_number_max !== undefined) {
-        if (!dataset.instances_number || dataset.instances_number > this.currentFilters.instances_number_max) {
-          return false;
-        }
-      }
-
-      // Filtre par features
-      if (this.currentFilters.features_number_min !== undefined) {
-        if (!dataset.features_number || dataset.features_number < this.currentFilters.features_number_min) {
-          return false;
-        }
-      }
-      if (this.currentFilters.features_number_max !== undefined) {
-        if (!dataset.features_number || dataset.features_number > this.currentFilters.features_number_max) {
-          return false;
-        }
-      }
-
-      // Filtre par année
-      if (this.currentFilters.year_min !== undefined) {
-        if (!dataset.year || dataset.year < this.currentFilters.year_min) {
-          return false;
-        }
-      }
-      if (this.currentFilters.year_max !== undefined) {
-        if (!dataset.year || dataset.year > this.currentFilters.year_max) {
-          return false;
-        }
-      }
-
-      // Filtre par domaine
-      if (this.currentFilters.domain && this.currentFilters.domain.length > 0) {
-        if (!dataset.domain || !dataset.domain.some(d => this.currentFilters.domain?.includes(d))) {
-          return false;
-        }
-      }
-
-      // Filtre par tâche
-      if (this.currentFilters.task && this.currentFilters.task.length > 0) {
-        if (!dataset.task || !dataset.task.some(t => this.currentFilters.task?.includes(t))) {
-          return false;
-        }
-      }
-
-      // Filtre par score éthique (calculé basiquement)
-      if (this.currentFilters.ethical_score_min !== undefined) {
-        const ethicalScore = this.calculateBasicEthicalScore(dataset);
-        if (ethicalScore < this.currentFilters.ethical_score_min) {
-          return false;
-        }
-      }
-
-      // Filtres booléens
-      if (this.currentFilters.is_split === true && !dataset.split) {
-        return false;
-      }
-      if (this.currentFilters.is_anonymized === true && !dataset.anonymization_applied) {
-        return false;
-      }
-      if (this.currentFilters.has_temporal_factors === true && !dataset.temporal_factors) {
-        return false;
-      }
-      if (this.currentFilters.is_public === true && dataset.access !== 'public') {
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  /**
-   * Calcule un score éthique basique à partir des champs booléens
-   */
-  private calculateBasicEthicalScore(dataset: Dataset): number {
-    const ethicalFactors = [
-      dataset.informed_consent,
-      dataset.transparency,
-      dataset.anonymization_applied,
-      dataset.user_control,
-      dataset.equity_non_discrimination,
-      dataset.security_measures_in_place,
-      dataset.data_quality_documented,
-      dataset.purpose_limitation_respected,
-      dataset.accountability_defined
-    ];
-
-    const trueCount = ethicalFactors.filter(factor => factor === true).length;
-    const totalFactors = ethicalFactors.length;
-    
-    return Math.round((trueCount / totalFactors) * 100);
-  }
+  // Note: Le filtrage côté client a été supprimé.
+  // Toute la logique de filtrage et de scoring est maintenant gérée côté backend
+  // dans le service-selection via les endpoints /datasets et /datasets/score
 } 

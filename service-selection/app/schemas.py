@@ -112,24 +112,50 @@ class DatasetUpdate(BaseModel):
 
 class DatasetFilterCriteria(BaseModel):
     """Schéma pour les critères de filtrage des datasets"""
+    # Filtres textuels
     dataset_name: Optional[str] = Field(None, description="Filtrer par nom (recherche textuelle)")
     objective: Optional[str] = Field(None, description="Filtrer par objectif (recherche textuelle)")
+    
+    # Filtres de listes
     domain: Optional[List[str]] = Field(None, description="Filtrer par domaines")
     task: Optional[List[str]] = Field(None, description="Filtrer par tâches ML")
+    
+    # Filtres catégoriels
     access: Optional[str] = Field(None, description="Filtrer par type d'accès")
     availability: Optional[str] = Field(None, description="Filtrer par disponibilité")
+    
+    # Filtres numériques avec plages
     year_min: Optional[int] = Field(None, description="Année minimale")
     year_max: Optional[int] = Field(None, description="Année maximale")
     instances_min: Optional[int] = Field(None, description="Nombre minimum d'instances")
     instances_max: Optional[int] = Field(None, description="Nombre maximum d'instances")
+    # Alias pour compatibilité avec le frontend
+    instances_number_min: Optional[int] = Field(None, description="Nombre minimum d'instances (alias)")
+    instances_number_max: Optional[int] = Field(None, description="Nombre maximum d'instances (alias)")
     features_min: Optional[int] = Field(None, description="Nombre minimum de features")
     features_max: Optional[int] = Field(None, description="Nombre maximum de features")
+    # Alias pour compatibilité avec le frontend
+    features_number_min: Optional[int] = Field(None, description="Nombre minimum de features (alias)")
+    features_number_max: Optional[int] = Field(None, description="Nombre maximum de features (alias)")
     citations_min: Optional[int] = Field(None, description="Nombre minimum de citations")
     citations_max: Optional[int] = Field(None, description="Nombre maximum de citations")
+    
+    # Filtres de scores
+    ethical_score_min: Optional[int] = Field(None, ge=0, le=100, description="Score éthique minimum (0-100%)")
+    
+    # Filtres booléens techniques
     has_missing_values: Optional[bool] = Field(None, description="Présence de valeurs manquantes")
     split: Optional[bool] = Field(None, description="Dataset déjà splité")
+    is_split: Optional[bool] = Field(None, description="Dataset déjà splité (alias)")
     metadata_provided_with_dataset: Optional[bool] = Field(None, description="Métadonnées fournies")
     external_documentation_available: Optional[bool] = Field(None, description="Documentation externe disponible")
+    temporal_factors: Optional[bool] = Field(None, description="Facteurs temporels")
+    has_temporal_factors: Optional[bool] = Field(None, description="Facteurs temporels (alias)")
+    
+    # Filtres de raccourcis pour le frontend
+    is_anonymized: Optional[bool] = Field(None, description="Anonymisation appliquée (raccourci)")
+    is_public: Optional[bool] = Field(None, description="Accès public (raccourci)")
+    
     # Critères éthiques
     informed_consent: Optional[bool] = Field(None, description="Consentement éclairé")
     transparency: Optional[bool] = Field(None, description="Transparence")
@@ -191,3 +217,58 @@ class DatasetScoreRequest(BaseModel):
 class DatasetScoredRead(DatasetRead):
     """Schéma pour un dataset avec son score"""
     score: float = Field(ge=0.0, le=1.0, description="Score calculé") 
+
+
+# === SCHÉMAS POUR LES PROJETS ===
+
+class ProjectBase(BaseModel):
+    """Schéma de base pour un Project"""
+    name: str = Field(..., max_length=255, description="Nom du projet")
+    description: Optional[str] = Field(None, description="Description du projet")
+    criteria: Optional[DatasetFilterCriteria] = Field(None, description="Critères de filtrage des datasets")
+    weights: Optional[List[CriterionWeight]] = Field(None, description="Poids des critères pour le scoring")
+
+
+class ProjectCreate(ProjectBase):
+    """Schéma pour créer un nouveau Project"""
+    pass
+
+
+class ProjectUpdate(BaseModel):
+    """Schéma pour mettre à jour un Project"""
+    name: Optional[str] = Field(None, max_length=255, description="Nom du projet")
+    description: Optional[str] = Field(None, description="Description du projet")
+    criteria: Optional[DatasetFilterCriteria] = Field(None, description="Critères de filtrage des datasets")
+    weights: Optional[List[CriterionWeight]] = Field(None, description="Poids des critères pour le scoring")
+
+
+class ProjectRead(ProjectBase):
+    """Schéma pour lire un Project"""
+    id: UUID4
+    user_id: UUID4
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class ProjectListResponse(BaseModel):
+    """Schéma pour la réponse de liste des projets"""
+    projects: List[ProjectRead]
+    total_count: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class DatasetScoredWithDetails(DatasetScoredRead):
+    """Schéma pour un dataset avec son score et le détail des sous-scores par critère"""
+    criterion_scores: Dict[str, float] = Field(default_factory=dict, description="Scores détaillés par critère pour la heatmap")
+
+
+class ProjectRecommendationResponse(BaseModel):
+    """Schéma pour la réponse des recommandations d'un projet"""
+    project: ProjectRead
+    datasets: List[DatasetScoredWithDetails]
+    total_count: int 

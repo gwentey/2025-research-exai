@@ -20,6 +20,12 @@ export const navItems: NavItem[] = [
     route: '/datasets',
   },
   {
+    displayName: 'Projets',
+    iconName: 'folder',
+    bgcolor: 'primary',
+    route: '/projects',
+  },
+  {
     displayName: 'Pipeline ML',
     iconName: 'chart-dots',
     bgcolor: 'warning',

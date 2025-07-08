@@ -1,0 +1,367 @@
+<!-- Header de la page -->
+<div class="d-flex justify-content-between align-items-center m-b-20">
+  <div>
+    <h2 class="mat-h2 m-b-0 d-flex align-items-center">
+      <mat-icon class="m-r-8">{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+      {{ getPageTitle() }}
+    </h2>
+    <p class="mat-body-1 text-muted m-t-8">{{ isEditMode ? 'Modifiez les paramètres de votre projet' : 'Créez un nouveau projet d\'analyse ML avec scoring automatique' }}</p>
+  </div>
+  <div class="d-flex gap-8">
+    <button mat-stroked-button (click)="onCancel()" [disabled]="isSaving">
+      <mat-icon>close</mat-icon>
+      Annuler
+    </button>
+    <button mat-flat-button color="primary" (click)="onSave()" [disabled]="projectForm.invalid || isSaving">
+      <mat-icon>{{ isSaving ? 'hourglass_empty' : 'save' }}</mat-icon>
+      {{ isEditMode ? 'Mettre à jour' : 'Créer le projet' }}
+    </button>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div *ngIf="!isLoading">
+  <!-- Première ligne - Informations du projet et Aperçu -->
+  <div class="row">
+    <!-- Colonne gauche - Informations -->
+    <div class="col-lg-8">
+      <!-- Informations du projet -->
+      <mat-card class="cardWithShadow theme-card m-b-20">
+        <mat-card-header>
+          <mat-card-title class="m-b-0 d-flex align-items-center">
+            <mat-icon class="m-r-8">info</mat-icon>
+            Informations du Projet
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="b-t-1">
+          <form [formGroup]="projectForm">
+            <div class="row">
+              <div class="col-lg-12">
+                <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Nom du projet</mat-label>
+                <mat-form-field appearance="outline" class="w-100" color="primary">
+                  <input matInput formControlName="name" placeholder="Ex: Analyse des performances étudiantes" required>
+                  <mat-icon matSuffix>title</mat-icon>
+                  <mat-error *ngIf="projectForm.get('name')?.hasError('required')">
+                    Le nom du projet est obligatoire
+                  </mat-error>
+                  <mat-error *ngIf="projectForm.get('name')?.hasError('maxlength')">
+                    Le nom ne peut pas dépasser 255 caractères
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-lg-12">
+                <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Description (optionnelle)</mat-label>
+                <mat-form-field appearance="outline" class="w-100" color="primary">
+                  <textarea matInput formControlName="description" rows="3" 
+                           placeholder="Décrivez l'objectif et le contexte de votre projet..."></textarea>
+                  <mat-icon matSuffix>description</mat-icon>
+                </mat-form-field>
+              </div>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Colonne droite - Aperçu -->
+    <div class="col-lg-4">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-header>
+          <mat-card-title class="m-b-0 d-flex align-items-center">
+            <mat-icon class="m-r-8">visibility</mat-icon>
+            Aperçu
+          </mat-card-title>
+          <mat-card-subtitle>
+            {{ previewCount }} dataset{{ previewCount > 1 ? 's' : '' }} trouvé{{ previewCount > 1 ? 's' : '' }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="b-t-1">
+          
+          <!-- Loading preview -->
+          <div *ngIf="isLoadingPreview" class="text-center p-20">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p class="mat-body-2 m-t-12">Calcul des recommandations...</p>
+          </div>
+
+          <!-- Aucun résultat -->
+          <div *ngIf="!isLoadingPreview && previewCount === 0" class="text-center p-20">
+            <mat-icon class="icon-48 text-muted">search_off</mat-icon>
+            <h4 class="mat-h4 m-t-12">Aucun dataset trouvé</h4>
+            <p class="mat-body-2 text-muted">Ajustez vos critères pour obtenir des recommandations</p>
+          </div>
+
+          <!-- Résultats -->
+          <div *ngIf="!isLoadingPreview && previewDatasets.length > 0">
+            <div class="d-flex align-items-center m-b-16 p-12 bg-light-primary rounded">
+              <mat-icon class="text-primary m-r-8">insights</mat-icon>
+              <span class="mat-subtitle-2 text-primary f-w-600">Top {{ previewDatasets.length }} recommandés</span>
+            </div>
+            
+            <div class="preview-list">
+              <div *ngFor="let dataset of previewDatasets" class="d-flex align-items-start p-12 border-bottom">
+                <div class="flex-1">
+                  <h6 class="mat-subtitle-2 f-w-600 m-b-4">{{ dataset.dataset_name }}</h6>
+                  <p class="mat-body-2 text-muted m-b-8">{{ dataset.objective || 'Objectif non spécifié' }}</p>
+                  <div class="d-flex gap-12">
+                    <span class="mat-caption d-flex align-items-center">
+                      <mat-icon class="icon-16 m-r-4">storage</mat-icon>
+                      {{ dataset.instances_number | number }}
+                    </span>
+                    <span *ngIf="dataset.features_number" class="mat-caption d-flex align-items-center">
+                      <mat-icon class="icon-16 m-r-4">view_column</mat-icon>
+                      {{ dataset.features_number }}
+                    </span>
+                  </div>
+                </div>
+                <div class="text-center m-l-12">
+                  <div class="score-badge rounded-circle d-flex align-items-center justify-content-center" 
+                       [style.background-color]="getScoreColor(dataset.score)"
+                       style="width: 40px; height: 40px;">
+                    <span class="mat-caption f-w-700 text-white">{{ (dataset.score * 100) | number:'1.0-0' }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Deuxième ligne - Critères de sélection (largeur 100%) -->
+  <div class="row">
+    <div class="col-lg-12">
+      <!-- Critères de sélection -->
+      <mat-card class="cardWithShadow theme-card m-b-20">
+      <mat-card-header>
+        <mat-card-title class="m-b-0 d-flex align-items-center">
+          <mat-icon class="m-r-8">filter_list</mat-icon>
+          Critères de Sélection
+        </mat-card-title>
+        <mat-card-subtitle>Définissez les critères pour filtrer les datasets</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="b-t-1">
+        <div class="row">
+          <div class="col-lg-6">
+            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
+              <mat-icon class="m-r-8">search</mat-icon>
+              Recherche textuelle
+            </h6>
+            <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Nom du dataset</mat-label>
+                         <mat-form-field appearance="outline" class="w-100" color="primary">
+               <input matInput [(ngModel)]="tempCriteria.dataset_name" (ngModelChange)="onCriteriaUpdate()" placeholder="Ex: EdNet, MNIST, ImageNet...">
+               <mat-icon matSuffix>label_outline</mat-icon>
+             </mat-form-field>
+            
+            <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Description/Objectif</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <textarea matInput [(ngModel)]="tempCriteria.objective" rows="2" placeholder="Mots-clés sur l'objectif..."></textarea>
+              <mat-icon matSuffix>description</mat-icon>
+            </mat-form-field>
+          </div>
+          
+          <div class="col-lg-6">
+            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
+              <mat-icon class="m-r-8">category</mat-icon>
+              Domaines et Tâches
+            </h6>
+            <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Domaines d'application</mat-label>
+                         <mat-form-field appearance="outline" class="w-100" color="primary">
+               <mat-select [(ngModel)]="tempCriteria.domain" (ngModelChange)="onCriteriaUpdate()" multiple placeholder="Choisir des domaines">
+                 <mat-option value="education">Éducation</mat-option>
+                 <mat-option value="health">Santé</mat-option>
+                 <mat-option value="finance">Finance</mat-option>
+                 <mat-option value="transport">Transport</mat-option>
+                 <mat-option value="retail">Commerce</mat-option>
+               </mat-select>
+               <mat-icon matSuffix>expand_more</mat-icon>
+             </mat-form-field>
+            
+            <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Types de tâches ML</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <mat-select [(ngModel)]="tempCriteria.task" multiple placeholder="Choisir des tâches">
+                <mat-option value="classification">Classification</mat-option>
+                <mat-option value="regression">Régression</mat-option>
+                <mat-option value="clustering">Clustering</mat-option>
+                <mat-option value="nlp">NLP</mat-option>
+                <mat-option value="computer_vision">Vision par ordinateur</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>expand_more</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+        
+        <mat-divider class="m-y-20"></mat-divider>
+        
+        <div class="row">
+          <div class="col-lg-4">
+            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
+              <mat-icon class="m-r-8">storage</mat-icon>
+              Nombre d'instances
+            </h6>
+            <div class="d-flex gap-12">
+              <mat-form-field appearance="outline" class="flex-1" color="primary">
+                <mat-label>Minimum</mat-label>
+                <input matInput type="number" [(ngModel)]="tempCriteria.instances_number_min" placeholder="1000">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="flex-1" color="primary">
+                <mat-label>Maximum</mat-label>
+                <input matInput type="number" [(ngModel)]="tempCriteria.instances_number_max" placeholder="1000000">
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <div class="col-lg-4">
+            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
+              <mat-icon class="m-r-8">view_column</mat-icon>
+              Nombre de features
+            </h6>
+            <div class="d-flex gap-12">
+              <mat-form-field appearance="outline" class="flex-1" color="primary">
+                <mat-label>Minimum</mat-label>
+                <input matInput type="number" [(ngModel)]="tempCriteria.features_number_min" placeholder="5">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="flex-1" color="primary">
+                <mat-label>Maximum</mat-label>
+                <input matInput type="number" [(ngModel)]="tempCriteria.features_number_max" placeholder="100">
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <div class="col-lg-4">
+            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
+              <mat-icon class="m-r-8">calendar_today</mat-icon>
+              Année de création
+            </h6>
+            <div class="d-flex gap-12">
+              <mat-form-field appearance="outline" class="flex-1" color="primary">
+                <mat-label>Depuis</mat-label>
+                <input matInput type="number" [(ngModel)]="tempCriteria.year_min" placeholder="2015">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="flex-1" color="primary">
+                <mat-label>Jusqu'à</mat-label>
+                <input matInput type="number" [(ngModel)]="tempCriteria.year_max" placeholder="2024">
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+        
+        <mat-divider class="m-y-20"></mat-divider>
+        
+        <div class="row">
+          <div class="col-lg-6">
+            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
+              <mat-icon class="m-r-8">security</mat-icon>
+              Score éthique minimum
+            </h6>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <mat-select [(ngModel)]="tempCriteria.ethical_score_min" placeholder="Score minimum requis">
+                <mat-option [value]="0.3">30% - Acceptable</mat-option>
+                <mat-option [value]="0.5">50% - Bon</mat-option>
+                <mat-option [value]="0.7">70% - Très bon</mat-option>
+                <mat-option [value]="0.9">90% - Excellent</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>shield</mat-icon>
+            </mat-form-field>
+          </div>
+          
+          <div class="col-lg-6">
+            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
+              <mat-icon class="m-r-8">checklist</mat-icon>
+              Caractéristiques requises
+            </h6>
+            <div class="d-flex flex-wrap gap-16">
+              <mat-checkbox [(ngModel)]="tempCriteria.is_split" color="primary">
+                <span class="d-flex align-items-center">
+                  <mat-icon class="m-r-4">call_split</mat-icon>
+                  Dataset divisé
+                </span>
+              </mat-checkbox>
+              <mat-checkbox [(ngModel)]="tempCriteria.is_anonymized" color="primary">
+                <span class="d-flex align-items-center">
+                  <mat-icon class="m-r-4">verified_user</mat-icon>
+                  Anonymisé
+                </span>
+              </mat-checkbox>
+              <mat-checkbox [(ngModel)]="tempCriteria.is_public" color="primary">
+                <span class="d-flex align-items-center">
+                  <mat-icon class="m-r-4">public</mat-icon>
+                  Public
+                </span>
+              </mat-checkbox>
+            </div>
+          </div>
+        </div>
+              </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Troisième ligne - Configuration des poids (largeur 100%) -->
+  <div class="row">
+    <div class="col-lg-12">
+      <!-- Configuration des poids -->
+      <mat-card class="cardWithShadow theme-card">
+      <mat-card-header>
+        <mat-card-title class="m-b-0 d-flex align-items-center">
+          <mat-icon class="m-r-8">tune</mat-icon>
+          Pondération des Critères
+        </mat-card-title>
+        <mat-card-subtitle>Ajustez l'importance de chaque critère de scoring</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="b-t-1">
+        <div class="d-flex justify-content-end m-b-16">
+          <button mat-stroked-button (click)="resetWeights()">
+            <mat-icon>refresh</mat-icon>
+            Valeurs par défaut
+          </button>
+        </div>
+
+        <div class="row">
+          <div *ngFor="let weight of defaultWeights; index as i" class="col-lg-6 m-b-12">
+            <div class="p-12 border rounded">
+              <div class="d-flex justify-content-between align-items-center m-b-12">
+                <div class="d-flex align-items-center flex-1">
+                  <mat-icon [color]="weight.weight > 0 ? 'primary' : 'disabled'" class="m-r-8">{{ weight.icon }}</mat-icon>
+                  <span class="mat-subtitle-2 f-w-600">{{ weight.label }}</span>
+                </div>
+                <div class="text-right" style="min-width: 50px;">
+                  <span class="mat-h6 text-primary f-w-700">{{ (weight.weight * 100) | number:'1.0-0' }}%</span>
+                </div>
+              </div>
+              <div style="width: 100%; padding: 0 8px;">
+                <mat-slider min="0" max="1" step="0.1" style="width: 100%;" color="primary">
+                  <input matSliderThumb [value]="weight.weight" (change)="onWeightChange(i, $any($event.target).value)" style="width: 100%;" />
+                </mat-slider>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="currentWeights.length > 0" class="m-t-20">
+          <mat-divider class="m-b-16"></mat-divider>
+          <h5 class="mat-subtitle-2 f-w-600 m-b-12">Critères actifs :</h5>
+          <mat-chip-set>
+            <mat-chip *ngFor="let weight of currentWeights" color="primary" selected>
+              {{ weight.criterion_name }} ({{ (weight.weight * 100) | number:'1.0-0' }}%)
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<!-- États de chargement et d'erreur -->
+<div *ngIf="isLoading" class="text-center p-40">
+  <mat-spinner diameter="60"></mat-spinner>
+  <p class="mat-body-1 m-t-16">Chargement du projet...</p>
+</div>
+
+<div *ngIf="error" class="text-center p-40">
+  <mat-icon class="icon-48 text-warn">error</mat-icon>
+  <p class="mat-body-1 m-t-12">{{ error }}</p>
+</div> 
