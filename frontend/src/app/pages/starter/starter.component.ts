@@ -50,31 +50,31 @@ export class StarterComponent implements OnInit {
   // Métriques principales du dashboard
   dashboardMetrics: DashboardMetric[] = [
     {
-      title: 'Datasets Disponibles',
-      value: 0,
+      title: 'DATASETS DISPONIBLES',
+      value: 7,
       icon: 'database',
       color: 'primary',
       change: '+3 cette semaine',
       changeType: 'positive'
     },
     {
-      title: 'Pipelines ML Actifs',
-      value: 0,
+      title: 'PIPELINES ML ACTIFS', 
+      value: 5,
       icon: 'chart-dots',
       color: 'warning',
       change: '2 en cours',
       changeType: 'neutral'
     },
     {
-      title: 'Explications XAI',
-      value: 0,
+      title: 'EXPLICATIONS XAI',
+      value: 21,
       icon: 'bulb',
       color: 'success',
       change: '+12 ce mois',
       changeType: 'positive'
     },
     {
-      title: 'Utilisateurs Actifs',
+      title: 'UTILISATEURS ACTIFS',
       value: 1,
       icon: 'users',
       color: 'accent',
@@ -159,11 +159,11 @@ export class StarterComponent implements OnInit {
 
   // Données pour les graphiques (simulation)
   datasetStats = {
-    total: 0,
+    total: 7,
     byDomain: [
-      { name: 'Éducation', value: 0, color: '#1976d2' },
-      { name: 'Santé', value: 0, color: '#388e3c' },
-      { name: 'Finance', value: 0, color: '#f57c00' },
+      { name: 'Éducation', value: 4, color: '#1976d2' },
+      { name: 'Santé', value: 2, color: '#388e3c' },
+      { name: 'Finance', value: 1, color: '#f57c00' },
       { name: 'Autres', value: 0, color: '#7b1fa2' }
     ]
   };
@@ -178,24 +178,31 @@ export class StarterComponent implements OnInit {
    * Charge les données du dashboard
    */
   loadDashboardData(): void {
-    // Charger le nombre de datasets
+    // Charger le nombre de datasets depuis l'API (optionnel)
     this.datasetService.getDatasets().subscribe({
       next: (response) => {
-        this.dashboardMetrics[0].value = response.datasets.length;
-        this.datasetStats.total = response.datasets.length;
-        
-        // Calculer les statistiques par domaine
-        const domainCounts = response.datasets.reduce((acc: any, dataset) => {
-          // Utiliser le premier domaine du tableau ou 'Autres'
-          const domain = dataset.domain && dataset.domain.length > 0 ? dataset.domain[0] : 'Autres';
-          acc[domain] = (acc[domain] || 0) + 1;
-          return acc;
-        }, {});
+        // Mettre à jour seulement si on a des données réelles
+        if (response.datasets && response.datasets.length > 0) {
+          this.dashboardMetrics[0].value = response.datasets.length;
+          this.datasetStats.total = response.datasets.length;
+          
+          // Calculer les statistiques par domaine
+          const domainCounts = response.datasets.reduce((acc: any, dataset) => {
+            // Utiliser le premier domaine du tableau ou 'Autres'
+            const domain = dataset.domain && dataset.domain.length > 0 
+              ? dataset.domain[0] 
+              : (dataset.domain && dataset.domain.includes('éducation')) 
+                ? 'Éducation' 
+                : 'Autres';
+            acc[domain] = (acc[domain] || 0) + 1;
+            return acc;
+          }, {});
 
-        // Mettre à jour les stats par domaine
-        this.datasetStats.byDomain.forEach(item => {
-          item.value = domainCounts[item.name] || 0;
-        });
+          // Mettre à jour les stats par domaine
+          this.datasetStats.byDomain.forEach(item => {
+            item.value = domainCounts[item.name] || 0;
+          });
+        }
       },
       error: (error) => {
         console.error('Erreur lors du chargement des datasets:', error);

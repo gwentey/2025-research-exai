@@ -46,11 +46,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: white !important;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    margin-bottom: 16px;
+    
+    i-tabler {
+      color: white !important;
+      font-size: 24px;
+    }
     
     &.primary {
-      background: linear-gradient(135deg, var(--mat-primary-500) 0%, var(--mat-primary-700) 100%);
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
     }
     
     &.warning {
