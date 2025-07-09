@@ -17,6 +17,7 @@
 ** xref:dev-guide/database-schema.adoc[🗄️ Structure Base de Données]
 ** xref:dev-guide/datasets-scoring-algorithm.adoc[🔍 Algorithme de Scoring des Datasets]
 ** xref:dev-guide/secrets-management.adoc[🔐 Gestion des Secrets]
+** xref:dev-guide/heatmap-visualization.adoc[📊 Heat Map de Recommandations]
 ** xref:development/database-migrations.adoc[Migrations Base de Données (Alembic)]
 ** xref:development/azure-deployment.adoc[Déploiement Azure]
 ** xref:dev-guide/api-reference.adoc[Référence API]

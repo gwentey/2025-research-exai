@@ -1,0 +1,284 @@
+= Heat Map de Recommandations
+:description: Documentation technique de la visualisation interactive des scores de datasets
+:keywords: heatmap, visualisation, Angular, CSS Grid, scoring
+:page-layout: dev-guide
+
+== Vue d'ensemble
+
+La Heat Map de Recommandations est un composant Angular standalone qui offre une visualisation interactive et comparative des scores de datasets selon différents critères de sélection. Cette composante essentielle du système EXAI permet aux utilisateurs d'analyser visuellement la performance de chaque dataset sur les critères éthiques, techniques et de popularité.
+
+== Architecture Technique
+
+=== Composant Angular
+
+[source,typescript]
+----
+@Component({
+  selector: 'app-recommendation-heatmap',
+  standalone: true,
+  encapsulation: ViewEncapsulation.None
+})
+export class RecommendationHeatmapComponent
+----
+
+==== Caractéristiques techniques
+
+* **Standalone Component** : Indépendant, facilement réutilisable
+* **ViewEncapsulation.None** : Styles isolés avec préfixes pour éviter les conflits CSS
+* **CSS Grid Layout** : Grille responsive et performante
+* **Injection dynamique de styles** : Adaptation automatique au nombre de critères
+
+=== Structure des données
+
+==== Interfaces utilisées
+
+[source,typescript]
+----
+interface DatasetScored {
+  id: string;
+  dataset_name: string;
+  instances_number: number;
+  features_number?: number;
+  score: number;
+  ethical_score: number;
+  technical_score: number;
+  popularity_score: number;
+  // ... autres propriétés
+}
+
+interface CriterionWeight {
+  criterion_name: string;
+  weight: number;
+}
+----
+
+=== Architecture CSS
+
+==== Isolation des styles
+
+Tous les styles utilisent le préfixe `exai-` pour éviter les conflits avec le thème Spike :
+
+[source,css]
+----
+.exai-heatmap-container {
+  display: grid !important;
+  grid-template-columns: 200px repeat(var(--criteria-count), 120px) 120px !important;
+}
+----
+
+==== Classes de score
+
+Système de couleurs cohérent avec gradients :
+
+* `.exai-score-excellent` : Bleu (85%+)
+* `.exai-score-high` : Vert (60-85%)
+* `.exai-score-medium` : Orange (30-60%)
+* `.exai-score-low` : Rouge (0-30%)
+
+== Fonctionnalités
+
+=== Visualisation interactive
+
+==== Grille responsive
+* **Desktop** : Colonnes de 120px pour critères, 200px pour datasets
+* **Mobile** : Colonnes adaptées (100px/150px)
+* **Défilement horizontal** automatique si nécessaire
+
+==== Tooltips informatifs
+Chaque cellule affiche au survol :
+* Nom du dataset et critère
+* Score détaillé avec pourcentage
+* Poids du critère dans le calcul
+* Métadonnées (instances, variables)
+
+=== Calculs de scores
+
+==== Score éthique
+[source,typescript]
+----
+calculateEthicalScore(dataset): number {
+  // Combine : consentement éclairé + transparence + anonymisation
+  // Retourne : moyenne pondérée des critères présents
+}
+----
+
+==== Score technique
+[source,typescript]
+----
+calculateTechnicalScore(dataset): number {
+  // Base 50% + bonus documentation + division + qualité + taille
+  // Maximum 100%
+}
+----
+
+==== Score de popularité
+[source,typescript]
+----
+calculatePopularityScore(dataset): number {
+  // Échelle logarithmique basée sur les citations académiques
+  // log10(citations) / 4, plafonné à 100%
+}
+----
+
+== Guide d'utilisation
+
+=== Intégration dans un composant
+
+[source,html]
+----
+<app-recommendation-heatmap 
+  [datasets]="scoredDatasets" 
+  [weights]="activeCriterionWeights">
+</app-recommendation-heatmap>
+----
+
+=== Données requises
+
+==== Datasets scorés
+Les datasets doivent contenir au minimum :
+* `id`, `dataset_name`, `score`
+* `instances_number`, `features_number` (optionnel)
+* Propriétés pour calculs éthiques/techniques
+
+==== Poids de critères
+Format attendu :
+[source,json]
+----
+[
+  {
+    "criterion_name": "ethical_score",
+    "weight": 0.4
+  },
+  {
+    "criterion_name": "technical_score", 
+    "weight": 0.35
+  }
+]
+----
+
+== Responsive Design
+
+=== Points de rupture
+
+* **> 768px** : Affichage complet avec toutes les colonnes
+* **≤ 768px** : Colonnes réduites, défilement horizontal activé
+
+=== Adaptations mobiles
+
+* Réduction de la taille des cellules
+* Maintien de la lisibilité des scores
+* Tooltips adaptés au tactile
+
+== Performance et optimisation
+
+=== CSS Grid vs Flexbox
+
+Le choix de CSS Grid apporte :
+* **Performance** : Rendu optimisé par le navigateur
+* **Flexibilité** : Colonnes dynamiques sans recalcul JavaScript
+* **Maintenance** : Code CSS plus simple et lisible
+
+=== Injection dynamique de styles
+
+La méthode `updateCSSVariables()` injecte le nombre exact de colonnes :
+
+[source,typescript]
+----
+private updateCSSVariables(): void {
+  const count = this.activeCriteria.length;
+  const style = `
+    .exai-heatmap-container {
+      grid-template-columns: 200px repeat(${count}, 120px) 120px !important;
+    }
+  `;
+  // Injection dans document.head
+}
+----
+
+== Maintenance et évolution
+
+=== Ajout de nouveaux critères
+
+. Étendre l'interface `DatasetScored` si nécessaire
+. Ajouter le label dans `getCriterionLabel()`
+. Implémenter le calcul dans `getCriterionScore()`
+. Ajouter le tooltip dans `getCriterionTooltip()`
+
+=== Personnalisation visuelle
+
+==== Couleurs de score
+Modifier les classes `.exai-score-*` dans le CSS du composant.
+
+==== Dimensions
+Ajuster les valeurs dans `updateCSSVariables()` :
+* Largeur colonne dataset : `200px`
+* Largeur colonnes critères : `120px`
+* Largeur colonne total : `120px`
+
+=== Tests et validation
+
+==== Tests unitaires recommandés
+* Calculs de scores avec datasets variés
+* Rendu correct selon nombre de critères
+* Responsive design sur différentes tailles
+
+==== Tests d'intégration
+* Interaction avec le formulaire de projet
+* Mise à jour en temps réel lors de changements de poids
+* Performance avec datasets volumineux (50+ datasets)
+
+== Résolution de problèmes
+
+=== Conflits CSS avec le thème
+
+Si des styles ne s'appliquent pas :
+. Vérifier l'utilisation du préfixe `exai-`
+. Ajouter `!important` si nécessaire
+. Contrôler l'ordre d'injection des styles
+
+=== Performance
+
+Pour optimiser l'affichage :
+. Limiter le nombre de datasets affichés (< 20 recommandé)
+. Utiliser `trackBy` dans les boucles `*ngFor`
+. Implémenter `OnPush` change detection si nécessaire
+
+=== Compatibilité navigateur
+
+CSS Grid est supporté par :
+* Chrome 57+
+* Firefox 52+  
+* Safari 10.1+
+* Edge 16+
+
+Pour les navigateurs plus anciens, prévoir un fallback flexbox.
+
+== Exemples d'utilisation
+
+=== Intégration complète
+
+[source,typescript]
+----
+// Dans le composant parent
+export class ProjectFormComponent {
+  previewDatasets: DatasetScored[] = [];
+  currentWeights: CriterionWeight[] = [];
+
+  onWeightChange() {
+    // Recalcul automatique de la heatmap
+    this.updatePreview();
+  }
+}
+----
+
+=== Personnalisation avancée
+
+[source,scss]
+----
+// Surcharge des couleurs (dans styles globaux)
+.exai-score-excellent {
+  background: linear-gradient(135deg, #your-color 0%, #your-color-dark 100%) !important;
+}
+----
+
+Cette documentation couvre l'ensemble des aspects techniques et d'utilisation de la Heat Map de Recommandations, permettant une maintenance efficace et une évolution contrôlée du composant. 

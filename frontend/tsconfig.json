@@ -20,6 +20,9 @@
     "module": "ES2022",
     "useDefineForClassFields": false,
     "strictPropertyInitialization": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "lib": ["ES2022", "dom"]
   },
   "angularCompilerOptions": {
