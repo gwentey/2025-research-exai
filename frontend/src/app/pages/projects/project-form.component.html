@@ -100,6 +100,26 @@
               <span class="mat-subtitle-2 text-primary f-w-600">Top {{ previewDatasets.length }} recommandés</span>
             </div>
             
+            <!-- Explication rapide des scores -->
+            <div class="score-explanation m-b-16 p-12 bg-light-accent rounded">
+              <div class="d-flex align-items-start">
+                <mat-icon class="text-accent m-r-8 m-t-2" style="font-size: 16px;">info</mat-icon>
+                <div class="flex-1">
+                  <h6 class="mat-subtitle-2 f-w-600 m-b-4 text-accent">Comment sont calculés les scores ?</h6>
+                  <p class="mat-caption text-muted">
+                    Le score combine <strong>3 critères</strong> : 
+                    Éthique ({{ getWeightPercent('ethical_score') }}%), 
+                    Technique ({{ getWeightPercent('technical_score') }}%), 
+                    Popularité ({{ getWeightPercent('popularity_score') }}%).
+                  </p>
+                  <button mat-button color="accent" class="mat-caption p-0" style="height: auto; min-height: auto; line-height: 1.2;">
+                    <mat-icon style="font-size: 14px; width: 14px; height: 14px;" class="m-r-4">help_outline</mat-icon>
+                    Voir formules détaillées
+                  </button>
+                </div>
+              </div>
+            </div>
+            
             <div class="preview-list">
               <div *ngFor="let dataset of previewDatasets" class="d-flex align-items-start p-12 border-bottom">
                 <div class="flex-1">
@@ -119,7 +139,8 @@
                 <div class="text-center m-l-12">
                   <div class="score-badge rounded-circle d-flex align-items-center justify-content-center" 
                        [style.background-color]="getScoreColor(dataset.score)"
-                       style="width: 40px; height: 40px;">
+                       style="width: 40px; height: 40px;"
+                       [matTooltip]="getScoreTooltip(dataset)">
                     <span class="mat-caption f-w-700 text-white">{{ (dataset.score * 100) | number:'1.0-0' }}%</span>
                   </div>
                 </div>
@@ -144,158 +165,150 @@
         <mat-card-subtitle>Définissez les critères pour filtrer les datasets</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content class="b-t-1">
-        <div class="row">
-          <div class="col-lg-6">
-            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
-              <mat-icon class="m-r-8">search</mat-icon>
-              Recherche textuelle
-            </h6>
-            <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Nom du dataset</mat-label>
-                         <mat-form-field appearance="outline" class="w-100" color="primary">
-               <input matInput [(ngModel)]="tempCriteria.dataset_name" (ngModelChange)="onCriteriaUpdate()" placeholder="Ex: EdNet, MNIST, ImageNet...">
-               <mat-icon matSuffix>label_outline</mat-icon>
-             </mat-form-field>
+        <form [formGroup]="projectForm">
+          <div formGroupName="criteria">
             
-            <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Description/Objectif</mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <textarea matInput [(ngModel)]="tempCriteria.objective" rows="2" placeholder="Mots-clés sur l'objectif..."></textarea>
-              <mat-icon matSuffix>description</mat-icon>
-            </mat-form-field>
-          </div>
-          
-          <div class="col-lg-6">
-            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
-              <mat-icon class="m-r-8">category</mat-icon>
-              Domaines et Tâches
-            </h6>
-            <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Domaines d'application</mat-label>
-                         <mat-form-field appearance="outline" class="w-100" color="primary">
-               <mat-select [(ngModel)]="tempCriteria.domain" (ngModelChange)="onCriteriaUpdate()" multiple placeholder="Choisir des domaines">
-                 <mat-option value="education">Éducation</mat-option>
-                 <mat-option value="health">Santé</mat-option>
-                 <mat-option value="finance">Finance</mat-option>
-                 <mat-option value="transport">Transport</mat-option>
-                 <mat-option value="retail">Commerce</mat-option>
-               </mat-select>
-               <mat-icon matSuffix>expand_more</mat-icon>
-             </mat-form-field>
-            
-            <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Types de tâches ML</mat-label>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <mat-select [(ngModel)]="tempCriteria.task" multiple placeholder="Choisir des tâches">
-                <mat-option value="classification">Classification</mat-option>
-                <mat-option value="regression">Régression</mat-option>
-                <mat-option value="clustering">Clustering</mat-option>
-                <mat-option value="nlp">NLP</mat-option>
-                <mat-option value="computer_vision">Vision par ordinateur</mat-option>
-              </mat-select>
-              <mat-icon matSuffix>expand_more</mat-icon>
-            </mat-form-field>
-          </div>
-        </div>
-        
-        <mat-divider class="m-y-20"></mat-divider>
-        
-        <div class="row">
-          <div class="col-lg-4">
-            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
-              <mat-icon class="m-r-8">storage</mat-icon>
-              Nombre d'instances
-            </h6>
-            <div class="d-flex gap-12">
-              <mat-form-field appearance="outline" class="flex-1" color="primary">
-                <mat-label>Minimum</mat-label>
-                <input matInput type="number" [(ngModel)]="tempCriteria.instances_number_min" placeholder="1000">
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="flex-1" color="primary">
-                <mat-label>Maximum</mat-label>
-                <input matInput type="number" [(ngModel)]="tempCriteria.instances_number_max" placeholder="1000000">
-              </mat-form-field>
+            <!-- Section 1: Contexte et objectif -->
+            <div class="criteria-section m-b-24">
+              <h6 class="mat-h6 m-b-16 d-flex align-items-center text-primary">
+                <mat-icon class="m-r-8">assignment</mat-icon>
+                Contexte du Projet
+              </h6>
+              <div class="row">
+                <div class="col-lg-12">
+                  <mat-form-field appearance="outline" class="w-100" color="primary">
+                    <mat-label>Description ou mots-clés de l'objectif</mat-label>
+                    <textarea matInput formControlName="objective" rows="2" 
+                             placeholder="Ex: analyse prédictive, classification étudiants, détection anomalies..."></textarea>
+                    <mat-icon matSuffix>description</mat-icon>
+                    <mat-hint>Décrivez le type d'analyse ou d'objectif recherché</mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div class="col-lg-4">
-            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
-              <mat-icon class="m-r-8">view_column</mat-icon>
-              Nombre de features
-            </h6>
-            <div class="d-flex gap-12">
-              <mat-form-field appearance="outline" class="flex-1" color="primary">
-                <mat-label>Minimum</mat-label>
-                <input matInput type="number" [(ngModel)]="tempCriteria.features_number_min" placeholder="5">
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="flex-1" color="primary">
-                <mat-label>Maximum</mat-label>
-                <input matInput type="number" [(ngModel)]="tempCriteria.features_number_max" placeholder="100">
-              </mat-form-field>
+
+            <!-- Section 2: Domaine d'application -->
+            <div class="criteria-section m-b-24">
+              <h6 class="mat-h6 m-b-16 d-flex align-items-center text-primary">
+                <mat-icon class="m-r-8">category</mat-icon>
+                Domaine d'Application
+              </h6>
+              <div class="row">
+                <div class="col-lg-6">
+                  <mat-form-field appearance="outline" class="w-100" color="primary">
+                    <mat-label>Secteurs d'activité</mat-label>
+                    <mat-select formControlName="domain" multiple>
+                      <mat-option value="education">🎓 Éducation</mat-option>
+                      <mat-option value="health">🏥 Santé</mat-option>
+                      <mat-option value="finance">💰 Finance</mat-option>
+                      <mat-option value="transport">🚗 Transport</mat-option>
+                      <mat-option value="retail">🛒 Commerce</mat-option>
+                    </mat-select>
+                    <mat-hint>Sélectionnez un ou plusieurs secteurs</mat-hint>
+                  </mat-form-field>
+                </div>
+                <div class="col-lg-6">
+                  <mat-form-field appearance="outline" class="w-100" color="primary">
+                    <mat-label>Type de tâche ML</mat-label>
+                    <mat-select formControlName="task" multiple>
+                      <mat-option value="classification">🎯 Classification</mat-option>
+                      <mat-option value="regression">📈 Régression</mat-option>
+                      <mat-option value="clustering">🔄 Clustering</mat-option>
+                      <mat-option value="nlp">💬 NLP</mat-option>
+                      <mat-option value="computer_vision">👁️ Vision</mat-option>
+                    </mat-select>
+                    <mat-hint>Types d'algorithmes envisagés</mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div class="col-lg-4">
-            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
-              <mat-icon class="m-r-8">calendar_today</mat-icon>
-              Année de création
-            </h6>
-            <div class="d-flex gap-12">
-              <mat-form-field appearance="outline" class="flex-1" color="primary">
-                <mat-label>Depuis</mat-label>
-                <input matInput type="number" [(ngModel)]="tempCriteria.year_min" placeholder="2015">
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="flex-1" color="primary">
-                <mat-label>Jusqu'à</mat-label>
-                <input matInput type="number" [(ngModel)]="tempCriteria.year_max" placeholder="2024">
-              </mat-form-field>
+
+            <!-- Section 3: Exigences techniques (repliable) -->
+            <div class="criteria-section m-b-24">
+              <h6 class="mat-h6 m-b-16 d-flex align-items-center text-primary">
+                <mat-icon class="m-r-8">settings</mat-icon>
+                Exigences Techniques
+                <span class="mat-caption text-muted m-l-8">(optionnel)</span>
+              </h6>
+              
+              <!-- Taille du dataset -->
+              <div class="row m-b-16">
+                <div class="col-lg-6">
+                  <mat-label class="mat-subtitle-2 m-b-8 d-block">Nombre d'instances</mat-label>
+                  <div class="d-flex gap-8 align-items-center">
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>Min</mat-label>
+                      <input matInput type="number" formControlName="instances_number_min" placeholder="1000">
+                    </mat-form-field>
+                    <span class="text-muted">à</span>
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>Max</mat-label>
+                      <input matInput type="number" formControlName="instances_number_max" placeholder="1M+">
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <mat-label class="mat-subtitle-2 m-b-8 d-block">Nombre de variables</mat-label>
+                  <div class="d-flex gap-8 align-items-center">
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>Min</mat-label>
+                      <input matInput type="number" formControlName="features_number_min" placeholder="5">
+                    </mat-form-field>
+                    <span class="text-muted">à</span>
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>Max</mat-label>
+                      <input matInput type="number" formControlName="features_number_max" placeholder="100">
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Période et qualité -->
+              <div class="row">
+                <div class="col-lg-4">
+                  <mat-label class="mat-subtitle-2 m-b-8 d-block">Période de création</mat-label>
+                  <div class="d-flex gap-8 align-items-center">
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <input matInput type="number" formControlName="year_min" placeholder="2015">
+                    </mat-form-field>
+                    <span class="text-muted">-</span>
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <input matInput type="number" formControlName="year_max" placeholder="2024">
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Score éthique minimum</mat-label>
+                    <mat-select formControlName="ethical_score_min">
+                      <mat-option [value]="null">Aucune exigence</mat-option>
+                      <mat-option [value]="0.3">30% - Acceptable</mat-option>
+                      <mat-option [value]="0.5">50% - Bon</mat-option>
+                      <mat-option [value]="0.7">70% - Très bon</mat-option>
+                      <mat-option [value]="0.9">90% - Excellent</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-lg-4">
+                  <mat-label class="mat-subtitle-2 m-b-8 d-block">Caractéristiques</mat-label>
+                  <div class="d-flex flex-column gap-8">
+                    <mat-checkbox formControlName="is_split" color="primary" class="mat-caption">
+                      Déjà divisé (train/test)
+                    </mat-checkbox>
+                    <mat-checkbox formControlName="is_anonymized" color="primary" class="mat-caption">
+                      Anonymisé
+                    </mat-checkbox>
+                    <mat-checkbox formControlName="is_public" color="primary" class="mat-caption">
+                      Accès public
+                    </mat-checkbox>
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
-        </div>
-        
-        <mat-divider class="m-y-20"></mat-divider>
-        
-        <div class="row">
-          <div class="col-lg-6">
-            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
-              <mat-icon class="m-r-8">security</mat-icon>
-              Score éthique minimum
-            </h6>
-            <mat-form-field appearance="outline" class="w-100" color="primary">
-              <mat-select [(ngModel)]="tempCriteria.ethical_score_min" placeholder="Score minimum requis">
-                <mat-option [value]="0.3">30% - Acceptable</mat-option>
-                <mat-option [value]="0.5">50% - Bon</mat-option>
-                <mat-option [value]="0.7">70% - Très bon</mat-option>
-                <mat-option [value]="0.9">90% - Excellent</mat-option>
-              </mat-select>
-              <mat-icon matSuffix>shield</mat-icon>
-            </mat-form-field>
-          </div>
-          
-          <div class="col-lg-6">
-            <h6 class="mat-h6 m-b-12 d-flex align-items-center">
-              <mat-icon class="m-r-8">checklist</mat-icon>
-              Caractéristiques requises
-            </h6>
-            <div class="d-flex flex-wrap gap-16">
-              <mat-checkbox [(ngModel)]="tempCriteria.is_split" color="primary">
-                <span class="d-flex align-items-center">
-                  <mat-icon class="m-r-4">call_split</mat-icon>
-                  Dataset divisé
-                </span>
-              </mat-checkbox>
-              <mat-checkbox [(ngModel)]="tempCriteria.is_anonymized" color="primary">
-                <span class="d-flex align-items-center">
-                  <mat-icon class="m-r-4">verified_user</mat-icon>
-                  Anonymisé
-                </span>
-              </mat-checkbox>
-              <mat-checkbox [(ngModel)]="tempCriteria.is_public" color="primary">
-                <span class="d-flex align-items-center">
-                  <mat-icon class="m-r-4">public</mat-icon>
-                  Public
-                </span>
-              </mat-checkbox>
-            </div>
-          </div>
-        </div>
-              </mat-card-content>
+        </form>
+      </mat-card-content>
       </mat-card>
     </div>
   </div>
@@ -352,6 +365,16 @@
         </div>
       </mat-card-content>
     </mat-card>
+  </div>
+</div>
+
+<!-- Quatrième ligne - Heat Map des recommandations (largeur 100%) -->
+<div class="row" *ngIf="previewDatasets.length > 0">
+  <div class="col-lg-12">
+    <app-recommendation-heatmap 
+      [datasets]="previewDatasets" 
+      [weights]="currentWeights">
+    </app-recommendation-heatmap>
   </div>
 </div>
 

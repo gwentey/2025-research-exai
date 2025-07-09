@@ -1,0 +1,216 @@
+= Algorithme de Scoring des Datasets
+:description: Documentation technique complète du système de scoring et de recommandation des datasets dans EXAI
+:keywords: scoring, algorithme, datasets, recommandation, machine learning
+
+== Vue d'ensemble
+
+Le système de scoring d'EXAI évalue chaque dataset selon **3 dimensions principales** pour calculer un **score de pertinence global** entre 0% et 100%. Ce score guide les recommandations automatiques lors de la création de projets.
+
+[.lead]
+**Formule générale :**
+----
+Score_Final = (Σ(Score_Critère_i × Poids_i)) / Σ(Poids_i)
+----
+
+== Dimensions de Scoring
+
+=== 1. Score Éthique (`ethical_score`)
+
+**Objectif :** Évalue le respect des principes éthiques et de protection des données.
+
+**Formule :**
+----
+Score_Éthique = Nombre_Critères_Respectés / Total_Critères
+----
+
+**Critères évalués (10 au total) :**
+- Consentement éclairé (`informed_consent`)
+- Transparence (`transparency`) 
+- Contrôle utilisateur (`user_control`)
+- Équité et non-discrimination (`equity_non_discrimination`)
+- Mesures de sécurité (`security_measures_in_place`)
+- Qualité documentée (`data_quality_documented`)
+- Anonymisation appliquée (`anonymization_applied`)
+- Politique de conservation (`record_keeping_policy_exists`)
+- Limitation d'objectif (`purpose_limitation_respected`)
+- Responsabilité définie (`accountability_defined`)
+
+**Exemple de calcul :**
+----
+Dataset A : 7 critères respectés sur 10
+Score_Éthique = 7/10 = 0.7 = 70%
+----
+
+=== 2. Score Technique (`technical_score`)
+
+**Objectif :** Évalue la qualité technique et l'utilisabilité du dataset.
+
+Le score technique est composé de **3 sous-dimensions pondérées** :
+
+==== 2.1 Documentation (Poids : 30%)
+
+----
+Score_Doc = (Métadonnées × 0.15) + (Doc_Externe × 0.15)
+----
+
+- **Métadonnées fournies** (`metadata_provided_with_dataset`) : 0.15 si True, 0 sinon
+- **Documentation externe** (`external_documentation_available`) : 0.15 si True, 0 sinon
+
+==== 2.2 Qualité des Données (Poids : 40%)
+
+----
+Score_Qualité = Score_Valeurs_Manquantes + Score_Split
+----
+
+**Valeurs manquantes (0.2 max) :**
+- Aucune valeur manquante : 0.2
+- Avec pourcentage connu : `0.2 × (100 - %_manquant) / 100`
+- Inconnu : 0
+
+**Dataset pré-splitté (0.2 max) :**
+- Déjà divisé train/test : 0.2
+- Non divisé : 0
+
+==== 2.3 Taille et Richesse (Poids : 30%)
+
+**Nombre d'instances (0.15 max) :**
+----
+Score_Instances = 0.15 × min(1, max(0, (log₁₀(instances) - 2) / 3))
+----
+
+- Score optimal : 100,000+ instances (log₁₀(100000) = 5)
+- Score minimal : 100 instances (log₁₀(100) = 2)
+
+**Nombre de features (0.15 max) :**
+- **Optimal** (10-100 features) : 0.15
+- **Trop de features** (>100) : `0.15 × max(0.5, 1 - (features-100)/1000)`
+- **Peu de features** (<10) : `0.15 × features/10`
+
+**Score technique final :**
+----
+Score_Technique = Score_Total / Score_Max_Possible
+----
+
+=== 3. Score de Popularité (`popularity_score`)
+
+**Objectif :** Évalue l'adoption et la reconnaissance académique du dataset.
+
+**Formule logarithmique :**
+----
+Score_Popularité = min(1, max(0, log₁₀(citations) / 3))
+----
+
+- **Score maximal** : 1000+ citations (log₁₀(1000) = 3)
+- **Score minimal** : 1 citation (log₁₀(1) = 0)
+- **Aucune citation** : 0
+
+**Exemples :**
+- 1 citation → 0%
+- 10 citations → 33%
+- 100 citations → 67%
+- 1000+ citations → 100%
+
+== Calcul du Score Final
+
+=== Pondération des Critères
+
+L'utilisateur définit des **poids personnalisés** pour chaque critère. Si aucun poids n'est défini, des **valeurs par défaut** sont utilisées :
+
+- **Score Éthique** : 40%
+- **Score Technique** : 40% 
+- **Score Popularité** : 20%
+
+=== Formule d'Agrégation
+
+----
+Score_Final = (Score_Éthique × Poids_Éthique + 
+               Score_Technique × Poids_Technique + 
+               Score_Popularité × Poids_Popularité) / 
+              (Poids_Éthique + Poids_Technique + Poids_Popularité)
+----
+
+== Exemple Complet de Calcul
+
+=== Dataset "EdNet" - Score final 95%
+
+**Données du dataset :**
+- Critères éthiques respectés : 9/10
+- Instances : 131,441,538
+- Features : 28
+- Citations : 847
+- Métadonnées : Oui
+- Documentation externe : Oui
+- Valeurs manquantes : 2%
+- Pré-splitté : Oui
+
+**Calculs détaillés :**
+
+**1. Score Éthique :**
+----
+Score_Éthique = 9/10 = 0.9 = 90%
+----
+
+**2. Score Technique :**
+
+Documentation : `0.15 + 0.15 = 0.3`
+
+Qualité : `0.2 × (100-2)/100 + 0.2 = 0.196 + 0.2 = 0.396`
+
+Taille/Richesse :
+- Instances : `0.15 × min(1, (log₁₀(131441538) - 2) / 3) = 0.15 × 1 = 0.15`
+- Features : `0.15` (28 features dans la plage optimale 10-100)
+
+Score technique total : `(0.3 + 0.396 + 0.3) / 1.0 = 0.996 = 99.6%`
+
+**3. Score Popularité :**
+----
+Score_Popularité = min(1, log₁₀(847) / 3) = min(1, 2.928/3) = 0.976 = 97.6%
+----
+
+**4. Score Final (poids par défaut : 40% éthique, 40% technique, 20% popularité) :**
+----
+Score_Final = (0.9 × 0.4 + 0.996 × 0.4 + 0.976 × 0.2) / 1.0
+            = (0.36 + 0.398 + 0.195) / 1.0
+            = 0.953 = 95.3%
+----
+
+== Critères Additionnels
+
+Le système supporte également des **critères individuels** avec scoring binaire (0% ou 100%) :
+
+- `anonymization` : Anonymisation appliquée
+- `transparency` : Transparence
+- `informed_consent` : Consentement éclairé  
+- `documentation` : Documentation disponible
+- `data_quality` : Qualité des données
+- `instances_count` : Score logarithmique du nombre d'instances
+- `features_count` : Score relatif au nombre de features
+- `citations` : Alias du score de popularité
+- `year` : Score de nouveauté basé sur l'année (2000-2024)
+
+== Interprétation des Scores
+
+=== Échelle de Qualité
+
+- **90-100%** : Excellent - Dataset de très haute qualité
+- **75-89%** : Très bon - Fortement recommandé
+- **60-74%** : Bon - Recommandé avec quelques réserves
+- **40-59%** : Moyen - Utilisable mais avec limitations
+- **0-39%** : Faible - Non recommandé
+
+=== Score Moyen de 52%
+
+Un **score moyen de 52%** sur vos 7 datasets indique :
+- Qualité **acceptable** mais **hétérogène**
+- Certains datasets excellents (95%) compensent d'autres plus faibles
+- Potentiel d'**amélioration** sur les critères éthiques ou techniques
+- **Recommandation** : Prioriser les datasets avec scores >75%
+
+== Algorithme de Recommandation
+
+1. **Filtrage** : Application des critères utilisateur (domaine, taille, etc.)
+2. **Scoring** : Calcul des scores selon les pondérations définies
+3. **Tri** : Classement par score décroissant
+4. **Présentation** : Affichage des top datasets avec détail des scores
+
+Cette approche garantit des **recommandations personnalisées** et **transparentes** pour chaque projet ML. 

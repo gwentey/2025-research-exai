@@ -74,6 +74,7 @@ graph LR
         *   [✅] **Endpoints spécialisés** : `/datasets/domains` et `/datasets/tasks` pour les filtres frontend.
         *   [✅] **Endpoints Projets** : CRUD complet `/projects` avec recommandations personnalisées `/projects/{id}/recommendations`.
         *   [✅] **Système de scoring sophistiqué** : Algorithmes multi-critères (éthique, technique, popularité) avec endpoint `/datasets/score`.
+        *   [✅] **Documentation scoring complète (2025-07-09)** : Formules mathématiques détaillées (`docs/dev-guide/datasets-scoring-algorithm.adoc`) + guide utilisateur simple (`docs/user-guide/scoring-system.adoc`) + tooltips explicatifs dans l'interface.
         *   [✅] **Filtrage backend-first optimisé** : Élimination du double filtrage client/serveur pour performance maximale.
         *   [🚧] Déploiement K8s à finaliser (configuration probes, secrets).
     

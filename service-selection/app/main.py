@@ -4,6 +4,14 @@ from sqlalchemy import func, or_, and_
 from typing import List, Optional
 from datetime import datetime
 import math
+import logging
+
+# Configuration du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Approche hybride pour gérer les imports en local et dans Docker
 try:
@@ -129,64 +137,61 @@ def apply_filters(query, filters: schemas.DatasetFilterCriteria):
     if filters.has_missing_values is not None:
         query = query.filter(models.Dataset.has_missing_values == filters.has_missing_values)
     
-    # Split (avec alias)
+    # Split (avec alias) - Filtre SEULEMENT si True
     split_filter = filters.split if filters.split is not None else filters.is_split
-    if split_filter is not None:
-        query = query.filter(models.Dataset.split == split_filter)
+    if split_filter is True:
+        query = query.filter(models.Dataset.split == True)
     
-    if filters.metadata_provided_with_dataset is not None:
-        query = query.filter(models.Dataset.metadata_provided_with_dataset == filters.metadata_provided_with_dataset)
+    if filters.metadata_provided_with_dataset is True:
+        query = query.filter(models.Dataset.metadata_provided_with_dataset == True)
     
-    if filters.external_documentation_available is not None:
-        query = query.filter(models.Dataset.external_documentation_available == filters.external_documentation_available)
+    if filters.external_documentation_available is True:
+        query = query.filter(models.Dataset.external_documentation_available == True)
     
-    # Facteurs temporels (avec alias)
+    # Facteurs temporels (avec alias) - Filtre SEULEMENT si True
     temporal_filter = filters.temporal_factors if filters.temporal_factors is not None else filters.has_temporal_factors
-    if temporal_filter is not None:
-        query = query.filter(models.Dataset.temporal_factors == temporal_filter)
+    if temporal_filter is True:
+        query = query.filter(models.Dataset.temporal_factors == True)
     
     # --- FILTRES DE RACCOURCIS ---
-    # Anonymisation (raccourci)
-    if filters.is_anonymized is not None:
-        query = query.filter(models.Dataset.anonymization_applied == filters.is_anonymized)
+    # Anonymisation (raccourci) - Filtre SEULEMENT si True
+    if filters.is_anonymized is True:
+        query = query.filter(models.Dataset.anonymization_applied == True)
     
-    # Accès public (raccourci)
-    if filters.is_public is not None:
-        if filters.is_public:
-            query = query.filter(models.Dataset.access == 'public')
-        else:
-            query = query.filter(models.Dataset.access != 'public')
+    # Accès public (raccourci) - Filtre SEULEMENT si True
+    if filters.is_public is True:
+        query = query.filter(models.Dataset.access == 'public')
     
-    # --- FILTRES BOOLÉENS ÉTHIQUES ---
-    if filters.informed_consent is not None:
-        query = query.filter(models.Dataset.informed_consent == filters.informed_consent)
+    # --- FILTRES BOOLÉENS ÉTHIQUES - Filtre SEULEMENT si True ---
+    if filters.informed_consent is True:
+        query = query.filter(models.Dataset.informed_consent == True)
     
-    if filters.transparency is not None:
-        query = query.filter(models.Dataset.transparency == filters.transparency)
+    if filters.transparency is True:
+        query = query.filter(models.Dataset.transparency == True)
     
-    if filters.user_control is not None:
-        query = query.filter(models.Dataset.user_control == filters.user_control)
+    if filters.user_control is True:
+        query = query.filter(models.Dataset.user_control == True)
     
-    if filters.equity_non_discrimination is not None:
-        query = query.filter(models.Dataset.equity_non_discrimination == filters.equity_non_discrimination)
+    if filters.equity_non_discrimination is True:
+        query = query.filter(models.Dataset.equity_non_discrimination == True)
     
-    if filters.security_measures_in_place is not None:
-        query = query.filter(models.Dataset.security_measures_in_place == filters.security_measures_in_place)
+    if filters.security_measures_in_place is True:
+        query = query.filter(models.Dataset.security_measures_in_place == True)
     
-    if filters.data_quality_documented is not None:
-        query = query.filter(models.Dataset.data_quality_documented == filters.data_quality_documented)
+    if filters.data_quality_documented is True:
+        query = query.filter(models.Dataset.data_quality_documented == True)
     
-    if filters.anonymization_applied is not None:
-        query = query.filter(models.Dataset.anonymization_applied == filters.anonymization_applied)
+    if filters.anonymization_applied is True:
+        query = query.filter(models.Dataset.anonymization_applied == True)
     
-    if filters.record_keeping_policy_exists is not None:
-        query = query.filter(models.Dataset.record_keeping_policy_exists == filters.record_keeping_policy_exists)
+    if filters.record_keeping_policy_exists is True:
+        query = query.filter(models.Dataset.record_keeping_policy_exists == True)
     
-    if filters.purpose_limitation_respected is not None:
-        query = query.filter(models.Dataset.purpose_limitation_respected == filters.purpose_limitation_respected)
+    if filters.purpose_limitation_respected is True:
+        query = query.filter(models.Dataset.purpose_limitation_respected == True)
     
-    if filters.accountability_defined is not None:
-        query = query.filter(models.Dataset.accountability_defined == filters.accountability_defined)
+    if filters.accountability_defined is True:
+        query = query.filter(models.Dataset.accountability_defined == True)
     
     return query
 
@@ -586,8 +591,14 @@ def calculate_relevance_score(dataset: models.Dataset, weights: List[schemas.Cri
     Returns:
         float: Score de pertinence entre 0.0 et 1.0
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     total_score = 0.0
     total_weight = 0.0
+    
+    # DEBUG: Log du début du calcul
+    logger.info(f"📊 Calcul score pour '{dataset.dataset_name}' avec {len(weights)} critères")
     
     # Dictionnaire des fonctions de calcul disponibles
     score_calculators = {
@@ -615,9 +626,13 @@ def calculate_relevance_score(dataset: models.Dataset, weights: List[schemas.Cri
             criterion_score = score_calculators[criterion_name]()
             total_score += criterion_score * weight
             total_weight += weight
+            logger.info(f"   {criterion_name}: {criterion_score:.3f} (poids: {weight:.1f}) = {criterion_score * weight:.3f}")
+        else:
+            logger.warning(f"   ⚠️ Critère inconnu: {criterion_name}")
     
     # Si aucun poids n'est fourni, utiliser des poids par défaut équilibrés
     if total_weight == 0.0:
+        logger.info("   Aucun poids valide, utilisation des poids par défaut")
         default_weights = [
             schemas.CriterionWeight(criterion_name='ethical_score', weight=0.4),
             schemas.CriterionWeight(criterion_name='technical_score', weight=0.4),
@@ -625,7 +640,10 @@ def calculate_relevance_score(dataset: models.Dataset, weights: List[schemas.Cri
         ]
         return calculate_relevance_score(dataset, default_weights)
     
-    return total_score / total_weight
+    final_score = total_score / total_weight
+    logger.info(f"   Score final: {total_score:.3f} / {total_weight:.1f} = {final_score:.3f}")
+    
+    return final_score
 
 
 def calculate_criterion_scores(dataset: models.Dataset) -> dict:
@@ -925,20 +943,37 @@ def score_datasets(
     Returns:
         List[DatasetScoredRead]: Liste des datasets scorés triés par score décroissant
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # DEBUG: Log des paramètres de la requête
+    logger.info(f"🔍 DEBUG - Requête scoring reçue:")
+    logger.info(f"   Filtres: {score_request.filters}")
+    logger.info(f"   Poids: {score_request.weights}")
+    
     # 1. Construire la requête de base
     query = db.query(models.Dataset)
+    total_datasets_before_filter = query.count()
+    logger.info(f"   Total datasets en base: {total_datasets_before_filter}")
     
     # 2. Appliquer les filtres si fournis
     if score_request.filters:
+        logger.info(f"   Application des filtres...")
         query = apply_filters(query, score_request.filters)
     
     # 3. Récupérer les datasets filtrés
     datasets = query.all()
+    logger.info(f"   Datasets après filtrage: {len(datasets)}")
+    
+    if len(datasets) == 0:
+        logger.warning("⚠️  Aucun dataset trouvé après filtrage - retour d'une liste vide")
+        return []
     
     # 4. Calculer les scores pour chaque dataset
     scored_datasets = []
-    for dataset in datasets:
+    for i, dataset in enumerate(datasets):
         score = calculate_relevance_score(dataset, score_request.weights)
+        logger.info(f"   Dataset '{dataset.dataset_name}': score = {score}")
         
         # Créer une instance DatasetScoredRead
         dataset_scored = schemas.DatasetScoredRead(
@@ -989,6 +1024,10 @@ def score_datasets(
     
     # 5. Trier par score décroissant
     scored_datasets.sort(key=lambda x: x.score, reverse=True)
+    
+    logger.info(f"✅ Retour de {len(scored_datasets)} datasets scorés")
+    if scored_datasets:
+        logger.info(f"   Meilleur score: {scored_datasets[0].score} ({scored_datasets[0].dataset_name})")
     
     return scored_datasets
 

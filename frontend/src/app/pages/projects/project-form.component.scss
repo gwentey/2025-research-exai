@@ -1,0 +1,87 @@
+.criteria-section {
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  h6 {
+    margin-bottom: 16px !important;
+    font-weight: 600;
+    
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.preview-list {
+  max-height: 400px;
+  overflow-y: auto;
+
+  .border-bottom:last-child {
+    border-bottom: none !important;
+  }
+}
+
+.score-badge {
+  font-weight: 700;
+  font-size: 12px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.icon-48 {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.icon-16 {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+// Amélioration des formulaires
+.mat-mdc-form-field {
+  .mat-mdc-text-field-wrapper {
+    transition: all 0.2s ease;
+  }
+
+  &:hover .mat-mdc-text-field-wrapper {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Espacement amélioré
+.gap-8 > * + * {
+  margin-left: 8px;
+}
+
+.m-b-24 {
+  margin-bottom: 24px !important;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .criteria-section {
+    padding: 12px;
+    margin-bottom: 16px !important;
+  }
+  
+  .d-flex.gap-8 {
+    flex-direction: column;
+    
+    .text-muted {
+      display: none;
+    }
+  }
+} 

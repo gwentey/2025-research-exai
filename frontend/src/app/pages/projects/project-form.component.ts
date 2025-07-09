@@ -20,6 +20,7 @@ import { ProjectService } from '../../services/project.service';
 import { DatasetService } from '../../services/dataset.service';
 import { Project, ProjectCreate, ProjectUpdate, CriterionWeight } from '../../models/project.models';
 import { DatasetFilterCriteria, DatasetScored } from '../../models/dataset.models';
+import { RecommendationHeatmapComponent } from './components/recommendation-heatmap.component';
 
 @Component({
   selector: 'app-project-form',
@@ -39,7 +40,8 @@ import { DatasetFilterCriteria, DatasetScored } from '../../models/dataset.model
     MatDividerModule,
     MatChipsModule,
     MatSelectModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    RecommendationHeatmapComponent
   ],
   templateUrl: './project-form.component.html'
 })
@@ -63,7 +65,6 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
 
   // Critères et poids
   currentCriteria: DatasetFilterCriteria = {};
-  tempCriteria: DatasetFilterCriteria = {};
   currentWeights: CriterionWeight[] = [];
 
   // Preview des recommandations
@@ -84,7 +85,23 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
   constructor() {
     this.projectForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
-      description: ['']
+      description: [''],
+      // Ajout des critères de recherche dans le formulaire réactif
+      criteria: this.fb.group({
+        objective: [''],
+        domain: [[]],
+        task: [[]],
+        instances_number_min: [null],
+        instances_number_max: [null],
+        features_number_min: [null],
+        features_number_max: [null],
+        year_min: [null],
+        year_max: [null],
+        ethical_score_min: [null],
+        is_split: [false],
+        is_anonymized: [false],
+        is_public: [false]
+      })
     });
 
     // Initialiser les poids par défaut
@@ -92,9 +109,6 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Initialiser les critères temporaires
-    this.tempCriteria = { ...this.currentCriteria };
-    
     // Vérifier si on est en mode édition
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['id']) {
@@ -104,7 +118,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Écouter les changements pour le preview
+    // Écouter les changements pour le preview - maintenant sur tout le formulaire
     this.setupPreview();
   }
 
@@ -117,20 +131,22 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
    * Configure le preview automatique
    */
   private setupPreview(): void {
-    // Debounce pour éviter trop d'appels API
+    // Debounce pour éviter trop d'appels API - fonctionne maintenant pour tous les champs
     this.projectForm.valueChanges
-      .pipe(debounceTime(500), takeUntil(this.destroy$))
-      .subscribe(() => {
+      .pipe(debounceTime(800), takeUntil(this.destroy$))
+      .subscribe((formValues) => {
+        // Synchroniser les critères depuis le formulaire
+        this.currentCriteria = { ...formValues.criteria };
         this.updatePreview();
       });
   }
 
   /**
-   * Déclenche le preview quand les critères changent
+   * Déclenche le preview quand les critères changent (méthode dépréciée)
    */
   onCriteriaUpdate(): void {
-    this.currentCriteria = { ...this.tempCriteria };
-    this.updatePreview();
+    // Cette méthode n'est plus nécessaire car le debouncing automatique gère tout
+    // Garder pour compatibilité temporaire
   }
 
   /**
@@ -150,8 +166,8 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
           });
           
           if (project.criteria) {
+            this.projectForm.get('criteria')?.patchValue(project.criteria);
             this.currentCriteria = project.criteria;
-            this.tempCriteria = { ...project.criteria };
           }
           
           if (project.weights) {
@@ -211,10 +227,13 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
    * Met à jour l'aperçu des recommandations
    */
   private updatePreview(): void {
+    // Les critères sont maintenant synchronisés automatiquement depuis le formulaire
+    // via setupPreview()
+    
+    // Afficher un aperçu même sans critères spécifiques (avec les poids par défaut)
     if (Object.keys(this.currentCriteria).length === 0 && this.currentWeights.length === 0) {
-      this.previewDatasets = [];
-      this.previewCount = 0;
-      return;
+      // Utiliser les poids par défaut pour l'aperçu initial
+      this.currentWeights = this.getDefaultWeightsForPreview();
     }
 
     this.isLoadingPreview = true;
@@ -233,6 +252,17 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
           this.isLoadingPreview = false;
         }
       });
+  }
+
+  /**
+   * Retourne des poids par défaut pour l'aperçu initial
+   */
+  private getDefaultWeightsForPreview(): CriterionWeight[] {
+    return [
+      { criterion_name: 'ethical_score', weight: 0.4 },
+      { criterion_name: 'technical_score', weight: 0.4 },
+      { criterion_name: 'popularity_score', weight: 0.2 }
+    ];
   }
 
   /**
@@ -299,6 +329,98 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
     return this.projectForm.dirty || 
            Object.keys(this.currentCriteria).length > 0 || 
            this.currentWeights.length > 0;
+  }
+
+  /**
+   * Obtient le pourcentage d'un poids pour l'affichage
+   */
+  getWeightPercent(criterionName: string): number {
+    const weight = this.currentWeights.find(w => w.criterion_name === criterionName);
+    return weight ? Math.round(weight.weight * 100) : 0;
+  }
+
+  /**
+   * Génère un tooltip détaillé pour le score d'un dataset
+   */
+  getScoreTooltip(dataset: DatasetScored): string {
+    const totalScore = Math.round(dataset.score * 100);
+    let tooltip = `Score total : ${totalScore}%\n\nDétail par critère :\n`;
+    
+    // Calcul approximatif des scores individuels pour le tooltip
+    const ethicalScore = this.estimateEthicalScore(dataset);
+    const technicalScore = this.estimateTechnicalScore(dataset);
+    const popularityScore = this.estimatePopularityScore(dataset);
+    
+    tooltip += `• Éthique : ${Math.round(ethicalScore * 100)}% (poids: ${this.getWeightPercent('ethical_score')}%)\n`;
+    tooltip += `• Technique : ${Math.round(technicalScore * 100)}% (poids: ${this.getWeightPercent('technical_score')}%)\n`;
+    tooltip += `• Popularité : ${Math.round(popularityScore * 100)}% (poids: ${this.getWeightPercent('popularity_score')}%)\n\n`;
+    tooltip += `Cliquez sur "Voir formules détaillées" pour comprendre le calcul.`;
+    
+    return tooltip;
+  }
+
+  /**
+   * Estime le score éthique basé sur les critères disponibles
+   */
+  private estimateEthicalScore(dataset: DatasetScored): number {
+    let count = 0;
+    let total = 0;
+    
+    // Estimation basée sur les champs disponibles dans DatasetScored
+    if (dataset.anonymization_applied !== undefined) { total++; if (dataset.anonymization_applied) count++; }
+    if (dataset.transparency !== undefined) { total++; if (dataset.transparency) count++; }
+    if (dataset.informed_consent !== undefined) { total++; if (dataset.informed_consent) count++; }
+    
+    return total > 0 ? count / total : 0.7; // Valeur par défaut si pas d'info
+  }
+
+  /**
+   * Estime le score technique basé sur la taille et les caractéristiques
+   */
+  private estimateTechnicalScore(dataset: DatasetScored): number {
+    let score = 0;
+    
+    // Score basé sur la taille du dataset (échelle logarithmique)
+    if (dataset.instances_number && dataset.instances_number > 0) {
+      const logInstances = Math.log10(Math.max(1, dataset.instances_number));
+      const instanceScore = Math.min(1.0, Math.max(0.0, (logInstances - 2) / 3));
+      score += instanceScore * 0.4;
+    } else {
+      score += 0.5 * 0.4; // Score moyen si pas d'info
+    }
+    
+    // Score basé sur le nombre de features (optimal 10-100)
+    if (dataset.features_number && dataset.features_number > 0) {
+      let featureScore = 0;
+      if (dataset.features_number >= 10 && dataset.features_number <= 100) {
+        featureScore = 1.0;
+      } else if (dataset.features_number > 100) {
+        featureScore = Math.max(0.5, 1 - (dataset.features_number - 100) / 1000);
+      } else {
+        featureScore = dataset.features_number / 10;
+      }
+      score += featureScore * 0.3;
+    } else {
+      score += 0.5 * 0.3; // Score moyen si pas d'info
+    }
+    
+    // Score de documentation (estimation moyenne)
+    score += 0.6 * 0.3;
+    
+    return score;
+  }
+
+  /**
+   * Estime le score de popularité basé sur les citations
+   */
+  private estimatePopularityScore(dataset: DatasetScored): number {
+    if (!dataset.num_citations || dataset.num_citations <= 0) {
+      return 0.0;
+    }
+    
+    // Formule logarithmique : log10(citations) / 3 (max à 1000 citations)
+    const logCitations = Math.log10(dataset.num_citations);
+    return Math.min(1.0, Math.max(0.0, logCitations / 3));
   }
 
   /**

@@ -1,0 +1,152 @@
+= Comprendre le Système de Scoring
+:description: Guide utilisateur pour comprendre et interpréter les scores des datasets recommandés
+:keywords: scoring, recommandations, datasets, interprétation
+
+[.lead]
+Ce guide vous explique comment fonctionne le système de recommandation d'EXAI et comment interpréter les scores des datasets.
+
+== Comment ça marche ?
+
+Lorsque vous créez un projet, EXAI évalue automatiquement **tous les datasets disponibles** et les classe selon leur pertinence pour votre projet. Chaque dataset reçoit un **score de 0% à 100%**.
+
+=== Les 3 Critères Principaux
+
+Le score final combine **3 dimensions importantes** :
+
+[cols="1,3,1"]
+|===
+|Critère |Description |Poids par défaut
+
+|**🛡️ Éthique**
+|Respect des principes de protection des données (anonymisation, consentement, transparence)
+|**40%**
+
+|**⚙️ Technique** 
+|Qualité du dataset (taille, documentation, format, valeurs manquantes)
+|**40%**
+
+|**📈 Popularité**
+|Reconnaissance académique et nombre de citations
+|**20%**
+|===
+
+== Comprendre les Scores
+
+=== Échelle de Qualité
+
+[.score-excellent]
+**90-100% - Excellent** 🏆 +
+Dataset de très haute qualité, fortement recommandé pour votre projet.
+
+[.score-good]
+**75-89% - Très bon** ✅ +
+Recommandé avec confiance, quelques points d'amélioration mineurs.
+
+[.score-medium]
+**60-74% - Bon** ⚠️ +
+Utilisable avec quelques réserves, vérifiez les critères importants pour vous.
+
+[.score-low]
+**40-59% - Moyen** ⚡ +
+Acceptable mais avec des limitations notables.
+
+[.score-poor]
+**0-39% - Faible** ❌ +
+Non recommandé, qualité insuffisante ou inadapté à votre projet.
+
+=== Exemples Concrets
+
+**Dataset A - Score 95%** 🌟
+- ✅ Anonymisation complète
+- ✅ Documentation détaillée  
+- ✅ 130M d'instances
+- ✅ 847 citations académiques
+- ➡️ **Excellent choix !**
+
+**Dataset B - Score 52%** ⚠️
+- ⚠️ Anonymisation partielle
+- ✅ Bien documenté
+- ❌ Seulement 5,000 instances
+- ❌ Aucune citation
+- ➡️ **Utilisable mais limitations**
+
+== Personnaliser les Recommandations
+
+=== Ajuster les Poids
+
+Vous pouvez **modifier l'importance** de chaque critère selon vos priorités :
+
+**Pour un projet académique** 📚
+- Éthique : 30%
+- Technique : 40% 
+- Popularité : **30%** ⬆️
+
+**Pour un projet industriel** 🏭
+- Éthique : **50%** ⬆️
+- Technique : **50%** ⬆️
+- Popularité : 0% ⬇️
+
+**Pour un prototype rapide** ⚡
+- Éthique : 20% ⬇️
+- Technique : **80%** ⬆️
+- Popularité : 0% ⬇️
+
+=== Filtres Avancés
+
+Utilisez les **filtres** pour affiner la sélection :
+
+- **Domaine** : Éducation, Santé, Finance...
+- **Taille** : Nombre d'instances minimum/maximum
+- **Qualité** : Score éthique minimum
+- **Caractéristiques** : Anonymisé, public, pré-divisé
+
+== Questions Fréquentes
+
+**Q: Pourquoi mon dataset préféré a un score faible ?**
+A: Le score reflète la qualité globale. Vérifiez les critères spécifiques (éthique, documentation, taille) et ajustez les poids selon vos priorités.
+
+**Q: Puis-je utiliser un dataset avec un score de 40% ?**
+A: Oui, mais soyez conscient des limitations. Consultez le détail des scores pour identifier les points faibles.
+
+**Q: Comment améliorer les recommandations ?**
+A: 1) Soyez précis dans vos critères de recherche, 2) Ajustez les poids selon vos priorités, 3) Utilisez les filtres pour cibler vos besoins.
+
+**Q: Les scores changent-ils ?**
+A: Oui, ils s'adaptent à vos critères et pondérations. Modifiez les poids pour voir l'impact sur le classement.
+
+== Interface Utilisateur
+
+=== Zone d'Aperçu
+
+Dans la création de projet, la **zone d'aperçu** vous montre :
+- Le **nombre de datasets** trouvés
+- Les **3 meilleurs** avec leurs scores
+- L'**explication des poids** utilisés
+
+=== Heat Map
+
+La **heat map** (en bas) visualise :
+- Les **scores détaillés** par critère
+- L'**impact de chaque poids**
+- La **comparaison** entre datasets
+
+=== Tooltips
+
+Survolez les **scores** pour voir :
+- Le **détail par critère**
+- Les **pourcentages de poids**
+- Des **conseils d'interprétation**
+
+== Bonnes Pratiques
+
+✅ **Commencez large** : Utilisez d'abord les poids par défaut
+
+✅ **Affinez progressivement** : Ajustez les critères selon vos résultats
+
+✅ **Comparez plusieurs datasets** : Ne vous limitez pas au premier
+
+✅ **Vérifiez les détails** : Consultez la fiche complète avant de choisir
+
+✅ **Documentez votre choix** : Notez pourquoi vous avez sélectionné ce dataset
+
+Cette approche garantit des choix éclairés et adaptés à vos besoins spécifiques ! 🎯 

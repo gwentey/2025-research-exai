@@ -667,6 +667,11 @@ async def datasets_tasks_proxy(request: Request, current_user: UserModel = Depen
     """Proxy vers le service-selection pour récupérer les tâches ML"""
     return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/tasks", current_user)
 
+@app.post("/datasets/score", tags=["datasets"])
+async def datasets_score_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour le scoring des datasets"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/score", current_user)
+
 # Routes pour les projets (service-selection)
 @app.api_route("/projects", methods=["GET", "POST"], tags=["projects"])
 async def projects_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):

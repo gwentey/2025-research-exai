@@ -7,9 +7,9 @@ La gestion des projets dans EXAI vous permet de créer, configurer et analyser v
 Un projet EXAI est une entité qui regroupe :
 
 * **Configuration personnalisée** : Critères de sélection spécifiques à votre cas d'usage
-* **Poids de scoring** : Pondération des différents critères selon vos priorités
-* **Recommandations automatiques** : Datasets suggérés basés sur votre configuration
-* **Visualisation avancée** : Heatmap comparative des scores par critère
+* **Poids de scoring** : Pondération des différents critères selon vos priorités  
+* **Recommandations temps réel** : Datasets suggérés avec mise à jour automatique
+* **Visualisation intégrée** : Heat map des scores par critère directement dans l'interface
 
 == Accéder aux Projets
 
@@ -19,158 +19,211 @@ Un projet EXAI est une entité qui regroupe :
 
 == Créer un Nouveau Projet
 
-=== Étape 1 : Création de base
+=== Interface Améliorée
+
+Le formulaire de création a été repensé pour une expérience utilisateur optimale :
+
+* **Sections organisées** : Critères regroupés par thématique
+* **Prévisualisation automatique** : Mise à jour des recommandations en temps réel
+* **Interface responsive** : Adaptation automatique à votre écran
+* **Validation intelligente** : Feedback immédiat sur vos sélections
+
+=== Étape 1 : Informations de Base
 
 . Sur la page de liste des projets, cliquez sur le bouton *+ Nouveau Projet*
-. Remplissez les informations de base :
-   * **Nom** : Nom descriptif de votre projet (ex: "Classification Étudiants 2025")
-   * **Description** : Description détaillée de l'objectif et du contexte
+. Remplissez les informations essentielles :
+   * **Nom du projet** : Nom descriptif (ex: "Analyse Performances Étudiantes")
+   * **Description** : Contexte et objectifs de votre projet (optionnel)
 
-=== Étape 2 : Configuration des critères
+=== Étape 2 : Définir le Contexte
 
-Configurez les critères de sélection selon vos besoins :
+==== Section "Contexte du Projet" 🎯
 
-==== Critères Techniques
-* **Domaine d'application** : Sélectionnez un ou plusieurs domaines (Éducation, Santé, Finance, etc.)
-* **Type de tâche ML** : Classification, Régression, Clustering, etc.
-* **Nombre d'instances** : Plage min/max d'exemples dans le dataset
-* **Nombre de features** : Plage min/max de caractéristiques
-* **Année de publication** : Période de publication des datasets
+Décrivez l'objectif de votre analyse :
 
-==== Critères Éthiques et Qualité
-* **Score éthique minimum** : Seuil de conformité éthique requis
-* **Niveau de représentativité** : Faible, Moyen, Élevé
-* **Données anonymisées** : Uniquement les datasets anonymisés
-* **Accès public** : Restreindre aux datasets en accès libre
+* **Description/Objectif** : Mots-clés décrivant votre analyse (ex: "prédiction réussite", "classification comportement")
 
-==== Critères Techniques Avancés
-* **Dataset pré-divisé** : Train/test/validation déjà séparés
-* **Facteurs temporels** : Présence de données temporelles
-* **Fichiers multiples** : Datasets avec plusieurs fichiers liés
+TIP: Utilisez des termes descriptifs de votre objectif métier plutôt que des noms techniques
 
-=== Étape 3 : Ajustement des poids
+==== Section "Domaine d'Application" 🏢
 
-Personnalisez l'importance de chaque critère avec les sliders :
+Précisez votre secteur d'activité :
 
-* **Pertinence Technique** (0-100%) : Correspondance domaine/tâche
-* **Qualité Éthique** (0-100%) : Conformité éthique et anonymisation
-* **Popularité** (0-100%) : Usage fréquent dans la communauté
-* **Actualité** (0-100%) : Récence de publication
+* **Secteurs d'activité** : Un ou plusieurs domaines avec icônes visuelles
+  - 🎓 Éducation
+  - 🏥 Santé  
+  - 💰 Finance
+  - 🚗 Transport
+  - 🛒 Commerce
 
-TIP: La somme des poids n'a pas besoin d'être 100%. Les valeurs sont automatiquement normalisées.
+* **Type de tâche ML** : Algorithmes envisagés avec icônes
+  - 🎯 Classification
+  - 📈 Régression
+  - 🔄 Clustering
+  - 💬 NLP
+  - 👁️ Vision par ordinateur
 
-=== Étape 4 : Preview temps réel
+=== Étape 3 : Exigences Techniques (Optionnelles)
 
-Pendant la configuration, observez :
+==== Section "Exigences Techniques" ⚙️
 
-* **Compteur de résultats** : Nombre de datasets correspondants
-* **Liste de preview** : Premiers datasets recommandés
-* **Scores indicatifs** : Aperçu des scores calculés
+Spécifiez vos contraintes techniques si nécessaire :
+
+**Taille du Dataset :**
+* **Nombre d'instances** : Plage min-max d'exemples (ex: 1000 à 1M+)
+* **Nombre de variables** : Plage min-max de caractéristiques (ex: 5 à 100)
+
+**Période et Qualité :**
+* **Période de création** : Années de publication souhaitées (ex: 2015-2024)
+* **Score éthique minimum** : Seuil de conformité éthique
+  - Aucune exigence
+  - 30% - Acceptable
+  - 50% - Bon  
+  - 70% - Très bon
+  - 90% - Excellent
+
+**Caractéristiques Spéciales :**
+* ☑️ Déjà divisé (train/test)
+* ☑️ Anonymisé
+* ☑️ Accès public
+
+=== Étape 4 : Pondération des Critères
+
+==== Section "Pondération des Critères" ⚖️
+
+Ajustez l'importance de chaque critère avec des sliders intuitifs :
+
+* **Score Éthique** (0-100%) : Conformité éthique et respect des données
+* **Score Technique** (0-100%) : Qualité technique et documentation  
+* **Popularité** (0-100%) : Usage dans la communauté scientifique
+* **Anonymisation** (0-100%) : Protection des données personnelles
+* **Documentation** (0-100%) : Disponibilité de la documentation
+* **Qualité des Données** (0-100%) : Absence de valeurs manquantes
+
+**Fonctionnalités avancées :**
+* **Bouton "Valeurs par défaut"** : Restaure une configuration équilibrée
+* **Critères actifs** : Affichage des critères sélectionnés avec leurs poids
+* **Validation temps réel** : Vérification automatique de la cohérence
+
+=== Aperçu Temps Réel
+
+==== Panneau de Prévisualisation
+
+Pendant votre configuration, observez en temps réel :
+
+**Compteur Dynamique :**
+* Nombre de datasets trouvés avec vos critères
+* Mise à jour automatique à chaque modification
+
+**Top 3 Recommandations :**
+* Affichage des 3 meilleurs datasets
+* Informations essentielles : nom, objectif, taille
+* Score de compatibilité visuel avec codes couleur
+
+**Feedback Visuel :**
+* 🔍 Calcul des recommandations (spinner)
+* ❌ Aucun dataset trouvé (guidance pour ajuster)
+* ✅ Résultats trouvés (aperçu des recommendations)
+
+IMPORTANT: L'aperçu se met à jour automatiquement avec un délai de 800ms pour éviter trop d'appels serveur.
+
+=== Heat Map Intégrée
+
+==== Visualisation Avancée
+
+Une heat map apparaît automatiquement sous le formulaire quand des résultats sont disponibles :
+
+**Caractéristiques :**
+* **Légende colorée** : Du rouge (faible) au bleu (excellent)
+* **Datasets en lignes** : Noms et métadonnées essentielles
+* **Critères en colonnes** : Avec poids associés affichés
+* **Cellules interactives** : Hover pour détails, scores exacts
+* **Score total** : Colonne finale avec couleur correspondante
+
+**Interactivité :**
+* **Tooltips** : Informations détaillées au survol
+* **Zoom au survol** : Effet visuel sur les cellules
+* **Responsive** : Adapté aux écrans mobiles et tablettes
 
 === Étape 5 : Sauvegarde
 
-. Vérifiez votre configuration
-. Cliquez sur *Enregistrer le Projet*
-. Le projet est créé et les recommandations sont calculées
+. Vérifiez la configuration dans l'aperçu
+. Consultez la heat map pour valider la pertinence
+. Cliquez sur *Créer le Projet*
+. Redirection automatique vers la vue détaillée du projet
 
-== Consulter un Projet
+== Modifications et Mises à Jour
 
-=== Vue Résumé
+=== Edition Simplifiée
 
-Depuis la liste des projets, cliquez sur un projet pour accéder à sa vue détaillée :
+L'interface d'édition conserve toutes les fonctionnalités :
 
-* **Informations générales** : Nom, description, date de création
-* **Configuration active** : Critères et poids configurés
-* **Statistiques** : Nombre de datasets recommandés, score moyen
+* **Formulaire pré-rempli** : Valeurs existantes chargées automatiquement
+* **Aperçu mis à jour** : Changements visibles en temps réel
+* **Sauvegarde intelligente** : Seules les modifications sont sauvegardées
 
-=== Vue Recommandations
+=== Optimisations Performance
 
-L'onglet *Recommandations* présente :
+**Debouncing Automatique :**
+* Évite les appels API excessifs
+* Interface fluide sans "tremblements"
+* Mise à jour optimisée des recommandations
 
-==== Liste des Datasets Recommandés
-* **Tri par score** : Datasets classés par pertinence décroissante
-* **Informations détaillées** : Nom, domaine, tâche, métadonnées
-* **Score global** : Note de compatibilité avec votre projet (0-100)
-* **Actions** : Visualiser, Sélectionner pour le pipeline ML
+**Gestion des États :**
+* Indicateurs de chargement appropriés
+* Gestion d'erreurs avec messages clairs
+* Validation côté client et serveur
 
-==== Visualisation Heatmap
-
-La heatmap offre une analyse comparative visuelle :
-
-* **Axe horizontal** : Datasets recommandés
-* **Axe vertical** : Critères de scoring (Technique, Éthique, Popularité, Actualité)
-* **Couleurs** : Intensité du score pour chaque combinaison dataset/critère
-* **Interaction** : Hover pour voir les valeurs exactes
-
-IMPORTANT: La heatmap vous aide à identifier les forces/faiblesses de chaque dataset selon vos critères.
-
-== Modifier un Projet
-
-. Depuis la liste des projets, cliquez sur l'icône d'édition ✏️
-. Modifiez les critères ou poids selon vos nouveaux besoins
-. Les recommandations se mettent à jour automatiquement
-. Sauvegardez les modifications
-
-== Supprimer un Projet
-
-. Depuis la liste des projets, cliquez sur l'icône de suppression 🗑️
-. Confirmez la suppression dans la boîte de dialogue
-
-WARNING: La suppression d'un projet est irréversible.
-
-== Bonnes Pratiques
-
-=== Nommage des Projets
-* Utilisez des noms descriptifs incluant le contexte métier
-* Exemples : "Prédiction Décrochage Scolaire 2025", "Classification Sentiments Avis Clients"
+== Bonnes Pratiques Mises à Jour
 
 === Configuration des Critères
-* **Soyez spécifique** : Plus vos critères sont précis, meilleures sont les recommandations
-* **Équilibrez les poids** : Évitez de donner 100% à un seul critère
-* **Testez différentes configurations** : Créez plusieurs projets pour comparer
 
-=== Analyse des Résultats
-* **Consultez la heatmap** : Elle révèle des patterns non visibles dans la liste
-* **Vérifiez les métadonnées** : Examinez les datasets en détail avant sélection
-* **Comparez les scores** : Un score élevé n'est pas le seul critère de choix
+**Approche Progressive :**
+. Commencez par le contexte et le domaine (essentiels)
+. Ajoutez les exigences techniques si nécessaires
+. Ajustez les poids selon l'aperçu obtenu
 
-== Intégration avec le Pipeline ML
+**Optimisation des Résultats :**
+* **Observez l'aperçu** : Ajustez si trop ou pas assez de résultats
+* **Utilisez la heat map** : Identifiez les patterns de scoring
+* **Testez différents poids** : Voyez l'impact sur les recommandations
 
-Une fois votre dataset sélectionné depuis les recommandations :
+=== Analyse Visuelle
 
-. Cliquez sur *Sélectionner* sur le dataset choisi
-. Vous êtes redirigé vers la configuration du pipeline ML
-. Votre projet reste lié et influence les suggestions d'hyperparamètres
+**Lecture de la Heat Map :**
+* **Colonnes uniformes** : Tous les datasets se valent sur ce critère
+* **Lignes contrastées** : Dataset avec des forces/faiblesses marquées
+* **Patterns diagonaux** : Corrélation entre critères
 
-== Cas d'Usage Fréquents
+**Prise de Décision :**
+* **Score total élevé** ≠ toujours meilleur choix
+* **Analysez par critère** : Vérifiez la cohérence avec vos priorités
+* **Considérez le contexte** : Métadonnées au-delà des scores
 
-=== Projet Éducatif
-* **Domaine** : Éducation
-* **Poids** : Éthique 40%, Technique 35%, Actualité 25%
-* **Critères spéciaux** : Données anonymisées obligatoire
+== Dépannage Amélioré
 
-=== Projet Recherche
-* **Domaine** : Multiple selon le sujet
-* **Poids** : Technique 50%, Actualité 30%, Popularité 20%
-* **Critères spéciaux** : Accès public, facteurs temporels
+=== Problèmes d'Interface
 
-=== Projet Industriel
-* **Domaine** : Spécifique au secteur
-* **Poids** : Technique 45%, Éthique 35%, Popularité 20%
-* **Critères spéciaux** : Score éthique élevé, représentativité élevée
+**Aperçu qui ne se charge pas :**
+* Vérifiez votre connexion internet
+* Attendez la fin du delai de debouncing (800ms)
+* Rafraîchissez la page si l'erreur persiste
 
-== Dépannage
+**Heat map vide :**
+* Assurez-vous d'avoir des poids définis (> 0%)
+* Vérifiez qu'il y a des datasets dans l'aperçu
+* Les datasets sans données peuvent ne pas apparaître
 
-=== Aucune Recommandation
-* **Cause** : Critères trop restrictifs
-* **Solution** : Élargissez les plages de valeurs ou réduisez le nombre de critères obligatoires
+=== Optimisation des Résultats
 
-=== Recommandations Peu Pertinentes
-* **Cause** : Poids mal équilibrés
-* **Solution** : Ajustez les poids pour privilégier les critères les plus importants
+**Trop de résultats :**
+* Ajoutez des critères techniques plus restrictifs
+* Augmentez le score éthique minimum
+* Spécifiez une plage d'années plus restreinte
 
-=== Erreur de Sauvegarde
-* **Cause** : Problème de connexion réseau
-* **Solution** : Vérifiez votre connexion et réessayez
+**Pas assez de résultats :**
+* Élargissez les plages numériques (instances, features)
+* Réduisez le score éthique minimum
+* Supprimez des critères optionnels (cases à cocher)
 
-Pour plus d'assistance, consultez le xref:dev-guide/index.adoc[Guide Développeur] ou contactez le support technique. 
+Pour plus d'assistance technique, consultez le xref:dev-guide/index.adoc[Guide Développeur] ou contactez le support. 
