@@ -57,6 +57,7 @@ graph LR
         *   [✅] **Routage Reverse Proxy complet (2025-01-21)** : Routes `/datasets` et `/projects` vers service-selection.
         *   [✅] **Routes Projets intégrées** : `/projects`, `/projects/{id}`, `/projects/{id}/recommendations`.
         *   [✅] **Configuration multi-environnements** : URLs services adaptées local/Kubernetes.
+        *   [✅] **Endpoints Gestion Profil Utilisateur (2025-01-24)** : API complète pour la modification du profil utilisateur.
         *   [⬜] Déploiement K8s à finaliser (configuration probes, secrets).
 
 *   **`service-selection/` :**
@@ -78,6 +79,22 @@ graph LR
         *   [✅] **Filtrage backend-first optimisé** : Élimination du double filtrage client/serveur pour performance maximale.
         *   [🚧] Déploiement K8s à finaliser (configuration probes, secrets).
     
+    *   **Endpoints Gestion Profil Utilisateur (2025-01-24) :**
+        *   **PATCH `/users/me`** : Mise à jour des informations du profil (pseudo, prénom, nom, langue)
+            *   **Schéma** : `UserProfileUpdate` (pseudo, given_name, family_name, locale)
+            *   **Authentification** : JWT token requis via `current_active_user`
+            *   **Validation** : Mise à jour des champs fournis uniquement (exclude_unset=True)
+        *   **PATCH `/users/me/password`** : Changement sécurisé du mot de passe
+            *   **Schéma** : `PasswordUpdate` (current_password, new_password)
+            *   **Sécurité** : Vérification de l'ancien mot de passe via `password_helper.verify_and_update`
+            *   **Validation** : Politique de mot de passe via `user_manager.validate_password`
+        *   **PATCH `/users/me/picture`** : Upload d'image de profil
+            *   **Schéma** : `ProfilePictureUpdate` (picture en base64 ou URL)
+            *   **Validation** : Limite de taille (10MB max) et format supporté
+            *   **Stockage** : Image stockée directement en base de données PostgreSQL
+        *   **Gestion d'erreurs** : Codes HTTP appropriés (400 pour validation, 500 pour erreurs serveur)
+        *   **Logging** : Traçabilité complète des opérations de mise à jour de profil
+
     *   **Structure Base de Données Normalisée (2025-07-06) :**
         *   **`datasets`** (Table principale) : Métadonnées complètes organisées en sections (identification, caractéristiques techniques, critères éthiques)
         *   **`dataset_files`** : Fichiers associés à un dataset (train.csv, test.csv, metadata.json, etc.)
@@ -120,6 +137,7 @@ graph LR
         *   [✅] **Menu de navigation optimisé (2025-01-07)** : Menu de gauche nettoyé pour ne conserver que les fonctionnalités EXAI essentielles (Tableau de bord, Datasets, Pipeline ML, Explications XAI). Suppression des éléments de démonstration du thème Spike.
         *   [✅] **Header optimisé pour EXAI (2025-01-07)** : Suppression du menu Apps inutile, des liens Chat/Calendar/Email. Recherche élargie pour datasets/modèles. Notifications et raccourcis adaptés au contexte EXAI. Profil utilisateur conservé avec traduction française.
         *   [✅] **Interface Sidebar Collapsible Moderne (2025-07-07)** : Architecture révolutionnaire pour la sélection des datasets.
+        *   [✅] **Gestion Profil Utilisateur Complète (2025-01-24)** : Interface Angular Material pour modification du profil avec upload d'image.
         *   [⬜] Services API dédiés (`PipelineService`, `XAIService`) **non implémentés**.
         *   [⬜] Modules/Composants pour Pipeline ML et XAI **non implémentés**.
         *   [⬜] Déploiement K8s non configuré.
@@ -153,6 +171,25 @@ graph LR
             *   Preview automatique des recommandations pendant la configuration
             *   Visualisation heatmap des scores par critère pour analyse comparative
             *   Interface responsive desktop/tablet/mobile
+
+    *   **Architecture Gestion Profil Utilisateur (2025-01-24) :**
+        *   **Modèles TypeScript** : Interfaces étendues dans `auth.models.ts` (UserUpdate, PasswordUpdate, ProfilePictureUpdate)
+        *   **Service Angular** : `AuthService` étendu avec méthodes `updateProfile()`, `updatePassword()`, `updateProfilePicture()`
+        *   **Composants Principaux** :
+            *   `ProfileComponent` : Interface complète de gestion du profil utilisateur
+            *   Formulaires réactifs séparés pour informations personnelles et sécurité
+            *   Gestion upload d'image avec preview et validation (format, taille)
+        *   **Navigation Intégrée** : Route `/profile` accessible via menu "Mon Profil" dans le header
+        *   **Fonctionnalités Avancées** :
+            *   Formulaires réactifs Angular avec validation temps réel
+            *   Upload d'image avec preview et conversion base64
+            *   Validation côté client (formats image, taille max 5MB)
+            *   Feedback utilisateur via MatSnackBar pour succès/erreurs
+            *   Interface responsive avec Angular Material (MatCard, MatFormField, MatInput)
+            *   Sécurité : changement de mot de passe avec validation de l'ancien
+        *   **Documentation Complète** :
+            *   Guide utilisateur : `docs/user-guide/user-profile-management.adoc`
+            *   Documentation technique : `docs/dev-guide/user-profile-components.adoc`
 
 *   **Infrastructure :**
     *   [✅] PostgreSQL déployé sur K8s et accessible.

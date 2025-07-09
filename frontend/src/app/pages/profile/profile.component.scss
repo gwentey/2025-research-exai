@@ -1,0 +1,106 @@
+// Styles pour le composant de profil
+
+.avatar-container {
+  .avatar-edit-btn {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+.image-upload-actions {
+  .mat-flat-button,
+  .mat-stroked-button {
+    min-width: 100px;
+  }
+}
+
+// Styles pour les chips de statut
+.chip-success {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  
+  .icon-14 {
+    color: #4caf50;
+  }
+}
+
+.chip-primary {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  
+  .icon-14 {
+    color: #2196f3;
+  }
+}
+
+// Amélioration de l'affichage responsive
+@media (max-width: 768px) {
+  .avatar-container {
+    img {
+      width: 100px !important;
+      height: 100px !important;
+    }
+  }
+  
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 16px;
+    
+    button {
+      align-self: stretch;
+    }
+  }
+  
+  .image-upload-actions {
+    .mat-flat-button,
+    .mat-stroked-button {
+      width: 100%;
+      margin: 4px 0 !important;
+    }
+  }
+  
+  .gap-12 {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+      margin: 4px 0 !important;
+    }
+  }
+}
+
+// Animation pour le spinner
+.mat-spinner {
+  display: inline-block;
+}
+
+// Styles pour les mat-cards
+.cardWithShadow {
+  transition: box-shadow 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Amélioration de l'espacement des formulaires
+.mat-form-field {
+  .mat-icon {
+    color: rgba(0, 0, 0, 0.54);
+  }
+}
+
+// Style pour les boutons d'action
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-12 {
+  gap: 12px;
+} 

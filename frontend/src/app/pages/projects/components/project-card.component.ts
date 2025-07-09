@@ -26,7 +26,8 @@ import { ProjectService } from '../../../services/project.service';
     MatMenuModule,
     MatDividerModule
   ],
-  templateUrl: './project-card.component.html'
+  templateUrl: './project-card.component.html',
+  styleUrls: ['./project-card.component.scss']
 })
 export class ProjectCardComponent {
   @Input() project!: Project;

@@ -11,6 +11,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { LoginCredentials } from '../../../models/auth.models';
 
@@ -23,6 +24,7 @@ import { LoginCredentials } from '../../../models/auth.models';
     FormsModule,
     ReactiveFormsModule,
     BrandingComponent,
+    TranslateModule,
   ],
   templateUrl: './side-login.component.html',
 })
@@ -31,6 +33,7 @@ export class AppSideLoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private settings = inject(CoreService);
+  private translate = inject(TranslateService);
 
   // Initialize options using the injected service
   options = this.settings.getOptions();
@@ -56,7 +59,7 @@ export class AppSideLoginComponent {
     if (this.form.invalid) {
       // Optionally mark fields as touched to show validation errors
       this.form.markAllAsTouched();
-      this.loginError = 'Veuillez remplir correctement tous les champs.'
+      this.loginError = this.translate.instant('AUTH.LOGIN.FORM_INVALID');
       return;
     }
 
@@ -80,8 +83,8 @@ export class AppSideLoginComponent {
           console.error('Login failed:', error);
           // Display specific error from backend if available, otherwise generic message
           this.loginError = error.message?.includes('400')
-            ? 'Email ou mot de passe incorrect.' // Specific message for 400 Bad Request from fastapi-users login
-            : (error.message || 'Échec de la connexion. Veuillez réessayer.');
+            ? this.translate.instant('AUTH.LOGIN.INVALID_CREDENTIALS') // Specific message for 400 Bad Request from fastapi-users login
+            : (error.message || this.translate.instant('ERRORS.AUTHENTICATION_FAILED'));
         }
       });
   }
@@ -103,7 +106,7 @@ export class AppSideLoginComponent {
         },
         error: (error) => {
           console.error('Échec de récupération de l\'URL d\'autorisation Google:', error);
-          this.loginError = 'Impossible d\'initialiser la connexion avec Google. Veuillez réessayer.';
+          this.loginError = this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
         }
       });
   }

@@ -34,6 +34,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./pages/projects/projects.routes').then((m) => m.PROJECTS_ROUTES),
       },
+      {
+        path: 'profile',
+        loadChildren: () =>
+          import('./pages/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
+      },
     ],
   },
   {

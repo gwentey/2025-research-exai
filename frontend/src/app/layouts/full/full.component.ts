@@ -6,8 +6,9 @@ import { CoreService } from 'src/app/services/core.service';
 import { AppSettings } from 'src/app/config';
 import { filter } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
-import { navItems } from './vertical/sidebar/sidebar-data';
+import { navItems, getTranslatedNavItems } from './vertical/sidebar/sidebar-data';
 import { NavService } from '../../services/nav.service';
+import { TranslateService } from '@ngx-translate/core';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
@@ -204,7 +205,8 @@ export class FullComponent implements OnInit {
     private router: Router,
     private breakpointObserver: BreakpointObserver,
     private navService: NavService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -234,6 +236,21 @@ export class FullComponent implements OnInit {
   ngOnInit(): void {
     // Charger les informations de l'utilisateur connecté
     this.loadUserInfo();
+    
+    // Initialiser les navItems traduits
+    this.updateNavItems();
+    
+    // Écouter les changements de langue pour mettre à jour les navItems
+    this.translate.onLangChange.subscribe(() => {
+      this.updateNavItems();
+    });
+  }
+
+  /**
+   * Met à jour les navItems avec les traductions
+   */
+  private updateNavItems(): void {
+    this.navItems = getTranslatedNavItems(this.translate);
   }
 
   /**

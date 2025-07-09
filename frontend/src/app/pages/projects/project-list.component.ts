@@ -18,6 +18,7 @@ import { ProjectService } from '../../services/project.service';
 import { Project, ProjectListResponse } from '../../models/project.models';
 import { PaginationParams } from '../../models/dataset.models';
 import { ProjectCardComponent } from './components/project-card.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-project-list',
@@ -35,7 +36,8 @@ import { ProjectCardComponent } from './components/project-card.component';
     MatTooltipModule,
     MatMenuModule,
     MatDialogModule,
-    ProjectCardComponent
+    ProjectCardComponent,
+    TranslateModule
   ],
   templateUrl: './project-list.component.html'
 })
@@ -43,6 +45,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   private projectService = inject(ProjectService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private translateService = inject(TranslateService);
   private destroy$ = new Subject<void>();
 
   // Données
@@ -127,7 +130,8 @@ export class ProjectListComponent implements OnInit, OnDestroy {
    * Suppression d'un projet avec confirmation
    */
   onDeleteProject(project: Project): void {
-    const confirmed = confirm(`Êtes-vous sûr de vouloir supprimer le projet "${project.name}" ?`);
+    const confirmMessage = this.translateService.instant('PROJECTS.DELETE.CONFIRM_MESSAGE', { name: project.name });
+    const confirmed = confirm(confirmMessage);
     
     if (confirmed) {
       this.projectService.deleteProject(project.id)
@@ -139,7 +143,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
           },
           error: (error) => {
             console.error('Erreur lors de la suppression:', error);
-            this.error = 'Erreur lors de la suppression du projet.';
+            this.error = this.translateService.instant('PROJECTS.DELETE.ERROR');
           }
         });
     }
@@ -185,7 +189,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Erreur lors du chargement des projets:', error);
-          this.error = 'Erreur lors du chargement des projets. Veuillez réessayer.';
+          this.error = this.translateService.instant('PROJECTS.LIST.LOADING_ERROR');
           this.isLoading = false;
           this.projects = [];
           this.totalProjects = 0;

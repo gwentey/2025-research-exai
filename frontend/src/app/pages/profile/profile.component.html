@@ -1,0 +1,305 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <!-- En-tête de la page -->
+      <div class="d-flex align-items-center justify-content-between m-b-24">
+        <div>
+          <h2 class="f-s-24 f-w-600 m-0">{{ 'PROFILE.TITLE' | translate }}</h2>
+          <p class="text-body m-0">{{ 'PROFILE.SUBTITLE' | translate }}</p>
+        </div>
+        <button 
+          mat-stroked-button 
+          color="primary" 
+          (click)="goBack()"
+          class="d-flex align-items-center gap-8"
+        >
+          <i-tabler name="arrow-left" class="icon-16"></i-tabler>
+          {{ 'PROFILE.BACK_TO_DASHBOARD' | translate }}
+        </button>
+      </div>
+
+      <div class="row">
+        <!-- Carte d'information utilisateur -->
+        <div class="col-lg-4 col-12">
+          <mat-card class="cardWithShadow m-b-24">
+            <mat-card-content class="p-24">
+              <div class="text-center">
+                <!-- Avatar utilisateur -->
+                <div class="avatar-container m-b-16 position-relative d-inline-block">
+                  <img 
+                    [src]="getProfileImageUrl()" 
+                    class="rounded-circle object-cover shadow-sm"
+                    width="120" 
+                    height="120"
+                    [alt]="getDisplayName()"
+                    onerror="this.src='/assets/images/profile/user5.jpg';"
+                  />
+                  <button 
+                    mat-mini-fab 
+                    color="primary" 
+                    class="avatar-edit-btn position-absolute"
+                    style="bottom: 0; right: 0;"
+                    (click)="fileInput.click()"
+                    [disabled]="isLoadingPicture"
+                    [matTooltip]="'PROFILE.CHANGE_PHOTO' | translate"
+                  >
+                    <i-tabler name="camera" class="icon-16"></i-tabler>
+                  </button>
+                  <input 
+                    #fileInput 
+                    type="file" 
+                    accept="image/*" 
+                    style="display: none"
+                    (change)="onFileSelected($event)"
+                  />
+                </div>
+
+                <!-- Informations de base -->
+                <h4 class="f-s-20 f-w-600 m-b-4">{{ getDisplayName() }}</h4>
+                <p class="text-muted m-b-8">{{ currentUser?.email }}</p>
+                
+                <!-- Badges de statut -->
+                <div class="d-flex justify-content-center gap-8 m-b-16">
+                  <mat-chip class="chip-success" *ngIf="currentUser?.is_verified">
+                    <i-tabler name="check" class="icon-14 m-r-4"></i-tabler>
+                    {{ 'PROFILE.STATUS.VERIFIED' | translate }}
+                  </mat-chip>
+                  <mat-chip class="chip-primary" *ngIf="currentUser?.is_active">
+                    <i-tabler name="user-check" class="icon-14 m-r-4"></i-tabler>
+                    {{ 'PROFILE.STATUS.ACTIVE' | translate }}
+                  </mat-chip>
+                </div>
+
+                <!-- Actions rapides pour l'image -->
+                <div *ngIf="selectedFile" class="image-upload-actions m-t-16">
+                  <button 
+                    mat-flat-button 
+                    color="primary" 
+                    class="m-r-8"
+                    (click)="uploadProfilePicture()"
+                    [disabled]="isLoadingPicture"
+                  >
+                    <mat-spinner diameter="16" class="m-r-8" *ngIf="isLoadingPicture"></mat-spinner>
+                    <i-tabler name="upload" class="icon-16 m-r-8" *ngIf="!isLoadingPicture"></i-tabler>
+                    {{ isLoadingPicture ? ('PROFILE.UPLOADING' | translate) : ('PROFILE.CONFIRM' | translate) }}
+                  </button>
+                  <button 
+                    mat-stroked-button 
+                    (click)="cancelImageSelection()"
+                    [disabled]="isLoadingPicture"
+                  >
+                    {{ 'PROFILE.CANCEL' | translate }}
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Formulaires de modification -->
+        <div class="col-lg-8 col-12">
+          
+          <!-- Formulaire d'informations personnelles -->
+          <mat-card class="cardWithShadow m-b-24">
+            <mat-card-header class="p-24 p-b-0">
+              <mat-card-title class="f-s-18 f-w-600 d-flex align-items-center">
+                <i-tabler name="user" class="icon-20 m-r-8 text-primary"></i-tabler>
+                {{ 'PROFILE.PERSONAL_INFO.TITLE' | translate }}
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="p-24">
+              <form [formGroup]="profileForm" (ngSubmit)="onSubmitProfile()">
+                <div class="row">
+                  <!-- Email (non modifiable) -->
+                  <div class="col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.PERSONAL_INFO.EMAIL' | translate }}</mat-label>
+                      <input 
+                        matInput 
+                        [value]="currentUser?.email || ''" 
+                        readonly
+                        [placeholder]="'PROFILE.PERSONAL_INFO.EMAIL_PLACEHOLDER' | translate"
+                      />
+                      <mat-icon matSuffix>email</mat-icon>
+                      <mat-hint>{{ 'PROFILE.PERSONAL_INFO.EMAIL_READONLY' | translate }}</mat-hint>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Pseudo -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.PERSONAL_INFO.PSEUDO' | translate }}</mat-label>
+                      <input 
+                        matInput 
+                        formControlName="pseudo"
+                        [placeholder]="'PROFILE.PERSONAL_INFO.PSEUDO_PLACEHOLDER' | translate"
+                      />
+                      <mat-icon matSuffix>account_circle</mat-icon>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Langue -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.PERSONAL_INFO.LANGUAGE' | translate }}</mat-label>
+                      <mat-select formControlName="locale">
+                        <mat-option *ngFor="let lang of languages" [value]="lang.code">
+                          {{ lang.name }}
+                        </mat-option>
+                      </mat-select>
+                      <mat-icon matSuffix>language</mat-icon>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Prénom -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.PERSONAL_INFO.FIRST_NAME' | translate }}</mat-label>
+                      <input 
+                        matInput 
+                        formControlName="given_name"
+                        [placeholder]="'PROFILE.PERSONAL_INFO.FIRST_NAME_PLACEHOLDER' | translate"
+                      />
+                      <mat-icon matSuffix>person</mat-icon>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Nom de famille -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.PERSONAL_INFO.LAST_NAME' | translate }}</mat-label>
+                      <input 
+                        matInput 
+                        formControlName="family_name"
+                        [placeholder]="'PROFILE.PERSONAL_INFO.LAST_NAME_PLACEHOLDER' | translate"
+                      />
+                      <mat-icon matSuffix>family_restroom</mat-icon>
+                    </mat-form-field>
+                  </div>
+                </div>
+
+                <!-- Actions du formulaire -->
+                <div class="d-flex justify-content-end gap-12 m-t-16">
+                  <button 
+                    type="button"
+                    mat-stroked-button 
+                    (click)="loadUserProfile()"
+                    [disabled]="isLoadingProfile"
+                  >
+                    <i-tabler name="refresh" class="icon-16 m-r-8"></i-tabler>
+                    {{ 'PROFILE.PERSONAL_INFO.RESET' | translate }}
+                  </button>
+                  <button 
+                    type="submit"
+                    mat-flat-button 
+                    color="primary"
+                    [disabled]="isLoadingProfile || !profileForm.dirty"
+                  >
+                    <mat-spinner diameter="16" class="m-r-8" *ngIf="isLoadingProfile"></mat-spinner>
+                    <i-tabler name="check" class="icon-16 m-r-8" *ngIf="!isLoadingProfile"></i-tabler>
+                    {{ isLoadingProfile ? ('PROFILE.PERSONAL_INFO.SAVING' | translate) : ('PROFILE.PERSONAL_INFO.SAVE' | translate) }}
+                  </button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Formulaire de changement de mot de passe -->
+          <mat-card class="cardWithShadow">
+            <mat-card-header class="p-24 p-b-0">
+              <mat-card-title class="f-s-18 f-w-600 d-flex align-items-center">
+                <i-tabler name="lock" class="icon-20 m-r-8 text-warning"></i-tabler>
+                {{ 'PROFILE.SECURITY.TITLE' | translate }}
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="p-24">
+              <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPassword()">
+                <div class="row">
+                  <!-- Mot de passe actuel -->
+                  <div class="col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.SECURITY.CURRENT_PASSWORD' | translate }}</mat-label>
+                      <input 
+                        matInput 
+                        type="password" 
+                        formControlName="current_password"
+                        [placeholder]="'PROFILE.SECURITY.CURRENT_PASSWORD_PLACEHOLDER' | translate"
+                      />
+                      <mat-icon matSuffix>lock</mat-icon>
+                      <mat-error *ngIf="passwordForm.get('current_password')?.hasError('required')">
+                        {{ 'PROFILE.SECURITY.CURRENT_PASSWORD_REQUIRED' | translate }}
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Nouveau mot de passe -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.SECURITY.NEW_PASSWORD' | translate }}</mat-label>
+                      <input 
+                        matInput 
+                        type="password" 
+                        formControlName="new_password"
+                        [placeholder]="'PROFILE.SECURITY.NEW_PASSWORD_PLACEHOLDER' | translate"
+                      />
+                      <mat-icon matSuffix>vpn_key</mat-icon>
+                      <mat-error *ngIf="passwordForm.get('new_password')?.hasError('required')">
+                        {{ 'PROFILE.SECURITY.NEW_PASSWORD_REQUIRED' | translate }}
+                      </mat-error>
+                      <mat-error *ngIf="passwordForm.get('new_password')?.hasError('minlength')">
+                        {{ 'PROFILE.SECURITY.PASSWORD_MIN_LENGTH' | translate }}
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Confirmation du mot de passe -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.SECURITY.CONFIRM_PASSWORD' | translate }}</mat-label>
+                      <input 
+                        matInput 
+                        type="password" 
+                        formControlName="confirm_password"
+                        [placeholder]="'PROFILE.SECURITY.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
+                      />
+                      <mat-icon matSuffix>check_circle</mat-icon>
+                      <mat-error *ngIf="passwordForm.get('confirm_password')?.hasError('required')">
+                        {{ 'PROFILE.SECURITY.CONFIRM_PASSWORD_REQUIRED' | translate }}
+                      </mat-error>
+                      <mat-error *ngIf="passwordForm.hasError('mismatch') && !passwordForm.get('confirm_password')?.hasError('required')">
+                        {{ 'PROFILE.SECURITY.PASSWORDS_MISMATCH' | translate }}
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+                </div>
+
+                <!-- Actions du formulaire -->
+                <div class="d-flex justify-content-end gap-12 m-t-16">
+                  <button 
+                    type="button"
+                    mat-stroked-button 
+                    (click)="passwordForm.reset()"
+                    [disabled]="isLoadingPassword"
+                  >
+                    <i-tabler name="x" class="icon-16 m-r-8"></i-tabler>
+                    {{ 'PROFILE.SECURITY.CANCEL' | translate }}
+                  </button>
+                  <button 
+                    type="submit"
+                    mat-flat-button 
+                    color="warn"
+                    [disabled]="isLoadingPassword || !passwordForm.valid"
+                  >
+                    <mat-spinner diameter="16" class="m-r-8" *ngIf="isLoadingPassword"></mat-spinner>
+                    <i-tabler name="shield-check" class="icon-16 m-r-8" *ngIf="!isLoadingPassword"></i-tabler>
+                    {{ isLoadingPassword ? ('PROFILE.SECURITY.UPDATING' | translate) : ('PROFILE.SECURITY.UPDATE_PASSWORD' | translate) }}
+                  </button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

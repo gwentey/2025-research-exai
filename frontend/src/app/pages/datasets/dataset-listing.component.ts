@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject, takeUntil } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { DatasetService } from '../../services/dataset.service';
 import { Dataset, DatasetFilterCriteria, PaginationParams } from '../../models/dataset.models';
@@ -44,13 +45,15 @@ interface FilterChip {
     MatPaginatorModule,
     MatTooltipModule,
     DatasetCardComponent,
-    DatasetFiltersComponent
+    DatasetFiltersComponent,
+    TranslateModule
   ],
   templateUrl: './dataset-listing.component.html',
   styleUrls: ['./dataset-listing.component.scss']
 })
 export class DatasetListingComponent implements OnInit, OnDestroy {
   private datasetService = inject(DatasetService);
+  private translateService = inject(TranslateService);
   private destroy$ = new Subject<void>();
 
   // État du sidebar

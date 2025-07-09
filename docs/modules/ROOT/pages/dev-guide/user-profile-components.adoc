@@ -1,0 +1,292 @@
+= Composants de Gestion du Profil Utilisateur
+:description: Documentation technique des composants Angular pour la gestion du profil utilisateur
+:keywords: Angular, profil, utilisateur, composants, développeur, EXAI
+
+== Vue d'ensemble technique
+
+Les composants de gestion du profil utilisateur permettent aux utilisateurs de modifier leurs informations personnelles, leur photo de profil et leurs paramètres de sécurité dans l'application EXAI.
+
+== Architecture des composants
+
+=== Structure des fichiers
+
+```
+frontend/src/app/pages/profile/
+├── profile.component.ts       // Composant principal
+├── profile.component.html     // Template Angular Material
+├── profile.component.scss     // Styles CSS/SCSS
+└── profile.routes.ts          // Configuration des routes
+```
+
+=== Modèles de données
+
+```typescript
+// Modèles d'interface dans auth.models.ts
+
+interface UserUpdate {
+  pseudo?: string | null;
+  given_name?: string | null;
+  family_name?: string | null;
+  locale?: string | null;
+}
+
+interface PasswordUpdate {
+  current_password: string;
+  new_password: string;
+}
+
+interface ProfilePictureUpload {
+  picture: string; // Base64 ou URL de l'image
+}
+```
+
+== Services et API
+
+=== AuthService (étendu)
+
+Le service d'authentification a été étendu avec les méthodes suivantes :
+
+```typescript
+class AuthService {
+  // Mise à jour du profil
+  updateProfile(userData: UserUpdate): Observable<UserRead>
+  
+  // Changement de mot de passe
+  updatePassword(passwordData: PasswordUpdate): Observable<any>
+  
+  // Upload d'image de profil
+  updateProfilePicture(pictureData: ProfilePictureUpload): Observable<UserRead>
+}
+```
+
+=== Endpoints API
+
+Les endpoints backend attendus pour le profil :
+
+* `PATCH /users/me` - Mise à jour des informations utilisateur
+* `PATCH /users/me/password` - Changement de mot de passe  
+* `PATCH /users/me/picture` - Upload d'image de profil
+
+== Composant ProfileComponent
+
+=== Fonctionnalités principales
+
+* **Formulaires réactifs** : Utilisation de `FormBuilder` et `FormGroup`
+* **Validation en temps réel** : Validation custom pour les mots de passe
+* **Upload d'images** : Preview et validation des fichiers
+* **États de chargement** : Indicateurs visuels pendant les opérations
+* **Responsive design** : Adaptation mobile/desktop
+
+=== Formulaires
+
+==== Formulaire de profil
+
+```typescript
+this.profileForm = this.formBuilder.group({
+  pseudo: [''],
+  given_name: [''],
+  family_name: [''],
+  locale: ['fr']
+});
+```
+
+==== Formulaire de mot de passe
+
+```typescript
+this.passwordForm = this.formBuilder.group({
+  current_password: ['', [Validators.required]],
+  new_password: ['', [Validators.required, Validators.minLength(8)]],
+  confirm_password: ['', [Validators.required]]
+}, { validators: this.passwordMatchValidator });
+```
+
+=== Gestion des images
+
+==== Upload et validation
+
+```typescript
+onFileSelected(event: any): void {
+  const file = event.target.files[0];
+  if (file) {
+    // Validation du type
+    if (!file.type.startsWith('image/')) {
+      this.showError('Fichier image invalide');
+      return;
+    }
+    
+    // Validation de la taille (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      this.showError('Taille maximale dépassée');
+      return;
+    }
+    
+    // Génération du preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imagePreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+```
+
+== Interface utilisateur
+
+=== Composants Angular Material utilisés
+
+* `MatCard` - Cartes de contenu
+* `MatFormField` - Champs de formulaire
+* `MatInput` - Champs de saisie
+* `MatSelect` - Sélecteurs (langue)
+* `MatButton` - Boutons d'action
+* `MatProgressSpinner` - Indicateurs de chargement
+* `MatSnackBar` - Messages de feedback
+* `MatTooltip` - Info-bulles
+* `MatChip` - Badges de statut
+
+=== Structure responsive
+
+```scss
+// Mobile (max-width: 768px)
+@media (max-width: 768px) {
+  .avatar-container img {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  .gap-12 {
+    flex-direction: column;
+    button {
+      width: 100%;
+    }
+  }
+}
+```
+
+== Routing et navigation
+
+=== Configuration des routes
+
+```typescript
+// profile.routes.ts
+export const PROFILE_ROUTES: Routes = [
+  {
+    path: '',
+    loadComponent: () => 
+      import('./profile.component').then(c => c.ProfileComponent),
+  },
+];
+
+// app.routes.ts (ajout)
+{
+  path: 'profile',
+  loadChildren: () =>
+    import('./pages/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
+}
+```
+
+=== Accès depuis le header
+
+Le lien "Mon Profil" dans le menu utilisateur du header pointe vers `/profile`.
+
+== Sécurité et validation
+
+=== Validation côté client
+
+* **Mots de passe** : Minimum 8 caractères, confirmation obligatoire
+* **Images** : Types MIME valides, taille maximale 5MB
+* **Champs obligatoires** : Validation des formulaires ReactiveForm
+
+=== Gestion des erreurs
+
+```typescript
+private showError(message: string): void {
+  this.snackBar.open(message, 'Fermer', {
+    duration: 5000,
+    panelClass: ['error-snackbar']
+  });
+}
+
+private showSuccess(message: string): void {
+  this.snackBar.open(message, 'Fermer', {
+    duration: 3000,
+    panelClass: ['success-snackbar']
+  });
+}
+```
+
+== Intégration avec l'authentification
+
+=== Synchronisation des données
+
+Le composant se synchronise automatiquement avec le service d'authentification :
+
+```typescript
+loadUserProfile(): void {
+  this.authService.getCurrentUser().subscribe({
+    next: (user) => {
+      this.currentUser = user;
+      this.updateFormWithUserData(user);
+      this.imagePreview = user.picture || null;
+    }
+  });
+}
+```
+
+=== Mise à jour du header
+
+Après modification du profil, le header de l'application reflète automatiquement les changements (nom d'affichage, photo).
+
+== Tests et débogage
+
+=== Points de test recommandés
+
+* Validation des formulaires (champs vides, formats invalides)
+* Upload d'images (formats, tailles, erreurs)
+* Gestion des erreurs réseau
+* Responsive design sur différents appareils
+* Synchronisation avec le backend
+
+=== Logging
+
+Le composant inclut des logs détaillés pour le débogage :
+
+```typescript
+console.log("updateProfile - Début de la requête, données:", userData);
+console.log("updateProfile - Succès, profil mis à jour:", user);
+```
+
+== Performance et optimisation
+
+=== Bonnes pratiques implémentées
+
+* **Lazy loading** : Le module profil est chargé à la demande
+* **Formulaires réactifs** : Validation efficace et performante
+* **OnPush strategy** : Pourrait être ajoutée pour optimiser les performances
+* **Debounce** : À considérer pour les validations en temps réel
+
+=== Améliorations futures
+
+* Compression d'images côté client avant upload
+* Cache des données utilisateur
+* Validation asynchrone (unicité pseudo, etc.)
+* Animation des transitions
+
+== Déploiement et configuration
+
+=== Variables d'environnement
+
+Le composant utilise la configuration d'API définie dans `environment.ts` :
+
+```typescript
+// Aucune configuration spécifique requise
+// Utilise environment.apiUrl pour les appels API
+```
+
+=== Dépendances requises
+
+* `@angular/material` - Composants UI
+* `angular-tabler-icons` - Icônes
+* `@angular/forms` - Formulaires réactifs
+
+Les dépendances sont gérées automatiquement via le `MaterialModule` existant. 

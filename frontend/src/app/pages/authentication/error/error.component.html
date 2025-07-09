@@ -2,14 +2,14 @@
   <div class="row">
     <div class="col-12 text-center">
       <img src="/assets/images/backgrounds/errorimg.svg" alt="error-bg" />
-      <h2 class="auth-title f-w-600">Opps!!!</h2>
+      <h2 class="auth-title f-w-600">{{ 'ERRORS.PAGE_NOT_FOUND_TITLE' | translate }}</h2>
       <h6 class="f-s-20 f-w-600 m-y-30">
-        This page you are looking for could not be found.
+        {{ 'ERRORS.PAGE_NOT_FOUND_MESSAGE' | translate }}
       </h6>
       <a
         mat-flat-button
         [routerLink]="['/dashboards/dashboard1']"
-        >Go back to Home</a
+        >{{ 'ERRORS.GO_HOME' | translate }}</a
       >
     </div>
   </div>

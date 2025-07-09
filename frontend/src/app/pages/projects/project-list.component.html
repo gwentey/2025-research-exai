@@ -10,10 +10,10 @@
               <div>
                 <h2 class="mat-h2 m-b-0 d-flex align-items-center">
                   <mat-icon class="m-r-12 text-primary">folder</mat-icon>
-                  Mes Projets
+                  {{ 'PROJECTS.TITLE' | translate }}
                 </h2>
                 <p class="mat-body-2 text-muted m-b-0" *ngIf="projects.length > 0">
-                  {{ projects.length }} projet{{ projects.length > 1 ? 's' : '' }} trouvé{{ projects.length > 1 ? 's' : '' }}
+                  {{ 'PROJECTS.LIST.RESULTS_COUNT' | translate: {count: projects.length} }}
                 </p>
               </div>
             </div>
@@ -26,7 +26,7 @@
                   matInput 
                   [(ngModel)]="searchTerm"
                   (keyup.enter)="onSearch()"
-                  placeholder="Rechercher un projet..."
+                  [placeholder]="'COMMON.SEARCH' | translate"
                   autocomplete="off">
                 <mat-icon matPrefix>search</mat-icon>
                 <button 
@@ -34,7 +34,7 @@
                   mat-icon-button 
                   matSuffix 
                   (click)="clearSearch()"
-                  matTooltip="Effacer">
+                  [matTooltip]="'COMMON.CLEAR' | translate">
                   <mat-icon>clear</mat-icon>
                 </button>
               </mat-form-field>
@@ -45,14 +45,14 @@
                 (click)="onSearch()"
                 class="m-r-8">
                 <mat-icon class="m-r-4">search</mat-icon>
-                Rechercher
+                {{ 'COMMON.SEARCH' | translate }}
               </button>
 
               <button 
                 mat-fab 
                 color="primary"
                 (click)="createNewProject()"
-                matTooltip="Nouveau Projet"
+                [matTooltip]="'PROJECTS.NEW_PROJECT' | translate"
                 class="m-r-8">
                 <mat-icon>add</mat-icon>
               </button>
@@ -60,7 +60,7 @@
               <button 
                 mat-icon-button 
                 (click)="refreshProjects()"
-                matTooltip="Actualiser"
+                [matTooltip]="'COMMON.REFRESH' | translate"
                 color="primary">
                 <mat-icon>refresh</mat-icon>
               </button>
@@ -77,7 +77,7 @@
       <mat-card class="cardWithShadow theme-card">
         <mat-card-content class="text-center p-40">
           <mat-spinner diameter="60"></mat-spinner>
-          <p class="mat-body-1 m-t-16">Chargement des projets...</p>
+          <p class="mat-body-1 m-t-16">{{ 'PROJECTS.LIST.LOADING' | translate }}</p>
         </mat-card-content>
       </mat-card>
     </div>
@@ -89,11 +89,11 @@
       <mat-card class="cardWithShadow theme-card">
         <mat-card-content class="text-center p-40">
           <mat-icon class="icon-48 text-warn m-b-16">error_outline</mat-icon>
-          <h3 class="mat-h3 m-b-12">Erreur de chargement</h3>
+          <h3 class="mat-h3 m-b-12">{{ 'PROJECTS.LIST.LOADING_ERROR_TITLE' | translate }}</h3>
           <p class="mat-body-1 text-muted m-b-20">{{ error }}</p>
           <button mat-raised-button color="primary" (click)="refreshProjects()">
             <mat-icon class="m-r-4">refresh</mat-icon>
-            Réessayer
+            {{ 'COMMON.RETRY' | translate }}
           </button>
         </mat-card-content>
       </mat-card>
@@ -108,14 +108,13 @@
           <div class="empty-state-icon m-b-20">
             <mat-icon class="icon-64 text-primary">folder_open</mat-icon>
           </div>
-          <h3 class="mat-h3 m-b-12">Aucun projet</h3>
+          <h3 class="mat-h3 m-b-12">{{ 'PROJECTS.LIST.NO_PROJECTS_TITLE' | translate }}</h3>
           <p class="mat-body-1 text-muted m-b-24">
-            Créez votre premier projet pour commencer à<br>
-            organiser vos recherches de datasets.
+            {{ 'PROJECTS.LIST.NO_PROJECTS_MESSAGE' | translate }}
           </p>
           <button mat-raised-button color="primary" size="large" (click)="createNewProject()">
             <mat-icon class="m-r-8">add</mat-icon>
-            Créer mon premier projet
+            {{ 'PROJECTS.LIST.CREATE_FIRST_PROJECT' | translate }}
           </button>
         </mat-card-content>
       </mat-card>
@@ -130,18 +129,18 @@
           <div class="empty-state-icon m-b-20">
             <mat-icon class="icon-64 text-muted">search_off</mat-icon>
           </div>
-          <h3 class="mat-h3 m-b-12">Aucun projet trouvé</h3>
+          <h3 class="mat-h3 m-b-12">{{ 'PROJECTS.LIST.NO_SEARCH_RESULTS_TITLE' | translate }}</h3>
           <p class="mat-body-1 text-muted m-b-24">
-            Aucun projet ne correspond à votre recherche "{{ searchTerm }}".
+            {{ 'PROJECTS.LIST.NO_SEARCH_RESULTS_MESSAGE' | translate: {searchTerm: searchTerm} }}
           </p>
           <div class="d-flex justify-content-center gap-12 flex-wrap">
             <button mat-raised-button color="primary" (click)="clearSearch()">
               <mat-icon class="m-r-4">clear</mat-icon>
-              Effacer la recherche
+              {{ 'PROJECTS.LIST.CLEAR_SEARCH' | translate }}
             </button>
             <button mat-button (click)="createNewProject()">
               <mat-icon class="m-r-4">add</mat-icon>
-              Créer un nouveau projet
+              {{ 'PROJECTS.LIST.CREATE_NEW_PROJECT' | translate }}
             </button>
           </div>
         </mat-card-content>

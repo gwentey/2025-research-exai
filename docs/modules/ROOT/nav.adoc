@@ -8,6 +8,8 @@
 ** xref:user-guide/scoring-system.adoc[🚀 Système de Recommandation Avancé]
 ** xref:user-guide/ml-pipeline.adoc[Pipeline Machine Learning]
 ** xref:user-guide/xai-recommendation.adoc[Recommandations XAI]
+** xref:user-guide/user-profile-management.adoc[👤 Gestion du Profil]
+** xref:user-guide/language-settings.adoc[🌐 Paramètres de Langue]
 ** xref:user-guide/datasets-oulad.adoc[Datasets OULAD]
 
 * Guide Développeur  
@@ -20,6 +22,8 @@
 ** xref:dev-guide/heatmap-visualization.adoc[📊 Visualisation ECharts]
 ** xref:dev-guide/frontend-authentication.adoc[Authentification Frontend] 
 ** xref:dev-guide/sidebar-user-profile.adoc[Profil Utilisateur]
+** xref:dev-guide/user-profile-components.adoc[👤 Composants Profil Utilisateur]
+** xref:dev-guide/internationalization.adoc[🌐 Internationalisation (i18n)]
 ** xref:dev-guide/secrets-management.adoc[Gestion des Secrets]
 
 * Déploiement

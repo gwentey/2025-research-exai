@@ -15,6 +15,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Subject, takeUntil, debounceTime } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ProjectService } from '../../services/project.service';
 import { DatasetService } from '../../services/dataset.service';
@@ -41,9 +42,121 @@ import { RecommendationHeatmapComponent } from './components/recommendation-heat
     MatChipsModule,
     MatSelectModule,
     MatCheckboxModule,
-    RecommendationHeatmapComponent
+    RecommendationHeatmapComponent,
+    TranslateModule
   ],
-  templateUrl: './project-form.component.html'
+  templateUrl: './project-form.component.html',
+  styles: [`
+    .full-height-content {
+      height: 320px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .loading-state, .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .empty-icon {
+      font-size: 48px !important;
+      width: 48px !important;
+      height: 48px !important;
+      color: #bbb;
+      margin-bottom: 12px;
+    }
+
+    .rankings-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      padding: 20px 0;
+    }
+
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      padding: 16px 12px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .ranking-item:hover {
+      background: #e9ecef;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .ranking-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .ranking-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 14px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .badge-1 {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      box-shadow: 0 2px 4px rgba(255, 165, 0, 0.3);
+    }
+
+    .badge-2 {
+      background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+      box-shadow: 0 2px 4px rgba(169, 169, 169, 0.3);
+    }
+
+    .badge-3 {
+      background: linear-gradient(135deg, #CD7F32, #B8860B);
+      box-shadow: 0 2px 4px rgba(184, 134, 11, 0.3);
+    }
+
+    .dataset-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dataset-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin: 0 0 4px 0;
+      color: #2c3e50;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dataset-meta {
+      font-size: 12px;
+      color: #6c757d;
+      margin: 0;
+    }
+
+    .score-display {
+      margin-left: 12px;
+      flex-shrink: 0;
+    }
+
+    .score-value {
+      font-weight: 700;
+      font-size: 16px;
+    }
+  `]
 })
 export class ProjectFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
@@ -51,6 +164,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private projectService = inject(ProjectService);
   private datasetService = inject(DatasetService);
+  private translateService = inject(TranslateService);
   private destroy$ = new Subject<void>();
 
   // État
@@ -73,14 +187,16 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
   isLoadingPreview = false;
 
   // Poids prédéfinis disponibles
-  defaultWeights = [
-    { criterion_name: 'ethical_score', weight: 0.4, label: 'Score Éthique', icon: 'security' },
-    { criterion_name: 'technical_score', weight: 0.4, label: 'Score Technique', icon: 'engineering' },
-    { criterion_name: 'popularity_score', weight: 0.2, label: 'Popularité', icon: 'trending_up' },
-    { criterion_name: 'anonymization', weight: 0.0, label: 'Anonymisation', icon: 'verified_user' },
-    { criterion_name: 'documentation', weight: 0.0, label: 'Documentation', icon: 'description' },
-    { criterion_name: 'data_quality', weight: 0.0, label: 'Qualité des Données', icon: 'high_quality' }
-  ];
+  get defaultWeights() {
+    return [
+      { criterion_name: 'ethical_score', weight: 0.4, label: this.translateService.instant('PROJECTS.CRITERIA.ETHICAL_SCORE'), icon: 'security' },
+      { criterion_name: 'technical_score', weight: 0.4, label: this.translateService.instant('PROJECTS.CRITERIA.TECHNICAL_SCORE'), icon: 'engineering' },
+      { criterion_name: 'popularity_score', weight: 0.2, label: this.translateService.instant('PROJECTS.CRITERIA.POPULARITY_SCORE'), icon: 'trending_up' },
+      { criterion_name: 'anonymization', weight: 0.0, label: this.translateService.instant('PROJECTS.CRITERIA.ANONYMIZATION'), icon: 'verified_user' },
+      { criterion_name: 'documentation', weight: 0.0, label: this.translateService.instant('PROJECTS.CRITERIA.DOCUMENTATION'), icon: 'description' },
+      { criterion_name: 'data_quality', weight: 0.0, label: this.translateService.instant('PROJECTS.CRITERIA.DATA_QUALITY'), icon: 'high_quality' }
+    ];
+  }
 
   constructor() {
     this.projectForm = this.fb.group({
@@ -319,7 +435,9 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
    * Obtient le titre de la page
    */
   getPageTitle(): string {
-    return this.isEditMode ? 'Modifier le Projet' : 'Nouveau Projet';
+    return this.isEditMode ? 
+      this.translateService.instant('PROJECTS.FORM.EDIT_PROJECT') : 
+      this.translateService.instant('PROJECTS.FORM.CREATE_PROJECT');
   }
 
   /**

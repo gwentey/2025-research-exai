@@ -1,7 +1,540 @@
 {
-  "Starter": "Starter",
-  "Menu Level": "Menu Level",
-  "Menu 1": "Menu 1",
-  "Menu 2": "Menu 2",
-  "Disabled": "Disabled"
+  "MENU": {
+    "NAVIGATION": "Navigation",
+    "DATA_ANALYSIS": "Data & Analysis",
+    "DASHBOARD": "Dashboard",
+    "PROJECTS": "Projects",
+    "DATASETS": "Datasets",
+    "ML_PIPELINE": "ML Pipeline",
+    "XAI_EXPLANATIONS": "XAI Explanations",
+    "PROFILE": "Profile",
+    "HELP": "Help & Support"
+  },
+  "AUTH": {
+    "LOGIN": "Login",
+    "REGISTER": "Register",
+    "LOGOUT": "Logout",
+    "EMAIL": "Email",
+    "PASSWORD": "Password",
+    "CONFIRM_PASSWORD": "Confirm Password",
+    "REMEMBER_ME": "Remember me",
+    "FORGOT_PASSWORD": "Forgot password?",
+    "SIGN_IN": "Sign In",
+    "SIGN_UP": "Sign Up",
+    "WELCOME_BACK": "Welcome back",
+    "CREATE_ACCOUNT": "Create your account",
+    "OR_CONTINUE_WITH": "Or continue with",
+    "GOOGLE": "Google",
+    "MICROSOFT": "Microsoft",
+    "LOGIN": {
+      "TITLE": "Welcome back",
+      "SUBTITLE": "Sign in to access your ExAI workspace",
+      "EMAIL_LABEL": "Email Address",
+      "PASSWORD_LABEL": "Password",
+      "SUBMIT": "Sign In",
+      "GOOGLE": "Sign in with Google",
+      "GOOGLE_LOADING": "Signing in with Google...",
+      "FORGOT_PASSWORD": "Forgot your password?",
+      "CREATE_ACCOUNT": "Don't have an account? Sign up",
+      "EMAIL_REQUIRED": "Email is required",
+      "EMAIL_INVALID": "Please enter a valid email address",
+      "PASSWORD_REQUIRED": "Password is required",
+      "FORM_INVALID": "Please correct the errors below",
+      "INVALID_CREDENTIALS": "Invalid email or password"
+    },
+    "REGISTER": {
+      "TITLE": "Create Account",
+      "SUBTITLE": "Join the ExAI platform to get started",
+      "EMAIL_LABEL": "Email Address",
+      "PASSWORD_LABEL": "Password",
+      "CONFIRM_PASSWORD_LABEL": "Confirm Password",
+      "FIRST_NAME_LABEL": "First Name",
+      "LAST_NAME_LABEL": "Last Name",
+      "SUBMIT": "Create Account",
+      "GOOGLE": "Sign up with Google",
+      "SIGN_IN_LINK": "Already have an account? Sign in",
+      "TERMS_ACCEPTANCE": "I agree to the Terms of Service and Privacy Policy",
+      "SUCCESS": "Account created successfully",
+      "PASSWORD_MISMATCH": "Passwords do not match",
+      "TERMS_REQUIRED": "You must accept the terms to continue"
+    }
+  },
+  "DASHBOARD": {
+    "TITLE": "EXAI Dashboard",
+    "SUBTITLE": "Overview of your explainable AI platform",
+    "REFRESH": "Refresh",
+    "NEW_PROJECT": "New Project",
+    "METRICS": {
+      "DATASETS": {
+        "TITLE": "AVAILABLE DATASETS",
+        "CHANGE": "+{{count}} this week"
+      },
+      "PIPELINES": {
+        "TITLE": "ACTIVE ML PIPELINES",
+        "CHANGE": "{{count}} in progress"
+      },
+      "EXPLANATIONS": {
+        "TITLE": "XAI EXPLANATIONS",
+        "CHANGE": "+{{count}} this month"
+      },
+      "USERS": {
+        "TITLE": "ACTIVE USERS",
+        "CHANGE": "Today"
+      }
+    },
+    "ACTIVITY": {
+      "TITLE": "Recent Activity",
+      "SUBTITLE": "Latest actions on the platform",
+      "ITEMS": {
+        "DATASET_ADDED": {
+          "TITLE": "EdNet Dataset added",
+          "DESCRIPTION": "New educational dataset with 5 files",
+          "TIMESTAMP": "2 hours ago"
+        },
+        "PIPELINE_COMPLETED": {
+          "TITLE": "ML Pipeline completed",
+          "DESCRIPTION": "Student classification - Accuracy: 94.2%",
+          "TIMESTAMP": "5 hours ago"
+        },
+        "EXPLANATION_GENERATED": {
+          "TITLE": "SHAP explanation generated",
+          "DESCRIPTION": "Analysis of important features for prediction",
+          "TIMESTAMP": "Yesterday"
+        },
+        "USER_LOGIN": {
+          "TITLE": "User login",
+          "DESCRIPTION": "New user connected via OAuth",
+          "TIMESTAMP": "1 day ago"
+        }
+      }
+    },
+    "DATASETS": {
+      "TITLE": "Dataset Distribution",
+      "SUBTITLE": "{{total}} datasets available",
+      "DOMAINS": {
+        "EDUCATION": "Education",
+        "HEALTH": "Health",
+        "FINANCE": "Finance",
+        "OTHER": "Other"
+      }
+    },
+    "QUICK_ACTIONS": {
+      "TITLE": "Quick Actions",
+      "SUBTITLE": "Start your analysis",
+      "ITEMS": {
+        "EXPLORE_DATASETS": {
+          "TITLE": "Explore Datasets",
+          "DESCRIPTION": "Browse and select your data"
+        },
+        "CREATE_PIPELINE": {
+          "TITLE": "Create ML Pipeline",
+          "DESCRIPTION": "Train a new model"
+        },
+        "GENERATE_EXPLANATIONS": {
+          "TITLE": "Generate Explanations",
+          "DESCRIPTION": "Understand your models with XAI"
+        },
+        "VIEW_DOCUMENTATION": {
+          "TITLE": "View Documentation",
+          "DESCRIPTION": "EXAI guides and tutorials"
+        }
+      }
+    },
+    "SYSTEM_STATUS": {
+      "TITLE": "System Status",
+      "SUBTITLE": "EXAI Services",
+      "API_GATEWAY": "API Gateway",
+      "DATASET_SERVICE": "Dataset Service",
+      "ML_PIPELINE": "ML Pipeline",
+      "XAI_ENGINE": "XAI Engine",
+      "ONLINE": "Online",
+      "DEVELOPMENT": "In development",
+      "LAST_UPDATE": "Last update: 5 min ago"
+    }
+  },
+  "PROJECTS": {
+    "TITLE": "My Projects",
+    "NEW_PROJECT": "New Project",
+    "PROJECT_NAME": "Project Name",
+    "PROJECT_DESCRIPTION": "Project Description",
+    "DATASET": "Dataset",
+    "SELECT_DATASET": "Select a dataset",
+    "CREATED": "Created",
+    "UPDATED": "Last Updated",
+    "ACTIONS": "Actions",
+    "EDIT": "Edit",
+    "DELETE": "Delete",
+    "VIEW": "View",
+    "NO_PROJECTS": "No projects found",
+    "CREATE_FIRST": "Create your first project to get started",
+    "RECENT": "Recent",
+    "STATUS": {
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed",
+      "DRAFT": "Draft"
+    },
+    "FORM": {
+      "CREATE_PROJECT": "Create New Project",
+      "EDIT_PROJECT": "Edit Project",
+      "CREATE_SUBTITLE": "Create a new ML analysis project with automatic scoring",
+      "EDIT_SUBTITLE": "Modify your project settings",
+      "NAME_REQUIRED": "Project name is required",
+      "DESCRIPTION_REQUIRED": "Description is required",
+      "DATASET_REQUIRED": "Please select a dataset",
+      "SAVE": "Create Project",
+      "UPDATE": "Update",
+      "CANCEL": "Cancel",
+      "PROJECT_INFO": "Project Information",
+      "SELECTION_CRITERIA": "Selection Criteria",
+      "NAME_LABEL": "Project Name",
+      "NAME_PLACEHOLDER": "Enter a descriptive name for your project",
+      "DESCRIPTION_LABEL": "Description (optional)",
+      "DESCRIPTION_PLACEHOLDER": "Describe the objective and context of your project",
+      "DATASET_LABEL": "Dataset Selection",
+      "DATASET_PLACEHOLDER": "Choose a dataset for analysis",
+      "LOADING": "Creating project..."
+    },
+    "DETAIL": {
+      "TITLE": "Project Details",
+      "OVERVIEW": "Overview",
+      "CONFIGURATION": "Configuration",
+      "RESULTS": "Results",
+      "EDIT": "Edit Project",
+      "DELETE": "Delete Project",
+      "PIPELINE_STATUS": "Pipeline Status",
+      "LAST_RUN": "Last Run",
+      "ACCURACY": "Model Accuracy"
+    },
+    "LIST": {
+      "RESULTS_COUNT": "{{count}} projects found",
+      "LOADING": "Loading projects...",
+      "LOADING_ERROR": "Error loading projects. Please try again.",
+      "LOADING_ERROR_TITLE": "Loading Error",
+      "NO_PROJECTS": "No projects available",
+      "NO_PROJECTS_TITLE": "No projects",
+      "NO_PROJECTS_MESSAGE": "Create your first project to start organizing your dataset research.",
+      "NO_SEARCH_RESULTS_TITLE": "No projects found",
+      "NO_SEARCH_RESULTS_MESSAGE": "No projects match your search \"{{searchTerm}}\".",
+      "CREATE_FIRST_PROJECT": "Create my first project",
+      "CREATE_NEW_PROJECT": "Create new project",
+      "CLEAR_SEARCH": "Clear search",
+      "SEARCH_PLACEHOLDER": "Search projects...",
+      "SORT_BY": "Sort by",
+      "SORT_NAME": "Name",
+      "SORT_DATE": "Date Created",
+      "FILTER_STATUS": "Filter by Status"
+    },
+    "DELETE": {
+      "CONFIRM_MESSAGE": "Are you sure you want to delete the project \"{{name}}\"?",
+      "ERROR": "Error deleting the project."
+    },
+    "CRITERIA": {
+      "ETHICAL_SCORE": "Ethical Score",
+      "TECHNICAL_SCORE": "Technical Score",
+      "POPULARITY_SCORE": "Popularity",
+      "ANONYMIZATION": "Anonymization",
+      "DOCUMENTATION": "Documentation",
+      "DATA_QUALITY": "Data Quality",
+      "SUBTITLE": "Define criteria to filter datasets",
+      "PROJECT_CONTEXT": "Project Context",
+      "OBJECTIVE_DESCRIPTION": "Objective description or keywords",
+      "OBJECTIVE_PLACEHOLDER": "Ex: predictive analysis, student classification, anomaly detection...",
+      "OBJECTIVE_HINT": "Describe the type of analysis or objective sought",
+      "APPLICATION_DOMAIN": "Application Domain",
+      "ACTIVITY_SECTORS": "Activity Sectors",
+      "SELECT_SECTORS_HINT": "Select one or more sectors",
+      "ML_TASK_TYPE": "ML Task Type",
+      "ALGORITHMS_HINT": "Types of algorithms considered",
+      "DOMAINS": {
+        "EDUCATION": "Education",
+        "HEALTH": "Health",
+        "FINANCE": "Finance",
+        "TRANSPORT": "Transport",
+        "RETAIL": "Retail"
+      },
+      "TASKS": {
+        "CLASSIFICATION": "Classification",
+        "REGRESSION": "Regression",
+        "CLUSTERING": "Clustering",
+        "NLP": "NLP",
+        "COMPUTER_VISION": "Computer Vision"
+      },
+      "TECHNICAL_REQUIREMENTS": "Technical Requirements",
+      "OPTIONAL": "optional",
+      "INSTANCES_NUMBER": "Number of instances",
+      "FEATURES_NUMBER": "Number of variables",
+      "MIN": "Min",
+      "MAX": "Max",
+      "TO": "to",
+      "CREATION_PERIOD": "Creation period",
+      "MIN_ETHICAL_SCORE": "Minimum ethical score",
+      "NO_REQUIREMENT": "No requirement",
+      "ACCEPTABLE": "Acceptable",
+      "GOOD": "Good",
+      "VERY_GOOD": "Very good",
+      "EXCELLENT": "Excellent",
+      "CHARACTERISTICS": "Characteristics",
+      "ALREADY_SPLIT": "Already split (train/test)",
+      "ANONYMIZED": "Anonymized",
+      "PUBLIC_ACCESS": "Public access"
+    },
+    "WEIGHTS": {
+      "TITLE": "Criteria Weighting",
+      "SUBTITLE": "Adjust the importance of each scoring criterion",
+      "DEFAULT_VALUES": "Default values",
+      "ACTIVE_CRITERIA": "Active criteria:"
+    },
+    "RECOMMENDATIONS": {
+      "TOP_3": "Top 3 Recommendations",
+      "CALCULATING": "Calculating...",
+      "NO_DATASETS_FOUND": "No datasets found",
+      "ADJUST_CRITERIA": "Adjust your criteria"
+    }
+  },
+  "DATASETS": {
+    "TITLE": "Available Datasets",
+    "SEARCH": "Search datasets...",
+    "FILTER": "Filter",
+    "TYPE": "Type",
+    "SIZE": "Size",
+    "LAST_UPDATED": "Last Updated",
+    "DESCRIPTION": "Description",
+    "DOWNLOAD": "Download",
+    "PREVIEW": "Preview",
+    "SELECT": "Select",
+    "SELECTED": "Selected",
+    "NO_DATASETS": "No datasets available",
+    "EDUCATIONAL": "Educational",
+    "BEHAVIORAL": "Behavioral",
+    "ENGAGEMENT": "Engagement",
+    "LISTING": {
+      "TITLE": "Dataset Collection",
+      "SUBTITLE": "Explore and select from our curated datasets",
+      "SEARCH_PLACEHOLDER": "Search by name, type, or description...",
+      "GRID_VIEW": "Grid View",
+      "LIST_VIEW": "List View",
+      "SORT_BY": "Sort by",
+      "SORT_NAME": "Name",
+      "SORT_SIZE": "Size",
+      "SORT_DATE": "Date Added",
+      "FILTER_TYPE": "Filter by Type",
+      "FILTER_SIZE": "Filter by Size",
+      "NO_RESULTS": "No datasets match your criteria",
+      "NO_RESULTS_MESSAGE": "Try modifying your search or filter criteria.",
+      "LOADING": "Loading datasets...",
+      "ERROR_TITLE": "Loading Error",
+      "TOTAL_DATASETS": "{{count}} datasets available",
+      "FILTERED": "filtered"
+    },
+    "SORT": {
+      "RELEVANCE": "Relevance",
+      "YEAR": "Year",
+      "INSTANCES": "Nb instances"
+    },
+    "FILTERS": {
+      "TITLE": "Advanced Filters",
+      "APPLY": "Apply Filters",
+      "CLEAR": "Clear All",
+      "MODIFY": "Modify filters",
+      "TYPE_LABEL": "Dataset Type",
+      "SIZE_LABEL": "Dataset Size",
+      "DATE_LABEL": "Date Range",
+      "DOMAIN_LABEL": "Domain",
+      "RESET": "Reset Filters",
+      "ACTIVE_FILTERS_COUNT": "{{count}} active filter(s):"
+    }
+  },
+  "PROFILE": {
+    "TITLE": "User Profile",
+    "PERSONAL_INFO": "Personal Information",
+    "FIRST_NAME": "First Name",
+    "LAST_NAME": "Last Name",
+    "EMAIL": "Email",
+    "PSEUDO": "Username",
+    "ROLE": "Role",
+    "ADMIN": "Administrator",
+    "USER": "User",
+    "ACCOUNT_SETTINGS": "Account Settings",
+    "LANGUAGE": "Language",
+    "THEME": "Theme",
+    "NOTIFICATIONS": "Notifications",
+    "SAVE_CHANGES": "Save Changes",
+    "CANCEL": "Cancel",
+    "PROFILE_UPDATED": "Profile updated successfully",
+    "CHANGE_PASSWORD": "Change Password",
+    "CURRENT_PASSWORD": "Current Password",
+    "NEW_PASSWORD": "New Password",
+    "CONFIRM_NEW_PASSWORD": "Confirm New Password",
+    "SECURITY": "Security Settings",
+    "PREFERENCES": "Preferences",
+    "GIVEN_NAME": "First Name",
+    "FAMILY_NAME": "Last Name",
+    "LOCALE": "Preferred Language",
+    "PICTURE": "Profile Picture",
+    "UPLOAD_PICTURE": "Upload New Picture",
+    "REMOVE_PICTURE": "Remove Picture"
+  },
+  "DASHBOARD": {
+    "TITLE": "ExAI Dashboard",
+    "SUBTITLE": "Overview of your machine learning projects and datasets",
+    "WELCOME": "Welcome to ExAI Platform",
+    "METRICS": {
+      "DATASETS_AVAILABLE": "Datasets Available",
+      "ACTIVE_PROJECTS": "Active Projects", 
+      "MODELS_TRAINED": "Models Trained",
+      "EXPLANATIONS_GENERATED": "Explanations Generated"
+    },
+    "RECENT_ACTIVITY": "Recent Activity",
+    "QUICK_ACTIONS": "Quick Actions",
+    "SYSTEM_STATUS": "System Status",
+    "NO_ACTIVITY": "No recent activity",
+    "ALL_SYSTEMS_OPERATIONAL": "All systems operational",
+    "CREATE_PROJECT": "Create New Project",
+    "EXPLORE_DATASETS": "Explore Datasets",
+    "VIEW_EXPLANATIONS": "View Explanations",
+    "ACTIVITY": {
+      "PROJECT_CREATED": "Project created",
+      "MODEL_TRAINED": "Model training completed",
+      "EXPLANATION_GENERATED": "Explanation generated",
+      "DATASET_UPLOADED": "Dataset uploaded"
+    }
+  },
+  "CARDS": {
+    "PROJECT": {
+      "VIEW": "View Project",
+      "EDIT": "Edit",
+      "DELETE": "Delete", 
+      "CONFIGURED": "Configured",
+      "NOT_CONFIGURED": "Not Configured",
+      "NO_DESCRIPTION": "No description available",
+      "CREATED_ON": "Created on",
+      "LAST_MODIFIED": "Last modified",
+      "VIEW_RECOMMENDATIONS": "View Recommendations"
+    },
+    "DATASET": {
+      "PUBLIC": "Public",
+      "PRIVATE": "Private",
+      "INSTANCES": "Instances",
+      "FEATURES": "Features",
+      "SPLIT": "Train/Test Split",
+      "ANONYMOUS": "Anonymized",
+      "ETHICS_SCORE": "Ethics Score",
+      "VIEW": "View Details",
+      "SELECT": "Select Dataset",
+      "DOWNLOAD": "Download",
+      "EXPLORE": "Explore",
+      "TYPE": "Type",
+      "SIZE": "Size",
+      "DOMAIN": "Domain",
+      "LICENSE": "License"
+    }
+  },
+  "FORMS": {
+    "VALIDATION": {
+      "REQUIRED": "This field is required",
+      "EMAIL_INVALID": "Please enter a valid email address",
+      "PASSWORD_TOO_SHORT": "Password must be at least 8 characters",
+      "PASSWORDS_MISMATCH": "Passwords do not match",
+      "NAME_TOO_SHORT": "Name must be at least 2 characters",
+      "NAME_TOO_LONG": "Name cannot exceed 255 characters",
+      "DESCRIPTION_TOO_SHORT": "Description must be at least 10 characters"
+    },
+    "PROJECT": {
+      "NAME_LABEL": "Project Name",
+      "NAME_PLACEHOLDER": "Enter project name",
+      "NAME_REQUIRED": "Project name is required",
+      "DESCRIPTION_LABEL": "Project Description",
+      "DESCRIPTION_PLACEHOLDER": "Describe your project objectives",
+      "DESCRIPTION_REQUIRED": "Project description is required"
+    },
+    "USER": {
+      "FIRST_NAME_LABEL": "First Name",
+      "LAST_NAME_LABEL": "Last Name", 
+      "EMAIL_LABEL": "Email Address",
+      "USERNAME_LABEL": "Username",
+      "PASSWORD_LABEL": "Password",
+      "CONFIRM_PASSWORD_LABEL": "Confirm Password"
+    }
+  },
+  "COMMON": {
+    "SAVE": "Save",
+    "CANCEL": "Cancel",
+    "DELETE": "Delete",
+    "EDIT": "Edit",
+    "VIEW": "View",
+    "CLOSE": "Close",
+    "CONFIRM": "Confirm",
+    "YES": "Yes",
+    "NO": "No",
+    "LOADING": "Loading...",
+    "ERROR": "Error",
+    "SUCCESS": "Success",
+    "WARNING": "Warning",
+    "INFO": "Information",
+    "SEARCH": "Search",
+    "FILTER": "Filter",
+    "SORT": "Sort",
+    "EXPORT": "Export",
+    "IMPORT": "Import",
+    "REFRESH": "Refresh",
+    "CLEAR": "Clear",
+    "RETRY": "Retry"
+  },
+  "NOTIFICATIONS": {
+    "ML_PIPELINE_COMPLETED": "ML Pipeline Completed",
+    "MODEL_READY": "Your classification model is ready",
+    "NEW_XAI_EXPLANATION": "New XAI Explanation",
+    "SHAP_GENERATED": "SHAP explanation generated successfully",
+    "DATASET_UPDATED": "Dataset Updated",
+    "DATASET_SYNCHRONIZED": "EdNet dataset synchronized",
+    "ANALYSIS_COMPLETED": "Analysis Completed",
+    "PERFORMANCE_CALCULATED": "Performance metrics calculated",
+    "REPORT_GENERATED": "Report Generated",
+    "EXPLANATIONS_AVAILABLE": "Explanations report available"
+  },
+  "HEADER": {
+    "SEARCH_PLACEHOLDER": "Search...",
+    "NOTIFICATIONS": "Notifications",
+    "SHORTCUTS": "Shortcuts",
+    "DATASETS": "Datasets",
+    "USER_PROFILE": "User Profile",
+    "LOGOUT": "Logout",
+    "DATASETS_EXPLORE": "Explore available datasets",
+    "PROFILE_MENU": {
+      "MY_PROFILE": "My Profile",
+      "ACCOUNT_SETTINGS": "Account Settings",
+      "PREFERENCES": "Preferences",
+      "EXAI_CONFIGURATION": "EXAI Configuration",
+      "HELP_SUPPORT": "Help & Support",
+      "DOCUMENTATION": "Documentation and FAQ"
+    }
+  },
+  "ERRORS": {
+    "GENERIC": "An error occurred",
+    "NETWORK": "Network error",
+    "UNAUTHORIZED": "Unauthorized access",
+    "NOT_FOUND": "Resource not found",
+    "VALIDATION": "Validation error",
+    "REQUIRED_FIELD": "This field is required",
+    "PAGE_NOT_FOUND_TITLE": "Page Not Found",
+    "PAGE_NOT_FOUND_MESSAGE": "The page you are looking for does not exist",
+    "GO_HOME": "Go to Homepage",
+    "LOADING_PROJECTS": "Error loading projects",
+    "NO_PROJECTS_FOUND": "No projects found",
+    "LOADING_DATASETS": "Error loading datasets",
+    "NO_DATASETS_FOUND": "No datasets found",
+    "SAVE_FAILED": "Failed to save changes",
+    "DELETE_FAILED": "Failed to delete item",
+    "NETWORK_ERROR": "Network connection error",
+    "SERVER_ERROR": "Server error occurred",
+    "AUTHENTICATION_FAILED": "Authentication failed",
+    "ACCESS_DENIED": "Access denied"
+  },
+  "WIDGETS": {
+    "DEMO_CONTENT": "Demo Content",
+    "SAMPLE_DATA": "Sample Data",
+    "PLACEHOLDER_TEXT": "This is placeholder content",
+    "EXAMPLE_WIDGET": "Example Widget",
+    "TEST_COMPONENT": "Test Component"
+  }
 }

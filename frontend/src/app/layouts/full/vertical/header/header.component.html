@@ -43,7 +43,7 @@
     >
       <div class="d-flex align-items-center w-100">
         <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> 
-        <span class="text-muted">Rechercher datasets, modèles, explications...</span>
+        <span class="text-muted">{{ 'HEADER.SEARCH_PLACEHOLDER' | translate }}</span>
       </div>
     </button>
   </div>
@@ -185,7 +185,7 @@
     class="topbar-dd cardWithShadow"
   >
     <div class="d-flex align-items-center p-x-32 p-y-16">
-      <h6 class="f-s-16 f-w-600 m-0">Raccourcis EXAI</h6>
+      <h6 class="f-s-16 f-w-600 m-0">{{ 'HEADER.SHORTCUTS' | translate }}</h6>
     </div>
     <div class="row m-x-0">
       <div class="col-6 p-x-0">
@@ -198,8 +198,8 @@
           >
             <i-tabler name="database" class="icon-20 text-primary"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Datasets</h6>
-          <p class="d-block m-0 text-body f-w-500">Explorer les données</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">{{ 'HEADER.DATASETS' | translate }}</h6>
+          <p class="d-block m-0 text-body f-w-500">{{ 'HEADER.DATASETS_EXPLORE' | translate }}</p>
         </a>
       </div>
       <div class="col-6 p-x-0">
@@ -212,8 +212,8 @@
           >
             <i-tabler name="chart-dots" class="icon-20 text-warning"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Pipeline ML</h6>
-          <p class="d-block m-0 text-body f-w-500">Créer des modèles</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">{{ 'MENU.ML_PIPELINE' | translate }}</h6>
+          <p class="d-block m-0 text-body f-w-500">{{ 'DASHBOARD.CREATE_PROJECT' | translate }}</p>
         </a>
       </div>
       <div class="col-6 p-x-0">
@@ -226,8 +226,8 @@
           >
             <i-tabler name="bulb" class="icon-20 text-success"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Explications XAI</h6>
-          <p class="d-block m-0 text-body f-w-500">Comprendre les modèles</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">{{ 'MENU.XAI_EXPLANATIONS' | translate }}</h6>
+          <p class="d-block m-0 text-body f-w-500">{{ 'DASHBOARD.VIEW_EXPLANATIONS' | translate }}</p>
         </a>
       </div>
       <div class="col-6 p-x-0">
@@ -240,8 +240,8 @@
           >
             <i-tabler name="dashboard" class="icon-20 text-secondary"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Tableau de bord</h6>
-          <p class="d-block m-0 text-body f-w-500">Vue d'ensemble</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">{{ 'MENU.DASHBOARD' | translate }}</h6>
+          <p class="d-block m-0 text-body f-w-500">{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
         </a>
       </div>
     </div>
@@ -278,7 +278,7 @@
   >
     <ng-scrollbar class="position-relative" style="height: 495px">
       <div class="p-x-32 p-y-16">
-        <h6 class="f-s-16 f-w-600 m-0">Profil Utilisateur</h6>
+        <h6 class="f-s-16 f-w-600 m-0">{{ 'HEADER.USER_PROFILE' | translate }}</h6>
 
         <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
           <img
@@ -330,7 +330,7 @@
           class="w-100"
           (click)="logout()"
         >
-          Déconnexion
+          {{ 'HEADER.LOGOUT' | translate }}
         </button>
       </div>
     </ng-scrollbar>

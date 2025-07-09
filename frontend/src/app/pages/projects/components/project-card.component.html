@@ -67,23 +67,31 @@
   </mat-card-content>
 
   <!-- Footer avec dates et actions -->
-  <mat-card-actions class="p-16 border-top bg-light">
+  <mat-card-actions class="p-16">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-8">
-      <!-- Dates -->
+      <!-- Dates avec design moderne -->
       <div class="flex-1">
-        <div class="d-flex align-items-center m-b-4">
-          <mat-icon class="icon-14 m-r-4 text-muted">calendar_today</mat-icon>
-          <span class="mat-caption text-muted">{{ getCreatedDate() }}</span>
-        </div>
-        <div class="d-flex align-items-center" *ngIf="project.updated_at !== project.created_at">
-          <mat-icon class="icon-14 m-r-4 text-muted">update</mat-icon>
-          <span class="mat-caption text-muted">{{ getUpdatedDate() }}</span>
-          <mat-icon 
-            *ngIf="isRecentlyUpdated()" 
-            class="icon-14 m-l-4 text-primary" 
-            matTooltip="Modifié récemment">
-            fiber_new
-          </mat-icon>
+        <div class="d-flex align-items-center gap-12 flex-wrap">
+          <!-- Date de création -->
+          <div class="d-flex align-items-center" matTooltip="Date de création">
+            <div class="date-indicator created-indicator m-r-6"></div>
+            <span class="mat-caption text-muted f-w-500">{{ getCreatedDate() }}</span>
+          </div>
+          
+          <!-- Date de modification si différente -->
+          <div class="d-flex align-items-center" 
+               *ngIf="project.updated_at !== project.created_at"
+               matTooltip="Dernière modification">
+            <div class="date-indicator updated-indicator m-r-6"></div>
+            <span class="mat-caption text-muted f-w-500">{{ getUpdatedDate() }}</span>
+            <mat-chip 
+              *ngIf="isRecentlyUpdated()" 
+              class="m-l-6 recent-chip" 
+              matTooltip="Modifié récemment">
+              <mat-icon class="chip-icon">fiber_new</mat-icon>
+              Récent
+            </mat-chip>
+          </div>
         </div>
       </div>
       

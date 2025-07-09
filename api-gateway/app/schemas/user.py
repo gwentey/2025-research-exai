@@ -54,4 +54,45 @@ class UserUpdate(schemas.BaseUserUpdate):
     picture: Optional[str] = None
     given_name: Optional[str] = None
     family_name: Optional[str] = None
-    locale: Optional[str] = None 
+    locale: Optional[str] = None
+
+# Schéma spécifique pour la mise à jour du profil (sans mot de passe)
+class UserProfileUpdate(BaseModel):
+    pseudo: Optional[str] = None
+    given_name: Optional[str] = None
+    family_name: Optional[str] = None
+    locale: Optional[str] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "pseudo": "nouveau_pseudo",
+                "given_name": "Nouveau Prénom",
+                "family_name": "Nouveau Nom",
+                "locale": "fr"
+            }
+        }
+
+# Schéma pour le changement de mot de passe
+class PasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "current_password": "ancien_mot_de_passe",
+                "new_password": "nouveau_mot_de_passe_securise"
+            }
+        }
+
+# Schéma pour l'upload d'image de profil
+class ProfilePictureUpdate(BaseModel):
+    picture: str  # Base64 encoded image ou URL
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "picture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+            }
+        } 

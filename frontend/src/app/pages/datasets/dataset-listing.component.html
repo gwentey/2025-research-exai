@@ -2,10 +2,10 @@
   <!-- Header principal simple et clair -->
   <div class="main-header">
     <div class="header-left">
-      <h1>Datasets</h1>
+      <h1>{{ 'DATASETS.TITLE' | translate }}</h1>
       <span class="results-count" *ngIf="datasets.length > 0">
-        {{ datasets.length }} résultat{{ datasets.length > 1 ? 's' : '' }}
-        <span *ngIf="hasActiveFilters()" class="filtered-indicator">• filtrés</span>
+        {{ 'DATASETS.LISTING.TOTAL_DATASETS' | translate: {count: datasets.length} }}
+        <span *ngIf="hasActiveFilters()" class="filtered-indicator">• {{ 'DATASETS.LISTING.FILTERED' | translate }}</span>
       </span>
     </div>
 
@@ -17,7 +17,7 @@
             matInput 
             [(ngModel)]="quickSearchTerm"
             (input)="onQuickSearch($event)"
-            placeholder="Rechercher un dataset..."
+            [placeholder]="'DATASETS.LISTING.SEARCH_PLACEHOLDER' | translate"
             autocomplete="off">
           <mat-icon matPrefix>search</mat-icon>
           <button 
@@ -25,7 +25,7 @@
             mat-icon-button 
             matSuffix 
             (click)="clearQuickSearch()"
-            matTooltip="Effacer">
+            [matTooltip]="'COMMON.CLEAR' | translate">
             <mat-icon>clear</mat-icon>
           </button>
         </mat-form-field>
@@ -39,7 +39,7 @@
         class="filters-button"
         [class.has-filters]="hasActiveFilters()">
         <mat-icon>tune</mat-icon>
-        Filtres
+        {{ 'COMMON.FILTER' | translate }}
         <mat-chip *ngIf="hasActiveFilters()" class="filters-count">
           {{ getActiveFiltersCount() }}
         </mat-chip>
@@ -51,23 +51,23 @@
           [(value)]="viewMode" 
           (change)="onViewChange($event)"
           class="view-toggle">
-          <mat-button-toggle value="grid" matTooltip="Vue grille">
+          <mat-button-toggle value="grid" [matTooltip]="'DATASETS.LISTING.GRID_VIEW' | translate">
             <mat-icon>grid_view</mat-icon>
           </mat-button-toggle>
-          <mat-button-toggle value="list" matTooltip="Vue liste">
+          <mat-button-toggle value="list" [matTooltip]="'DATASETS.LISTING.LIST_VIEW' | translate">
             <mat-icon>view_list</mat-icon>
           </mat-button-toggle>
         </mat-button-toggle-group>
 
         <!-- Tri -->
         <mat-form-field appearance="outline" class="sort-field">
-          <mat-label>Trier par</mat-label>
+          <mat-label>{{ 'DATASETS.LISTING.SORT_BY' | translate }}</mat-label>
           <mat-select [(value)]="currentSort" (selectionChange)="onSortChange($event)">
-            <mat-option value="relevance">Pertinence</mat-option>
-            <mat-option value="name">Nom</mat-option>
-            <mat-option value="year">Année</mat-option>
-            <mat-option value="instances">Nb instances</mat-option>
-            <mat-option value="updated">Dernière MàJ</mat-option>
+            <mat-option value="relevance">{{ 'DATASETS.SORT.RELEVANCE' | translate }}</mat-option>
+            <mat-option value="name">{{ 'DATASETS.LISTING.SORT_NAME' | translate }}</mat-option>
+            <mat-option value="year">{{ 'DATASETS.SORT.YEAR' | translate }}</mat-option>
+            <mat-option value="instances">{{ 'DATASETS.SORT.INSTANCES' | translate }}</mat-option>
+            <mat-option value="updated">{{ 'DATASETS.LISTING.SORT_DATE' | translate }}</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -75,7 +75,7 @@
         <button 
           mat-icon-button 
           (click)="refreshDatasets()"
-          matTooltip="Actualiser"
+          [matTooltip]="'COMMON.REFRESH' | translate"
           class="refresh-btn">
           <mat-icon>refresh</mat-icon>
         </button>
@@ -87,7 +87,7 @@
   <div class="active-filters-bar" *ngIf="hasActiveFilters()">
     <div class="filters-summary">
       <mat-icon>filter_list</mat-icon>
-      <span>{{ getActiveFiltersCount() }} filtre(s) actif(s) :</span>
+      <span>{{ 'DATASETS.FILTERS.ACTIVE_FILTERS_COUNT' | translate: {count: getActiveFiltersCount()} }}</span>
     </div>
     <div class="filters-chips">
       <mat-chip 
@@ -106,7 +106,7 @@
       (click)="clearAllFilters()"
       class="clear-all-btn">
       <mat-icon>clear_all</mat-icon>
-      Tout effacer
+      {{ 'DATASETS.FILTERS.CLEAR' | translate }}
     </button>
   </div>
 
@@ -115,33 +115,33 @@
     <!-- Loading -->
     <div class="loading-state" *ngIf="isLoading">
       <mat-spinner diameter="40"></mat-spinner>
-      <p>Chargement des datasets...</p>
+      <p>{{ 'DATASETS.LISTING.LOADING' | translate }}</p>
     </div>
 
     <!-- Erreur -->
     <div class="error-state" *ngIf="error && !isLoading">
       <mat-icon color="warn">error_outline</mat-icon>
-      <h3>Erreur de chargement</h3>
+      <h3>{{ 'DATASETS.LISTING.ERROR_TITLE' | translate }}</h3>
       <p>{{ error }}</p>
       <button mat-raised-button color="primary" (click)="refreshDatasets()">
         <mat-icon>refresh</mat-icon>
-        Réessayer
+        {{ 'COMMON.RETRY' | translate }}
       </button>
     </div>
 
     <!-- Pas de résultats -->
     <div class="no-results-state" *ngIf="!isLoading && !error && datasets.length === 0">
       <mat-icon>search_off</mat-icon>
-      <h3>Aucun dataset trouvé</h3>
-      <p>Essayez de modifier vos critères de recherche ou de filtrage.</p>
+      <h3>{{ 'DATASETS.LISTING.NO_RESULTS' | translate }}</h3>
+      <p>{{ 'DATASETS.LISTING.NO_RESULTS_MESSAGE' | translate }}</p>
       <div class="no-results-actions">
         <button mat-raised-button color="primary" (click)="clearAllFilters()" *ngIf="hasActiveFilters()">
           <mat-icon>clear_all</mat-icon>
-          Effacer les filtres
+          {{ 'DATASETS.FILTERS.CLEAR' | translate }}
         </button>
         <button mat-button (click)="openFiltersModal()">
           <mat-icon>tune</mat-icon>
-          Modifier les filtres
+          {{ 'DATASETS.FILTERS.MODIFY' | translate }}
         </button>
       </div>
     </div>
@@ -184,7 +184,7 @@
     <div class="modal-header">
       <div class="modal-title">
         <mat-icon>tune</mat-icon>
-        <h2>Filtres Avancés</h2>
+        <h2>{{ 'DATASETS.FILTERS.TITLE' | translate }}</h2>
       </div>
       <button mat-icon-button (click)="closeFiltersModal()" class="close-btn">
         <mat-icon>close</mat-icon>

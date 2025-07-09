@@ -23,6 +23,12 @@ alwaysApply: true
   Trigger: Before creating or modifying any Angular component, page or layout
   Description: Toujours commencer par examiner les exemples de templates existants dans .cursor/templates/src/app/ avant toute création ou modification sur le frontend Angular Observer toutes les pages disponibles pour comprendre comment sont conçus : les boutons (style, structure, icônes, comportements), les boîtes de contenu, cartes, panels, etc. la structure générale des pages (layout, responsive design, navigation). Réutiliser et adapter les composants ou structures existants autant que possible avant d’en créer de nouveaux. L’objectif est d’assurer cohérence visuelle, réutilisabilité, et maintenabilité dans toute l’application Angular.
 
+
+-  Rule: Faire une version anglais et version francais avec  @ngx-translate/core et @ngx-translate/http-loader 
+  Trigger: Before creating or modifying any Angular component, page or layout
+  Description: Il faut que tu faces la traduction dans les deux langues afin que l'application ai 2 langues
+
+
 # --- RÈGLE DOCUMENTATION OBLIGATOIRE ---
 # Trigger: Après génération ou modification de code fonctionnel (API Backend, Composant Frontend, Logique métier principale).
 

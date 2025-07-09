@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { navItems } from '../sidebar/sidebar-data';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { LanguageService, Language } from 'src/app/services/language.service';
 import { MaterialModule } from 'src/app/material.module';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -79,96 +80,11 @@ export class VerticalHeaderComponent implements OnInit {
 
   showFiller = false;
 
-  public selectedLanguage: any = {
-    language: 'English',
-    code: 'en',
-    type: 'US',
-    icon: '/assets/images/flag/icon-flag-en.svg',
-  };
+  public selectedLanguage: Language;
+  public languages: Language[];
 
-  public languages: any[] = [
-    {
-      language: 'English',
-      code: 'en',
-      type: 'US',
-      icon: '/assets/images/flag/icon-flag-en.svg',
-    },
-    {
-      language: 'Español',
-      code: 'es',
-      icon: '/assets/images/flag/icon-flag-es.svg',
-    },
-    {
-      language: 'Français',
-      code: 'fr',
-      icon: '/assets/images/flag/icon-flag-fr.svg',
-    },
-    {
-      language: 'German',
-      code: 'de',
-      icon: '/assets/images/flag/icon-flag-de.svg',
-    },
-  ];
-
-  notifications: notifications[] = [
-    {
-      id: 1,
-      img: '/assets/images/profile/user-1.jpg',
-      title: 'Pipeline ML Terminé',
-      subtitle: 'Votre modèle de classification est prêt',
-    },
-    {
-      id: 2,
-      img: '/assets/images/profile/user-2.jpg',
-      title: 'Nouvelle explication XAI',
-      subtitle: 'Explication SHAP générée avec succès',
-    },
-    {
-      id: 3,
-      img: '/assets/images/profile/user-3.jpg',
-      title: 'Dataset mis à jour',
-      subtitle: 'EdNet dataset synchronisé',
-    },
-    {
-      id: 4,
-      img: '/assets/images/profile/user-4.jpg',
-      title: 'Analyse terminée',
-      subtitle: 'Métriques de performance calculées',
-    },
-    {
-      id: 5,
-      img: '/assets/images/profile/user-5.jpg',
-      title: 'Rapport généré',
-      subtitle: 'Rapport d\'explications disponible',
-    },
-  ];
-
-  profiledd: profiledd[] = [
-    {
-      id: 1,
-      img: 'user',
-      color: 'primary',
-      title: 'Mon Profil',
-      subtitle: 'Paramètres du compte',
-      link: '/profile',
-    },
-    {
-      id: 2,
-      img: 'settings',
-      color: 'success',
-      title: 'Préférences',
-      subtitle: 'Configuration EXAI',
-      link: '/settings',
-    },
-    {
-      id: 3,
-      img: 'help',
-      color: 'warning',
-      title: 'Aide & Support',
-      subtitle: 'Documentation et FAQ',
-      link: '/help',
-    },
-  ];
+  notifications: notifications[] = [];
+  profiledd: profiledd[] = [];
 
   // Apps array supprimé - non nécessaire pour EXAI
 
@@ -177,17 +93,99 @@ export class VerticalHeaderComponent implements OnInit {
   public translate = inject(TranslateService);
   private authService = inject(AuthService);
   private dialog = inject(MatDialog); // Injected MatDialog
+  private languageService = inject(LanguageService);
 
   options = this.settings.getOptions();
 
   constructor() {
-    this.translate.setDefaultLang('en');
+    // Initialiser les propriétés liées aux langues
+    this.selectedLanguage = this.languageService.getCurrentLanguage();
+    this.languages = this.languageService.availableLanguages;
+    
+    // S'abonner aux changements de langue
+    this.languageService.currentLanguage$.subscribe(language => {
+      this.selectedLanguage = language;
+    });
   }
 
   ngOnInit(): void {
     // Charger les informations de l'utilisateur connecté
     this.loadUserInfo();
+    // Initialiser les données traduites
+    this.initializeTranslatedData();
+    
+    // Écouter les changements de langue pour recharger les traductions
+    this.translate.onLangChange.subscribe(() => {
+      this.initializeTranslatedData();
+    });
   }
+
+  /**
+   * Initialise les données qui nécessitent des traductions
+   */
+  private initializeTranslatedData(): void {
+    this.notifications = [
+      {
+        id: 1,
+        img: '/assets/images/profile/user-1.jpg',
+        title: this.translate.instant('NOTIFICATIONS.ML_PIPELINE_COMPLETED'),
+        subtitle: this.translate.instant('NOTIFICATIONS.MODEL_READY'),
+      },
+      {
+        id: 2,
+        img: '/assets/images/profile/user-2.jpg',
+        title: this.translate.instant('NOTIFICATIONS.NEW_XAI_EXPLANATION'),
+        subtitle: this.translate.instant('NOTIFICATIONS.SHAP_GENERATED'),
+      },
+      {
+        id: 3,
+        img: '/assets/images/profile/user-3.jpg',
+        title: this.translate.instant('NOTIFICATIONS.DATASET_UPDATED'),
+        subtitle: this.translate.instant('NOTIFICATIONS.DATASET_SYNCHRONIZED'),
+      },
+      {
+        id: 4,
+        img: '/assets/images/profile/user-4.jpg',
+        title: this.translate.instant('NOTIFICATIONS.ANALYSIS_COMPLETED'),
+        subtitle: this.translate.instant('NOTIFICATIONS.PERFORMANCE_CALCULATED'),
+      },
+      {
+        id: 5,
+        img: '/assets/images/profile/user-5.jpg',
+        title: this.translate.instant('NOTIFICATIONS.REPORT_GENERATED'),
+        subtitle: this.translate.instant('NOTIFICATIONS.EXPLANATIONS_AVAILABLE'),
+      },
+    ];
+
+    this.profiledd = [
+      {
+        id: 1,
+        img: 'user',
+        color: 'primary',
+        title: this.translate.instant('HEADER.PROFILE_MENU.MY_PROFILE'),
+        subtitle: this.translate.instant('HEADER.PROFILE_MENU.ACCOUNT_SETTINGS'),
+        link: '/profile',
+      },
+      {
+        id: 2,
+        img: 'settings',
+        color: 'success',
+        title: this.translate.instant('HEADER.PROFILE_MENU.PREFERENCES'),
+        subtitle: this.translate.instant('HEADER.PROFILE_MENU.EXAI_CONFIGURATION'),
+        link: '/settings',
+      },
+      {
+        id: 3,
+        img: 'help',
+        color: 'warning',
+        title: this.translate.instant('HEADER.PROFILE_MENU.HELP_SUPPORT'),
+        subtitle: this.translate.instant('HEADER.PROFILE_MENU.DOCUMENTATION'),
+        link: '/help',
+      },
+    ];
+  }
+
+
   
   /**
    * Charge les informations de l'utilisateur connecté
@@ -246,9 +244,8 @@ export class VerticalHeaderComponent implements OnInit {
   */
 
   // Other methods
-  changeLanguage(lang: any): void {
-    this.selectedLanguage = lang;
-    this.translate.use(lang.code);
+  changeLanguage(lang: Language): void {
+    this.languageService.setLanguage(lang);
   }
 
   setlightDark(theme: string) {

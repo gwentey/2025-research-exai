@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment'; // Importer l'environnement
 // Importer les nouvelles interfaces
-import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse } from '../models/auth.models';
+import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload } from '../models/auth.models';
 
 // Définir la clé du token comme constante
 const AUTH_TOKEN_KEY = 'exai_access_token';
@@ -193,6 +193,87 @@ export class AuthService {
         
         return this.handleError(error);
       })
+    );
+  }
+
+  /**
+   * Met à jour les informations du profil utilisateur.
+   * @param userData - Objet UserUpdate contenant les champs à mettre à jour.
+   * @returns Observable avec les informations UserRead mises à jour.
+   */
+  updateProfile(userData: UserUpdate): Observable<UserRead> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("updateProfile - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("updateProfile - Début de la requête, données:", userData);
+    
+    return this.http.patch<UserRead>(`${environment.apiUrl}/users/me`, userData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(user => {
+        console.log("updateProfile - Succès, profil mis à jour:", user);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Met à jour le mot de passe de l'utilisateur.
+   * @param passwordData - Objet PasswordUpdate contenant l'ancien et le nouveau mot de passe.
+   * @returns Observable indiquant le succès de l'opération.
+   */
+  updatePassword(passwordData: PasswordUpdate): Observable<any> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("updatePassword - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("updatePassword - Début de la requête");
+    
+    return this.http.patch(`${environment.apiUrl}/users/me/password`, passwordData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(() => {
+        console.log("updatePassword - Succès, mot de passe mis à jour");
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Met à jour l'image de profil de l'utilisateur.
+   * @param pictureData - Objet ProfilePictureUpload contenant l'image encodée.
+   * @returns Observable avec les informations UserRead mises à jour.
+   */
+  updateProfilePicture(pictureData: ProfilePictureUpload): Observable<UserRead> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("updateProfilePicture - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("updateProfilePicture - Début de la requête");
+    
+    return this.http.patch<UserRead>(`${environment.apiUrl}/users/me/picture`, pictureData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(user => {
+        console.log("updateProfilePicture - Succès, image de profil mise à jour:", user);
+      }),
+      catchError(this.handleError)
     );
   }
 

@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends, status, Request, Query, HTTPException
 from fastapi.responses import Response, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Annotated
 from contextlib import asynccontextmanager
 
@@ -16,7 +17,7 @@ from httpx_oauth.clients.google import GoogleOAuth2
 
 from .core.config import settings
 from .db import get_async_session
-from .schemas.user import UserCreate, UserRead, UserUpdate
+from .schemas.user import UserCreate, UserRead, UserUpdate, UserProfileUpdate, PasswordUpdate, ProfilePictureUpdate
 from .models.user import User as UserModel, OAuthAccount
 from .managers.user import UserManager
 
@@ -454,6 +455,222 @@ def read_users_me(current_user: UserModel = Depends(current_active_user)):
     Nécessite seulement que l'utilisateur soit actif (pas de vérification).
     """
     return current_user
+
+@app.get("/users/me/debug", tags=["users"])
+async def debug_user_info(
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Endpoint de débogage pour diagnostiquer les problèmes de session.
+    """
+    try:
+        logger.info(f"DEBUG: current_user type: {type(current_user)}")
+        logger.info(f"DEBUG: current_user id: {current_user.id}")
+        logger.info(f"DEBUG: current_user email: {current_user.email}")
+        
+        # Test de récupération dans notre session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.unique().scalar_one_or_none()
+        
+        logger.info(f"DEBUG: user_in_session found: {user_in_session is not None}")
+        if user_in_session:
+            logger.info(f"DEBUG: user_in_session type: {type(user_in_session)}")
+            logger.info(f"DEBUG: user_in_session id: {user_in_session.id}")
+        
+        return {
+            "status": "debug_success",
+            "current_user_id": str(current_user.id),
+            "current_user_email": current_user.email,
+            "user_found_in_session": user_in_session is not None,
+            "session_type": str(type(session))
+        }
+        
+    except Exception as e:
+        logger.error(f"DEBUG ERROR: {str(e)}")
+        logger.error(f"DEBUG ERROR type: {type(e)}")
+        import traceback
+        logger.error(f"DEBUG TRACEBACK: {traceback.format_exc()}")
+        return {
+            "status": "debug_error",
+            "error": str(e),
+            "error_type": str(type(e))
+        }
+
+@app.patch("/users/me", tags=["users"])
+async def update_user_profile(
+    profile_update: UserProfileUpdate,
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Met à jour les informations du profil de l'utilisateur actuellement authentifié.
+    """
+    try:
+        logger.info(f"Mise à jour du profil pour l'utilisateur {current_user.id}")
+        
+        # Récupérer l'utilisateur dans notre session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.unique().scalar_one_or_none()
+        
+        if not user_in_session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Utilisateur non trouvé"
+            )
+        
+        # Mise à jour des champs fournis
+        update_data = profile_update.model_dump(exclude_unset=True)
+        logger.info(f"DEBUG: update_data = {update_data}")
+        
+        for field, value in update_data.items():
+            if hasattr(user_in_session, field):
+                logger.info(f"DEBUG: Setting {field} = {value}")
+                setattr(user_in_session, field, value)
+            else:
+                logger.warning(f"DEBUG: Field {field} not found on user model")
+        
+        # Sauvegarder les modifications
+        logger.info("DEBUG: About to commit changes")
+        await session.commit()
+        logger.info("DEBUG: Commit successful, refreshing user")
+        await session.refresh(user_in_session)
+        logger.info("DEBUG: Refresh successful")
+        
+        logger.info(f"Profil mis à jour avec succès pour l'utilisateur {current_user.id}")
+        return UserRead.model_validate(user_in_session)
+        
+    except HTTPException:
+        # Re-lever les HTTPException telles quelles
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour du profil: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la mise à jour du profil"
+        )
+
+@app.patch("/users/me/password", tags=["users"])
+async def update_user_password(
+    password_update: PasswordUpdate,
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    user_manager: UserManager = Depends(get_user_manager)
+):
+    """
+    Met à jour le mot de passe de l'utilisateur actuellement authentifié.
+    """
+    try:
+        logger.info(f"Changement de mot de passe pour l'utilisateur {current_user.id}")
+        
+        # Récupérer l'utilisateur dans notre session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.unique().scalar_one_or_none()
+        
+        if not user_in_session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Utilisateur non trouvé"
+            )
+        
+        # Vérifier l'ancien mot de passe
+        is_valid = user_manager.password_helper.verify_and_update(
+            password_update.current_password, 
+            user_in_session.hashed_password
+        )
+        
+        if not is_valid[0]:  # is_valid est un tuple (bool, updated_hash_or_none)
+            logger.warning(f"Tentative de changement de mot de passe avec un mot de passe actuel incorrect pour l'utilisateur {current_user.id}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mot de passe actuel incorrect"
+            )
+        
+        # Valider le nouveau mot de passe
+        try:
+            await user_manager.validate_password(password_update.new_password, user_in_session)
+        except Exception as password_error:
+            logger.error(f"Validation du nouveau mot de passe échouée: {str(password_error)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Le nouveau mot de passe ne répond pas aux exigences: {str(password_error)}"
+            )
+        
+        # Hasher le nouveau mot de passe
+        new_hashed_password = user_manager.password_helper.hash(password_update.new_password)
+        user_in_session.hashed_password = new_hashed_password
+        
+        # Sauvegarder les modifications
+        await session.commit()
+        
+        logger.info(f"Mot de passe mis à jour avec succès pour l'utilisateur {current_user.id}")
+        return {"message": "Mot de passe mis à jour avec succès"}
+        
+    except HTTPException:
+        # Re-lever les HTTPException telles quelles
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour du mot de passe: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la mise à jour du mot de passe"
+        )
+
+@app.patch("/users/me/picture", tags=["users"])
+async def update_user_picture(
+    picture_update: ProfilePictureUpdate,
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Met à jour l'image de profil de l'utilisateur actuellement authentifié.
+    """
+    try:
+        logger.info(f"Mise à jour de l'image de profil pour l'utilisateur {current_user.id}")
+        
+        # Validation de base de l'image (optionnel)
+        if picture_update.picture and len(picture_update.picture) > 10 * 1024 * 1024:  # 10MB max
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Image trop volumineuse (max 10MB)"
+            )
+        
+        # Récupérer l'utilisateur dans notre session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.unique().scalar_one_or_none()
+        
+        if not user_in_session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Utilisateur non trouvé"
+            )
+        
+        # Mettre à jour l'image de profil
+        user_in_session.picture = picture_update.picture
+        
+        # Sauvegarder les modifications
+        await session.commit()
+        await session.refresh(user_in_session)
+        
+        logger.info(f"Image de profil mise à jour avec succès pour l'utilisateur {current_user.id}")
+        return UserRead.model_validate(user_in_session)
+        
+    except HTTPException:
+        # Re-lever les HTTPException telles quelles
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour de l'image de profil: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la mise à jour de l'image de profil"
+        )
 
 # Auth routes (login, logout)
 app.include_router(

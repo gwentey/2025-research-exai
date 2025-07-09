@@ -61,4 +61,30 @@ export interface UserRead {
  */
 export interface OAuthAuthorizationResponse {
   authorization_url: string;
+}
+
+/**
+ * Interface pour les données de mise à jour du profil utilisateur.
+ * Seuls les champs modifiables sont inclus.
+ */
+export interface UserUpdate {
+  pseudo?: string | null;
+  given_name?: string | null;
+  family_name?: string | null;
+  locale?: string | null;
+}
+
+/**
+ * Interface pour la mise à jour du mot de passe.
+ */
+export interface PasswordUpdate {
+  current_password: string;
+  new_password: string;
+}
+
+/**
+ * Interface pour l'upload d'image de profil.
+ */
+export interface ProfilePictureUpload {
+  picture: string; // Base64 ou URL de l'image
 } 

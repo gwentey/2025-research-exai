@@ -6,17 +6,17 @@
 <div class="dashboard-header mb-24">
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h1 class="dashboard-title">Tableau de Bord EXAI</h1>
-      <p class="dashboard-subtitle text-muted">Vue d'ensemble de votre plateforme d'IA explicable</p>
+      <h1 class="dashboard-title">{{ dashboardTitle }}</h1>
+      <p class="dashboard-subtitle text-muted">{{ dashboardSubtitle }}</p>
     </div>
     <div class="d-flex gap-12">
       <button mat-stroked-button color="primary">
         <i-tabler name="refresh" class="icon-18 m-r-8"></i-tabler>
-        Actualiser
+        {{ refreshLabel }}
       </button>
       <button mat-flat-button color="primary" [routerLink]="['/datasets']">
         <i-tabler name="plus" class="icon-18 m-r-8"></i-tabler>
-        Nouveau Projet
+        {{ newProjectLabel }}
       </button>
     </div>
   </div>
@@ -54,8 +54,8 @@
       <mat-card-header class="card-header-custom">
         <div class="d-flex justify-content-between align-items-center w-100">
           <div>
-            <mat-card-title class="card-title-modern">Activité Récente</mat-card-title>
-            <mat-card-subtitle>Dernières actions sur la plateforme</mat-card-subtitle>
+            <mat-card-title class="card-title-modern">{{ activityTitle }}</mat-card-title>
+            <mat-card-subtitle>{{ activitySubtitle }}</mat-card-subtitle>
           </div>
           <button mat-icon-button>
             <i-tabler name="dots" class="icon-20"></i-tabler>
@@ -81,8 +81,8 @@
     <!-- Statistiques des datasets -->
     <mat-card class="stats-card cardWithShadow">
       <mat-card-header class="card-header-custom">
-        <mat-card-title class="card-title-modern">Répartition des Datasets</mat-card-title>
-        <mat-card-subtitle>{{ datasetStats.total }} datasets disponibles</mat-card-subtitle>
+        <mat-card-title class="card-title-modern">{{ datasetsTitle }}</mat-card-title>
+        <mat-card-subtitle>{{ datasetsSubtitle }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <div class="stats-grid">
@@ -108,8 +108,8 @@
     <!-- Actions rapides -->
     <mat-card class="quick-actions-card cardWithShadow mb-24">
       <mat-card-header class="card-header-custom">
-        <mat-card-title class="card-title-modern">Actions Rapides</mat-card-title>
-        <mat-card-subtitle>Démarrez votre analyse</mat-card-subtitle>
+        <mat-card-title class="card-title-modern">{{ quickActionsTitle }}</mat-card-title>
+        <mat-card-subtitle>{{ quickActionsSubtitle }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content class="p-16">
         <div class="quick-actions-grid">
@@ -137,37 +137,16 @@
     <!-- État du système -->
     <mat-card class="system-status-card cardWithShadow">
       <mat-card-header class="card-header-custom">
-        <mat-card-title class="card-title-modern">État du Système</mat-card-title>
-        <mat-card-subtitle>Services EXAI</mat-card-subtitle>
+        <mat-card-title class="card-title-modern">{{ systemStatusTitle }}</mat-card-title>
+        <mat-card-subtitle>{{ systemStatusSubtitle }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content class="p-20">
         <div class="status-list">
-          <div class="status-item">
-            <div class="status-indicator online"></div>
+          <div class="status-item" *ngFor="let status of systemStatuses">
+            <div class="status-indicator" [ngClass]="status.status"></div>
             <div class="status-details">
-              <span class="status-name">API Gateway</span>
-              <span class="status-value">En ligne</span>
-            </div>
-          </div>
-          <div class="status-item">
-            <div class="status-indicator online"></div>
-            <div class="status-details">
-              <span class="status-name">Service Datasets</span>
-              <span class="status-value">En ligne</span>
-            </div>
-          </div>
-          <div class="status-item">
-            <div class="status-indicator offline"></div>
-            <div class="status-details">
-              <span class="status-name">Pipeline ML</span>
-              <span class="status-value">En développement</span>
-            </div>
-          </div>
-          <div class="status-item">
-            <div class="status-indicator offline"></div>
-            <div class="status-details">
-              <span class="status-name">Moteur XAI</span>
-              <span class="status-value">En développement</span>
+              <span class="status-name">{{ status.name }}</span>
+              <span class="status-value">{{ status.value }}</span>
             </div>
           </div>
         </div>
@@ -175,7 +154,7 @@
         <div class="system-info mt-20">
           <div class="info-item">
             <i-tabler name="clock" class="icon-16 text-muted"></i-tabler>
-            <span class="text-muted">Dernière mise à jour: il y a 5 min</span>
+            <span class="text-muted">{{ lastUpdateLabel }}</span>
           </div>
         </div>
       </mat-card-content>

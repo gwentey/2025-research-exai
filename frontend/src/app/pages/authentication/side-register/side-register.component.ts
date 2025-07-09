@@ -11,6 +11,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { SignupData } from '../../../models/auth.models';
 
@@ -23,6 +24,7 @@ import { SignupData } from '../../../models/auth.models';
     FormsModule,
     ReactiveFormsModule,
     BrandingComponent,
+    TranslateModule,
   ],
   templateUrl: './side-register.component.html',
 })
@@ -30,6 +32,7 @@ export class AppSideRegisterComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private settings = inject(CoreService);
+  private translate = inject(TranslateService);
 
   options = this.settings.getOptions();
 
@@ -51,7 +54,7 @@ export class AppSideRegisterComponent {
   submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.signupError = 'Veuillez remplir correctement tous les champs.';
+      this.signupError = this.translate.instant('AUTH.LOGIN.FORM_INVALID');
       this.signupSuccess = false;
       return;
     }
@@ -81,9 +84,9 @@ export class AppSideRegisterComponent {
           console.error('Signup failed:', error);
           this.signupSuccess = false;
           if (error.message?.includes('400')) {
-             this.signupError = 'Cet email est déjà utilisé. Veuillez en choisir un autre ou vous connecter.';
+             this.signupError = this.translate.instant('ERRORS.ACCESS_DENIED');
           } else {
-             this.signupError = error.message || 'Échec de l\'inscription. Veuillez réessayer.';
+             this.signupError = error.message || this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
           }
         }
       });
@@ -106,7 +109,7 @@ export class AppSideRegisterComponent {
         },
         error: (error) => {
           console.error('Échec de récupération de l\'URL d\'autorisation Google:', error);
-          this.signupError = 'Impossible d\'initialiser la connexion avec Google. Veuillez réessayer.';
+          this.signupError = this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
         }
       });
   }
