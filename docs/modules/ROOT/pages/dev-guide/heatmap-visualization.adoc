@@ -1,284 +1,684 @@
-= Heat Map de Recommandations
-:description: Documentation technique de la visualisation interactive des scores de datasets
-:keywords: heatmap, visualisation, Angular, CSS Grid, scoring
-:page-layout: dev-guide
+= Visualisation Heatmap avec Apache ECharts
+:description: Documentation technique complète de l'implémentation ECharts pour la visualisation des recommandations de datasets
+:keywords: ECharts, heatmap, Angular, CDN, visualisation, performance
 
-== Vue d'ensemble
+== Architecture de la Visualisation
 
-La Heat Map de Recommandations est un composant Angular standalone qui offre une visualisation interactive et comparative des scores de datasets selon différents critères de sélection. Cette composante essentielle du système EXAI permet aux utilisateurs d'analyser visuellement la performance de chaque dataset sur les critères éthiques, techniques et de popularité.
+=== Vue d'ensemble
 
-== Architecture Technique
+La **Heatmap de recommandations** utilise **Apache ECharts 5.4.3** via CDN pour offrir une visualisation interactive et performante des scores de datasets selon différents critères éthiques, techniques et de popularité.
 
-=== Composant Angular
+**Stack technique :**
+- **Librairie** : Apache ECharts 5.4.3 (CDN)
+- **Framework** : Angular 17+ 
+- **Chargement** : Dynamique et différé
+- **Rendu** : Canvas/SVG adaptatif
+- **Responsive** : Gestion automatique des redimensionnements
+
+=== Composant Angular Principal
+
+**Fichier :** `frontend/src/app/pages/projects/components/recommendation-heatmap.component.ts`
 
 [source,typescript]
 ----
 @Component({
   selector: 'app-recommendation-heatmap',
-  standalone: true,
-  encapsulation: ViewEncapsulation.None
+  template: `
+    <mat-card class="cardWithShadow theme-card">
+      <mat-card-header>
+        <mat-card-title class="m-b-0 d-flex align-items-center">
+          <mat-icon class="m-r-8">insights</mat-icon>
+          Heatmap des Recommandations
+        </mat-card-title>
+        <mat-card-subtitle>
+          Visualisation interactive des scores par critère avec Apache ECharts
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content class="b-t-1">
+        <!-- État de chargement -->
+        <div *ngIf="isEChartsLoading" class="loading-container text-center p-20">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p class="mat-body-2 m-t-12">Chargement d'Apache ECharts...</p>
+        </div>
+
+        <!-- Message d'erreur -->
+        <div *ngIf="loadingError" class="error-container text-center p-20">
+          <mat-icon class="icon-48 text-warn">error_outline</mat-icon>
+          <h4 class="mat-h4 m-t-12">Erreur de chargement</h4>
+          <p class="mat-body-2 text-muted">{{ loadingError }}</p>
+          <button mat-stroked-button (click)="retryLoading()" class="m-t-12">
+            <mat-icon>refresh</mat-icon>
+            Réessayer
+          </button>
+        </div>
+
+        <!-- Conteneur ECharts -->
+        <div [id]="echartsId" 
+             style="width: 100%; height: 400px; min-height: 400px;"
+             *ngIf="!isEChartsLoading && !loadingError">
+        </div>
+
+        <!-- Informations contextuelles -->
+        <div *ngIf="datasets.length > 0 && !isEChartsLoading" 
+             class="info-bar d-flex justify-content-between align-items-center m-t-16 p-12 bg-light-primary rounded">
+          <div class="d-flex align-items-center">
+            <mat-icon class="text-primary m-r-8">analytics</mat-icon>
+            <span class="mat-body-2">
+              <strong>{{ weights.length }}</strong> critères analysés • 
+              <strong>{{ datasets.length }}</strong> datasets comparés
+            </span>
+          </div>
+          <div class="d-flex align-items-center">
+            <mat-icon class="text-primary m-r-4" style="font-size: 16px;">link</mat-icon>
+            <span class="mat-caption text-muted">Apache ECharts CDN</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  `,
+  styleUrls: ['./recommendation-heatmap.component.scss']
 })
-export class RecommendationHeatmapComponent
+export class RecommendationHeatmapComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() datasets: any[] = [];
+  @Input() weights: any[] = [];
+
+  private echarts: any;
+  private chartInstance: any;
+  private resizeListener?: () => void;
+
+  isEChartsLoading = false;
+  loadingError: string | null = null;
+  echartsId = `echarts-heatmap-${Math.random().toString(36).substr(2, 9)}`;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+}
 ----
 
-==== Caractéristiques techniques
+== Implémentation CDN Robuste
 
-* **Standalone Component** : Indépendant, facilement réutilisable
-* **ViewEncapsulation.None** : Styles isolés avec préfixes pour éviter les conflits CSS
-* **CSS Grid Layout** : Grille responsive et performante
-* **Injection dynamique de styles** : Adaptation automatique au nombre de critères
-
-=== Structure des données
-
-==== Interfaces utilisées
+=== Stratégie de Chargement
 
 [source,typescript]
 ----
-interface DatasetScored {
-  id: string;
-  dataset_name: string;
-  instances_number: number;
-  features_number?: number;
-  score: number;
-  ethical_score: number;
-  technical_score: number;
-  popularity_score: number;
-  // ... autres propriétés
-}
-
-interface CriterionWeight {
-  criterion_name: string;
-  weight: number;
-}
-----
-
-=== Architecture CSS
-
-==== Isolation des styles
-
-Tous les styles utilisent le préfixe `exai-` pour éviter les conflits avec le thème Spike :
-
-[source,css]
-----
-.exai-heatmap-container {
-  display: grid !important;
-  grid-template-columns: 200px repeat(var(--criteria-count), 120px) 120px !important;
-}
-----
-
-==== Classes de score
-
-Système de couleurs cohérent avec gradients :
-
-* `.exai-score-excellent` : Bleu (85%+)
-* `.exai-score-high` : Vert (60-85%)
-* `.exai-score-medium` : Orange (30-60%)
-* `.exai-score-low` : Rouge (0-30%)
-
-== Fonctionnalités
-
-=== Visualisation interactive
-
-==== Grille responsive
-* **Desktop** : Colonnes de 120px pour critères, 200px pour datasets
-* **Mobile** : Colonnes adaptées (100px/150px)
-* **Défilement horizontal** automatique si nécessaire
-
-==== Tooltips informatifs
-Chaque cellule affiche au survol :
-* Nom du dataset et critère
-* Score détaillé avec pourcentage
-* Poids du critère dans le calcul
-* Métadonnées (instances, variables)
-
-=== Calculs de scores
-
-==== Score éthique
-[source,typescript]
-----
-calculateEthicalScore(dataset): number {
-  // Combine : consentement éclairé + transparence + anonymisation
-  // Retourne : moyenne pondérée des critères présents
-}
-----
-
-==== Score technique
-[source,typescript]
-----
-calculateTechnicalScore(dataset): number {
-  // Base 50% + bonus documentation + division + qualité + taille
-  // Maximum 100%
-}
-----
-
-==== Score de popularité
-[source,typescript]
-----
-calculatePopularityScore(dataset): number {
-  // Échelle logarithmique basée sur les citations académiques
-  // log10(citations) / 4, plafonné à 100%
-}
-----
-
-== Guide d'utilisation
-
-=== Intégration dans un composant
-
-[source,html]
-----
-<app-recommendation-heatmap 
-  [datasets]="scoredDatasets" 
-  [weights]="activeCriterionWeights">
-</app-recommendation-heatmap>
-----
-
-=== Données requises
-
-==== Datasets scorés
-Les datasets doivent contenir au minimum :
-* `id`, `dataset_name`, `score`
-* `instances_number`, `features_number` (optionnel)
-* Propriétés pour calculs éthiques/techniques
-
-==== Poids de critères
-Format attendu :
-[source,json]
-----
-[
-  {
-    "criterion_name": "ethical_score",
-    "weight": 0.4
-  },
-  {
-    "criterion_name": "technical_score", 
-    "weight": 0.35
-  }
-]
-----
-
-== Responsive Design
-
-=== Points de rupture
-
-* **> 768px** : Affichage complet avec toutes les colonnes
-* **≤ 768px** : Colonnes réduites, défilement horizontal activé
-
-=== Adaptations mobiles
-
-* Réduction de la taille des cellules
-* Maintien de la lisibilité des scores
-* Tooltips adaptés au tactile
-
-== Performance et optimisation
-
-=== CSS Grid vs Flexbox
-
-Le choix de CSS Grid apporte :
-* **Performance** : Rendu optimisé par le navigateur
-* **Flexibilité** : Colonnes dynamiques sans recalcul JavaScript
-* **Maintenance** : Code CSS plus simple et lisible
-
-=== Injection dynamique de styles
-
-La méthode `updateCSSVariables()` injecte le nombre exact de colonnes :
-
-[source,typescript]
-----
-private updateCSSVariables(): void {
-  const count = this.activeCriteria.length;
-  const style = `
-    .exai-heatmap-container {
-      grid-template-columns: 200px repeat(${count}, 120px) 120px !important;
+/**
+ * Charge Apache ECharts via CDN avec gestion d'erreurs robuste
+ */
+private loadECharts(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    // Vérification si ECharts est déjà chargé
+    if (typeof window !== 'undefined' && (window as any).echarts) {
+      console.log('ECharts déjà disponible');
+      resolve((window as any).echarts);
+      return;
     }
-  `;
-  // Injection dans document.head
+
+    // Création du script dynamique
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+    script.type = 'text/javascript';
+    script.async = true;
+
+    // Gestionnaires d'événements
+    script.onload = () => {
+      console.log('ECharts chargé avec succès');
+      if ((window as any).echarts) {
+        resolve((window as any).echarts);
+      } else {
+        reject(new Error('ECharts non disponible après chargement'));
+      }
+    };
+
+    script.onerror = (error) => {
+      console.error('Erreur lors du chargement d\'ECharts:', error);
+      reject(new Error('Impossible de charger Apache ECharts depuis le CDN'));
+    };
+
+    // Timeout de sécurité (10 secondes)
+    setTimeout(() => {
+      if (!((window as any).echarts)) {
+        reject(new Error('Timeout lors du chargement d\'ECharts'));
+      }
+    }, 10000);
+
+    // Ajout au DOM
+    document.head.appendChild(script);
+  });
 }
 ----
 
-== Maintenance et évolution
-
-=== Ajout de nouveaux critères
-
-. Étendre l'interface `DatasetScored` si nécessaire
-. Ajouter le label dans `getCriterionLabel()`
-. Implémenter le calcul dans `getCriterionScore()`
-. Ajouter le tooltip dans `getCriterionTooltip()`
-
-=== Personnalisation visuelle
-
-==== Couleurs de score
-Modifier les classes `.exai-score-*` dans le CSS du composant.
-
-==== Dimensions
-Ajuster les valeurs dans `updateCSSVariables()` :
-* Largeur colonne dataset : `200px`
-* Largeur colonnes critères : `120px`
-* Largeur colonne total : `120px`
-
-=== Tests et validation
-
-==== Tests unitaires recommandés
-* Calculs de scores avec datasets variés
-* Rendu correct selon nombre de critères
-* Responsive design sur différentes tailles
-
-==== Tests d'intégration
-* Interaction avec le formulaire de projet
-* Mise à jour en temps réel lors de changements de poids
-* Performance avec datasets volumineux (50+ datasets)
-
-== Résolution de problèmes
-
-=== Conflits CSS avec le thème
-
-Si des styles ne s'appliquent pas :
-. Vérifier l'utilisation du préfixe `exai-`
-. Ajouter `!important` si nécessaire
-. Contrôler l'ordre d'injection des styles
-
-=== Performance
-
-Pour optimiser l'affichage :
-. Limiter le nombre de datasets affichés (< 20 recommandé)
-. Utiliser `trackBy` dans les boucles `*ngFor`
-. Implémenter `OnPush` change detection si nécessaire
-
-=== Compatibilité navigateur
-
-CSS Grid est supporté par :
-* Chrome 57+
-* Firefox 52+  
-* Safari 10.1+
-* Edge 16+
-
-Pour les navigateurs plus anciens, prévoir un fallback flexbox.
-
-== Exemples d'utilisation
-
-=== Intégration complète
+=== Initialisation Sécurisée
 
 [source,typescript]
 ----
-// Dans le composant parent
-export class ProjectFormComponent {
-  previewDatasets: DatasetScored[] = [];
-  currentWeights: CriterionWeight[] = [];
+/**
+ * Initialise le composant ECharts avec gestion d'erreurs complète
+ */
+async ngOnInit(): Promise<void> {
+  if (isPlatformBrowser(this.platformId)) {
+    try {
+      await this.initializeECharts();
+    } catch (error) {
+      console.error('Erreur d\'initialisation ECharts:', error);
+      this.loadingError = error instanceof Error ? error.message : 'Erreur inconnue';
+    }
+  }
+}
 
-  onWeightChange() {
-    // Recalcul automatique de la heatmap
-    this.updatePreview();
+private async initializeECharts(): Promise<void> {
+  this.isEChartsLoading = true;
+  this.loadingError = null;
+
+  try {
+    // Chargement d'ECharts
+    this.echarts = await this.loadECharts();
+    
+    // Initialisation du graphique
+    await this.initChart();
+    
+    // Configuration du redimensionnement
+    this.setupResizeHandler();
+    
+    console.log('Heatmap ECharts initialisée avec succès');
+  } catch (error) {
+    console.error('Erreur lors de l\'initialisation:', error);
+    throw error;
+  } finally {
+    this.isEChartsLoading = false;
   }
 }
 ----
 
-=== Personnalisation avancée
+== Configuration Avancée de la Heatmap
 
-[source,scss]
+=== Options ECharts Optimisées
+
+[source,typescript]
 ----
-// Surcharge des couleurs (dans styles globaux)
-.exai-score-excellent {
-  background: linear-gradient(135deg, #your-color 0%, #your-color-dark 100%) !important;
+/**
+ * Génère la configuration ECharts pour la heatmap de recommandations
+ */
+private getEChartsOption(): any {
+  const datasets = this.datasets.slice(0, 20); // Limitation pour performance
+  const weights = this.weights;
+
+  // Préparation des données au format [x, y, value]
+  const data: [number, number, number][] = [];
+  const yAxisData: string[] = [];
+  const xAxisData: string[] = [];
+
+  // Construction des axes et données
+  datasets.forEach((dataset, datasetIndex) => {
+    // Troncature des noms longs pour l'affichage
+    const displayName = dataset.dataset_name.length > 25 
+      ? dataset.dataset_name.substring(0, 22) + '...'
+      : dataset.dataset_name;
+    yAxisData.push(displayName);
+
+    weights.forEach((weight, weightIndex) => {
+      // Labels des critères (première itération seulement)
+      if (datasetIndex === 0) {
+        xAxisData.push(this.formatCriterionName(weight.criterion_name));
+      }
+
+      // Récupération du score pour ce dataset/critère
+      const score = this.getDatasetScore(dataset, weight.criterion_name);
+      data.push([weightIndex, datasetIndex, score]);
+    });
+  });
+
+  return {
+    // Configuration du tooltip interactif
+    tooltip: {
+      position: 'top',
+      backgroundColor: 'rgba(50, 50, 50, 0.95)',
+      borderColor: '#4575b4',
+      borderWidth: 1,
+      textStyle: {
+        color: '#fff',
+        fontSize: 12
+      },
+      formatter: (params: any) => {
+        const dataset = datasets[params.data[1]];
+        const weight = weights[params.data[0]];
+        const score = params.data[2];
+        const percentage = (score * 100).toFixed(1);
+        
+        // Détermination de la couleur selon le score
+        const scoreColor = this.getScoreColorHex(score);
+        
+        return `
+          <div style="padding: 8px; max-width: 300px;">
+            <div style="margin-bottom: 8px;">
+              <strong style="color: #4575b4;">${dataset.dataset_name}</strong>
+            </div>
+            <div style="margin-bottom: 6px;">
+              <strong>${this.formatCriterionName(weight.criterion_name)}</strong>
+            </div>
+            <div style="margin-bottom: 6px;">
+              Score: <strong style="color: ${scoreColor};">${percentage}%</strong>
+              <span style="margin-left: 8px; color: #ccc;">
+                (Poids: ${(weight.weight * 100).toFixed(0)}%)
+              </span>
+            </div>
+            <hr style="margin: 6px 0; border-color: #666;">
+            <div style="font-size: 11px; color: #ccc;">
+              <div>Instances: ${dataset.instances_number?.toLocaleString() || 'N/A'}</div>
+              <div>Features: ${dataset.features_number || 'N/A'}</div>
+              ${dataset.objective ? `<div>Objectif: ${dataset.objective}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }
+    },
+
+    // Configuration de la grille
+    grid: {
+      height: '75%',
+      top: '5%',
+      left: '25%',
+      right: '5%',
+      bottom: '20%'
+    },
+
+    // Axe des X (critères)
+    xAxis: {
+      type: 'category',
+      data: xAxisData,
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: ['rgba(250,250,250,0.1)', 'rgba(200,200,200,0.1)']
+        }
+      },
+      axisLabel: {
+        rotate: 30,
+        fontSize: 10,
+        color: '#666',
+        margin: 8
+      },
+      axisLine: {
+        lineStyle: { color: '#ccc' }
+      }
+    },
+
+    // Axe des Y (datasets)
+    yAxis: {
+      type: 'category',
+      data: yAxisData,
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: ['rgba(250,250,250,0.1)', 'rgba(200,200,200,0.1)']
+        }
+      },
+      axisLabel: {
+        fontSize: 10,
+        color: '#666',
+        width: 150,
+        overflow: 'truncate'
+      },
+      axisLine: {
+        lineStyle: { color: '#ccc' }
+      }
+    },
+
+    // Échelle de couleurs optimisée
+    visualMap: {
+      min: 0,
+      max: 1,
+      calculable: true,
+      orient: 'horizontal',
+      left: 'center',
+      bottom: '5%',
+      inRange: {
+        color: [
+          '#d73027',  // Rouge (0-20%)
+          '#f46d43',  // Orange-Rouge (20-40%)
+          '#fdae61',  // Orange (40-60%)
+          '#fee08b',  // Jaune-Orange (60-70%)
+          '#e6f598',  // Jaune-Vert (70-80%)
+          '#abdda4',  // Vert clair (80-85%)
+          '#66c2a5',  // Vert (85-90%)
+          '#3288bd',  // Bleu clair (90-95%)
+          '#4575b4'   // Bleu foncé (95-100%)
+        ]
+      },
+      text: ['Excellent (100%)', 'Faible (0%)'],
+      textStyle: {
+        fontSize: 10,
+        color: '#666'
+      },
+      itemWidth: 15,
+      itemHeight: 120
+    },
+
+    // Configuration de la série heatmap
+    series: [{
+      name: 'Scores de Recommandation',
+      type: 'heatmap',
+      data: data,
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 15,
+          shadowColor: 'rgba(0, 0, 0, 0.4)',
+          borderColor: '#4575b4',
+          borderWidth: 2
+        }
+      },
+      label: {
+        show: true,
+        formatter: (params: any) => {
+          const percentage = (params.data[2] * 100).toFixed(0);
+          return percentage + '%';
+        },
+        fontSize: 9,
+        color: '#fff',
+        fontWeight: 'bold'
+      }
+    }],
+
+    // Configuration de l'animation
+    animation: true,
+    animationDuration: 1000,
+    animationEasing: 'cubicOut'
+  };
 }
 ----
 
-Cette documentation couvre l'ensemble des aspects techniques et d'utilisation de la Heat Map de Recommandations, permettant une maintenance efficace et une évolution contrôlée du composant. 
+=== Utilitaires de Formatting
+
+[source,typescript]
+----
+/**
+ * Formate les noms de critères pour l'affichage
+ */
+private formatCriterionName(criterionName: string): string {
+  const nameMap: { [key: string]: string } = {
+    'ethical_score': 'Éthique',
+    'technical_score': 'Technique', 
+    'popularity_score': 'Popularité',
+    'anonymization': 'Anonymisation',
+    'transparency': 'Transparence',
+    'documentation': 'Documentation',
+    'data_quality': 'Qualité',
+    'instances_count': 'Instances',
+    'features_count': 'Features',
+    'citations': 'Citations'
+  };
+  
+  return nameMap[criterionName] || criterionName;
+}
+
+/**
+ * Récupère le score d'un dataset pour un critère donné
+ */
+private getDatasetScore(dataset: any, criterionName: string): number {
+  // Mapping des scores selon le critère
+  switch (criterionName) {
+    case 'ethical_score':
+      return dataset.ethical_score || 0;
+    case 'technical_score':
+      return dataset.technical_score || 0;
+    case 'popularity_score':
+      return dataset.popularity_score || 0;
+    case 'anonymization':
+      return dataset.anonymization_applied ? 1 : 0;
+    case 'transparency':
+      return dataset.transparency ? 1 : 0;
+    case 'documentation':
+      return dataset.external_documentation_available ? 1 : 0;
+    default:
+      return dataset[criterionName] || 0;
+  }
+}
+
+/**
+ * Détermine la couleur hexadécimale selon le score
+ */
+private getScoreColorHex(score: number): string {
+  if (score >= 0.85) return '#4575b4';      // Bleu - Excellent
+  if (score >= 0.60) return '#66c2a5';      // Vert - Bon
+  if (score >= 0.30) return '#fdae61';      // Orange - Moyen
+  return '#d73027';                         // Rouge - Faible
+}
+----
+
+== Gestion de la Performance
+
+=== Optimisation des Données
+
+[source,typescript]
+----
+/**
+ * Optimise les données pour une visualisation fluide
+ */
+private optimizeDataForVisualization(datasets: any[]): any[] {
+  // Limitation à 20 datasets maximum pour éviter la surcharge
+  if (datasets.length <= 20) {
+    return datasets;
+  }
+
+  console.log(`Limitation de ${datasets.length} à 20 datasets pour la visualisation`);
+  
+  // Tri par score décroissant et sélection des 20 meilleurs
+  return datasets
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 20);
+}
+
+/**
+ * Debounce des mises à jour pour éviter les re-rendus excessifs
+ */
+private debouncedUpdate = this.debounce((datasets: any[], weights: any[]) => {
+  this.updateChart(datasets, weights);
+}, 300);
+
+private debounce(func: Function, wait: number): Function {
+  let timeout: any;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+----
+
+=== Gestion du Redimensionnement
+
+[source,typescript]
+----
+/**
+ * Configure la gestion responsive du graphique
+ */
+private setupResizeHandler(): void {
+  if (typeof window !== 'undefined') {
+    const resizeHandler = () => {
+      if (this.chartInstance && !this.chartInstance.isDisposed()) {
+        // Redimensionnement avec délai pour éviter les appels excessifs
+        setTimeout(() => {
+          if (this.chartInstance && !this.chartInstance.isDisposed()) {
+            this.chartInstance.resize();
+          }
+        }, 100);
+      }
+    };
+
+    window.addEventListener('resize', resizeHandler);
+    
+    // Stockage pour cleanup
+    this.resizeListener = () => {
+      window.removeEventListener('resize', resizeHandler);
+    };
+  }
+}
+----
+
+== Tests et Validation
+
+=== Tests Unitaires
+
+[source,typescript]
+----
+describe('RecommendationHeatmapComponent', () => {
+  let component: RecommendationHeatmapComponent;
+  let fixture: ComponentFixture<RecommendationHeatmapComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [RecommendationHeatmapComponent],
+      imports: [
+        MatCardModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatButtonModule
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(RecommendationHeatmapComponent);
+    component = fixture.componentInstance;
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should generate unique echarts ID', () => {
+    const component1 = fixture.componentInstance;
+    const component2 = new RecommendationHeatmapComponent(PLATFORM_ID);
+    
+    expect(component1.echartsId).not.toEqual(component2.echartsId);
+    expect(component1.echartsId).toContain('echarts-heatmap-');
+  });
+
+  it('should format criterion names correctly', () => {
+    expect(component.formatCriterionName('ethical_score')).toBe('Éthique');
+    expect(component.formatCriterionName('technical_score')).toBe('Technique');
+    expect(component.formatCriterionName('popularity_score')).toBe('Popularité');
+  });
+
+  it('should calculate dataset scores correctly', () => {
+    const mockDataset = {
+      ethical_score: 0.8,
+      technical_score: 0.9,
+      popularity_score: 0.7,
+      anonymization_applied: true,
+      transparency: false
+    };
+
+    expect(component.getDatasetScore(mockDataset, 'ethical_score')).toBe(0.8);
+    expect(component.getDatasetScore(mockDataset, 'anonymization')).toBe(1);
+    expect(component.getDatasetScore(mockDataset, 'transparency')).toBe(0);
+  });
+
+  it('should handle CDN loading errors gracefully', async () => {
+    // Mock d'erreur de chargement
+    spyOn(component, 'loadECharts').and.returnValue(
+      Promise.reject(new Error('CDN error'))
+    );
+
+    await component.initializeECharts();
+    
+    expect(component.loadingError).toContain('CDN error');
+    expect(component.isEChartsLoading).toBe(false);
+  });
+});
+----
+
+=== Tests d'Intégration
+
+[source,typescript]
+----
+describe('RecommendationHeatmapComponent Integration', () => {
+  let component: RecommendationHeatmapComponent;
+  let fixture: ComponentFixture<RecommendationHeatmapComponent>;
+
+  it('should render heatmap with real data', async () => {
+    const mockDatasets = [
+      {
+        dataset_id: '1',
+        dataset_name: 'Test Dataset 1',
+        score: 0.85,
+        ethical_score: 0.8,
+        technical_score: 0.9,
+        popularity_score: 0.8,
+        instances_number: 10000,
+        features_number: 25
+      },
+      {
+        dataset_id: '2', 
+        dataset_name: 'Test Dataset 2',
+        score: 0.72,
+        ethical_score: 0.7,
+        technical_score: 0.75,
+        popularity_score: 0.7,
+        instances_number: 5000,
+        features_number: 15
+      }
+    ];
+
+    const mockWeights = [
+      { criterion_name: 'ethical_score', weight: 0.4 },
+      { criterion_name: 'technical_score', weight: 0.4 },
+      { criterion_name: 'popularity_score', weight: 0.2 }
+    ];
+
+    component.datasets = mockDatasets;
+    component.weights = mockWeights;
+
+    await component.initializeECharts();
+    
+    expect(component.chartInstance).toBeDefined();
+    expect(component.loadingError).toBeNull();
+  });
+});
+----
+
+== Déploiement et Maintenance
+
+=== Configuration de Production
+
+[source,env]
+----
+# Configuration ECharts pour production
+ECHARTS_CDN_URL=https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js
+ECHARTS_LOAD_TIMEOUT=10000
+HEATMAP_MAX_DATASETS=20
+HEATMAP_UPDATE_DEBOUNCE=300
+----
+
+=== Monitoring et Logging
+
+[source,typescript]
+----
+/**
+ * Service de monitoring pour la visualisation ECharts
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class EChartsMonitoringService {
+  
+  logEChartsLoad(success: boolean, loadTime: number): void {
+    console.log(`ECharts ${success ? 'chargé' : 'échec'} en ${loadTime}ms`);
+    
+    // Envoi vers service d'analytics si configuré
+    if (environment.analytics) {
+      this.analytics.track('echarts_load', {
+        success,
+        loadTime,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  logHeatmapRender(datasetCount: number, criteriaCount: number): void {
+    console.log(`Heatmap rendue: ${datasetCount} datasets, ${criteriaCount} critères`);
+  }
+}
+----
+
+Cette architecture garantit une **visualisation robuste, performante et maintenable** des recommandations de datasets avec Apache ECharts ! 🎯📊🚀 

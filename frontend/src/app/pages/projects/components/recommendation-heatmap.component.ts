@@ -228,10 +228,40 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
       });
     });
 
-    // Configuration ECharts selon votre exemple
+    // Configuration ECharts avec positionnement intelligent du tooltip
     const option = {
       tooltip: {
-        position: 'top',
+        // Positionnement intelligent selon la position de l'élément
+        position: (point: number[], params: any, dom: any, rect: any, size: any) => {
+          const datasetIndex = params.data[1];
+          const totalDatasets = this.datasets.length;
+          
+          // Si l'élément est dans le tiers supérieur, placer le tooltip en bas
+          if (datasetIndex < totalDatasets / 3) {
+            return [point[0] + 10, point[1] + 20]; // Décalage vers le bas
+          }
+          // Si l'élément est dans le tiers inférieur, placer le tooltip en haut  
+          else if (datasetIndex > (totalDatasets * 2) / 3) {
+            return [point[0] + 10, point[1] - size.contentSize[1] - 20]; // Décalage vers le haut
+          }
+          // Pour le milieu, centrer verticalement
+          else {
+            return [point[0] + 10, point[1] - size.contentSize[1] / 2]; // Centré
+          }
+        },
+        // Confiner le tooltip dans le conteneur pour éviter la coupure
+        confine: true,
+        // Style amélioré du tooltip
+        backgroundColor: 'rgba(50, 50, 50, 0.95)',
+        borderColor: '#4575b4',
+        borderWidth: 2,
+        borderRadius: 8,
+        textStyle: {
+          color: '#fff',
+          fontSize: 12,
+          lineHeight: 20
+        },
+        extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 240px; word-wrap: break-word; overflow-wrap: break-word;',
         formatter: (params: any) => {
           const criterionIndex = params.data[0];
           const datasetIndex = params.data[1];
@@ -240,26 +270,47 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
           const criterion = this.activeCriteria[criterionIndex];
           const dataset = this.datasets[datasetIndex];
           
+          // Couleur selon le score pour le titre
+          const scoreColor = score >= 0.85 ? '#4575b4' : 
+                            score >= 0.60 ? '#66c2a5' : 
+                            score >= 0.30 ? '#fdae61' : '#d73027';
+          
+          // Fonction pour tronquer intelligemment le texte
+          const truncateText = (text: string, maxLength: number) => {
+            if (!text || text.length <= maxLength) return text;
+            return text.substring(0, maxLength).trim() + '...';
+          };
+
           return `
-            <div style="padding: 8px;">
-              <strong>${dataset.dataset_name}</strong><br/>
-              <span style="color: #666;">Critère:</span> ${this.getCriterionLabel(criterion.criterion_name)}<br/>
-              <span style="color: #666;">Score:</span> <strong>${(score * 100).toFixed(1)}%</strong><br/>
-              <span style="color: #666;">Poids:</span> ${(criterion.weight * 100).toFixed(0)}%<br/>
-              <hr style="margin: 8px 0; border: none; border-top: 1px solid #eee;">
-              <span style="color: #666; font-size: 12px;">
-                ${dataset.instances_number?.toLocaleString()} instances
-                ${dataset.features_number ? '• ' + dataset.features_number + ' variables' : ''}
-              </span>
+            <div style="padding: 8px; line-height: 1.3; max-width: 220px; word-wrap: break-word; overflow-wrap: break-word;">
+              <div style="font-weight: bold; color: #4fc3f7; margin-bottom: 6px; font-size: 12px; word-wrap: break-word;">
+                ${truncateText(dataset.dataset_name, 25)}
+              </div>
+              <div style="margin-bottom: 5px;">
+                <strong style="color: #fff; font-size: 11px;">${this.getCriterionLabel(criterion.criterion_name)}</strong>
+              </div>
+              <div style="margin-bottom: 6px;">
+                Score: <strong style="color: ${scoreColor}; font-size: 13px;">${(score * 100).toFixed(1)}%</strong>
+                <span style="margin-left: 8px; color: #ccc; font-size: 10px;">
+                  (${(criterion.weight * 100).toFixed(0)}%)
+                </span>
+              </div>
+              <hr style="margin: 6px 0; border: none; border-top: 1px solid #666;">
+              <div style="color: #ccc; font-size: 10px; word-wrap: break-word;">
+                <div>📊 ${dataset.instances_number?.toLocaleString() || 'N/A'} inst.</div>
+                ${dataset.features_number ? `<div>📋 ${dataset.features_number} var.</div>` : ''}
+                ${dataset.objective ? `<div style="margin-top: 3px; font-style: italic; word-wrap: break-word; overflow-wrap: break-word;">🎯 ${truncateText(dataset.objective, 35)}</div>` : ''}
+              </div>
             </div>
           `;
         }
       },
       grid: {
-        height: '70%',
-        top: '10%',
-        left: '15%',
-        right: '10%'
+        height: '65%',
+        top: '15%',  // Plus d'espace en haut pour les tooltips
+        left: '18%',
+        right: '8%',
+        bottom: '20%' // Plus d'espace en bas aussi
       },
       xAxis: {
         type: 'category',

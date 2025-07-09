@@ -1,152 +1,225 @@
-= Comprendre le Système de Scoring
-:description: Guide utilisateur pour comprendre et interpréter les scores des datasets recommandés
-:keywords: scoring, recommandations, datasets, interprétation
+= Comprendre le Système de Recommandation Avancé
+:description: Guide utilisateur complet pour maîtriser le système de recommandation intelligent d'EXAI avec visualisation Apache ECharts
+:keywords: scoring, recommandations, datasets, heatmap, ECharts, visualisation
 
 [.lead]
-Ce guide vous explique comment fonctionne le système de recommandation d'EXAI et comment interpréter les scores des datasets.
+EXAI utilise un **système de recommandation intelligent** avec visualisation interactive pour vous aider à choisir les meilleurs datasets pour vos projets d'IA éthique.
 
-== Comment ça marche ?
+== 🚀 Nouveautés du Système
 
-Lorsque vous créez un projet, EXAI évalue automatiquement **tous les datasets disponibles** et les classe selon leur pertinence pour votre projet. Chaque dataset reçoit un **score de 0% à 100%**.
+=== Visualisation Apache ECharts
 
-=== Les 3 Critères Principaux
+Notre nouvelle **Heat Map interactive** utilise **Apache ECharts** pour offrir :
 
-Le score final combine **3 dimensions importantes** :
+- ✨ **Visualisation en temps réel** des scores par critère
+- 🎯 **Interaction native** avec zoom et tooltips détaillés  
+- 📊 **Comparaison visuelle** instantanée entre datasets
+- 🎨 **Échelle de couleurs progressive** (Rouge → Orange → Vert → Bleu)
+- 📱 **Design responsive** adaptatif desktop/mobile
 
-[cols="1,3,1"]
+=== Amélirations de l'Algorithme
+
+- 🧠 **Scoring plus précis** avec formules mathématiques optimisées
+- ⚖️ **Pondération personnalisable** en temps réel
+- 🔍 **Filtrage avancé** multi-critères
+- 📈 **Aperçu instantané** des top recommandations
+
+== Comment Ça Marche ?
+
+=== 1. Saisie de Vos Critères
+
+Lors de la création d'un projet, définissez :
+- 📝 **Objectif du projet** (mots-clés, description)
+- 🏷️ **Domaine d'application** (éducation, santé, finance...)
+- 🎯 **Type de tâche ML** (classification, régression, NLP...)
+- ⚙️ **Exigences techniques** (taille, qualité, période...)
+
+=== 2. Calcul Intelligent des Scores
+
+EXAI évalue **automatiquement tous les datasets** selon **3 dimensions** :
+
+[cols="1,3,1,1"]
 |===
-|Critère |Description |Poids par défaut
+|Critère |Évaluation |Poids défaut |Ajustable
 
 |**🛡️ Éthique**
-|Respect des principes de protection des données (anonymisation, consentement, transparence)
+|Anonymisation, consentement, transparence, équité, sécurité
 |**40%**
+|✅ 0-100%
 
 |**⚙️ Technique** 
-|Qualité du dataset (taille, documentation, format, valeurs manquantes)
+|Documentation, qualité, taille, format, valeurs manquantes
 |**40%**
+|✅ 0-100%
 
 |**📈 Popularité**
-|Reconnaissance académique et nombre de citations
+|Citations académiques, reconnaissance communautaire
 |**20%**
+|✅ 0-100%
 |===
 
-== Comprendre les Scores
+=== 3. Visualisation Interactive
 
-=== Échelle de Qualité
+La **Heat Map ECharts** vous montre instantanément :
+- 📊 **Score de chaque dataset** sur chaque critère
+- 🎨 **Codage couleur** intuitif (Rouge=faible, Bleu=excellent)
+- 💡 **Tooltips détaillés** au survol avec métadonnées
+- ⚖️ **Impact des poids** en temps réel
+
+== 🎯 Interpréter les Scores
+
+=== Échelle de Performance ECharts
+
+La Heat Map utilise un **gradient de couleurs intelligent** :
 
 [.score-excellent]
-**90-100% - Excellent** 🏆 +
-Dataset de très haute qualité, fortement recommandé pour votre projet.
+**🔵 85-100% - Excellent** 🏆 +
+Couleur : Bleu → Dataset exceptionnel, choix optimal
 
 [.score-good]
-**75-89% - Très bon** ✅ +
-Recommandé avec confiance, quelques points d'amélioration mineurs.
+**🟢 60-85% - Bon** ✅ +
+Couleur : Vert → Fortement recommandé, qualité élevée
 
 [.score-medium]
-**60-74% - Bon** ⚠️ +
-Utilisable avec quelques réserves, vérifiez les critères importants pour vous.
+**🟠 30-60% - Moyen** ⚠️ +
+Couleur : Orange → Utilisable avec réserves, vérifiez vos priorités
 
 [.score-low]
-**40-59% - Moyen** ⚡ +
-Acceptable mais avec des limitations notables.
+**🔴 0-30% - Faible** ❌ +
+Couleur : Rouge → Non recommandé, qualité insuffisante
 
-[.score-poor]
-**0-39% - Faible** ❌ +
-Non recommandé, qualité insuffisante ou inadapté à votre projet.
+=== Navigation dans la Heat Map
 
-=== Exemples Concrets
+==== Interaction avec les Cellules
+- **👆 Clic** : Sélectionner un dataset pour plus de détails
+- **🖱️ Survol** : Affichage instantané des informations détaillées
+- **🔍 Tooltip** : Score exact, poids appliqué, métadonnées
 
-**Dataset A - Score 95%** 🌟
-- ✅ Anonymisation complète
-- ✅ Documentation détaillée  
-- ✅ 130M d'instances
-- ✅ 847 citations académiques
-- ➡️ **Excellent choix !**
+==== Légende Interactive
+- **📊 Échelle visuelle** : Comprendre l'intensité des couleurs
+- **⚖️ Poids actifs** : Voir quels critères influencent les scores
+- **📈 Statistiques** : Nombre de datasets analysés et critères évalués
 
-**Dataset B - Score 52%** ⚠️
-- ⚠️ Anonymisation partielle
-- ✅ Bien documenté
-- ❌ Seulement 5,000 instances
-- ❌ Aucune citation
-- ➡️ **Utilisable mais limitations**
+== 🛠️ Personnalisation Avancée
 
-== Personnaliser les Recommandations
+=== Ajustement des Poids en Temps Réel
 
-=== Ajuster les Poids
+**Utilisez les sliders** pour modifier l'importance de chaque critère et voir **immédiatement l'impact** sur la Heat Map :
 
-Vous pouvez **modifier l'importance** de chaque critère selon vos priorités :
+**🎓 Projet de Recherche Académique**
+[source,text]
+----
+Éthique     : 30% ⬇️  (Critères flexibles)
+Technique   : 40% →   (Qualité importante)
+Popularité  : 30% ⬆️  (Citations cruciales)
+----
 
-**Pour un projet académique** 📚
-- Éthique : 30%
-- Technique : 40% 
-- Popularité : **30%** ⬆️
+**🏭 Application Industrielle**
+[source,text]
+----
+Éthique     : 60% ⬆️  (Conformité réglementaire)
+Technique   : 40% →   (Performance requise)
+Popularité  : 0%  ⬇️  (Non pertinent)
+----
 
-**Pour un projet industriel** 🏭
-- Éthique : **50%** ⬆️
-- Technique : **50%** ⬆️
-- Popularité : 0% ⬇️
+**⚡ Prototype Rapide**
+[source,text]
+----
+Éthique     : 20% ⬇️  (Contraintes allégées)
+Technique   : 80% ⬆️  (Facilité d'utilisation)
+Popularité  : 0%  ⬇️  (Validation non requise)
+----
 
-**Pour un prototype rapide** ⚡
-- Éthique : 20% ⬇️
-- Technique : **80%** ⬆️
-- Popularité : 0% ⬇️
+=== Filtres Intelligents
 
-=== Filtres Avancés
+**Filtrage Multi-Critères :**
+- 🏢 **Secteur** : Éducation, Santé, Finance, Transport, Commerce
+- 📊 **Taille** : Instances (min/max), Variables (min/max)
+- 📅 **Période** : Année de création (2015-2024)
+- 🔒 **Exigences** : Anonymisé, Public, Pré-divisé
+- ⭐ **Qualité** : Score éthique minimum
 
-Utilisez les **filtres** pour affiner la sélection :
+== 📱 Interface Utilisateur Moderne
 
-- **Domaine** : Éducation, Santé, Finance...
-- **Taille** : Nombre d'instances minimum/maximum
-- **Qualité** : Score éthique minimum
-- **Caractéristiques** : Anonymisé, public, pré-divisé
+=== Zone d'Aperçu Temps Réel
 
-== Questions Fréquentes
+**Panel de droite** avec mise à jour instantanée :
+- 📊 **Compteur dynamique** : X datasets trouvés
+- 🏆 **Top 3 recommandations** avec scores en direct
+- ⚖️ **Explication des poids** appliqués
+- 💡 **Conseils contextuel** selon vos critères
 
-**Q: Pourquoi mon dataset préféré a un score faible ?**
-A: Le score reflète la qualité globale. Vérifiez les critères spécifiques (éthique, documentation, taille) et ajustez les poids selon vos priorités.
+=== Heat Map Apache ECharts
 
-**Q: Puis-je utiliser un dataset avec un score de 40% ?**
-A: Oui, mais soyez conscient des limitations. Consultez le détail des scores pour identifier les points faibles.
+**Visualisation centrale interactive :**
+- 📐 **Grille responsive** adaptée au nombre de critères
+- 🎨 **Dégradé de couleurs** optimisé pour l'accessibilité
+- 📱 **Défilement horizontal** automatique si nécessaire
+- ⚡ **Animations fluides** lors des changements de paramètres
 
-**Q: Comment améliorer les recommandations ?**
-A: 1) Soyez précis dans vos critères de recherche, 2) Ajustez les poids selon vos priorités, 3) Utilisez les filtres pour cibler vos besoins.
+=== Informations Contextuelles
 
-**Q: Les scores changent-ils ?**
-A: Oui, ils s'adaptent à vos critères et pondérations. Modifiez les poids pour voir l'impact sur le classement.
+**Barre d'informations** sous la Heat Map :
+- 📊 **X critères analysés** - Nombre de dimensions évaluées
+- 🗃️ **Y datasets comparés** - Taille de l'échantillon analysé
+- 🖱️ **Apache ECharts CDN** - Technologie de visualisation utilisée
 
-== Interface Utilisateur
+== ❓ Questions Fréquentes Avancées
 
-=== Zone d'Aperçu
+**Q: Pourquoi la Heat Map change quand je modifie les poids ?**
+A: C'est normal ! Les couleurs reflètent les **scores recalculés en temps réel** selon vos nouvelles priorités.
 
-Dans la création de projet, la **zone d'aperçu** vous montre :
-- Le **nombre de datasets** trouvés
-- Les **3 meilleurs** avec leurs scores
-- L'**explication des poids** utilisés
+**Q: Comment interpréter une ligne très colorée vs une ligne terne ?**
+A: 
+- **Ligne avec couleurs vives** → Dataset performant sur certains critères
+- **Ligne uniformément terne** → Dataset médiocre sur tous les critères
+- **Ligne contrastée** → Forces et faiblesses marquées
 
-=== Heat Map
+**Q: La Heat Map ne s'affiche pas ?**
+A: Vérifiez que :
+1. Vous avez défini au moins un poids > 0%
+2. Votre connexion permet de charger Apache ECharts (CDN)
+3. JavaScript est activé dans votre navigateur
 
-La **heat map** (en bas) visualise :
-- Les **scores détaillés** par critère
-- L'**impact de chaque poids**
-- La **comparaison** entre datasets
+**Q: Comment comparer efficacement plusieurs datasets ?**
+A: 
+1. Regardez les **colonnes verticalement** pour comparer sur un critère
+2. Regardez les **lignes horizontalement** pour le profil d'un dataset
+3. Utilisez les **tooltips** pour les détails exacts
 
-=== Tooltips
+**Q: Puis-je exporter ou sauvegarder la Heat Map ?**
+A: Clic droit sur la Heat Map → "Enregistrer l'image sous..." (fonctionnalité native d'ECharts)
 
-Survolez les **scores** pour voir :
-- Le **détail par critère**
-- Les **pourcentages de poids**
-- Des **conseils d'interprétation**
+== 🎯 Bonnes Pratiques Avancées
 
-== Bonnes Pratiques
+=== Stratégie de Sélection
 
-✅ **Commencez large** : Utilisez d'abord les poids par défaut
+✅ **1. Exploration Large**
+- Commencez avec les poids par défaut
+- Observez la distribution générale dans la Heat Map
+- Identifiez les clusters de performance
 
-✅ **Affinez progressivement** : Ajustez les critères selon vos résultats
+✅ **2. Affinement Progressif**
+- Ajustez UN poids à la fois
+- Observez l'impact sur les couleurs
+- Notez les datasets qui changent de rang
 
-✅ **Comparez plusieurs datasets** : Ne vous limitez pas au premier
+✅ **3. Validation Croisée**
+- Vérifiez les tooltips des top candidats
+- Comparez les profils de performance
+- Consultez la documentation détaillée
 
-✅ **Vérifiez les détails** : Consultez la fiche complète avant de choisir
+✅ **4. Test d'Impact**
+- Testez des configurations de poids extrêmes
+- Identifiez vos critères vraiment critiques
+- Revenez à une configuration équilibrée
 
-✅ **Documentez votre choix** : Notez pourquoi vous avez sélectionné ce dataset
+=== Optimisation des Performances
 
-Cette approche garantit des choix éclairés et adaptés à vos besoins spécifiques ! 🎯 
+🚀 **Pour des résultats optimaux :**
+- Utilisez des critères de recherche **précis** 
+- Appliquez des **filtres préliminaires** pour réduire l'ensemble
+- **Sauvegardez** vos configurations de poids favorites
+- **Documentez** votre processus de sélection pour la reproductibilité
+
+Cette approche méthodologique garantit des choix de datasets **éclairés, justifiés et optimaux** pour vos projets d'IA éthique ! 🎯🚀 

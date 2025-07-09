@@ -1,28 +1,27 @@
-* xref:index.adoc[Accueil Projet EXAI]
-
-* xref:getting-started.adoc[🚀 Installation & Démarrage]
+* xref:index.adoc[Accueil]
+* xref:getting-started.adoc[Démarrage Rapide]
 
 * Guide Utilisateur
-** xref:user-guide/index.adoc[Présentation]
-** xref:user-guide/dataset-selection.adoc[📊 Sélection de Datasets]
-*** xref:user-guide/datasets-oulad.adoc[📚 Dataset OULAD]
-** xref:user-guide/project-management.adoc[📁 Gestion des Projets]
-** xref:user-guide/scoring-system.adoc[🎯 Comprendre les Scores]
-** xref:user-guide/ml-pipeline.adoc[🛠️ Pipeline ML Interactif]
-** xref:user-guide/xai-recommendation.adoc[💡 Recommandations XAI]
+** xref:user-guide/index.adoc[Vue d'ensemble]
+** xref:user-guide/project-management.adoc[Gestion des Projets]
+** xref:user-guide/dataset-selection.adoc[Sélection de Datasets] 
+** xref:user-guide/scoring-system.adoc[🚀 Système de Recommandation Avancé]
+** xref:user-guide/ml-pipeline.adoc[Pipeline Machine Learning]
+** xref:user-guide/xai-recommendation.adoc[Recommandations XAI]
+** xref:user-guide/datasets-oulad.adoc[Datasets OULAD]
 
-* Guide Développeur
-** xref:dev-guide/index.adoc[Présentation]
-** xref:dev-guide/architecture.adoc[Architecture Technique]
-** xref:dev-guide/database-schema.adoc[🗄️ Structure Base de Données]
-** xref:dev-guide/datasets-scoring-algorithm.adoc[🔍 Algorithme de Scoring des Datasets]
-** xref:dev-guide/secrets-management.adoc[🔐 Gestion des Secrets]
-** xref:dev-guide/heatmap-visualization.adoc[📊 Heat Map de Recommandations]
-** xref:development/database-migrations.adoc[Migrations Base de Données (Alembic)]
-** xref:development/azure-deployment.adoc[Déploiement Azure]
+* Guide Développeur  
+** xref:dev-guide/index.adoc[Architecture Générale]
+** xref:dev-guide/architecture.adoc[Documentation Architecture]
 ** xref:dev-guide/api-reference.adoc[Référence API]
+** xref:dev-guide/database-schema.adoc[Schéma Base de Données]
+** xref:dev-guide/datasets-filtering-scoring.adoc[Filtrage et Scoring]
+** xref:dev-guide/datasets-scoring-algorithm.adoc[🧠 Algorithme de Scoring Avancé]
+** xref:dev-guide/heatmap-visualization.adoc[📊 Visualisation ECharts]
+** xref:dev-guide/frontend-authentication.adoc[Authentification Frontend] 
+** xref:dev-guide/sidebar-user-profile.adoc[Profil Utilisateur]
+** xref:dev-guide/secrets-management.adoc[Gestion des Secrets]
 
-// Optionnel: Section Concepts
-// * Concepts Clés
-// ** xref:concepts/xai-methods.adoc[Méthodes XAI]
-// ** xref:concepts/ethics-gdpr.adoc[Éthique & RGPD] 
+* Déploiement
+** xref:development/database-migrations.adoc[Migrations Base de Données]
+** xref:development/azure-deployment.adoc[Déploiement Azure] 
