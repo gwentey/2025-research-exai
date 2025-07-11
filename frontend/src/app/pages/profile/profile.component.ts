@@ -47,19 +47,25 @@ export class ProfileComponent implements OnInit {
   selectedFile: File | null = null;
   imagePreview: string | null = null;
 
-  // Langues disponibles
-  get languages() {
-    return [
+  // Langues disponibles - initialisées une seule fois pour éviter les problèmes de performance
+  languages: Array<{code: string, name: string}> = [];
+
+  ngOnInit(): void {
+    this.initializeLanguages();
+    this.initializeForms();
+    this.loadUserProfile();
+  }
+
+  /**
+   * Initialise la liste des langues une seule fois
+   */
+  initializeLanguages(): void {
+    this.languages = [
       { code: 'fr', name: this.translateService.instant('PROFILE.LANGUAGES.FRENCH') },
       { code: 'en', name: this.translateService.instant('PROFILE.LANGUAGES.ENGLISH') },
       { code: 'es', name: this.translateService.instant('PROFILE.LANGUAGES.SPANISH') },
       { code: 'de', name: this.translateService.instant('PROFILE.LANGUAGES.GERMAN') }
     ];
-  }
-
-  ngOnInit(): void {
-    this.initializeForms();
-    this.loadUserProfile();
   }
 
   /**
@@ -95,14 +101,28 @@ export class ProfileComponent implements OnInit {
    * Charge les informations du profil utilisateur
    */
   loadUserProfile(): void {
+    // Ajouter un indicateur de chargement
+    this.isLoadingProfile = true;
+    
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
         this.currentUser = user;
         this.updateFormWithUserData(user);
         this.imagePreview = user.picture || null;
+        this.isLoadingProfile = false;
+        console.log('Profil utilisateur chargé avec succès:', user);
       },
       error: (error) => {
+        this.isLoadingProfile = false;
         console.error('Erreur lors du chargement du profil:', error);
+        
+        // Si l'erreur est liée à l'authentification, rediriger vers login
+        if (error.message && error.message.includes('token')) {
+          console.warn('Problème de token détecté, redirection vers login');
+          this.authService.logout();
+          return;
+        }
+        
         this.showError(this.translateService.instant('PROFILE.ERRORS.LOAD_PROFILE'));
       }
     });

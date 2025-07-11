@@ -22,6 +22,32 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
 
     class Config:
         from_attributes = True
+        
+    @classmethod
+    def from_orm_user(cls, user):
+        """Méthode utilitaire pour convertir un utilisateur SQLAlchemy en UserRead"""
+        oauth_accounts_data = []
+        for oauth_account in user.oauth_accounts:
+            oauth_accounts_data.append(OAuthAccountRead(
+                id=oauth_account.id,
+                oauth_name=oauth_account.oauth_name,
+                account_id=oauth_account.account_id,
+                account_email=oauth_account.account_email
+            ))
+        
+        return cls(
+            id=user.id,
+            email=user.email,
+            is_active=user.is_active,
+            is_superuser=user.is_superuser,
+            is_verified=user.is_verified,
+            pseudo=user.pseudo,
+            picture=user.picture,
+            given_name=user.given_name,
+            family_name=user.family_name,
+            locale=user.locale,
+            oauth_accounts=oauth_accounts_data
+        )
 
 # Schéma Pydantic pour la création d'un utilisateur
 class UserCreate(schemas.BaseUserCreate):

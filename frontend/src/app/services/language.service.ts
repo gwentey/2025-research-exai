@@ -33,19 +33,28 @@ export class LanguageService {
   public currentLanguage$ = this.currentLanguageSubject.asObservable();
 
   constructor(private translate: TranslateService) {
-    this.initializeLanguage();
+    // L'initialisation sera gérée par AppComponent
+    // On attend que TranslateService soit prêt
+    this.translate.onLangChange.subscribe((event) => {
+      const language = this.availableLanguages.find(lang => lang.code === event.lang);
+      if (language) {
+        this.currentLanguageSubject.next(language);
+      }
+    });
   }
 
+
+
   /**
-   * Initialise la langue au démarrage de l'application
+   * Initialise la langue au premier chargement
    */
-  private initializeLanguage(): void {
+  public initializeLanguage(): void {
     const savedLang = this.getSavedLanguage();
     if (savedLang) {
       this.setLanguage(savedLang, false);
     } else {
       // Détecter la langue du navigateur
-      const browserLang = this.translate.getBrowserLang() || 'en';
+      const browserLang = this.translate.getBrowserLang() || 'fr';
       const detectedLang = this.availableLanguages.find(lang => lang.code === browserLang);
       this.setLanguage(detectedLang || this.availableLanguages[0], true);
     }

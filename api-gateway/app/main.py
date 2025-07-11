@@ -454,7 +454,7 @@ def read_users_me(current_user: UserModel = Depends(current_active_user)):
     Renvoie les informations de l'utilisateur actuellement authentifié.
     Nécessite seulement que l'utilisateur soit actif (pas de vérification).
     """
-    return current_user
+    return UserRead.from_orm_user(current_user)
 
 @app.get("/users/me/debug", tags=["users"])
 async def debug_user_info(
@@ -535,12 +535,15 @@ async def update_user_profile(
         # Sauvegarder les modifications
         logger.info("DEBUG: About to commit changes")
         await session.commit()
-        logger.info("DEBUG: Commit successful, refreshing user")
-        await session.refresh(user_in_session)
-        logger.info("DEBUG: Refresh successful")
+        logger.info("DEBUG: Commit successful")
+        
+        # Récupérer l'utilisateur mis à jour avec les relations chargées
+        stmt_updated = select(UserModel).where(UserModel.id == current_user.id)
+        result_updated = await session.execute(stmt_updated)
+        updated_user = result_updated.unique().scalar_one()
         
         logger.info(f"Profil mis à jour avec succès pour l'utilisateur {current_user.id}")
-        return UserRead.model_validate(user_in_session)
+        return UserRead.from_orm_user(updated_user)
         
     except HTTPException:
         # Re-lever les HTTPException telles quelles
@@ -659,7 +662,7 @@ async def update_user_picture(
         await session.refresh(user_in_session)
         
         logger.info(f"Image de profil mise à jour avec succès pour l'utilisateur {current_user.id}")
-        return UserRead.model_validate(user_in_session)
+        return UserRead.from_orm_user(user_in_session)
         
     except HTTPException:
         # Re-lever les HTTPException telles quelles
@@ -730,7 +733,7 @@ async def register_user(
                     await session.commit()
                 
                 # Retourner les infos utilisateur sans le mot de passe
-                return UserRead.model_validate(created_user)
+                return UserRead.from_orm_user(created_user)
             except Exception as user_error:
                 # S'assurer que la session est annulée en cas d'erreur
                 try:

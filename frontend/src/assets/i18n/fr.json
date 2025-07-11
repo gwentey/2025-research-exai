@@ -59,6 +59,9 @@
       "TERMS_REQUIRED": "Vous devez accepter les conditions pour continuer"
     }
   },
+  "COMMON": {
+    "LOADING": "Chargement..."
+  },
   "DASHBOARD": {
     "TITLE": "Tableau de Bord EXAI",
     "SUBTITLE": "Vue d'ensemble de votre plateforme d'IA explicable",
@@ -346,33 +349,78 @@
   },
   "PROFILE": {
     "TITLE": "Profil Utilisateur",
-    "PERSONAL_INFO": "Informations Personnelles",
-    "FIRST_NAME": "Prénom",
-    "LAST_NAME": "Nom",
-    "EMAIL": "E-mail",
-    "PSEUDO": "Nom d'utilisateur",
-    "ROLE": "Rôle",
-    "ADMIN": "Administrateur",
-    "USER": "Utilisateur",
-    "ACCOUNT_SETTINGS": "Paramètres du Compte",
-    "LANGUAGE": "Langue",
-    "THEME": "Thème",
-    "NOTIFICATIONS": "Notifications",
-    "SAVE_CHANGES": "Enregistrer les Modifications",
+    "SUBTITLE": "Gérez vos informations personnelles et préférences",
+    "BACK_TO_DASHBOARD": "Retour au Tableau de Bord",
+    "CHANGE_PHOTO": "Changer la Photo",
+    "UPLOADING": "Téléchargement...",
+    "CONFIRM": "Confirmer",
     "CANCEL": "Annuler",
-    "PROFILE_UPDATED": "Profil mis à jour avec succès",
-    "CHANGE_PASSWORD": "Changer le Mot de Passe",
-    "CURRENT_PASSWORD": "Mot de passe actuel",
-    "NEW_PASSWORD": "Nouveau mot de passe",
-    "CONFIRM_NEW_PASSWORD": "Confirmer le nouveau mot de passe",
-    "SECURITY": "Paramètres de Sécurité",
-    "PREFERENCES": "Préférences",
-    "GIVEN_NAME": "Prénom",
-    "FAMILY_NAME": "Nom de famille",
-    "LOCALE": "Langue Préférée",
-    "PICTURE": "Photo de Profil",
-    "UPLOAD_PICTURE": "Télécharger une Nouvelle Photo",
-    "REMOVE_PICTURE": "Supprimer la Photo"
+    "STATUS": {
+      "VERIFIED": "Vérifié",
+      "ACTIVE": "Actif"
+    },
+    "PERSONAL_INFO": {
+      "TITLE": "Informations Personnelles",
+      "EMAIL": "Adresse E-mail",
+      "EMAIL_PLACEHOLDER": "Votre adresse e-mail",
+      "EMAIL_READONLY": "L'adresse e-mail ne peut pas être modifiée",
+      "PSEUDO": "Nom d'utilisateur",
+      "PSEUDO_PLACEHOLDER": "Choisissez un nom d'utilisateur",
+      "LANGUAGE": "Langue",
+      "FIRST_NAME": "Prénom",
+      "FIRST_NAME_PLACEHOLDER": "Votre prénom",
+      "LAST_NAME": "Nom de famille",
+      "LAST_NAME_PLACEHOLDER": "Votre nom de famille",
+      "RESET": "Réinitialiser",
+      "SAVE": "Enregistrer",
+      "SAVING": "Enregistrement..."
+    },
+    "LANGUAGES": {
+      "FRENCH": "Français",
+      "ENGLISH": "Anglais",
+      "SPANISH": "Espagnol",
+      "GERMAN": "Allemand"
+    },
+         "PASSWORD": {
+       "TITLE": "Changer le Mot de Passe",
+       "CURRENT_PASSWORD": "Mot de passe actuel",
+       "CURRENT_PASSWORD_PLACEHOLDER": "Saisissez votre mot de passe actuel",
+       "NEW_PASSWORD": "Nouveau mot de passe",
+       "NEW_PASSWORD_PLACEHOLDER": "Choisissez un nouveau mot de passe",
+       "CONFIRM_PASSWORD": "Confirmer le mot de passe",
+       "CONFIRM_PASSWORD_PLACEHOLDER": "Confirmez votre nouveau mot de passe",
+       "SAVE": "Changer le Mot de Passe",
+       "SAVING": "Modification...",
+       "RESET": "Réinitialiser"
+     },
+     "SECURITY": {
+       "TITLE": "Paramètres de Sécurité",
+       "CURRENT_PASSWORD": "Mot de passe actuel",
+       "CURRENT_PASSWORD_PLACEHOLDER": "Saisissez votre mot de passe actuel",
+       "CURRENT_PASSWORD_REQUIRED": "Le mot de passe actuel est obligatoire",
+       "NEW_PASSWORD": "Nouveau mot de passe",
+       "NEW_PASSWORD_PLACEHOLDER": "Choisissez un nouveau mot de passe",
+       "NEW_PASSWORD_REQUIRED": "Le nouveau mot de passe est obligatoire",
+       "PASSWORD_MIN_LENGTH": "Le mot de passe doit contenir au moins 8 caractères",
+       "CONFIRM_PASSWORD": "Confirmer le mot de passe",
+       "CONFIRM_PASSWORD_PLACEHOLDER": "Confirmez votre nouveau mot de passe",
+       "CONFIRM_PASSWORD_REQUIRED": "La confirmation du mot de passe est obligatoire",
+       "PASSWORDS_MISMATCH": "Les mots de passe ne correspondent pas",
+       "CANCEL": "Annuler",
+       "UPDATING": "Mise à jour...",
+       "UPDATE_PASSWORD": "Modifier le Mot de Passe"
+     },
+    "MESSAGES": {
+      "PROFILE_UPDATED": "Profil mis à jour avec succès",
+      "PASSWORD_UPDATED": "Mot de passe modifié avec succès",
+      "PICTURE_UPLOADED": "Photo de profil mise à jour"
+    },
+    "ERRORS": {
+      "LOAD_PROFILE": "Erreur lors du chargement du profil",
+      "UPDATE_PROFILE": "Erreur lors de la mise à jour du profil",
+      "UPDATE_PASSWORD": "Erreur lors du changement de mot de passe",
+      "UPLOAD_PICTURE": "Erreur lors du téléchargement de la photo"
+    }
   },
   "DASHBOARD": {
     "TITLE": "Tableau de Bord ExAI",

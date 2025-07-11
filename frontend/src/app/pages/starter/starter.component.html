@@ -1,163 +1,18 @@
-<!-- ============================================================== -->
-<!-- Dashboard EXAI Principal -->
-<!-- ============================================================== -->
-
-<!-- Header du Dashboard -->
-<div class="dashboard-header mb-24">
-  <div class="d-flex justify-content-between align-items-center">
-    <div>
-      <h1 class="dashboard-title">{{ dashboardTitle }}</h1>
-      <p class="dashboard-subtitle text-muted">{{ dashboardSubtitle }}</p>
-    </div>
-    <div class="d-flex gap-12">
-      <button mat-stroked-button color="primary">
-        <i-tabler name="refresh" class="icon-18 m-r-8"></i-tabler>
-        {{ refreshLabel }}
-      </button>
-      <button mat-flat-button color="primary" [routerLink]="['/datasets']">
-        <i-tabler name="plus" class="icon-18 m-r-8"></i-tabler>
-        {{ newProjectLabel }}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Métriques principales -->
-<div class="row mb-24">
-  <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12" *ngFor="let metric of dashboardMetrics">
-    <mat-card class="metric-card cardWithShadow">
-      <mat-card-content class="p-24">
-        <div class="d-flex justify-content-between align-items-start">
-          <div class="metric-content">
-            <div class="metric-icon {{ metric.color }} mb-16">
-              <i-tabler [name]="metric.icon" class="icon-24"></i-tabler>
-            </div>
-            <h3 class="metric-value">{{ metric.value }}</h3>
-            <p class="metric-title">{{ metric.title }}</p>
-            <span class="metric-change" [ngClass]="getChangeClass(metric.changeType)" *ngIf="metric.change">
-              {{ metric.change }}
-            </span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-</div>
-
-<!-- Contenu principal du dashboard -->
-<div class="row">
-  <!-- Section gauche -->
-  <div class="col-xl-8 col-lg-8">
-    
-    <!-- Activité récente -->
-    <mat-card class="activity-card cardWithShadow mb-24">
-      <mat-card-header class="card-header-custom">
-        <div class="d-flex justify-content-between align-items-center w-100">
-          <div>
-            <mat-card-title class="card-title-modern">{{ activityTitle }}</mat-card-title>
-            <mat-card-subtitle>{{ activitySubtitle }}</mat-card-subtitle>
-          </div>
-          <button mat-icon-button>
-            <i-tabler name="dots" class="icon-20"></i-tabler>
-          </button>
-        </div>
-      </mat-card-header>
-      <mat-card-content class="p-0">
-        <div class="activity-list">
-          <div class="activity-item" *ngFor="let activity of recentActivities">
-            <div class="activity-icon {{ activity.color }}">
-              <i-tabler [name]="activity.icon" class="icon-18"></i-tabler>
-            </div>
-            <div class="activity-details">
-              <h6 class="activity-title">{{ activity.title }}</h6>
-              <p class="activity-description">{{ activity.description }}</p>
-              <span class="activity-time">{{ activity.timestamp }}</span>
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Statistiques des datasets -->
-    <mat-card class="stats-card cardWithShadow">
-      <mat-card-header class="card-header-custom">
-        <mat-card-title class="card-title-modern">{{ datasetsTitle }}</mat-card-title>
-        <mat-card-subtitle>{{ datasetsSubtitle }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="stats-grid">
-          <div class="stat-item" *ngFor="let stat of datasetStats.byDomain">
-            <div class="stat-bar">
-              <div class="stat-fill" [style.background-color]="stat.color" 
-                   [style.width.%]="datasetStats.total > 0 ? (stat.value / datasetStats.total) * 100 : 0">
-              </div>
-            </div>
-            <div class="stat-info">
-              <span class="stat-label">{{ stat.name }}</span>
-              <span class="stat-value">{{ stat.value }}</span>
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Section droite -->
-  <div class="col-xl-4 col-lg-4">
-    
-    <!-- Actions rapides -->
-    <mat-card class="quick-actions-card cardWithShadow mb-24">
-      <mat-card-header class="card-header-custom">
-        <mat-card-title class="card-title-modern">{{ quickActionsTitle }}</mat-card-title>
-        <mat-card-subtitle>{{ quickActionsSubtitle }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content class="p-16">
-        <div class="quick-actions-grid">
-          <button 
-            mat-flat-button 
-            class="quick-action-btn"
-            *ngFor="let action of quickActions"
-            [disabled]="action.disabled"
-            [routerLink]="action.disabled ? null : [action.route]"
-            [ngClass]="'quick-action-' + action.color">
-            <div class="quick-action-content">
-              <div class="quick-action-icon">
-                <i-tabler [name]="action.icon" class="icon-20"></i-tabler>
-              </div>
-              <div class="quick-action-text">
-                <h6 class="quick-action-title">{{ action.title }}</h6>
-                <p class="quick-action-desc">{{ action.description }}</p>
-              </div>
-            </div>
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- État du système -->
-    <mat-card class="system-status-card cardWithShadow">
-      <mat-card-header class="card-header-custom">
-        <mat-card-title class="card-title-modern">{{ systemStatusTitle }}</mat-card-title>
-        <mat-card-subtitle>{{ systemStatusSubtitle }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content class="p-20">
-        <div class="status-list">
-          <div class="status-item" *ngFor="let status of systemStatuses">
-            <div class="status-indicator" [ngClass]="status.status"></div>
-            <div class="status-details">
-              <span class="status-name">{{ status.name }}</span>
-              <span class="status-value">{{ status.value }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="system-info mt-20">
-          <div class="info-item">
-            <i-tabler name="clock" class="icon-16 text-muted"></i-tabler>
-            <span class="text-muted">{{ lastUpdateLabel }}</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+<!-- Page vide et simple -->
+<div class="container-fluid p-24">
+  <mat-card class="cardWithShadow">
+    <mat-card-content class="p-48 text-center">
+      <h1 class="mat-h1 m-b-16">Bienvenue sur EXAI</h1>
+      <p class="mat-body-1 text-muted">Page d'accueil simple - Aucun problème de traduction ici !</p>
+      
+      <div class="m-t-32">
+        <button mat-flat-button color="primary" routerLink="/datasets">
+          Voir les datasets
+        </button>
+        <button mat-stroked-button class="m-l-16" routerLink="/projects">
+          Voir les projets
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

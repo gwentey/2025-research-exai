@@ -59,6 +59,9 @@
       "TERMS_REQUIRED": "You must accept the terms to continue"
     }
   },
+  "COMMON": {
+    "LOADING": "Loading..."
+  },
   "DASHBOARD": {
     "TITLE": "EXAI Dashboard",
     "SUBTITLE": "Overview of your explainable AI platform",
@@ -346,33 +349,78 @@
   },
   "PROFILE": {
     "TITLE": "User Profile",
-    "PERSONAL_INFO": "Personal Information",
-    "FIRST_NAME": "First Name",
-    "LAST_NAME": "Last Name",
-    "EMAIL": "Email",
-    "PSEUDO": "Username",
-    "ROLE": "Role",
-    "ADMIN": "Administrator",
-    "USER": "User",
-    "ACCOUNT_SETTINGS": "Account Settings",
-    "LANGUAGE": "Language",
-    "THEME": "Theme",
-    "NOTIFICATIONS": "Notifications",
-    "SAVE_CHANGES": "Save Changes",
+    "SUBTITLE": "Manage your personal information and preferences",
+    "BACK_TO_DASHBOARD": "Back to Dashboard",
+    "CHANGE_PHOTO": "Change Photo",
+    "UPLOADING": "Uploading...",
+    "CONFIRM": "Confirm",
     "CANCEL": "Cancel",
-    "PROFILE_UPDATED": "Profile updated successfully",
-    "CHANGE_PASSWORD": "Change Password",
-    "CURRENT_PASSWORD": "Current Password",
-    "NEW_PASSWORD": "New Password",
-    "CONFIRM_NEW_PASSWORD": "Confirm New Password",
-    "SECURITY": "Security Settings",
-    "PREFERENCES": "Preferences",
-    "GIVEN_NAME": "First Name",
-    "FAMILY_NAME": "Last Name",
-    "LOCALE": "Preferred Language",
-    "PICTURE": "Profile Picture",
-    "UPLOAD_PICTURE": "Upload New Picture",
-    "REMOVE_PICTURE": "Remove Picture"
+    "STATUS": {
+      "VERIFIED": "Verified",
+      "ACTIVE": "Active"
+    },
+    "PERSONAL_INFO": {
+      "TITLE": "Personal Information",
+      "EMAIL": "Email Address",
+      "EMAIL_PLACEHOLDER": "Your email address",
+      "EMAIL_READONLY": "Email address cannot be modified",
+      "PSEUDO": "Username",
+      "PSEUDO_PLACEHOLDER": "Choose a username",
+      "LANGUAGE": "Language",
+      "FIRST_NAME": "First Name",
+      "FIRST_NAME_PLACEHOLDER": "Your first name",
+      "LAST_NAME": "Last Name",
+      "LAST_NAME_PLACEHOLDER": "Your last name",
+      "RESET": "Reset",
+      "SAVE": "Save",
+      "SAVING": "Saving..."
+    },
+    "LANGUAGES": {
+      "FRENCH": "French",
+      "ENGLISH": "English",
+      "SPANISH": "Spanish",
+      "GERMAN": "German"
+    },
+         "PASSWORD": {
+       "TITLE": "Change Password",
+       "CURRENT_PASSWORD": "Current Password",
+       "CURRENT_PASSWORD_PLACEHOLDER": "Enter your current password",
+       "NEW_PASSWORD": "New Password",
+       "NEW_PASSWORD_PLACEHOLDER": "Choose a new password",
+       "CONFIRM_PASSWORD": "Confirm Password",
+       "CONFIRM_PASSWORD_PLACEHOLDER": "Confirm your new password",
+       "SAVE": "Change Password",
+       "SAVING": "Changing...",
+       "RESET": "Reset"
+     },
+     "SECURITY": {
+       "TITLE": "Security Settings",
+       "CURRENT_PASSWORD": "Current Password",
+       "CURRENT_PASSWORD_PLACEHOLDER": "Enter your current password",
+       "CURRENT_PASSWORD_REQUIRED": "Current password is required",
+       "NEW_PASSWORD": "New Password",
+       "NEW_PASSWORD_PLACEHOLDER": "Choose a new password",
+       "NEW_PASSWORD_REQUIRED": "New password is required",
+       "PASSWORD_MIN_LENGTH": "Password must be at least 8 characters",
+       "CONFIRM_PASSWORD": "Confirm Password",
+       "CONFIRM_PASSWORD_PLACEHOLDER": "Confirm your new password",
+       "CONFIRM_PASSWORD_REQUIRED": "Password confirmation is required",
+       "PASSWORDS_MISMATCH": "Passwords do not match",
+       "CANCEL": "Cancel",
+       "UPDATING": "Updating...",
+       "UPDATE_PASSWORD": "Update Password"
+     },
+    "MESSAGES": {
+      "PROFILE_UPDATED": "Profile updated successfully",
+      "PASSWORD_UPDATED": "Password changed successfully",
+      "PICTURE_UPLOADED": "Profile picture updated"
+    },
+    "ERRORS": {
+      "LOAD_PROFILE": "Error loading profile",
+      "UPDATE_PROFILE": "Error updating profile",
+      "UPDATE_PASSWORD": "Error changing password",
+      "UPLOAD_PICTURE": "Error uploading picture"
+    }
   },
   "DASHBOARD": {
     "TITLE": "ExAI Dashboard",
