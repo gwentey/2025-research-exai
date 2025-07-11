@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -54,6 +55,7 @@ interface FilterChip {
 export class DatasetListingComponent implements OnInit, OnDestroy {
   private datasetService = inject(DatasetService);
   private translateService = inject(TranslateService);
+  private router = inject(Router);
   private destroy$ = new Subject<void>();
 
   // État du sidebar
@@ -358,8 +360,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
    * Visualisation d'un dataset
    */
   onViewDataset(datasetId: string): void {
-    console.log('Visualisation du dataset:', datasetId);
-    // TODO: Ouvrir modal ou page de prévisualisation
+    this.router.navigate(['/datasets', datasetId]);
   }
 
   /**

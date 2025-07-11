@@ -11,9 +11,12 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Subject, takeUntil } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ProjectService } from '../../services/project.service';
-import { Project, ProjectRecommendationResponse, DatasetScoredWithDetails } from '../../models/project.models';
+import { Project, ProjectRecommendationResponse, DatasetScoredWithDetails, CriterionWeight } from '../../models/project.models';
+import { DatasetScored } from '../../models/dataset.models';
+import { RecommendationHeatmapComponent } from './components/recommendation-heatmap.component';
 
 @Component({
   selector: 'app-project-detail',
@@ -28,7 +31,9 @@ import { Project, ProjectRecommendationResponse, DatasetScoredWithDetails } from
     MatChipsModule,
     MatMenuModule,
     MatDividerModule,
-    MatTabsModule
+    MatTabsModule,
+    TranslateModule,
+    RecommendationHeatmapComponent
   ],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.scss']
@@ -53,6 +58,21 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   // Vue
   selectedTab = 0;
   showHeatmap = true;
+
+  // Données pour la heatmap ECharts
+  get heatmapDatasets(): DatasetScored[] {
+    // Conversion des données pour la heatmap ECharts
+    return this.recommendations.map(dataset => ({
+      ...dataset,
+      // Les données criterion_scores sont déjà disponibles dans DatasetScoredWithDetails
+      // On les passe telles quelles car RecommendationHeatmapComponent les utilisera via getCriterionScore
+    }));
+  }
+
+  get heatmapWeights(): CriterionWeight[] {
+    // Utilise les poids du projet ou les poids par défaut
+    return this.project?.weights || this.projectService.getDefaultWeights();
+  }
 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -206,34 +226,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     return this.projectService.formatScore(score);
   }
 
-  /**
-   * Obtient les critères disponibles pour la heatmap
-   */
-  getHeatmapCriteria(): string[] {
-    if (this.recommendations.length === 0) return [];
-    
-    const firstDataset = this.recommendations[0];
-    return Object.keys(firstDataset.criterion_scores || {});
-  }
 
-  /**
-   * Obtient le score d'un critère pour un dataset
-   */
-  getCriterionScore(dataset: DatasetScoredWithDetails, criterion: string): number {
-    return dataset.criterion_scores?.[criterion] || 0;
-  }
-
-  /**
-   * Obtient la couleur pour un score de critère spécifique
-   */
-  getCriterionScoreColor(score: number): string {
-    // Utilise la même logique que getScoreColor mais pour des scores individuels
-    if (score >= 0.8) return '#4caf50'; // Vert
-    if (score >= 0.6) return '#8bc34a'; // Vert clair
-    if (score >= 0.4) return '#ffc107'; // Jaune
-    if (score >= 0.2) return '#ff9800'; // Orange
-    return '#f44336'; // Rouge
-  }
 
   /**
    * Navigation vers un dataset

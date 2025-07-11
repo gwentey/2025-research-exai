@@ -292,6 +292,33 @@
       "CALCULATING": "Calculating...",
       "NO_DATASETS_FOUND": "No datasets found",
       "ADJUST_CRITERIA": "Adjust your criteria"
+    },
+    "HEATMAP": {
+      "TITLE": "Apache ECharts Recommendations Heat Map",
+      "SUBTITLE": "Interactive Apache ECharts visualization - {{datasets}} datasets on {{criteria}} criteria",
+      "LEGEND": {
+        "LOW": "Low (0-30%)",
+        "MEDIUM": "Medium (30-60%)",
+        "GOOD": "Good (60-85%)",
+        "EXCELLENT": "Excellent (85%+)"
+      },
+      "INFO": {
+        "CRITERIA_ANALYZED": "{{count}} criteria analyzed",
+        "DATASETS_COMPARED": "{{count}} datasets compared",
+        "CDN_POWERED": "Apache ECharts CDN"
+      },
+      "LOADING": "Loading ECharts...",
+      "NO_DATA": "Configure weights to display the ECharts heat map",
+      "CRITERIA_LABELS": {
+        "ETHICAL_SCORE": "Ethics",
+        "TECHNICAL_SCORE": "Technical",
+        "POPULARITY_SCORE": "Popularity",
+        "ANONYMIZATION": "Anonymization",
+        "TRANSPARENCY": "Transparency",
+        "INFORMED_CONSENT": "Consent",
+        "DOCUMENTATION": "Documentation",
+        "DATA_QUALITY": "Quality"
+      }
     }
   },
   "DATASETS": {
@@ -576,7 +603,9 @@
     "NETWORK_ERROR": "Network connection error",
     "SERVER_ERROR": "Server error occurred",
     "AUTHENTICATION_FAILED": "Authentication failed",
-    "ACCESS_DENIED": "Access denied"
+    "ACCESS_DENIED": "Access denied",
+    "EMAIL_ALREADY_LINKED_TO_OAUTH": "Your account is already linked to a Google account. Please sign in with Google.",
+    "EMAIL_ALREADY_EXISTS": "An account is already associated with this email address. Please sign in or use a different email."
   },
   "WIDGETS": {
     "DEMO_CONTENT": "Demo Content",
@@ -584,5 +613,175 @@
     "PLACEHOLDER_TEXT": "This is placeholder content",
     "EXAMPLE_WIDGET": "Example Widget",
     "TEST_COMPONENT": "Test Component"
+  },
+  "TOOLTIPS": {
+    "DATASET_DETAIL": {
+      "OVERALL_SCORE": "Global quality score based on completeness, consistency, accuracy and ethical compliance of the data. The higher the score, the more reliable the dataset for your analyses.",
+      "GLOBAL_SCORE_METRIC": "Overall evaluation combining all quality criteria: completeness, consistency, accuracy and ethical compliance",
+      "COMPLETENESS": "Percentage of data present compared to expected data. High completeness means few missing values",
+      "CONSISTENCY": "Measures data coherence: uniform formats, absence of duplicates, respect for constraints. High consistency facilitates analysis",
+      "ETHICAL_COMPLIANCE": "Evaluates compliance with ethical principles: informed consent, anonymization, transparency, equity and personal data protection",
+      "GENERAL_INFO_ICON": "Metadata and technical characteristics of the dataset: source, accessibility, representativity and data structure",
+      "QUALITY_METRICS_ICON": "Automatic evaluation of dataset quality according to 4 criteria: completeness, consistency, ethical compliance and general reliability",
+      "REPRESENTATIVITY": "Indicates to what extent the data sample faithfully represents the target population. Good representativity ensures the validity of analyses.",
+      "BALANCE": "Measures the balance between different classes or categories in the dataset. Good balance avoids bias in ML models.",
+      "SPLIT": "Indicates if the dataset is already divided into training and test sets, facilitating ML model evaluation",
+      "ANONYMIZATION": "Confirms that personally identifiable data has been anonymized or pseudonymized to protect privacy",
+      "TEMPORAL_FACTORS": "Indicates if the dataset contains temporal variables important to consider in the analysis (dates, time series)",
+      "METADATA": "Confirms that detailed metadata accompanies the dataset (column descriptions, context, methodology)"
+    }
+  },
+  "DATASET_DETAIL": {
+    "BACK": "Back",
+    "DOWNLOAD": "Download",
+    "FAVORITES": "Favorites",
+    "SHARE": "Share",
+    "REPORT": "Report",
+    "SCORE": "Score",
+    "INSTANCES": "instances",
+    "FEATURES": "features",
+    "CITATIONS": "citations",
+    "DOMAINS": "Domains",
+    "ML_TASKS": "ML Tasks",
+    "QUALITY_ALERTS": {
+      "TITLE": "Quality Alerts",
+      "SUBTITLE": "attention point(s) detected",
+      "SEVERITY": "Severity"
+    },
+    "TABS": {
+      "OVERVIEW": "Overview",
+      "FILES_STRUCTURE": "Files and Structure",
+      "DATA_PREVIEW": "Data Preview",
+      "ANALYTICS": "Analytics"
+    },
+    "OVERVIEW": {
+      "QUICK_STATS": "Quick Statistics",
+      "GENERAL_INFO": {
+        "TITLE": "General Information",
+        "SOURCE": "Source",
+        "ACCESS": "Access",
+        "AVAILABILITY": "Availability",
+        "REPRESENTATIVITY": "Representativity",
+        "BALANCE": "Balance",
+        "SPLIT": "Dataset split (train/test)",
+        "ANONYMIZED": "Anonymization applied",
+        "TEMPORAL": "Temporal factors",
+        "METADATA": "Metadata provided"
+      },
+      "ETHICS": {
+        "TITLE": "Ethical Compliance",
+        "SUBTITLE": "Compliance with data protection principles",
+        "INFORMED_CONSENT": "Informed consent",
+        "TRANSPARENCY": "Transparency",
+        "USER_CONTROL": "User control",
+        "NON_DISCRIMINATION": "Non-discrimination",
+        "SECURITY": "Security measures",
+        "ACCOUNTABILITY": "Accountability defined"
+      },
+      "QUALITY": {
+        "TITLE": "Quality Metrics",
+        "OVERALL_SCORE": "Overall Score",
+        "COMPLETENESS": "Completeness",
+        "CONSISTENCY": "Consistency",
+        "ETHICAL_COMPLIANCE": "Ethical Compliance"
+      },
+      "SIMILAR": {
+        "TITLE": "Similar Datasets",
+        "SUBTITLE": "Discover related datasets"
+      }
+    },
+    "FILES": {
+      "TITLE": "Dataset Files",
+      "SUBTITLE": "file(s) available",
+      "SELECTED": "selected",
+      "DETAILS": "File details",
+      "LOGICAL_ROLE": "Logical role",
+      "FORMAT": "Format",
+      "SIZE": "Size",
+      "ROWS": "Rows",
+      "COLUMNS": "Columns",
+      "DESCRIPTION": "Description",
+      "NOT_SPECIFIED": "Not specified",
+      "COLUMNS_TABLE": {
+        "POSITION": "Position",
+        "NAME": "Name",
+        "TYPE": "Type",
+        "NULLABLE": "Nullable",
+        "EXAMPLES": "Examples",
+        "DESCRIPTION": "Description",
+        "PII": "Personally identifiable information",
+        "PRIMARY_KEY": "Primary key",
+        "NOT_SPECIFIED": "Not specified"
+      },
+      "NO_FILES": {
+        "TITLE": "No files available",
+        "MESSAGE": "This dataset does not contain accessible files for preview."
+      }
+    },
+    "PREVIEW": {
+      "HEADER": {
+        "TOTAL_ROWS": "total rows",
+        "COLUMNS": "columns",
+        "DISPLAYED_ROWS": "displayed rows"
+      },
+      "DATA_TABLE": {
+        "TITLE": "Data Sample",
+        "LIMITED_NOTE": "Display limited to first 50 rows.",
+        "ADDITIONAL_ROWS": "additional rows available."
+      },
+      "COLUMN_STATS": {
+        "TITLE": "Column Statistics",
+        "SUBTITLE": "Descriptive data analysis",
+        "NON_NULL": "Non-null",
+        "UNIQUE_VALUES": "Unique values",
+        "MEAN": "Mean",
+        "STD": "Standard deviation",
+        "EXAMPLES": "Examples"
+      },
+      "NO_PREVIEW": {
+        "TITLE": "Preview not available",
+        "MESSAGE": "Data preview is not available for this dataset."
+      }
+    },
+    "ANALYTICS": {
+      "CORRELATIONS": {
+        "TITLE": "Feature Correlations",
+        "SUBTITLE": "strongest correlations",
+        "FEATURE1": "Feature 1",
+        "FEATURE2": "Feature 2",
+        "CORRELATION": "Correlation",
+        "TYPE": "Type"
+      },
+      "MISSING_PATTERNS": {
+        "TITLE": "Missing Data Patterns",
+        "SUBTITLE": "Analysis of missing value patterns",
+        "OCCURRENCES": "occurrences"
+      },
+      "CLASS_DISTRIBUTION": {
+        "TITLE": "Class Distribution",
+        "TARGET_VARIABLE": "Target variable"
+      },
+      "FEATURE_IMPORTANCE": {
+        "TITLE": "Feature Importance",
+        "SUBTITLE": "Relative contribution of each feature"
+      }
+    },
+    "QUALITY_ALERTS_MESSAGES": {
+      "MISSING_DATA": "Significant missing data",
+      "OUTLIERS": "Outliers detected",
+      "PII_RISK": "Risk of personal data exposure",
+      "MISSING_DATA_RECOMMENDATION": "Consider imputation techniques or filter columns with too many missing values",
+      "OUTLIERS_RECOMMENDATION": "Analyze these values to determine if they are legitimate or should be treated",
+      "PII_RECOMMENDATION": "Verify anonymization and GDPR compliance before use"
+    },
+    "LOADING": {
+      "TITLE": "Loading dataset details...",
+      "MESSAGE": "Please wait while we retrieve all information."
+    },
+    "ERROR": {
+      "TITLE": "Loading error",
+      "RETRY": "Retry",
+      "BACK": "Back"
+    }
   }
 }

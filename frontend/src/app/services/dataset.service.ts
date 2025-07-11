@@ -12,7 +12,12 @@ import {
   DatasetScoreRequest, 
   CriterionWeight,
   PaginationParams,
-  DatasetStats 
+  DatasetStats,
+  DatasetDetailView,
+  DatasetPreview,
+  DatasetQualityMetrics,
+  DataDistributionAnalysis,
+  ColumnStatistics
 } from '../models/dataset.models';
 
 @Injectable({
@@ -243,6 +248,84 @@ export class DatasetService {
     
     return this.getDatasets(params).pipe(
       map(response => response.datasets)
+    );
+  }
+
+  /**
+   * Récupère les détails complets d'un dataset (vue Kaggle-like)
+   * @param id - ID du dataset
+   * @returns Observable avec tous les détails du dataset
+   */
+  getDatasetDetails(id: string): Observable<DatasetDetailView> {
+    return this.http.get<DatasetDetailView>(`${this.baseUrl}/${id}/details`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère l'aperçu des données d'un dataset
+   * @param id - ID du dataset
+   * @param fileId - ID du fichier (optionnel, prend le premier fichier par défaut)
+   * @param limit - Nombre de lignes à récupérer (par défaut 100)
+   * @returns Observable avec l'aperçu des données
+   */
+  getDatasetPreview(id: string, fileId?: string, limit: number = 100): Observable<DatasetPreview> {
+    let params = new HttpParams().set('limit', limit.toString());
+    if (fileId) {
+      params = params.set('file_id', fileId);
+    }
+
+    return this.http.get<DatasetPreview>(`${this.baseUrl}/${id}/preview`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère les métriques de qualité d'un dataset
+   * @param id - ID du dataset
+   * @returns Observable avec les métriques de qualité
+   */
+  getDatasetQualityMetrics(id: string): Observable<DatasetQualityMetrics> {
+    return this.http.get<DatasetQualityMetrics>(`${this.baseUrl}/${id}/quality`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère l'analyse de distribution des données d'un dataset
+   * @param id - ID du dataset
+   * @returns Observable avec l'analyse de distribution
+   */
+  getDataDistributionAnalysis(id: string): Observable<DataDistributionAnalysis> {
+    return this.http.get<DataDistributionAnalysis>(`${this.baseUrl}/${id}/distribution`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère les statistiques détaillées des colonnes d'un fichier
+   * @param datasetId - ID du dataset
+   * @param fileId - ID du fichier
+   * @returns Observable avec les statistiques des colonnes
+   */
+  getColumnStatistics(datasetId: string, fileId: string): Observable<ColumnStatistics[]> {
+    return this.http.get<ColumnStatistics[]>(`${this.baseUrl}/${datasetId}/files/${fileId}/columns/stats`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère les datasets similaires à un dataset donné
+   * @param id - ID du dataset de référence
+   * @param limit - Nombre maximum de datasets similaires à retourner
+   * @returns Observable avec la liste des datasets similaires
+   */
+  getSimilarDatasets(id: string, limit: number = 5): Observable<Dataset[]> {
+    let params = new HttpParams().set('limit', limit.toString());
+
+    return this.http.get<{ datasets: Dataset[] }>(`${this.baseUrl}/${id}/similar`, { params }).pipe(
+      map(response => response.datasets),
+      catchError(this.handleError)
     );
   }
 

@@ -707,12 +707,25 @@ async def register_user(
             count = result.scalar()
             
             if count > 0:
-                # Email déjà utilisé
-                logger.warning(f"Tentative d'inscription avec un email déjà utilisé: {user_create.email}")
-                return JSONResponse(
-                    status_code=400,
-                    content={"detail": "Cet email est déjà utilisé"}
-                )
+                # L'email existe déjà, vérifier s'il est associé à un compte OAuth
+                oauth_query = select(func.count()).select_from(OAuthAccount).where(OAuthAccount.account_email == user_create.email)
+                oauth_result = await session.execute(oauth_query)
+                oauth_count = oauth_result.scalar()
+                
+                if oauth_count > 0:
+                    # L'email est associé à un compte OAuth (Google)
+                    logger.warning(f"Tentative d'inscription avec un email déjà associé à un compte OAuth: {user_create.email}")
+                    return JSONResponse(
+                        status_code=400,
+                        content={"detail": "EMAIL_ALREADY_LINKED_TO_OAUTH", "error_code": "EMAIL_OAUTH_CONFLICT"}
+                    )
+                else:
+                    # L'email existe mais n'est pas OAuth (double inscription classique)
+                    logger.warning(f"Tentative d'inscription avec un email déjà utilisé: {user_create.email}")
+                    return JSONResponse(
+                        status_code=400,
+                        content={"detail": "EMAIL_ALREADY_EXISTS", "error_code": "EMAIL_DUPLICATE"}
+                    )
             
             # Créer l'utilisateur en utilisant le UserManager
             try:
@@ -893,6 +906,22 @@ async def datasets_tasks_proxy(request: Request, current_user: UserModel = Depen
 async def datasets_score_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
     """Proxy vers le service-selection pour le scoring des datasets"""
     return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/score", current_user)
+
+# Nouvelles routes pour les détails étendus des datasets
+@app.get("/datasets/{dataset_id}/details", tags=["datasets"])
+async def dataset_details_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les détails complets d'un dataset"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}/details", current_user)
+
+@app.get("/datasets/{dataset_id}/preview", tags=["datasets"])
+async def dataset_preview_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer l'aperçu des données d'un dataset"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}/preview", current_user)
+
+@app.get("/datasets/{dataset_id}/similar", tags=["datasets"])
+async def dataset_similar_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les datasets similaires"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}/similar", current_user)
 
 # Routes pour les projets (service-selection)
 @app.api_route("/projects", methods=["GET", "POST"], tags=["projects"])

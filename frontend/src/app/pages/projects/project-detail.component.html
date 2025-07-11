@@ -151,48 +151,12 @@
             </div>
           </div>
 
-          <!-- Vue Heatmap -->
+          <!-- Vue Heatmap ECharts -->
           <div *ngIf="showHeatmap && recommendations.length > 0" class="heatmap-view">
-            <mat-card class="heatmap-card">
-              <mat-card-header>
-                <mat-icon mat-card-avatar>grid_view</mat-icon>
-                <mat-card-title>Heatmap des Scores par Critère</mat-card-title>
-                <mat-card-subtitle>Analyse détaillée des performances de chaque dataset</mat-card-subtitle>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="heatmap-container">
-                  <div class="heatmap-table">
-                    <!-- Header -->
-                    <div class="heatmap-header">
-                      <div class="dataset-name-col">Dataset</div>
-                      <div class="score-col">Score Final</div>
-                      <div *ngFor="let criterion of getHeatmapCriteria()" class="criterion-col">
-                        {{ criterion.replace('_', ' ') | titlecase }}
-                      </div>
-                    </div>
-                    
-                    <!-- Lignes de données -->
-                    <div *ngFor="let dataset of recommendations" class="heatmap-row">
-                      <div class="dataset-name-col">
-                        <span class="dataset-name" [matTooltip]="dataset.objective">{{ dataset.dataset_name }}</span>
-                      </div>
-                      <div class="score-col">
-                        <div class="score-badge" [style.background]="getScoreColor(dataset.score)">
-                          {{ formatScore(dataset.score) }}
-                        </div>
-                      </div>
-                      <div *ngFor="let criterion of getHeatmapCriteria()" class="criterion-col">
-                        <div class="criterion-score" 
-                             [style.background]="getCriterionScoreColor(getCriterionScore(dataset, criterion))"
-                             [matTooltip]="criterion + ': ' + (getCriterionScore(dataset, criterion) * 100 | number:'1.0-0') + '%'">
-                          {{ (getCriterionScore(dataset, criterion) * 100) | number:'1.0-0' }}%
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </mat-card-content>
-            </mat-card>
+            <app-recommendation-heatmap 
+              [datasets]="heatmapDatasets" 
+              [weights]="heatmapWeights">
+            </app-recommendation-heatmap>
           </div>
 
           <!-- Vue Liste -->

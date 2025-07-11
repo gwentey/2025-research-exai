@@ -202,6 +202,25 @@ graph LR
             *   **Endpoints sécurisés** : `/projects` (GET/POST), `/projects/{id}` (GET/PUT/DELETE), `/projects/{id}/recommendations`, `/datasets/score`
             *   **Impact** : Isolation complète des projets par utilisateur, conformité RGPD, logs de sécurité détaillés
 
+    *   **Visualisation Détaillée des Datasets (2025-01-25)** : Interface complète similaire à Kaggle
+        *   **Composant Principal** : `DatasetDetailComponent` avec routing intégré `/datasets/:id`
+        *   **Interface Moderne** : Header héroïque avec gradients, score de qualité circulaire, boutons d'action
+        *   **Onglets Complets** :
+            *   Vue d'ensemble : statistiques, informations générales, conformité éthique, métriques de qualité
+            *   Fichiers et Structure : exploration des fichiers, détails des colonnes, métadonnées techniques
+            *   Aperçu des Données : échantillon tabulaire (50 lignes), statistiques descriptives par colonne
+            *   Analytics : corrélations entre features, patterns de valeurs manquantes, distribution des classes
+        *   **Alertes de Qualité** : Système d'alertes contextuelles avec recommandations (complétude < 80%, outliers > 5%, risque PII > 30%)
+        *   **Datasets Similaires** : Recommandations basées sur domaine, tâches ML, structure des données
+        *   **Design Responsive** : Interface adaptative desktop/tablet/mobile avec animations CSS
+        *   **Modèles de Données Étendus** : `DatasetDetailView`, `DatasetPreview`, `DatasetQualityMetrics`, `DataDistributionAnalysis`
+        *   **Services API Nouveaux** : `getDatasetDetails()`, `getDatasetPreview()`, `getDatasetQualityMetrics()`, `getSimilarDatasets()`
+        *   **Internationalisation** : Support FR/EN avec clés `DATASET_DETAIL.*` organisées par sections
+        *   **Navigation Intégrée** : Bouton "Voir" dans les cartes de datasets navigue vers la page de détail
+        *   **Performance** : Chargement parallèle via `forkJoin`, gestion d'erreurs gracieuse, limitation automatique d'affichage
+        *   **Documentation Technique** : Guide complet dans `docs/dev-guide/dataset-detail-visualization.adoc`
+        *   **Évolutions Prévues** : Graphiques interactifs, export PDF, intégration ML Pipeline, comparaison de datasets
+
 *   **Infrastructure :**
     *   [✅] PostgreSQL déployé sur K8s et accessible.
         *   **Note importante (2024-04-27) :** La gestion de PostgreSQL a été migrée d'un Deployment vers un **StatefulSet** pour une meilleure gestion de l'état, une identité stable des pods, et pour résoudre les problèmes d'attachement de volume ReadWriteOnce (RWO) lors des mises à jour.

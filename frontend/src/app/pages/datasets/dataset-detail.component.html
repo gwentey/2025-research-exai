@@ -1,0 +1,796 @@
+<div class="dataset-detail-container" *ngIf="!isLoading && !error && dataset">
+  <!-- Header héroïque du dataset -->
+  <div class="hero-header">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <div class="hero-main">
+        <div class="hero-left">
+          <button mat-icon-button (click)="goBack()" class="back-btn">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          
+          <div class="dataset-identity">
+            <h1 class="dataset-title">{{ dataset.dataset_name }}</h1>
+            <p class="dataset-objective" *ngIf="dataset.objective">{{ dataset.objective }}</p>
+            
+            <div class="meta-badges">
+              <mat-chip-set>
+                <mat-chip *ngIf="dataset.year" class="year-chip">
+                  <mat-icon matChipAvatar>calendar_today</mat-icon>
+                  {{ dataset.year }}
+                </mat-chip>
+                <mat-chip class="instances-chip">
+                  <mat-icon matChipAvatar>storage</mat-icon>
+                  {{ formatNumber(dataset.instances_number) }} instances
+                </mat-chip>
+                <mat-chip class="features-chip">
+                  <mat-icon matChipAvatar>view_column</mat-icon>
+                  {{ formatNumber(dataset.features_number) }} features
+                </mat-chip>
+                <mat-chip *ngIf="dataset.num_citations && dataset.num_citations > 0" class="citations-chip">
+                  <mat-icon matChipAvatar>format_quote</mat-icon>
+                  {{ formatNumber(dataset.num_citations) }} citations
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="quality-overview">
+            <div class="quality-score" *ngIf="qualityMetrics">
+              <div class="score-circle" [class]="getQualityColor(qualityMetrics.overall_score)" 
+                   matTooltip="Score global de qualité basé sur la complétude, consistance, précision et conformité éthique des données. Plus le score est élevé, plus le dataset est fiable pour vos analyses."
+                   matTooltipPosition="below">
+                <span class="score-value">{{ Math.round(qualityMetrics.overall_score * 100) }}</span>
+                <span class="score-label">Score</span>
+              </div>
+            </div>
+            
+            <div class="action-buttons">
+              <button mat-raised-button color="primary" (click)="downloadDataset()">
+                <mat-icon>download</mat-icon>
+                Télécharger
+              </button>
+              <button mat-button (click)="addToFavorites()">
+                <mat-icon>favorite_border</mat-icon>
+                Favoris
+              </button>
+              <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #actionMenu="matMenu">
+                <button mat-menu-item (click)="shareDataset()">
+                  <mat-icon>share</mat-icon>
+                  Partager
+                </button>
+                <button mat-menu-item>
+                  <mat-icon>flag</mat-icon>
+                  Signaler
+                </button>
+              </mat-menu>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags et domaines -->
+      <div class="tags-section" *ngIf="dataset.domain || dataset.task">
+        <div class="tag-group" *ngIf="dataset.domain && dataset.domain.length > 0">
+          <span class="tag-label">Domaines:</span>
+          <mat-chip-set>
+            <mat-chip *ngFor="let domain of dataset.domain" class="domain-chip">
+              <mat-icon matChipAvatar>domain</mat-icon>
+              {{ domain }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+
+        <div class="tag-group" *ngIf="dataset.task && dataset.task.length > 0">
+          <span class="tag-label">Tâches ML:</span>
+          <mat-chip-set>
+            <mat-chip *ngFor="let task of dataset.task" class="task-chip">
+              <mat-icon matChipAvatar>psychology</mat-icon>
+              {{ task }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertes de qualité -->
+  <div class="quality-alerts" *ngIf="qualityAlerts.length > 0">
+    <mat-card class="alerts-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="alert-icon">warning</mat-icon>
+        <mat-card-title>Alertes de Qualité</mat-card-title>
+        <mat-card-subtitle>{{ qualityAlerts.length }} point(s) d'attention détecté(s)</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="alerts-list">
+          <div *ngFor="let alert of qualityAlerts" class="alert-item" [class]="alert.type">
+            <div class="alert-content">
+              <div class="alert-header">
+                <mat-icon>{{ alert.type === 'error' ? 'error' : alert.type === 'warning' ? 'warning' : 'info' }}</mat-icon>
+                <span class="alert-title">{{ alert.title }}</span>
+                <span class="alert-severity">Sévérité: {{ alert.severity }}/10</span>
+              </div>
+              <p class="alert-description">{{ alert.description }}</p>
+              <p class="alert-recommendation" *ngIf="alert.recommendation">
+                <mat-icon>lightbulb</mat-icon>
+                {{ alert.recommendation }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Contenu principal avec onglets -->
+  <div class="main-content">
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event.index)" animationDuration="300ms">
+      
+      <!-- Onglet Vue d'ensemble -->
+      <mat-tab label="Vue d'ensemble">
+        <ng-template matTabContent>
+          <div class="tab-content overview-tab">
+            
+            <!-- Statistiques rapides -->
+            <div class="quick-stats">
+              <mat-card *ngIf="dataset" class="stat-card">
+                <mat-card-content>
+                  <div class="stat-grid">
+                    <div class="stat-item">
+                      <mat-icon class="stat-icon">storage</mat-icon>
+                      <div class="stat-value">{{ formatNumber(dataset.instances_number) }}</div>
+                      <div class="stat-label">Instances</div>
+                    </div>
+                    <div class="stat-item">
+                      <mat-icon class="stat-icon">view_column</mat-icon>
+                      <div class="stat-value">{{ formatNumber(dataset.features_number) }}</div>
+                      <div class="stat-label">Features</div>
+                    </div>
+                    <div class="stat-item">
+                      <mat-icon class="stat-icon">folder</mat-icon>
+                      <div class="stat-value">{{ dataset.files.length || 0 }}</div>
+                      <div class="stat-label">Fichiers</div>
+                    </div>
+                    <div class="stat-item" *ngIf="dataset.global_missing_percentage !== undefined">
+                      <mat-icon class="stat-icon">warning</mat-icon>
+                      <div class="stat-value">{{ formatPercentage(dataset.global_missing_percentage) }}</div>
+                      <div class="stat-label">Manquant</div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <!-- Description et métadonnées -->
+            <div class="overview-grid">
+              <div class="overview-left">
+                
+                <!-- Informations générales -->
+                <mat-card class="info-card">
+                  <mat-card-header>
+                    <mat-icon mat-card-avatar 
+                              matTooltip="Métadonnées et caractéristiques techniques du dataset : source, accessibilité, représentativité et structure des données"
+                              matTooltipPosition="right">info</mat-icon>
+                    <mat-card-title>Informations Générales</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="info-grid">
+                      <div class="info-item" *ngIf="dataset.sources">
+                        <span class="info-label">Source:</span>
+                        <span class="info-value">{{ dataset.sources }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="dataset.access">
+                        <span class="info-label">Accès:</span>
+                        <span class="info-value">{{ dataset.access }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="dataset.availability">
+                        <span class="info-label">Disponibilité:</span>
+                        <span class="info-value">{{ dataset.availability }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="dataset.representativity_level"
+                           matTooltip="Indique dans quelle mesure l'échantillon de données représente fidèlement la population cible. Une bonne représentativité assure la validité des analyses."
+                           matTooltipPosition="right">
+                        <span class="info-label">Représentativité:</span>
+                        <span class="info-value representativity" [class]="getRepresentativityClass(dataset.representativity_level)">
+                          {{ dataset.representativity_level }}
+                        </span>
+                      </div>
+                      <div class="info-item" *ngIf="dataset.sample_balance_level"
+                           matTooltip="Mesure l'équilibre entre les différentes classes ou catégories dans le dataset. Un bon équilibre évite les biais dans les modèles ML."
+                           matTooltipPosition="right">
+                        <span class="info-label">Équilibre:</span>
+                        <span class="info-value">{{ dataset.sample_balance_level }}</span>
+                      </div>
+                    </div>
+                    
+                    <mat-divider class="section-divider"></mat-divider>
+                    
+                    <!-- Indicateurs booléens -->
+                    <div class="boolean-indicators">
+                      <div class="indicator" [class.active]="dataset.split"
+                           matTooltip="Indique si le dataset est déjà divisé en ensembles d'entraînement et de test, facilitant l'évaluation des modèles ML"
+                           matTooltipPosition="right">
+                        <mat-icon>{{ dataset.split ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>Dataset divisé (train/test)</span>
+                      </div>
+                      <div class="indicator" [class.active]="dataset.anonymization_applied"
+                           matTooltip="Confirme que les données personnelles identifiables ont été anonymisées ou pseudonymisées pour protéger la vie privée"
+                           matTooltipPosition="right">
+                        <mat-icon>{{ dataset.anonymization_applied ? 'verified_user' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>Anonymisation appliquée</span>
+                      </div>
+                      <div class="indicator" [class.active]="dataset.temporal_factors"
+                           matTooltip="Indique si le dataset contient des variables temporelles importantes à considérer dans l'analyse (dates, séries temporelles)"
+                           matTooltipPosition="right">
+                        <mat-icon>{{ dataset.temporal_factors ? 'schedule' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>Facteurs temporels</span>
+                      </div>
+                      <div class="indicator" [class.active]="dataset.metadata_provided_with_dataset"
+                           matTooltip="Confirme que des métadonnées détaillées accompagnent le dataset (descriptions des colonnes, contexte, méthodologie)"
+                           matTooltipPosition="right">
+                        <mat-icon>{{ dataset.metadata_provided_with_dataset ? 'description' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>Métadonnées fournies</span>
+                      </div>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+
+                <!-- Compliance éthique -->
+                <mat-card class="ethics-card">
+                  <mat-card-header>
+                    <mat-icon mat-card-avatar class="ethics-icon">security</mat-icon>
+                    <mat-card-title>Conformité Éthique</mat-card-title>
+                    <mat-card-subtitle>Respect des principes de protection des données</mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="ethics-grid">
+                      <div class="ethics-item" [class.compliant]="dataset.informed_consent">
+                        <mat-icon>{{ dataset.informed_consent ? 'check_circle' : 'cancel' }}</mat-icon>
+                        <span>Consentement éclairé</span>
+                      </div>
+                      <div class="ethics-item" [class.compliant]="dataset.transparency">
+                        <mat-icon>{{ dataset.transparency ? 'check_circle' : 'cancel' }}</mat-icon>
+                        <span>Transparence</span>
+                      </div>
+                      <div class="ethics-item" [class.compliant]="dataset.user_control">
+                        <mat-icon>{{ dataset.user_control ? 'check_circle' : 'cancel' }}</mat-icon>
+                        <span>Contrôle utilisateur</span>
+                      </div>
+                      <div class="ethics-item" [class.compliant]="dataset.equity_non_discrimination">
+                        <mat-icon>{{ dataset.equity_non_discrimination ? 'check_circle' : 'cancel' }}</mat-icon>
+                        <span>Non-discrimination</span>
+                      </div>
+                      <div class="ethics-item" [class.compliant]="dataset.security_measures_in_place">
+                        <mat-icon>{{ dataset.security_measures_in_place ? 'check_circle' : 'cancel' }}</mat-icon>
+                        <span>Mesures de sécurité</span>
+                      </div>
+                      <div class="ethics-item" [class.compliant]="dataset.accountability_defined">
+                        <mat-icon>{{ dataset.accountability_defined ? 'check_circle' : 'cancel' }}</mat-icon>
+                        <span>Responsabilité définie</span>
+                      </div>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <div class="overview-right">
+                <!-- Métriques de qualité -->
+                <mat-card class="quality-card" *ngIf="qualityMetrics">
+                  <mat-card-header>
+                    <mat-icon mat-card-avatar class="quality-icon"
+                              matTooltip="Évaluation automatique de la qualité du dataset selon 4 critères : complétude, consistance, conformité éthique et fiabilité générale"
+                              matTooltipPosition="right">assessment</mat-icon>
+                    <mat-card-title>Métriques de Qualité</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="quality-metrics">
+                      <div class="metric-item">
+                        <div class="metric-header" 
+                             matTooltip="Évaluation générale combinant tous les critères de qualité : complétude, consistance, précision et conformité éthique"
+                             matTooltipPosition="above">
+                          <span class="metric-label">Score Global</span>
+                          <span class="metric-value">{{ Math.round(qualityMetrics.overall_score * 100) }}%</span>
+                        </div>
+                        <mat-progress-bar [value]="qualityMetrics.overall_score ? qualityMetrics.overall_score * 100 : 0" [color]="getQualityColor(qualityMetrics.overall_score)"></mat-progress-bar>
+                      </div>
+                      
+                      <div class="metric-item">
+                        <div class="metric-header"
+                             matTooltip="Pourcentage de données présentes par rapport aux données attendues. Une complétude élevée signifie peu de valeurs manquantes"
+                             matTooltipPosition="above">
+                          <span class="metric-label">Complétude</span>
+                          <span class="metric-value">{{ Math.round(qualityMetrics.completeness * 100) }}%</span>
+                        </div>
+                        <mat-progress-bar [value]="qualityMetrics.completeness ? qualityMetrics.completeness * 100 : 0" [color]="getQualityColor(qualityMetrics.completeness)"></mat-progress-bar>
+                      </div>
+                      
+                      <div class="metric-item">
+                        <div class="metric-header"
+                             matTooltip="Mesure la cohérence des données : formats uniformes, absence de doublons, respect des contraintes. Une consistance élevée facilite l'analyse"
+                             matTooltipPosition="above">
+                          <span class="metric-label">Consistance</span>
+                          <span class="metric-value">{{ Math.round(qualityMetrics.consistency * 100) }}%</span>
+                        </div>
+                        <mat-progress-bar [value]="qualityMetrics.consistency ? qualityMetrics.consistency * 100 : 0" [color]="getQualityColor(qualityMetrics.consistency)"></mat-progress-bar>
+                      </div>
+                      
+                      <div class="metric-item">
+                        <div class="metric-header"
+                             matTooltip="Évalue le respect des principes éthiques : consentement éclairé, anonymisation, transparence, équité et protection des données personnelles"
+                             matTooltipPosition="above">
+                          <span class="metric-label">Conformité Éthique</span>
+                          <span class="metric-value">{{ Math.round(qualityMetrics.ethical_compliance * 100) }}%</span>
+                        </div>
+                        <mat-progress-bar [value]="qualityMetrics.ethical_compliance ? qualityMetrics.ethical_compliance * 100 : 0" [color]="getQualityColor(qualityMetrics.ethical_compliance)"></mat-progress-bar>
+                      </div>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+
+                <!-- Datasets similaires -->
+                <mat-card class="similar-card" *ngIf="similarDatasets && similarDatasets.length > 0">
+                  <mat-card-header>
+                    <mat-icon mat-card-avatar>explore</mat-icon>
+                    <mat-card-title>Datasets Similaires</mat-card-title>
+                    <mat-card-subtitle>Découvrez des datasets connexes</mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="similar-list">
+                      <div *ngFor="let similar of similarDatasets" class="similar-item" (click)="viewSimilarDataset(similar.id)">
+                        <div class="similar-content">
+                          <span class="similar-name">{{ similar.dataset_name }}</span>
+                          <span class="similar-meta">
+                            {{ formatNumber(similar.instances_number) }} instances • {{ similar.year }}
+                          </span>
+                        </div>
+                        <mat-icon class="similar-arrow">arrow_forward</mat-icon>
+                      </div>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      <!-- Onglet Fichiers et Structure -->
+      <mat-tab label="Fichiers et Structure">
+        <ng-template matTabContent>
+          <div class="tab-content files-tab">
+            <div class="files-grid" *ngIf="dataset.files && dataset.files.length > 0">
+              
+              <!-- Sélecteur de fichiers -->
+              <div class="file-selector">
+                <mat-card class="selector-card">
+                  <mat-card-header>
+                    <mat-icon mat-card-avatar>folder</mat-icon>
+                    <mat-card-title>Fichiers du Dataset</mat-card-title>
+                    <mat-card-subtitle>{{ dataset.files.length }} fichier(s) disponible(s)</mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <mat-list>
+                      <mat-list-item *ngFor="let file of dataset.files; let i = index" 
+                                     (click)="onFileChange(i)" 
+                                     [class.selected]="i === selectedFileIndex">
+                        <mat-icon matListItemIcon>description</mat-icon>
+                        <div matListItemTitle>{{ file.file_name_in_storage }}</div>
+                        <div matListItemLine>
+                          {{ file.description || 'Fichier de données' }} • 
+                          {{ formatFileSize(file.size_bytes) }} • 
+                          {{ formatNumber(file.row_count) }} lignes
+                        </div>
+                        <mat-icon matListItemMeta *ngIf="i === selectedFileIndex">check_circle</mat-icon>
+                      </mat-list-item>
+                    </mat-list>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <!-- Détails du fichier sélectionné -->
+              <div class="file-details" *ngIf="dataset.files && dataset.files[selectedFileIndex]">
+                <mat-card class="details-card">
+                  <mat-card-header>
+                    <mat-icon mat-card-avatar>info</mat-icon>
+                    <mat-card-title>{{ dataset.files[selectedFileIndex].file_name_in_storage }}</mat-card-title>
+                    <mat-card-subtitle>Détails du fichier</mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="file-info-grid">
+                      <div class="info-item">
+                        <span class="info-label">Description:</span>
+                        <span class="info-value">{{ dataset.files[selectedFileIndex].description || 'Non spécifiée' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="info-label">Format:</span>
+                        <span class="info-value">{{ dataset.files[selectedFileIndex].format || 'Non spécifié' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="info-label">Taille:</span>
+                        <span class="info-value">{{ formatFileSize(dataset.files[selectedFileIndex].size_bytes) }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="info-label">Lignes:</span>
+                        <span class="info-value">{{ formatNumber(dataset.files[selectedFileIndex].row_count) }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="info-label">Colonnes:</span>
+                        <span class="info-value">{{ dataset.files[selectedFileIndex].columns.length || 0 }}</span>
+                      </div>
+                    </div>
+                    
+                    <div class="file-description" *ngIf="dataset.files[selectedFileIndex].description">
+                      <h4>Description</h4>
+                      <p>{{ dataset.files[selectedFileIndex].description }}</p>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+
+                <!-- Colonnes du fichier -->
+                <mat-card class="columns-card" *ngIf="dataset.files && dataset.files[selectedFileIndex] && dataset.files[selectedFileIndex].columns && dataset.files[selectedFileIndex].columns.length > 0">
+                  <mat-card-header>
+                    <mat-icon mat-card-avatar>view_column</mat-icon>
+                    <mat-card-title>Colonnes ({{ dataset.files[selectedFileIndex].columns.length || 0 }})</mat-card-title>
+                    <mat-card-subtitle>Structure et métadonnées des colonnes</mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="columns-table">
+                      <mat-table [dataSource]="dataset.files[selectedFileIndex].columns" class="columns-mat-table">
+                        <ng-container matColumnDef="position">
+                          <mat-header-cell *matHeaderCellDef>Position</mat-header-cell>
+                          <mat-cell *matCellDef="let column">{{ column.position }}</mat-cell>
+                        </ng-container>
+
+                        <ng-container matColumnDef="name">
+                          <mat-header-cell *matHeaderCellDef>Nom</mat-header-cell>
+                          <mat-cell *matCellDef="let column">
+                            <div class="column-name">
+                              <span class="name">{{ column.column_name }}</span>
+                              <mat-icon *ngIf="column.is_pii" class="pii-icon" matTooltip="Données personnelles identifiables">lock</mat-icon>
+                              <mat-icon *ngIf="column.is_primary_key_component" class="pk-icon" matTooltip="Clé primaire">key</mat-icon>
+                            </div>
+                          </mat-cell>
+                        </ng-container>
+
+                        <ng-container matColumnDef="type">
+                          <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
+                          <mat-cell *matCellDef="let column">
+                            <span class="data-type">{{ column.data_type_interpreted || column.data_type_original }}</span>
+                          </mat-cell>
+                        </ng-container>
+
+                        <ng-container matColumnDef="nullable">
+                          <mat-header-cell *matHeaderCellDef>Nullable</mat-header-cell>
+                          <mat-cell *matCellDef="let column">
+                            <mat-icon [class]="column.is_nullable ? 'nullable' : 'not-nullable'">
+                              {{ column.is_nullable ? 'check_circle' : 'cancel' }}
+                            </mat-icon>
+                          </mat-cell>
+                        </ng-container>
+
+                        <ng-container matColumnDef="examples">
+                          <mat-header-cell *matHeaderCellDef>Exemples</mat-header-cell>
+                          <mat-cell *matCellDef="let column">
+                            <div class="examples" *ngIf="column.example_values">
+                              <mat-chip-set>
+                                <mat-chip *ngFor="let example of column.example_values.slice(0, 3)" class="example-chip">
+                                  {{ example }}
+                                </mat-chip>
+                              </mat-chip-set>
+                            </div>
+                          </mat-cell>
+                        </ng-container>
+
+                        <ng-container matColumnDef="description">
+                          <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
+                          <mat-cell *matCellDef="let column">
+                            <span class="description">{{ column.description || 'Non spécifiée' }}</span>
+                          </mat-cell>
+                        </ng-container>
+
+                        <mat-header-row *matHeaderRowDef="['position', 'name', 'type', 'nullable', 'examples', 'description']"></mat-header-row>
+                        <mat-row *matRowDef="let row; columns: ['position', 'name', 'type', 'nullable', 'examples', 'description']"></mat-row>
+                      </mat-table>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+
+            <div class="no-files" *ngIf="!dataset.files || dataset.files.length === 0">
+              <mat-icon>folder_off</mat-icon>
+              <h3>Aucun fichier disponible</h3>
+              <p>Ce dataset ne contient pas de fichiers accessibles pour l'aperçu.</p>
+            </div>
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      <!-- Onglet Aperçu des Données -->
+      <mat-tab label="Aperçu des Données">
+        <ng-template matTabContent>
+          <div class="tab-content preview-tab">
+            <div class="preview-content" *ngIf="preview">
+              
+              <!-- Header de l'aperçu -->
+              <div class="preview-header">
+                <mat-card class="preview-info-card">
+                  <mat-card-content>
+                    <div class="preview-stats">
+                      <div class="stat-item">
+                        <mat-icon>table_chart</mat-icon>
+                        <span class="stat-value">{{ formatNumber(preview.total_rows) }}</span>
+                        <span class="stat-label">lignes totales</span>
+                      </div>
+                      <div class="stat-item">
+                        <mat-icon>view_column</mat-icon>
+                        <span class="stat-value">{{ preview.columns_info.length || 0 }}</span>
+                        <span class="stat-label">colonnes</span>
+                      </div>
+                      <div class="stat-item">
+                        <mat-icon>visibility</mat-icon>
+                        <span class="stat-value">{{ preview.sample_data.length || 0 }}</span>
+                        <span class="stat-label">lignes affichées</span>
+                      </div>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <!-- Tableau de données -->
+              <mat-card class="data-table-card">
+                <mat-card-header>
+                  <mat-icon mat-card-avatar>table_view</mat-icon>
+                  <mat-card-title>Échantillon de Données</mat-card-title>
+                  <mat-card-subtitle>{{ preview.file_name }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="data-table-container">
+                    <table class="data-preview-table" *ngIf="preview.sample_data && preview.sample_data.length > 0">
+                      <thead>
+                        <tr>
+                          <th *ngFor="let column of previewDisplayColumns">{{ column }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let row of preview.sample_data.slice(0, 50)">
+                          <td *ngFor="let column of previewDisplayColumns">
+                            <span class="cell-content">{{ row[column] || '—' }}</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <div class="table-actions" *ngIf="preview.sample_data && preview.sample_data.length > 50">
+                    <p class="table-note">
+                      <mat-icon>info</mat-icon>
+                      Affichage limité aux 50 premières lignes. 
+                      {{ formatNumber(preview.total_rows - 50) }} lignes supplémentaires disponibles.
+                    </p>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Statistiques des colonnes -->
+              <mat-card class="column-stats-card">
+                <mat-card-header>
+                  <mat-icon mat-card-avatar>analytics</mat-icon>
+                  <mat-card-title>Statistiques des Colonnes</mat-card-title>
+                  <mat-card-subtitle>Analyse descriptive des données</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="column-stats-grid">
+                    <div *ngFor="let column of preview.columns_info" class="column-stat-item">
+                      <div class="column-stat-header">
+                        <h4 class="column-stat-name">{{ column.name }}</h4>
+                        <span class="column-stat-type">{{ column.type }}</span>
+                      </div>
+                      
+                      <div class="column-stat-content">
+                        <div class="stat-row">
+                          <span class="stat-label">Non-null:</span>
+                          <span class="stat-value">{{ formatNumber(column.non_null_count) }}</span>
+                        </div>
+                        
+                        <div class="stat-row" *ngIf="column.unique_count !== undefined">
+                          <span class="stat-label">Valeurs uniques:</span>
+                          <span class="stat-value">{{ formatNumber(column.unique_count) }}</span>
+                        </div>
+                        
+                        <div class="stat-row" *ngIf="column.mean !== undefined && column.mean !== null">
+                          <span class="stat-label">Moyenne:</span>
+                          <span class="stat-value">{{ column.mean.toFixed(2) }}</span>
+                        </div>
+                        
+                        <div class="stat-row" *ngIf="column.std !== undefined && column.std !== null">
+                          <span class="stat-label">Écart-type:</span>
+                          <span class="stat-value">{{ column.std.toFixed(2) }}</span>
+                        </div>
+                        
+                        <div class="sample-values" *ngIf="column.sample_values && column.sample_values.length > 0">
+                          <span class="stat-label">Exemples:</span>
+                          <div class="sample-chips">
+                            <mat-chip *ngFor="let sample of column.sample_values.slice(0, 3)" class="sample-chip">
+                              {{ sample }}
+                            </mat-chip>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <div class="no-preview" *ngIf="!preview">
+              <mat-icon>preview</mat-icon>
+              <h3>Aperçu non disponible</h3>
+              <p>L'aperçu des données n'est pas disponible pour ce dataset.</p>
+            </div>
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      <!-- Onglet Analytics -->
+      <mat-tab label="Analytics" *ngIf="distributionAnalysis">
+        <ng-template matTabContent>
+          <div class="tab-content analytics-tab">
+            
+            <!-- Corrélations -->
+            <mat-card class="correlations-card" *ngIf="getTopCorrelations().length > 0">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>scatter_plot</mat-icon>
+                <mat-card-title>Corrélations entre Features</mat-card-title>
+                <mat-card-subtitle>Top {{ getTopCorrelations().length }} corrélations les plus fortes</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="correlations-table">
+                  <mat-table [dataSource]="getTopCorrelations()" class="correlations-mat-table">
+                    <ng-container matColumnDef="feature1">
+                      <mat-header-cell *matHeaderCellDef>Feature 1</mat-header-cell>
+                      <mat-cell *matCellDef="let corr">{{ corr.feature1 }}</mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="feature2">
+                      <mat-header-cell *matHeaderCellDef>Feature 2</mat-header-cell>
+                      <mat-cell *matCellDef="let corr">{{ corr.feature2 }}</mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="correlation">
+                      <mat-header-cell *matHeaderCellDef>Corrélation</mat-header-cell>
+                      <mat-cell *matCellDef="let corr">
+                        <div class="correlation-value" [class]="corr.correlation && Math.abs(corr.correlation) > 0.7 ? 'strong' : corr.correlation && Math.abs(corr.correlation) > 0.3 ? 'medium' : 'weak'">
+                          <span class="correlation-number">{{ corr.correlation?.toFixed(3) || '—' }}</span>
+                          <mat-progress-bar [value]="corr.correlation ? Math.abs(corr.correlation) * 100 : 0" 
+                                           [color]="corr.correlation && Math.abs(corr.correlation) > 0.7 ? 'warn' : 'primary'">
+                          </mat-progress-bar>
+                        </div>
+                      </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="type">
+                      <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
+                      <mat-cell *matCellDef="let corr">
+                        <mat-chip class="correlation-type-chip">{{ corr.correlation_type }}</mat-chip>
+                      </mat-cell>
+                    </ng-container>
+
+                    <mat-header-row *matHeaderRowDef="correlationDisplayColumns"></mat-header-row>
+                    <mat-row *matRowDef="let row; columns: correlationDisplayColumns"></mat-row>
+                  </mat-table>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Patterns de données manquantes -->
+            <mat-card class="missing-patterns-card" *ngIf="getTopMissingPatterns().length > 0">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>pattern</mat-icon>
+                <mat-card-title>Patterns de Données Manquantes</mat-card-title>
+                <mat-card-subtitle>Analyse des patterns de valeurs manquantes</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="missing-patterns-grid">
+                  <div *ngFor="let pattern of getTopMissingPatterns()" class="pattern-item">
+                    <div class="pattern-header">
+                      <span class="pattern-name">{{ pattern.pattern }}</span>
+                      <span class="pattern-percentage">{{ formatPercentage(pattern.percentage) }}</span>
+                    </div>
+                    <div class="pattern-details">
+                      <span class="pattern-count">{{ formatNumber(pattern.count) }} occurrences</span>
+                      <mat-progress-bar [value]="pattern.percentage * 100" color="accent"></mat-progress-bar>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Distribution des classes (si applicable) -->
+            <mat-card class="class-distribution-card" *ngIf="distributionAnalysis.class_distribution">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>pie_chart</mat-icon>
+                <mat-card-title>Distribution des Classes</mat-card-title>
+                <mat-card-subtitle *ngIf="distributionAnalysis.target_column">
+                  Variable cible: {{ distributionAnalysis.target_column }}
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="class-distribution-grid">
+                  <div *ngFor="let class of distributionAnalysis.class_distribution | keyvalue" class="class-item">
+                    <div class="class-header">
+                      <span class="class-name">{{ class.key }}</span>
+                      <span class="class-count">{{ formatNumber(class.value) }}</span>
+                    </div>
+                    <mat-progress-bar [value]="class.value" color="primary"></mat-progress-bar>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Importance des features (si disponible) -->
+            <mat-card class="feature-importance-card" *ngIf="distributionAnalysis.feature_importance && distributionAnalysis.feature_importance.length > 0">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>trending_up</mat-icon>
+                <mat-card-title>Importance des Features</mat-card-title>
+                <mat-card-subtitle>Contribution relative de chaque feature</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="feature-importance-list">
+                  <div *ngFor="let feature of distributionAnalysis.feature_importance.slice(0, 10)" class="importance-item">
+                    <div class="importance-header">
+                      <span class="feature-name">{{ feature.feature }}</span>
+                      <span class="importance-value">{{ feature.importance ? (feature.importance * 100).toFixed(1) + '%' : '—' }}</span>
+                    </div>
+                    <mat-progress-bar [value]="feature.importance ? feature.importance * 100 : 0" color="accent"></mat-progress-bar>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
+
+<!-- États de chargement et d'erreur -->
+<div class="loading-container" *ngIf="isLoading">
+  <mat-card class="loading-card">
+    <mat-card-content>
+      <div class="loading-content">
+        <mat-spinner diameter="60"></mat-spinner>
+        <h3>Chargement des détails du dataset...</h3>
+        <p>Veuillez patienter pendant que nous récupérons toutes les informations.</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<div class="error-container" *ngIf="error && !isLoading">
+  <mat-card class="error-card">
+    <mat-card-content>
+      <div class="error-content">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <h3>Erreur de chargement</h3>
+        <p>{{ error }}</p>
+        <div class="error-actions">
+          <button mat-raised-button color="primary" (click)="loadDatasetDetails()">
+            <mat-icon>refresh</mat-icon>
+            Réessayer
+          </button>
+          <button mat-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Retour
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div> 

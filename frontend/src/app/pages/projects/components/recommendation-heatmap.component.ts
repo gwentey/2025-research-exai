@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DatasetScored } from '../../../models/dataset.models';
 import { CriterionWeight } from '../../../models/project.models';
 
@@ -21,17 +22,18 @@ declare global {
     CommonModule,
     MatCardModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslateModule
   ],
   template: `
     <mat-card class="heatmap-card" *ngIf="datasets.length > 0 && activeCriteria.length > 0">
       <mat-card-header>
         <mat-card-title class="d-flex align-items-center">
           <mat-icon class="m-r-8">insights</mat-icon>
-          Heat Map des Recommandations Apache ECharts
+          {{ 'PROJECTS.HEATMAP.TITLE' | translate }}
         </mat-card-title>
         <mat-card-subtitle>
-          Visualisation interactive Apache ECharts - {{ datasets.length }} datasets sur {{ activeCriteria.length }} critères
+          {{ 'PROJECTS.HEATMAP.SUBTITLE' | translate:{ datasets: datasets.length, criteria: activeCriteria.length } }}
         </mat-card-subtitle>
       </mat-card-header>
       
@@ -41,27 +43,29 @@ declare global {
           <div class="d-flex align-items-center gap-16">
             <div class="legend-item">
               <div class="legend-color" style="background: #f44336;"></div>
-              <span class="mat-caption">Faible (0-30%)</span>
+              <span class="mat-caption">{{ 'PROJECTS.HEATMAP.LEGEND.LOW' | translate }}</span>
             </div>
             <div class="legend-item">
               <div class="legend-color" style="background: #ff9800;"></div>
-              <span class="mat-caption">Moyen (30-60%)</span>
+              <span class="mat-caption">{{ 'PROJECTS.HEATMAP.LEGEND.MEDIUM' | translate }}</span>
             </div>
             <div class="legend-item">
               <div class="legend-color" style="background: #4caf50;"></div>
-              <span class="mat-caption">Bon (60-85%)</span>
+              <span class="mat-caption">{{ 'PROJECTS.HEATMAP.LEGEND.GOOD' | translate }}</span>
             </div>
             <div class="legend-item">
               <div class="legend-color" style="background: #2196f3;"></div>
-              <span class="mat-caption">Excellent (85%+)</span>
+              <span class="mat-caption">{{ 'PROJECTS.HEATMAP.LEGEND.EXCELLENT' | translate }}</span>
             </div>
           </div>
         </div>
 
         <!-- Container ECharts -->
         <div #chartContainer 
+             class="echarts-container"
              id="echarts-heatmap-{{ componentId }}"
-             style="width: 100%; height: 500px; background: white; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+             [style.height.px]="getChartHeight()"
+             style="width: 100%; min-height: 400px; background: white; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         </div>
 
         <!-- Informations -->
@@ -69,15 +73,15 @@ declare global {
           <div class="d-flex align-items-center gap-16">
             <div class="info-item">
               <mat-icon class="text-primary">analytics</mat-icon>
-              <span class="mat-caption m-l-4">{{ activeCriteria.length }} critères analysés</span>
+              <span class="mat-caption m-l-4">{{ 'PROJECTS.HEATMAP.INFO.CRITERIA_ANALYZED' | translate:{ count: activeCriteria.length } }}</span>
             </div>
             <div class="info-item">
               <mat-icon class="text-primary">storage</mat-icon>
-              <span class="mat-caption m-l-4">{{ datasets.length }} datasets comparés</span>
+              <span class="mat-caption m-l-4">{{ 'PROJECTS.HEATMAP.INFO.DATASETS_COMPARED' | translate:{ count: datasets.length } }}</span>
             </div>
             <div class="info-item">
               <mat-icon class="text-primary">mouse</mat-icon>
-              <span class="mat-caption m-l-4">Apache ECharts CDN</span>
+              <span class="mat-caption m-l-4">{{ 'PROJECTS.HEATMAP.INFO.CDN_POWERED' | translate }}</span>
             </div>
           </div>
         </div>
@@ -85,13 +89,13 @@ declare global {
         <!-- Message de chargement -->
         <div *ngIf="isLoadingECharts" class="loading-echarts text-center p-20">
           <mat-icon class="icon-24 text-primary">hourglass_empty</mat-icon>
-          <p class="mat-caption m-t-8">Chargement d'ECharts...</p>
+          <p class="mat-caption m-t-8">{{ 'PROJECTS.HEATMAP.LOADING' | translate }}</p>
         </div>
 
         <!-- Message si pas de données -->
         <div *ngIf="activeCriteria.length === 0" class="no-data text-center p-20">
           <mat-icon class="icon-48 text-muted">tune</mat-icon>
-          <p class="mat-body-1 m-t-12">Configurez des poids pour afficher la heat map ECharts</p>
+          <p class="mat-body-1 m-t-12">{{ 'PROJECTS.HEATMAP.NO_DATA' | translate }}</p>
         </div>
       </mat-card-content>
     </mat-card>
@@ -99,10 +103,19 @@ declare global {
   styles: [`
     .heatmap-card {
       margin-top: 20px;
+      width: 100%;
     }
 
     .heatmap-content {
       overflow-x: auto;
+      overflow-y: hidden;
+      width: 100%;
+    }
+
+    .echarts-container {
+      width: 100% !important;
+      min-width: 100%;
+      display: block;
     }
 
     .legend-info {
@@ -155,12 +168,26 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
   isLoadingECharts = true;
   componentId: string;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  // Gestion des timers et debouncing
+  private updateTimer: any = null;
+  private resizeTimer: any = null;
+  private resizeObserver: ResizeObserver | null = null;
+
+  // Cache pour éviter les recalculs inutiles
+  private lastDatasetLength = 0;
+  private lastCriteriaLength = 0;
+  private lastDatasetHash = '';
+
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private translateService: TranslateService
+  ) {
     this.componentId = Math.random().toString(36).substr(2, 9);
   }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      // Charger ECharts une seule fois au début
       this.loadECharts();
     }
   }
@@ -168,16 +195,81 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['weights'] || changes['datasets']) {
       this.activeCriteria = this.weights.filter(w => w.weight > 0);
-      if (!this.isLoadingECharts) {
-        this.updateChart();
+      
+      // Vérifier si les données ont réellement changé pour éviter les mises à jour inutiles
+      const currentDatasetHash = this.datasets.map(d => d.dataset_name).sort().join('|');
+      const hasDataChanged = 
+        this.datasets.length !== this.lastDatasetLength ||
+        this.activeCriteria.length !== this.lastCriteriaLength ||
+        currentDatasetHash !== this.lastDatasetHash;
+
+      if (hasDataChanged && !this.isLoadingECharts && this.myChart) {
+        // Mettre en cache les nouvelles valeurs
+        this.lastDatasetLength = this.datasets.length;
+        this.lastCriteriaLength = this.activeCriteria.length;
+        this.lastDatasetHash = currentDatasetHash;
+        
+        // Debouncer la mise à jour pour éviter les clignotements
+        this.debouncedUpdate();
       }
     }
   }
 
   ngOnDestroy(): void {
-    if (this.myChart) {
+    // Nettoyer tous les timers
+    if (this.updateTimer) {
+      clearTimeout(this.updateTimer);
+    }
+    if (this.resizeTimer) {
+      clearTimeout(this.resizeTimer);
+    }
+
+    // Nettoyer le ResizeObserver
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+
+    // Nettoyer ECharts
+    if (this.myChart && !this.myChart.isDisposed()) {
       this.myChart.dispose();
     }
+  }
+
+  getChartHeight(): number {
+    const baseHeight = 300;
+    const heightPerDataset = 45;
+    const maxHeight = 800;
+    
+    const calculatedHeight = baseHeight + (this.datasets.length * heightPerDataset);
+    return Math.min(calculatedHeight, maxHeight);
+  }
+
+  /**
+   * Debounce des mises à jour pour éviter les clignotements
+   */
+  private debouncedUpdate(): void {
+    if (this.updateTimer) {
+      clearTimeout(this.updateTimer);
+    }
+    
+    this.updateTimer = setTimeout(() => {
+      this.updateChart();
+    }, 200); // Délai plus long pour éviter les clignotements
+  }
+
+  /**
+   * Redimensionnement debounced
+   */
+  private debouncedResize(): void {
+    if (this.resizeTimer) {
+      clearTimeout(this.resizeTimer);
+    }
+    
+    this.resizeTimer = setTimeout(() => {
+      if (this.myChart && !this.myChart.isDisposed()) {
+        this.myChart.resize();
+      }
+    }, 100);
   }
 
   private loadECharts(): void {
@@ -203,10 +295,30 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
   }
 
   private initChart(): void {
-    if (this.chartContainer?.nativeElement && window.echarts) {
-      this.myChart = window.echarts.init(this.chartContainer.nativeElement);
+    if (!this.chartContainer?.nativeElement || !window.echarts) {
+      return;
+    }
+
+    // Initialiser le graphique seulement une fois
+    this.myChart = window.echarts.init(this.chartContainer.nativeElement);
+    
+    // Configurer le ResizeObserver pour un redimensionnement optimal
+    this.setupResizeObserver();
+
+    // Première mise à jour du graphique
+    if (this.datasets.length > 0 && this.activeCriteria.length > 0) {
       this.updateChart();
     }
+  }
+
+  private setupResizeObserver(): void {
+    if (!this.chartContainer?.nativeElement) return;
+
+    this.resizeObserver = new ResizeObserver(() => {
+      this.debouncedResize();
+    });
+
+    this.resizeObserver.observe(this.chartContainer.nativeElement);
   }
 
   private updateChart(): void {
@@ -228,30 +340,23 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
       });
     });
 
-    // Configuration ECharts avec positionnement intelligent du tooltip
+    // Configuration ECharts optimisée
     const option = {
+      animation: false, // Désactiver les animations pour éviter les clignotements
       tooltip: {
-        // Positionnement intelligent selon la position de l'élément
         position: (point: number[], params: any, dom: any, rect: any, size: any) => {
           const datasetIndex = params.data[1];
           const totalDatasets = this.datasets.length;
           
-          // Si l'élément est dans le tiers supérieur, placer le tooltip en bas
           if (datasetIndex < totalDatasets / 3) {
-            return [point[0] + 10, point[1] + 20]; // Décalage vers le bas
-          }
-          // Si l'élément est dans le tiers inférieur, placer le tooltip en haut  
-          else if (datasetIndex > (totalDatasets * 2) / 3) {
-            return [point[0] + 10, point[1] - size.contentSize[1] - 20]; // Décalage vers le haut
-          }
-          // Pour le milieu, centrer verticalement
-          else {
-            return [point[0] + 10, point[1] - size.contentSize[1] / 2]; // Centré
+            return [point[0] + 10, point[1] + 20];
+          } else if (datasetIndex > (totalDatasets * 2) / 3) {
+            return [point[0] + 10, point[1] - size.contentSize[1] - 20];
+          } else {
+            return [point[0] + 10, point[1] - size.contentSize[1] / 2];
           }
         },
-        // Confiner le tooltip dans le conteneur pour éviter la coupure
         confine: true,
-        // Style amélioré du tooltip
         backgroundColor: 'rgba(50, 50, 50, 0.95)',
         borderColor: '#4575b4',
         borderWidth: 2,
@@ -270,12 +375,10 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
           const criterion = this.activeCriteria[criterionIndex];
           const dataset = this.datasets[datasetIndex];
           
-          // Couleur selon le score pour le titre
           const scoreColor = score >= 0.85 ? '#4575b4' : 
                             score >= 0.60 ? '#66c2a5' : 
                             score >= 0.30 ? '#fdae61' : '#d73027';
           
-          // Fonction pour tronquer intelligemment le texte
           const truncateText = (text: string, maxLength: number) => {
             if (!text || text.length <= maxLength) return text;
             return text.substring(0, maxLength).trim() + '...';
@@ -306,11 +409,11 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
         }
       },
       grid: {
-        height: '65%',
-        top: '15%',  // Plus d'espace en haut pour les tooltips
-        left: '18%',
-        right: '8%',
-        bottom: '20%' // Plus d'espace en bas aussi
+        height: '70%',
+        top: '10%',
+        left: '25%',
+        right: '5%',
+        bottom: '20%'
       },
       xAxis: {
         type: 'category',
@@ -320,8 +423,10 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
         },
         axisLabel: {
           rotate: 45,
-          fontSize: 11,
-          color: '#666'
+          fontSize: 12,
+          color: '#333',
+          fontWeight: '500',
+          margin: 8
         }
       },
       yAxis: {
@@ -331,10 +436,12 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
           show: true
         },
         axisLabel: {
-          fontSize: 11,
-          color: '#666',
-          width: 120,
-          overflow: 'truncate'
+          fontSize: 12,
+          color: '#333',
+          width: 200,
+          overflow: 'break',
+          lineHeight: 14,
+          fontWeight: '500'
         }
       },
       visualMap: {
@@ -346,20 +453,21 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
         bottom: '5%',
         inRange: {
           color: [
-            '#ffebee', // 0% - Rouge très clair
-            '#ffcdd2', // 20%
-            '#fff3e0', // 40% - Orange clair  
-            '#ffe0b2', // 60%
-            '#e8f5e8', // 80% - Vert clair
-            '#c8e6c9', // 90%
-            '#e3f2fd', // 95% - Bleu clair
-            '#2196f3'  // 100% - Bleu
+            '#ffebee',
+            '#ffcdd2',
+            '#fff3e0',
+            '#ffe0b2',
+            '#e8f5e8',
+            '#c8e6c9',
+            '#e3f2fd',
+            '#2196f3'
           ]
         },
         text: ['Excellent', 'Faible'],
         textStyle: {
-          color: '#666',
-          fontSize: 11
+          color: '#333',
+          fontSize: 12,
+          fontWeight: '500'
         }
       },
       series: [
@@ -370,7 +478,7 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
           label: {
             show: true,
             formatter: (params: any) => `${(params.data[2] * 100).toFixed(0)}%`,
-            fontSize: 10,
+            fontSize: 11,
             color: '#333',
             fontWeight: 'bold'
           },
@@ -385,37 +493,32 @@ export class RecommendationHeatmapComponent implements OnChanges, AfterViewInit,
             borderColor: '#fff'
           }
         }
-      ],
-      animation: true,
-      animationDuration: 1000
+      ]
     };
 
     // Appliquer la configuration à ECharts
-    this.myChart.setOption(option);
-
-    // Redimensionnement responsive
-    window.addEventListener('resize', () => {
-      if (this.myChart) {
-        this.myChart.resize();
-      }
-    });
+    this.myChart.setOption(option, true);
   }
 
   getCriterionLabel(criterionName: string): string {
-    const labels: { [key: string]: string } = {
-      'ethical_score': 'Éthique',
-      'technical_score': 'Technique',
-      'popularity_score': 'Popularité',
-      'anonymization': 'Anonymisation',
-      'transparency': 'Transparence',
-      'informed_consent': 'Consentement',
-      'documentation': 'Documentation',
-      'data_quality': 'Qualité'
-    };
-    return labels[criterionName] || criterionName;
+    const translationKey = `PROJECTS.HEATMAP.CRITERIA_LABELS.${criterionName.toUpperCase()}`;
+    const translated = this.translateService.instant(translationKey);
+    
+    if (translated === translationKey) {
+      return criterionName.replace('_', ' ').toUpperCase();
+    }
+    
+    return translated;
   }
 
   getCriterionScore(dataset: DatasetScored, criterionName: string): number {
+    // Vérifie d'abord si le dataset a des scores pré-calculés (DatasetScoredWithDetails)
+    const datasetWithDetails = dataset as any;
+    if (datasetWithDetails.criterion_scores && datasetWithDetails.criterion_scores[criterionName] !== undefined) {
+      return datasetWithDetails.criterion_scores[criterionName];
+    }
+
+    // Fallback vers les calculs locaux pour la compatibilité
     switch (criterionName) {
       case 'ethical_score':
         return this.calculateEthicalScore(dataset);

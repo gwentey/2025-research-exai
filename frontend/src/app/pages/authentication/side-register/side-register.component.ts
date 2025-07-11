@@ -83,10 +83,16 @@ export class AppSideRegisterComponent {
         error: (error) => {
           console.error('Signup failed:', error);
           this.signupSuccess = false;
-          if (error.message?.includes('400')) {
-             this.signupError = this.translate.instant('ERRORS.ACCESS_DENIED');
+          
+          // Gérer les nouveaux codes d'erreur spécifiques du backend
+          if (error.message?.includes('EMAIL_ALREADY_LINKED_TO_OAUTH')) {
+            this.signupError = this.translate.instant('ERRORS.EMAIL_ALREADY_LINKED_TO_OAUTH');
+          } else if (error.message?.includes('EMAIL_ALREADY_EXISTS')) {
+            this.signupError = this.translate.instant('ERRORS.EMAIL_ALREADY_EXISTS');
+          } else if (error.message?.includes('400')) {
+            this.signupError = this.translate.instant('ERRORS.ACCESS_DENIED');
           } else {
-             this.signupError = error.message || this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
+            this.signupError = error.message || this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
           }
         }
       });

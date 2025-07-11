@@ -271,4 +271,142 @@ class ProjectRecommendationResponse(BaseModel):
     """Schéma pour la réponse des recommandations d'un projet"""
     project: ProjectRead
     datasets: List[DatasetScoredWithDetails]
-    total_count: int 
+    total_count: int
+
+
+# === NOUVEAUX SCHÉMAS POUR LES ENDPOINTS DE DATASET DETAIL ===
+
+class DataQualityAlert(BaseModel):
+    """Schéma pour une alerte de qualité des données"""
+    type: str = Field(..., description="Type d'alerte (error, warning, info)")
+    title: str = Field(..., description="Titre de l'alerte")
+    description: str = Field(..., description="Description de l'alerte")
+    severity: int = Field(..., ge=1, le=10, description="Niveau de sévérité (1-10)")
+    recommendation: str = Field(..., description="Recommandation pour résoudre le problème")
+
+
+class DatasetQualityMetrics(BaseModel):
+    """Schéma pour les métriques de qualité d'un dataset"""
+    overall_score: float = Field(..., ge=0.0, le=1.0, description="Score global de qualité")
+    completeness: float = Field(..., ge=0.0, le=1.0, description="Score de complétude")
+    consistency: float = Field(..., ge=0.0, le=1.0, description="Score de consistance")
+    accuracy: float = Field(..., ge=0.0, le=1.0, description="Score de précision")
+    ethical_compliance: float = Field(..., ge=0.0, le=1.0, description="Score de conformité éthique")
+    outliers_percentage: float = Field(..., ge=0.0, le=1.0, description="Pourcentage de valeurs aberrantes")
+    pii_risk_score: float = Field(..., ge=0.0, le=1.0, description="Score de risque PII")
+
+
+class ColumnMetadata(BaseModel):
+    """Schéma pour les métadonnées d'une colonne"""
+    column_name: str = Field(..., description="Nom de la colonne")
+    position: int = Field(..., description="Position de la colonne")
+    data_type_original: str = Field(..., description="Type de données original")
+    data_type_interpreted: Optional[str] = Field(None, description="Type de données interprété")
+    is_nullable: bool = Field(False, description="Colonne peut contenir des valeurs nulles")
+    is_primary_key_component: bool = Field(False, description="Fait partie de la clé primaire")
+    is_pii: bool = Field(False, description="Contient des données personnelles identifiables")
+    description: Optional[str] = Field(None, description="Description de la colonne")
+    example_values: Optional[List[str]] = Field(None, description="Exemples de valeurs")
+
+
+class DatasetFileMetadata(BaseModel):
+    """Schéma pour les métadonnées d'un fichier de dataset"""
+    filename: str = Field(..., description="Nom du fichier")
+    file_format: str = Field(..., description="Format du fichier (csv, json, etc.)")
+    size_bytes: int = Field(..., description="Taille du fichier en bytes")
+    row_count: int = Field(..., description="Nombre de lignes")
+    description: Optional[str] = Field(None, description="Description du fichier")
+    columns: List[ColumnMetadata] = Field(default_factory=list, description="Métadonnées des colonnes")
+
+
+class FeatureCorrelation(BaseModel):
+    """Schéma pour une corrélation entre features"""
+    feature1: str = Field(..., description="Première feature")
+    feature2: str = Field(..., description="Deuxième feature")
+    correlation: float = Field(..., ge=-1.0, le=1.0, description="Coefficient de corrélation")
+    correlation_type: str = Field(..., description="Type de corrélation (forte, moyenne, faible)")
+
+
+class MissingDataPattern(BaseModel):
+    """Schéma pour un pattern de données manquantes"""
+    columns: List[str] = Field(..., description="Colonnes concernées")
+    missing_count: int = Field(..., description="Nombre de lignes avec ce pattern")
+    percentage: float = Field(..., ge=0.0, le=1.0, description="Pourcentage de lignes affectées")
+    pattern_description: str = Field(..., description="Description du pattern")
+
+
+class DataDistributionAnalysis(BaseModel):
+    """Schéma pour l'analyse de distribution des données"""
+    feature_correlations: List[FeatureCorrelation] = Field(default_factory=list, description="Corrélations entre features")
+    missing_data_patterns: List[MissingDataPattern] = Field(default_factory=list, description="Patterns de données manquantes")
+    class_distribution: Optional[Dict[str, int]] = Field(None, description="Distribution des classes (si applicable)")
+    feature_importance: Optional[Dict[str, float]] = Field(None, description="Importance des features (si disponible)")
+
+
+class ColumnStatistics(BaseModel):
+    """Schéma pour les statistiques d'une colonne"""
+    name: str = Field(..., description="Nom de la colonne")
+    type: str = Field(..., description="Type de données")
+    non_null_count: int = Field(..., description="Nombre de valeurs non-null")
+    unique_count: Optional[int] = Field(None, description="Nombre de valeurs uniques")
+    mean: Optional[float] = Field(None, description="Moyenne (pour colonnes numériques)")
+    std: Optional[float] = Field(None, description="Écart-type (pour colonnes numériques)")
+    min_value: Optional[str] = Field(None, description="Valeur minimale")
+    max_value: Optional[str] = Field(None, description="Valeur maximale")
+    top_values: Optional[List[str]] = Field(None, description="Valeurs les plus fréquentes")
+
+
+class DatasetPreviewResponse(BaseModel):
+    """Schéma pour l'aperçu des données d'un dataset"""
+    file_name: str = Field(..., description="Nom du fichier prévisualisé")
+    total_rows: int = Field(..., description="Nombre total de lignes")
+    sample_data: List[Dict[str, Any]] = Field(..., description="Échantillon des données")
+    columns_info: List[ColumnStatistics] = Field(..., description="Informations sur les colonnes")
+
+
+class DatasetDetailResponse(BaseModel):
+    """Schéma pour les détails complets d'un dataset"""
+    # Informations de base du dataset
+    id: UUID4
+    dataset_name: str
+    year: Optional[int]
+    objective: Optional[str]
+    access: Optional[str]
+    availability: Optional[str]
+    num_citations: Optional[int]
+    sources: Optional[str]
+    instances_number: Optional[int]
+    features_number: Optional[int]
+    domain: Optional[List[str]]
+    task: Optional[List[str]]
+    global_missing_percentage: Optional[float]
+    
+    # Métadonnées booléennes
+    split: Optional[bool]
+    has_missing_values: Optional[bool]
+    temporal_factors: Optional[bool]
+    metadata_provided_with_dataset: Optional[bool]
+    anonymization_applied: Optional[bool]
+    
+    # Critères éthiques
+    informed_consent: Optional[bool]
+    transparency: Optional[bool]
+    user_control: Optional[bool]
+    equity_non_discrimination: Optional[bool]
+    security_measures_in_place: Optional[bool]
+    accountability_defined: Optional[bool]
+    
+    # Nouveaux champs pour les détails
+    files: List[DatasetFileMetadata] = Field(default_factory=list, description="Métadonnées des fichiers")
+    quality_metrics: DatasetQualityMetrics
+    distribution_analysis: DataDistributionAnalysis
+    
+    # Timestamps
+    created_at: datetime
+    updated_at: datetime
+
+
+class DatasetSimilarResponse(BaseModel):
+    """Schéma pour les datasets similaires"""
+    similar_datasets: List[DatasetRead] = Field(..., description="Liste des datasets similaires")
+    similarity_explanation: Dict[str, str] = Field(default_factory=dict, description="Explication des similarités") 

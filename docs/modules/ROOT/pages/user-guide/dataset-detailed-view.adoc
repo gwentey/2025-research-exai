@@ -1,0 +1,353 @@
+= Exploration Détaillée des Datasets
+:description: Guide utilisateur pour explorer en profondeur les datasets avec la vue détaillée
+:keywords: datasets, exploration, données, visualisation, analytics
+
+== Introduction
+
+La vue détaillée des datasets offre une exploration complète et intuitive de vos jeux de données, similaire à l'expérience Kaggle. Cette interface riche vous permet de comprendre en profondeur les caractéristiques, la qualité et la structure de chaque dataset avant de les utiliser dans vos projets d'analyse.
+
+== Accès à la Vue Détaillée
+
+=== Depuis la Liste des Datasets
+
+. Naviguez vers la section *Datasets* depuis le menu principal
+. Parcourez la liste ou utilisez les filtres pour trouver le dataset qui vous intéresse
+. Cliquez sur le bouton *"Voir"* (icône œil) sur la carte du dataset
+
+Le bouton "Voir" vous amène directement à la page détaillée du dataset sélectionné.
+
+== Interface Générale
+
+=== Header Héroïque
+
+La page s'ouvre sur un header impressionnant qui présente :
+
+*Informations Principales*
+- Nom complet du dataset
+- Description et objectif
+- Année de création
+- Nombre d'instances et de features
+- Nombre de citations (si disponible)
+
+*Score de Qualité*
+- Indicateur circulaire avec le score global
+- Couleur adaptée selon la qualité (vert, orange, rouge)
+- Animation pour attirer l'attention
+
+*Actions Disponibles*
+- *Télécharger* : Accès aux fichiers du dataset
+- *Favoris* : Marquer comme favori pour accès rapide
+- *Partager* : Partager le dataset avec d'autres utilisateurs
+- *Plus d'options* : Menu avec actions supplémentaires
+
+*Tags et Classifications*
+- *Domaines* : Secteurs d'application (éducation, santé, finance...)
+- *Tâches ML* : Types d'analyses possibles (classification, régression...)
+
+=== Alertes de Qualité
+
+Si des problèmes de qualité sont détectés, une section d'alertes apparaît avec :
+
+- *Type d'alerte* : Information, Avertissement ou Erreur
+- *Description* : Explication claire du problème
+- *Sévérité* : Note de 1 à 10
+- *Recommandations* : Conseils pour traiter le problème
+
+.Exemples d'alertes courantes
+- Données manquantes importantes (> 20%)
+- Valeurs aberrantes détectées (> 5%)
+- Risque d'exposition de données personnelles
+
+== Onglet Vue d'Ensemble
+
+=== Statistiques Rapides
+
+Cartes résumant les informations essentielles :
+
+- *Instances* : Nombre total de lignes de données
+- *Features* : Nombre de colonnes/variables
+- *Fichiers* : Nombre de fichiers dans le dataset
+- *Manquant* : Pourcentage global de données manquantes
+
+=== Informations Générales
+
+Tableau détaillé avec :
+
+*Métadonnées*
+- Source et origine du dataset
+- Conditions d'accès (public, privé, restreint)
+- Niveau de représentativité
+- Équilibre des échantillons
+
+*Indicateurs Techniques*
+- Dataset divisé (train/test) : ✓ ou ✗
+- Anonymisation appliquée : ✓ ou ✗  
+- Facteurs temporels présents : ✓ ou ✗
+- Métadonnées fournies : ✓ ou ✗
+
+=== Conformité Éthique
+
+Section dédiée aux aspects éthiques avec indicateurs visuels :
+
+- *Consentement éclairé* : Les participants ont-ils donné leur accord ?
+- *Transparence* : Les objectifs sont-ils clairement définis ?
+- *Contrôle utilisateur* : Les utilisateurs peuvent-ils contrôler leurs données ?
+- *Non-discrimination* : Le dataset évite-t-il les biais discriminatoires ?
+- *Sécurité* : Des mesures de protection sont-elles en place ?
+- *Responsabilité* : La responsabilité est-elle clairement définie ?
+
+=== Métriques de Qualité
+
+Barres de progression colorées pour :
+
+- *Score Global* : Évaluation synthétique de la qualité
+- *Complétude* : Pourcentage de données non manquantes
+- *Consistance* : Cohérence interne des données
+- *Conformité Éthique* : Respect des bonnes pratiques
+
+=== Datasets Similaires
+
+Recommandations de datasets connexes avec :
+- Nom et métadonnées de base
+- Raison de la similarité
+- Lien direct vers leur page de détail
+
+== Onglet Fichiers et Structure
+
+=== Liste des Fichiers
+
+Exploration des fichiers composant le dataset :
+
+*Sélecteur de Fichiers*
+- Liste cliquable de tous les fichiers
+- Rôle logique (données d'entraînement, test, métadonnées...)
+- Taille et nombre de lignes
+
+*Détails du Fichier Sélectionné*
+- Format (CSV, JSON, etc.)
+- Taille en octets formatée
+- Description si disponible
+
+=== Structure des Colonnes
+
+Tableau détaillé de toutes les colonnes :
+
+*Informations Structurelles*
+- Position dans le fichier
+- Nom de la colonne
+- Type de données (numérique, texte, date...)
+- Possibilité de valeurs nulles
+
+*Indicateurs Spéciaux*
+- 🔒 Données personnelles identifiables (PII)
+- 🔑 Fait partie de la clé primaire
+
+*Exemples et Description*
+- Échantillons de valeurs réelles
+- Description du contenu si documentée
+
+== Onglet Aperçu des Données
+
+=== Statistiques d'Aperçu
+
+Résumé en cartes colorées :
+- Nombre total de lignes dans le dataset
+- Nombre de colonnes affichées
+- Nombre de lignes montrées (limité à 50)
+
+=== Tableau de Données
+
+Visualisation directe des données :
+
+*Fonctionnalités*
+- Scroll horizontal pour voir toutes les colonnes
+- Formatage automatique des valeurs
+- Indicateur du nombre total de lignes disponibles
+- Limitation à 50 lignes pour la performance
+
+*Affichage*
+- En-têtes fixes lors du défilement
+- Lignes alternées pour la lisibilité
+- Gestion des valeurs manquantes (—)
+
+=== Statistiques par Colonne
+
+Cartes détaillées pour chaque colonne :
+
+*Pour Toutes les Colonnes*
+- Type de données détecté
+- Nombre de valeurs non-nulles
+- Nombre de valeurs uniques
+- Exemples de valeurs
+
+*Pour les Colonnes Numériques*
+- Moyenne et écart-type
+- Valeurs minimale et maximale
+- Quartiles et médiane
+
+*Présentation Visuelle*
+- Cartes organisées en grille responsive
+- Couleurs distinctes selon le type de données
+- Effets hover pour l'interactivité
+
+== Onglet Analytics
+
+=== Corrélations entre Features
+
+Analyse des relations entre variables :
+
+*Tableau des Corrélations*
+- Paires de features avec corrélation significative (> 0.1)
+- Valeur de corrélation (-1 à +1)
+- Type de corrélation (Pearson, Spearman, Kendall)
+- Barre visuelle pour l'intensité
+
+*Classification par Force*
+- *Forte* (> 0.7) : Corrélation très significative
+- *Moyenne* (0.3-0.7) : Corrélation modérée  
+- *Faible* (0.1-0.3) : Corrélation légère
+
+=== Patterns de Données Manquantes
+
+Analyse des motifs de valeurs manquantes :
+
+*Informations par Pattern*
+- Description du pattern de manquement
+- Nombre d'occurrences
+- Pourcentage du dataset affecté
+- Barre de progression visuelle
+
+*Utilité*
+- Identifier les patterns systématiques
+- Comprendre les causes des données manquantes
+- Guider les stratégies d'imputation
+
+=== Distribution des Classes
+
+Pour les datasets de classification :
+
+*Variable Cible*
+- Identification automatique de la variable cible
+- Distribution des différentes classes
+- Détection des déséquilibres
+
+*Visualisation*
+- Barres proportionnelles à chaque classe
+- Valeurs absolues et pourcentages
+- Indication des classes sous-représentées
+
+=== Importance des Features
+
+Lorsque disponible :
+
+*Classement des Variables*
+- Contribution relative de chaque feature
+- Pourcentage d'importance
+- Classement par ordre décroissant
+
+*Interprétation*
+- Variables les plus influentes identifiées
+- Guide pour la sélection de features
+- Base pour l'optimisation des modèles
+
+== Navigation et Actions
+
+=== Boutons de Navigation
+
+*Retour*
+- Icône flèche vers la gauche dans le header
+- Retour à la liste des datasets avec filtres conservés
+
+*Breadcrumb*
+- Chemin de navigation visible en haut de page
+- Accueil > Datasets > Nom du dataset
+
+=== Actions Contextuelles
+
+*Depuis n'importe quel Onglet*
+- Télécharger le dataset complet
+- Ajouter aux favoris pour accès rapide
+- Partager avec l'équipe ou exporter l'URL
+- Signaler un problème de qualité
+
+*Intégration avec les Projets*
+- Sélectionner le dataset pour un nouveau projet
+- Utiliser dans un pipeline ML existant
+- Comparer avec d'autres datasets
+
+== Conseils d'Utilisation
+
+=== Avant de Sélectionner un Dataset
+
+. *Examinez le score de qualité global* dans le header
+. *Lisez attentivement les alertes* si elles apparaissent
+. *Vérifiez la conformité éthique* selon vos exigences
+. *Explorez la structure* pour vous assurer qu'elle correspond à vos besoins
+
+=== Évaluation de la Qualité
+
+*Points d'Attention*
+- Score global < 70% : dataset potentiellement problématique
+- Complétude < 80% : beaucoup de données manquantes
+- Alertes PII : risques de conformité RGPD
+
+*Métriques Importantes*
+- Nombre d'instances suffisant pour votre analyse
+- Features pertinentes pour vos objectifs
+- Distribution équilibrée des classes (si classification)
+
+=== Optimisation de l'Exploration
+
+*Navigation Efficace*
+- Utilisez les onglets pour explorer méthodiquement
+- Concentrez-vous d'abord sur la vue d'ensemble
+- Approfondissez avec l'aperçu des données et analytics
+
+*Comparaison*
+- Notez les datasets similaires recommandés
+- Comparez les métriques de qualité
+- Évaluez les avantages de chaque option
+
+== Résolution de Problèmes
+
+=== Affichage Incomplet
+
+*Si certaines sections ne s'affichent pas :*
+- Vérifiez votre connexion internet
+- Actualisez la page avec F5
+- Essayez de changer d'onglet et revenir
+
+=== Données Non Disponibles
+
+*Aperçu des données vide :*
+- Le dataset peut ne pas avoir de fichiers d'aperçu
+- Vérifiez l'onglet "Fichiers et Structure"
+- Contactez l'administrateur si le problème persiste
+
+=== Performance Lente
+
+*Si la page se charge lentement :*
+- Les datasets volumineux prennent plus de temps
+- L'analyse de corrélations peut être longue
+- Utilisez l'onglet Vue d'ensemble en premier
+
+=== Erreurs de Chargement
+
+*En cas d'erreur :*
+- Utilisez le bouton "Réessayer"
+- Vérifiez que le dataset existe toujours
+- Retournez à la liste et resélectionnez
+
+== Évolutions Futures
+
+Cette interface continue d'évoluer avec de nouvelles fonctionnalités prévues :
+
+- *Graphiques interactifs* pour les distributions
+- *Comparaison côte-à-côte* de plusieurs datasets  
+- *Export des analyses* en PDF ou Excel
+- *Intégration directe* avec les pipelines ML
+- *Prévisualisation des explications XAI* possibles
+
+Votre feedback est important pour améliorer cette fonctionnalité !
+
+L'exploration détaillée des datasets vous donne tous les éléments pour faire des choix éclairés et optimiser vos analyses d'intelligence artificielle explicable. 

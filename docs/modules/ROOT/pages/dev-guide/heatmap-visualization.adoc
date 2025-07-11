@@ -1,37 +1,106 @@
-= Visualisation Heatmap avec Apache ECharts
-:description: Documentation technique complète de l'implémentation ECharts pour la visualisation des recommandations de datasets
-:keywords: ECharts, heatmap, Angular, CDN, visualisation, performance
+= Visualisation Heatmap Unifiée avec Apache ECharts
+:description: Documentation technique de l'implémentation ECharts unifiée pour la visualisation des recommandations de datasets dans la création et le détail des projets
+:keywords: ECharts, heatmap, Angular, CDN, visualisation, performance, unification
 
-== Architecture de la Visualisation
+== Architecture Unifiée de la Visualisation
 
 === Vue d'ensemble
 
-La **Heatmap de recommandations** utilise **Apache ECharts 5.4.3** via CDN pour offrir une visualisation interactive et performante des scores de datasets selon différents critères éthiques, techniques et de popularité.
+La **Heatmap de recommandations unifiée** utilise **Apache ECharts 5.4.3** via CDN pour offrir une visualisation interactive et performante des scores de datasets. Cette même heatmap est maintenant utilisée dans deux contextes :
+
+1. **Création de projet** : Pour prévisualiser les recommandations en temps réel
+2. **Détail de projet** : Pour afficher les recommandations finales avec scores pré-calculés
 
 **Stack technique :**
 - **Librairie** : Apache ECharts 5.4.3 (CDN)
-- **Framework** : Angular 17+ 
+- **Framework** : Angular 17+ avec support i18n
 - **Chargement** : Dynamique et différé
 - **Rendu** : Canvas/SVG adaptatif
 - **Responsive** : Gestion automatique des redimensionnements
+- **Internationalisation** : Support complet français/anglais
 
-=== Composant Angular Principal
+=== Composant Angular Unifié
 
 **Fichier :** `frontend/src/app/pages/projects/components/recommendation-heatmap.component.ts`
+
+=== Contextes d'Utilisation
+
+==== 1. Création de Projet (Project Form)
+
+[source,html]
+----
+<!-- Dans project-form.component.html -->
+<app-recommendation-heatmap 
+  [datasets]="previewDatasets" 
+  [weights]="currentWeights">
+</app-recommendation-heatmap>
+----
+
+- **Données** : `DatasetScored[]` avec calculs en temps réel
+- **Poids** : Critères configurables par l'utilisateur
+- **Comportement** : Prévisualisation des recommandations pendant la configuration
+
+==== 2. Détail de Projet (Project Detail)
+
+[source,html]
+----
+<!-- Dans project-detail.component.html -->
+<app-recommendation-heatmap 
+  [datasets]="heatmapDatasets" 
+  [weights]="heatmapWeights">
+</app-recommendation-heatmap>
+----
+
+- **Données** : `DatasetScoredWithDetails[]` avec scores pré-calculés
+- **Poids** : Poids sauvegardés du projet
+- **Comportement** : Affichage des recommandations finales
+
+=== Gestion Intelligente des Données
+
+Le composant heatmap détecte automatiquement le type de données reçues :
+
+[source,typescript]
+----
+getCriterionScore(dataset: DatasetScored, criterionName: string): number {
+  // Vérifie d'abord si le dataset a des scores pré-calculés (DatasetScoredWithDetails)
+  const datasetWithDetails = dataset as any;
+  if (datasetWithDetails.criterion_scores && datasetWithDetails.criterion_scores[criterionName] !== undefined) {
+    return datasetWithDetails.criterion_scores[criterionName];
+  }
+
+  // Fallback vers les calculs locaux pour la compatibilité
+  switch (criterionName) {
+    case 'ethical_score':
+      return this.calculateEthicalScore(dataset);
+    case 'technical_score':
+      return this.calculateTechnicalScore(dataset);
+    // ... autres critères
+  }
+}
+----
+
+=== Composant Principal avec Internationalisation
 
 [source,typescript]
 ----
 @Component({
   selector: 'app-recommendation-heatmap',
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatIconModule,
+    MatTooltipModule,
+    TranslateModule
+  ],
   template: `
-    <mat-card class="cardWithShadow theme-card">
+    <mat-card class="heatmap-card" *ngIf="datasets.length > 0 && activeCriteria.length > 0">
       <mat-card-header>
-        <mat-card-title class="m-b-0 d-flex align-items-center">
+        <mat-card-title class="d-flex align-items-center">
           <mat-icon class="m-r-8">insights</mat-icon>
-          Heatmap des Recommandations
+          {{ 'PROJECTS.HEATMAP.TITLE' | translate }}
         </mat-card-title>
         <mat-card-subtitle>
-          Visualisation interactive des scores par critère avec Apache ECharts
+          {{ 'PROJECTS.HEATMAP.SUBTITLE' | translate:{ datasets: datasets.length, criteria: activeCriteria.length } }}
         </mat-card-subtitle>
       </mat-card-header>
       
@@ -80,18 +149,32 @@ La **Heatmap de recommandations** utilise **Apache ECharts 5.4.3** via CDN pour 
   styleUrls: ['./recommendation-heatmap.component.scss']
 })
 export class RecommendationHeatmapComponent implements OnInit, OnDestroy, OnChanges {
-  @Input() datasets: any[] = [];
-  @Input() weights: any[] = [];
+  @Input() datasets: DatasetScored[] = [];
+  @Input() weights: CriterionWeight[] = [];
 
-  private echarts: any;
-  private chartInstance: any;
-  private resizeListener?: () => void;
+  activeCriteria: CriterionWeight[] = [];
+  private myChart: any = null;
+  isLoadingECharts = true;
+  componentId: string;
 
-  isEChartsLoading = false;
-  loadingError: string | null = null;
-  echartsId = `echarts-heatmap-${Math.random().toString(36).substr(2, 9)}`;
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private translateService: TranslateService
+  ) {
+    this.componentId = Math.random().toString(36).substr(2, 9);
+  }
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  getCriterionLabel(criterionName: string): string {
+    const translationKey = `PROJECTS.HEATMAP.CRITERIA_LABELS.${criterionName.toUpperCase()}`;
+    const translated = this.translateService.instant(translationKey);
+    
+    // Si la traduction n'existe pas, retourner le nom original formaté
+    if (translated === translationKey) {
+      return criterionName.replace('_', ' ').toUpperCase();
+    }
+    
+    return translated;
+  }
 }
 ----
 
@@ -680,5 +763,148 @@ export class EChartsMonitoringService {
   }
 }
 ----
+
+== Support d'Internationalisation (i18n)
+
+=== Configuration des Traductions
+
+La heatmap supporte maintenant l'internationalisation complète avec français et anglais.
+
+**Fichiers de traduction :**
+
+.`frontend/src/assets/i18n/fr.json`
+[source,json]
+----
+{
+  "PROJECTS": {
+    "HEATMAP": {
+      "TITLE": "Heat Map des Recommandations Apache ECharts",
+      "SUBTITLE": "Visualisation interactive Apache ECharts - {{datasets}} datasets sur {{criteria}} critères",
+      "LEGEND": {
+        "LOW": "Faible (0-30%)",
+        "MEDIUM": "Moyen (30-60%)",
+        "GOOD": "Bon (60-85%)",
+        "EXCELLENT": "Excellent (85%+)"
+      },
+      "INFO": {
+        "CRITERIA_ANALYZED": "{{count}} critères analysés",
+        "DATASETS_COMPARED": "{{count}} datasets comparés",
+        "CDN_POWERED": "Apache ECharts CDN"
+      },
+      "LOADING": "Chargement d'ECharts...",
+      "NO_DATA": "Configurez des poids pour afficher la heat map ECharts",
+      "CRITERIA_LABELS": {
+        "ETHICAL_SCORE": "Éthique",
+        "TECHNICAL_SCORE": "Technique",
+        "POPULARITY_SCORE": "Popularité",
+        "ANONYMIZATION": "Anonymisation",
+        "TRANSPARENCY": "Transparence",
+        "INFORMED_CONSENT": "Consentement",
+        "DOCUMENTATION": "Documentation",
+        "DATA_QUALITY": "Qualité"
+      }
+    }
+  }
+}
+----
+
+.`frontend/src/assets/i18n/en.json`
+[source,json]
+----
+{
+  "PROJECTS": {
+    "HEATMAP": {
+      "TITLE": "Apache ECharts Recommendations Heat Map",
+      "SUBTITLE": "Interactive Apache ECharts visualization - {{datasets}} datasets on {{criteria}} criteria",
+      "LEGEND": {
+        "LOW": "Low (0-30%)",
+        "MEDIUM": "Medium (30-60%)",
+        "GOOD": "Good (60-85%)",
+        "EXCELLENT": "Excellent (85%+)"
+      },
+      "INFO": {
+        "CRITERIA_ANALYZED": "{{count}} criteria analyzed",
+        "DATASETS_COMPARED": "{{count}} datasets compared",
+        "CDN_POWERED": "Apache ECharts CDN"
+      },
+      "LOADING": "Loading ECharts...",
+      "NO_DATA": "Configure weights to display the ECharts heat map",
+      "CRITERIA_LABELS": {
+        "ETHICAL_SCORE": "Ethics",
+        "TECHNICAL_SCORE": "Technical",
+        "POPULARITY_SCORE": "Popularity",
+        "ANONYMIZATION": "Anonymization",
+        "TRANSPARENCY": "Transparency",
+        "INFORMED_CONSENT": "Consent",
+        "DOCUMENTATION": "Documentation",
+        "DATA_QUALITY": "Quality"
+      }
+    }
+  }
+}
+----
+
+=== Implémentation des Labels Dynamiques
+
+[source,typescript]
+----
+/**
+ * Récupère le label traduit d'un critère
+ */
+getCriterionLabel(criterionName: string): string {
+  const translationKey = `PROJECTS.HEATMAP.CRITERIA_LABELS.${criterionName.toUpperCase()}`;
+  const translated = this.translateService.instant(translationKey);
+  
+  // Si la traduction n'existe pas, retourner le nom original formaté
+  if (translated === translationKey) {
+    return criterionName.replace('_', ' ').toUpperCase();
+  }
+  
+  return translated;
+}
+----
+
+=== Usage dans les Templates
+
+[source,html]
+----
+<!-- Titre et sous-titre traduits avec paramètres -->
+<mat-card-title>
+  {{ 'PROJECTS.HEATMAP.TITLE' | translate }}
+</mat-card-title>
+<mat-card-subtitle>
+  {{ 'PROJECTS.HEATMAP.SUBTITLE' | translate:{ datasets: datasets.length, criteria: activeCriteria.length } }}
+</mat-card-subtitle>
+
+<!-- Légende traduite -->
+<div class="legend-item">
+  <div class="legend-color" style="background: #4caf50;"></div>
+  <span class="mat-caption">{{ 'PROJECTS.HEATMAP.LEGEND.GOOD' | translate }}</span>
+</div>
+
+<!-- Messages d'état traduits -->
+<p class="mat-caption">{{ 'PROJECTS.HEATMAP.LOADING' | translate }}</p>
+<p class="mat-body-1">{{ 'PROJECTS.HEATMAP.NO_DATA' | translate }}</p>
+----
+
+=== Changement de Langue Dynamique
+
+Le composant réagit automatiquement aux changements de langue grâce à l'injection du `TranslateService`. Les labels des critères sont mis à jour en temps réel lors du changement de langue dans l'interface utilisateur.
+
+== Avantages de l'Implémentation Unifiée
+
+=== Performance et Maintenance
+
+1. **Code Réutilisable** : Un seul composant pour deux contextes
+2. **Cohérence Visuelle** : Même expérience utilisateur partout
+3. **Maintenance Simplifiée** : Corrections et améliorations centralisées
+4. **Support i18n** : Traductions cohérentes dans toute l'application
+
+=== Flexibilité des Données
+
+1. **Auto-détection** : Gestion automatique des types de datasets
+2. **Scores Pré-calculés** : Support des `DatasetScoredWithDetails`
+3. **Calculs Dynamiques** : Fallback vers calculs locaux si nécessaire
+4. **Compatibilité** : Rétrocompatible avec l'ancienne implémentation
 
 Cette architecture garantit une **visualisation robuste, performante et maintenable** des recommandations de datasets avec Apache ECharts ! 🎯📊🚀 

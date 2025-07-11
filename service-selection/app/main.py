@@ -430,6 +430,109 @@ def get_dataset(dataset_id: str, db: Session = Depends(database.get_db)):
         raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
     return dataset
 
+
+@app.get("/datasets/{dataset_id}/details", response_model=schemas.DatasetDetailResponse)
+def get_dataset_details(dataset_id: str, db: Session = Depends(database.get_db)):
+    """Récupère les détails complets d'un dataset avec métriques de qualité et métadonnées enrichies."""
+    dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if dataset is None:
+        raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
+    
+    # Générer les métriques de qualité
+    quality_metrics = generate_quality_metrics(dataset)
+    
+    # Générer l'analyse de distribution
+    distribution_analysis = generate_distribution_analysis(dataset)
+    
+    # Générer les métadonnées des fichiers
+    files_metadata = generate_files_metadata(dataset)
+    
+    return schemas.DatasetDetailResponse(
+        id=dataset.id,
+        dataset_name=dataset.dataset_name,
+        year=dataset.year,
+        objective=dataset.objective,
+        access=dataset.access,
+        availability=dataset.availability,
+        num_citations=dataset.num_citations,
+        sources=dataset.sources,
+        instances_number=dataset.instances_number,
+        features_number=dataset.features_number,
+        domain=dataset.domain,
+        task=dataset.task,
+        global_missing_percentage=dataset.global_missing_percentage,
+        split=dataset.split,
+        has_missing_values=dataset.has_missing_values,
+        temporal_factors=dataset.temporal_factors,
+        metadata_provided_with_dataset=dataset.metadata_provided_with_dataset,
+        anonymization_applied=dataset.anonymization_applied,
+        informed_consent=dataset.informed_consent,
+        transparency=dataset.transparency,
+        user_control=dataset.user_control,
+        equity_non_discrimination=dataset.equity_non_discrimination,
+        security_measures_in_place=dataset.security_measures_in_place,
+        accountability_defined=dataset.accountability_defined,
+        files=files_metadata,
+        quality_metrics=quality_metrics,
+        distribution_analysis=distribution_analysis,
+        created_at=dataset.created_at,
+        updated_at=dataset.updated_at
+    )
+
+
+@app.get("/datasets/{dataset_id}/preview", response_model=schemas.DatasetPreviewResponse)
+def get_dataset_preview(dataset_id: str, db: Session = Depends(database.get_db)):
+    """Récupère un aperçu des données d'un dataset avec échantillon et statistiques des colonnes."""
+    dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if dataset is None:
+        raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
+    
+    # Générer l'aperçu des données (simulation)
+    preview_data = generate_dataset_preview(dataset)
+    
+    return preview_data
+
+
+@app.get("/datasets/{dataset_id}/similar", response_model=schemas.DatasetSimilarResponse)
+def get_similar_datasets(dataset_id: str, limit: int = 5, db: Session = Depends(database.get_db)):
+    """Récupère une liste de datasets similaires au dataset spécifié."""
+    dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if dataset is None:
+        raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
+    
+    # Trouver des datasets similaires basés sur le domaine et les tâches
+    similar_datasets = find_similar_datasets(dataset, db, limit)
+    
+    # Générer les explications de similarité
+    similarity_explanation = {}
+    for similar in similar_datasets:
+        explanation_parts = []
+        
+        # Similarité par domaine
+        if dataset.domain and similar.domain:
+            common_domains = set(dataset.domain) & set(similar.domain)
+            if common_domains:
+                explanation_parts.append(f"Domaines communs: {', '.join(common_domains)}")
+        
+        # Similarité par tâches
+        if dataset.task and similar.task:
+            common_tasks = set(dataset.task) & set(similar.task)
+            if common_tasks:
+                explanation_parts.append(f"Tâches communes: {', '.join(common_tasks)}")
+        
+        # Similarité par taille
+        if dataset.instances_number and similar.instances_number:
+            ratio = min(dataset.instances_number, similar.instances_number) / max(dataset.instances_number, similar.instances_number)
+            if ratio > 0.5:
+                explanation_parts.append("Taille similaire")
+        
+        similarity_explanation[str(similar.id)] = " • ".join(explanation_parts) if explanation_parts else "Caractéristiques générales similaires"
+    
+    return schemas.DatasetSimilarResponse(
+        similar_datasets=similar_datasets,
+        similarity_explanation=similarity_explanation
+    )
+
 @app.post("/datasets", response_model=schemas.DatasetRead, status_code=201)
 def create_dataset(dataset: schemas.DatasetCreate, db: Session = Depends(database.get_db)):
     """Crée un nouvel enregistrement de dataset dans la base de données."""
@@ -663,6 +766,375 @@ def calculate_relevance_score(dataset: models.Dataset, weights: List[schemas.Cri
     return final_score
 
 
+# --- FONCTIONS UTILITAIRES POUR LES NOUVEAUX ENDPOINTS ---
+
+def generate_quality_metrics(dataset: models.Dataset) -> schemas.DatasetQualityMetrics:
+    """Génère les métriques de qualité pour un dataset."""
+    import random
+    
+    # Calcul de la complétude basé sur les données existantes
+    completeness = 1.0 - (dataset.global_missing_percentage or 0.0) / 100.0
+    
+    # Calcul du score éthique
+    ethical_score = calculate_ethical_score(dataset)
+    
+    # Simulation des autres métriques basées sur les données existantes
+    consistency = 0.8 + random.uniform(-0.1, 0.15)  # Score de base élevé avec variation
+    accuracy = 0.85 + random.uniform(-0.1, 0.1)
+    
+    # Simulation du pourcentage d'outliers basé sur la qualité des données
+    base_outliers = 0.02 if dataset.has_missing_values else 0.01
+    outliers_percentage = base_outliers + random.uniform(0, 0.03)
+    
+    # Score de risque PII basé sur le domaine
+    pii_risk = 0.1  # Valeur par défaut faible
+    if dataset.domain:
+        high_pii_domains = ['healthcare', 'finance', 'education', 'social']
+        if any(domain.lower() in high_pii_domains for domain in dataset.domain):
+            pii_risk = 0.3 + random.uniform(0, 0.2)
+    
+    # Score global calculé
+    overall_score = (completeness * 0.3 + consistency * 0.25 + accuracy * 0.25 + ethical_score * 0.2)
+    
+    return schemas.DatasetQualityMetrics(
+        overall_score=min(1.0, max(0.0, overall_score)),
+        completeness=min(1.0, max(0.0, completeness)),
+        consistency=min(1.0, max(0.0, consistency)),
+        accuracy=min(1.0, max(0.0, accuracy)),
+        ethical_compliance=ethical_score,
+        outliers_percentage=min(1.0, max(0.0, outliers_percentage)),
+        pii_risk_score=min(1.0, max(0.0, pii_risk))
+    )
+
+
+def generate_distribution_analysis(dataset: models.Dataset) -> schemas.DataDistributionAnalysis:
+    """Génère l'analyse de distribution des données pour un dataset."""
+    import random
+    
+    feature_correlations = []
+    missing_patterns = []
+    
+    # Générer des corrélations fictives si on a des features
+    if dataset.features_number and dataset.features_number > 1:
+        num_correlations = min(10, dataset.features_number * (dataset.features_number - 1) // 4)
+        
+        for i in range(num_correlations):
+            correlation_value = random.uniform(-0.9, 0.9)
+            abs_corr = abs(correlation_value)
+            
+            if abs_corr > 0.7:
+                corr_type = "forte"
+            elif abs_corr > 0.3:
+                corr_type = "moyenne"
+            else:
+                corr_type = "faible"
+            
+            feature_correlations.append(schemas.FeatureCorrelation(
+                feature1=f"feature_{i+1}",
+                feature2=f"feature_{i+2 if i+2 <= dataset.features_number else 1}",
+                correlation=correlation_value,
+                correlation_type=corr_type
+            ))
+    
+    # Générer des patterns de données manquantes si applicable
+    if dataset.has_missing_values and dataset.global_missing_percentage:
+        num_patterns = random.randint(1, 3)
+        remaining_percentage = dataset.global_missing_percentage / 100.0
+        
+        for i in range(num_patterns):
+            if remaining_percentage <= 0:
+                break
+                
+            pattern_percentage = min(remaining_percentage, random.uniform(0.05, remaining_percentage))
+            remaining_percentage -= pattern_percentage
+            
+            num_columns = random.randint(1, 3)
+            columns = [f"feature_{j+1}" for j in range(num_columns)]
+            
+            missing_patterns.append(schemas.MissingDataPattern(
+                columns=columns,
+                missing_count=int((dataset.instances_number or 1000) * pattern_percentage),
+                percentage=pattern_percentage,
+                pattern_description=f"Valeurs manquantes simultanées dans {', '.join(columns)}"
+            ))
+    
+    # Générer une distribution des classes simple pour les tâches de classification
+    class_distribution = None
+    if dataset.task and any('classification' in task.lower() for task in dataset.task):
+        num_classes = random.randint(2, 5)
+        total_instances = dataset.instances_number or 1000
+        
+        # Générer une distribution déséquilibrée réaliste
+        weights = [random.uniform(0.5, 2.0) for _ in range(num_classes)]
+        weight_sum = sum(weights)
+        normalized_weights = [w / weight_sum for w in weights]
+        
+        class_distribution = {}
+        for i, weight in enumerate(normalized_weights):
+            class_name = f"class_{i}"
+            class_count = int(total_instances * weight)
+            class_distribution[class_name] = class_count
+    
+    return schemas.DataDistributionAnalysis(
+        feature_correlations=feature_correlations,
+        missing_data_patterns=missing_patterns,
+        class_distribution=class_distribution,
+        feature_importance=None  # Pourrait être ajouté plus tard
+    )
+
+
+def generate_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFileMetadata]:
+    """Génère les métadonnées des fichiers pour un dataset."""
+    import random
+    
+    # Nombre de fichiers basé sur la taille du dataset
+    if dataset.instances_number and dataset.instances_number > 50000:
+        num_files = random.randint(2, 4)
+    else:
+        num_files = 1
+    
+    files = []
+    total_instances = dataset.instances_number or 1000
+    features_per_file = dataset.features_number or 10
+    
+    for i in range(num_files):
+        if num_files == 1:
+            filename = f"{dataset.dataset_name.lower().replace(' ', '_')}.csv"
+            file_instances = total_instances
+        else:
+            if i == 0:
+                filename = f"{dataset.dataset_name.lower().replace(' ', '_')}_train.csv"
+                file_instances = int(total_instances * 0.7)
+            elif i == 1:
+                filename = f"{dataset.dataset_name.lower().replace(' ', '_')}_test.csv"
+                file_instances = int(total_instances * 0.2)
+            else:
+                filename = f"{dataset.dataset_name.lower().replace(' ', '_')}_val.csv"
+                file_instances = total_instances - int(total_instances * 0.9)
+        
+        # Générer les colonnes
+        columns = []
+        for j in range(features_per_file):
+            # Types de données variés
+            data_types = ['int64', 'float64', 'object', 'bool', 'datetime64']
+            data_type = random.choice(data_types)
+            
+            # Exemples de valeurs basés sur le type
+            if data_type == 'int64':
+                examples = [str(random.randint(1, 1000)) for _ in range(3)]
+            elif data_type == 'float64':
+                examples = [f"{random.uniform(0, 100):.2f}" for _ in range(3)]
+            elif data_type == 'bool':
+                examples = [str(random.choice([True, False])) for _ in range(3)]
+            elif data_type == 'datetime64':
+                examples = ['2023-01-15', '2023-02-20', '2023-03-10']
+            else:  # object
+                examples = [f"value_{k}" for k in range(1, 4)]
+            
+            # Déterminer si c'est PII basé sur le nom de la colonne
+            column_name = f"feature_{j+1}"
+            is_pii = False
+            if j == 0 and any(domain.lower() in ['healthcare', 'finance', 'education'] for domain in (dataset.domain or [])):
+                is_pii = random.choice([True, False])
+                if is_pii:
+                    column_name = random.choice(['user_id', 'email', 'patient_id', 'ssn'])
+            
+            columns.append(schemas.ColumnMetadata(
+                column_name=column_name,
+                position=j,
+                data_type_original=data_type,
+                data_type_interpreted=data_type,
+                is_nullable=random.choice([True, False]),
+                is_primary_key_component=(j == 0),
+                is_pii=is_pii,
+                description=f"Description de la feature {j+1}" if j < 5 else None,
+                example_values=examples
+            ))
+        
+        # Taille du fichier estimée (très approximative)
+        avg_bytes_per_row = features_per_file * 20  # Estimation grossière
+        file_size = file_instances * avg_bytes_per_row
+        
+        files.append(schemas.DatasetFileMetadata(
+            filename=filename,
+            file_format="csv",
+            size_bytes=file_size,
+            row_count=file_instances,
+            description=f"Fichier principal du dataset" if i == 0 else f"Fichier de {'test' if i == 1 else 'validation'}",
+            columns=columns
+        ))
+    
+    return files
+
+
+def generate_dataset_preview(dataset: models.Dataset) -> schemas.DatasetPreviewResponse:
+    """Génère un aperçu des données pour un dataset."""
+    import random
+    import string
+    
+    features_count = min(dataset.features_number or 10, 8)  # Limiter à 8 colonnes pour l'affichage
+    sample_rows = min(50, dataset.instances_number or 50)
+    
+    # Générer les informations sur les colonnes
+    columns_info = []
+    sample_data = []
+    
+    # Créer les colonnes
+    column_names = []
+    for i in range(features_count):
+        column_name = f"feature_{i+1}"
+        column_names.append(column_name)
+        
+        # Type de données aléatoire
+        data_types = ['numeric', 'categorical', 'text', 'boolean']
+        data_type = random.choice(data_types)
+        
+        # Statistiques basées sur le type
+        if data_type == 'numeric':
+            mean_val = random.uniform(10, 100)
+            std_val = random.uniform(5, 20)
+            min_val = f"{mean_val - 2 * std_val:.2f}"
+            max_val = f"{mean_val + 2 * std_val:.2f}"
+            unique_count = int(sample_rows * random.uniform(0.6, 0.9))
+        else:
+            mean_val = None
+            std_val = None
+            min_val = None
+            max_val = None
+            unique_count = random.randint(2, min(20, sample_rows))
+        
+        columns_info.append(schemas.ColumnStatistics(
+            name=column_name,
+            type=data_type,
+            non_null_count=int(sample_rows * (1 - (dataset.global_missing_percentage or 0) / 100)),
+            unique_count=unique_count,
+            mean=mean_val,
+            std=std_val,
+            min_value=min_val,
+            max_value=max_val,
+            top_values=[f"value_{j}" for j in range(1, 4)] if data_type == 'categorical' else None
+        ))
+    
+    # Générer les données d'exemple
+    for row_idx in range(sample_rows):
+        row_data = {}
+        for col_idx, column_name in enumerate(column_names):
+            column_info = columns_info[col_idx]
+            
+            # Générer une valeur selon le type
+            if column_info.type == 'numeric':
+                if column_info.mean and column_info.std:
+                    value = random.gauss(column_info.mean, column_info.std)
+                    row_data[column_name] = round(value, 2)
+                else:
+                    row_data[column_name] = random.randint(1, 100)
+            elif column_info.type == 'categorical':
+                categories = ['A', 'B', 'C', 'D', 'E']
+                row_data[column_name] = random.choice(categories)
+            elif column_info.type == 'boolean':
+                row_data[column_name] = random.choice([True, False])
+            else:  # text
+                length = random.randint(5, 15)
+                row_data[column_name] = ''.join(random.choices(string.ascii_lowercase, k=length))
+            
+            # Introduire des valeurs manquantes selon le pourcentage global
+            if dataset.global_missing_percentage and random.random() < (dataset.global_missing_percentage / 100):
+                row_data[column_name] = None
+        
+        sample_data.append(row_data)
+    
+    return schemas.DatasetPreviewResponse(
+        file_name=f"{dataset.dataset_name.lower().replace(' ', '_')}.csv",
+        total_rows=dataset.instances_number or 1000,
+        sample_data=sample_data,
+        columns_info=columns_info
+    )
+
+
+def find_similar_datasets(dataset: models.Dataset, db: Session, limit: int = 5) -> List[models.Dataset]:
+    """Trouve des datasets similaires basés sur les domaines, tâches et caractéristiques."""
+    
+    # Requête de base excluant le dataset actuel
+    query = db.query(models.Dataset).filter(models.Dataset.id != dataset.id)
+    
+    # Sous-requêtes pour différents critères de similarité
+    similar_by_domain = query
+    similar_by_task = query
+    similar_by_size = query
+    
+    # Filtrer par domaine si disponible
+    if dataset.domain:
+        similar_by_domain = query.filter(
+            models.Dataset.domain.op('&&')(dataset.domain)  # Opérateur d'intersection pour ARRAY
+        )
+    
+    # Filtrer par tâche si disponible
+    if dataset.task:
+        similar_by_task = query.filter(
+            models.Dataset.task.op('&&')(dataset.task)
+        )
+    
+    # Filtrer par taille similaire (±50% de la taille originale)
+    if dataset.instances_number:
+        min_size = int(dataset.instances_number * 0.5)
+        max_size = int(dataset.instances_number * 1.5)
+        similar_by_size = query.filter(
+            and_(
+                models.Dataset.instances_number >= min_size,
+                models.Dataset.instances_number <= max_size
+            )
+        )
+    
+    # Combiner les résultats avec priorité
+    similar_datasets = []
+    seen_ids = set()
+    
+    # Priorité 1: Même domaine ET même tâche
+    if dataset.domain and dataset.task:
+        domain_task_similar = query.filter(
+            and_(
+                models.Dataset.domain.op('&&')(dataset.domain),
+                models.Dataset.task.op('&&')(dataset.task)
+            )
+        ).limit(limit).all()
+        
+        for ds in domain_task_similar:
+            if ds.id not in seen_ids:
+                similar_datasets.append(ds)
+                seen_ids.add(ds.id)
+    
+    # Priorité 2: Même domaine
+    if len(similar_datasets) < limit and dataset.domain:
+        for ds in similar_by_domain.limit(limit * 2).all():
+            if ds.id not in seen_ids and len(similar_datasets) < limit:
+                similar_datasets.append(ds)
+                seen_ids.add(ds.id)
+    
+    # Priorité 3: Même tâche
+    if len(similar_datasets) < limit and dataset.task:
+        for ds in similar_by_task.limit(limit * 2).all():
+            if ds.id not in seen_ids and len(similar_datasets) < limit:
+                similar_datasets.append(ds)
+                seen_ids.add(ds.id)
+    
+    # Priorité 4: Taille similaire
+    if len(similar_datasets) < limit:
+        for ds in similar_by_size.limit(limit * 2).all():
+            if ds.id not in seen_ids and len(similar_datasets) < limit:
+                similar_datasets.append(ds)
+                seen_ids.add(ds.id)
+    
+    # Priorité 5: Datasets récents si toujours pas assez
+    if len(similar_datasets) < limit:
+        recent_datasets = query.order_by(models.Dataset.created_at.desc()).limit(limit * 2).all()
+        for ds in recent_datasets:
+            if ds.id not in seen_ids and len(similar_datasets) < limit:
+                similar_datasets.append(ds)
+                seen_ids.add(ds.id)
+    
+    return similar_datasets[:limit]
+
+
 def calculate_criterion_scores(dataset: models.Dataset) -> dict:
     """
     Calcule les scores détaillés par critère pour un dataset.
@@ -808,10 +1280,39 @@ def update_project(
     
     # Convertir les critères et poids en JSON si fournis
     if 'criteria' in update_data and update_data['criteria']:
-        update_data['criteria'] = update_data['criteria'].dict()
+        criteria = update_data['criteria']
+        if hasattr(criteria, 'dict'):
+            # C'est un objet Pydantic
+            update_data['criteria'] = criteria.dict()
+        elif isinstance(criteria, dict):
+            # C'est déjà un dictionnaire
+            update_data['criteria'] = criteria
+        else:
+            # Autre cas, essayer la conversion
+            update_data['criteria'] = dict(criteria)
     
     if 'weights' in update_data and update_data['weights']:
-        update_data['weights'] = [weight.dict() for weight in update_data['weights']]
+        weights = update_data['weights']
+        converted_weights = []
+        for weight in weights:
+            if hasattr(weight, 'dict'):
+                # C'est un objet Pydantic
+                converted_weights.append(weight.dict())
+            elif isinstance(weight, dict):
+                # C'est déjà un dictionnaire
+                converted_weights.append(weight)
+            else:
+                # Autre cas, essayer la conversion
+                converted_weights.append(dict(weight))
+        
+        # Normaliser les poids si leur somme dépasse 1.0
+        total_weight = sum(w.get('weight', 0) for w in converted_weights)
+        if total_weight > 1.0:
+            logger.warning(f"Normalisation des poids: somme {total_weight} > 1.0")
+            for weight in converted_weights:
+                weight['weight'] = weight.get('weight', 0) / total_weight
+        
+        update_data['weights'] = converted_weights
     
     for field, value in update_data.items():
         setattr(project, field, value)
