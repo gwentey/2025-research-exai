@@ -1,0 +1,191 @@
+= Bug Fixes Frontend
+:description: Documentation des correctifs de bugs critiques côté frontend Angular
+:keywords: Angular, bug fix, MatSlider, call stack, projet
+:page-navtitle: Bug Fixes Frontend
+
+== Vue d'ensemble
+
+Cette page documente les principaux bugs fixes effectués sur le frontend Angular, leurs causes, leurs solutions et les leçons apprises.
+
+== Bug "Maximum call stack size exceeded" - Formulaire Projet (2025-01-25)
+
+=== Description du problème
+
+**Symptômes :**
+- Erreur "RangeError: Maximum call stack size exceeded" lors de la création d'un projet
+- Application frontend plantée lors de l'interaction avec les sliders de poids
+- Erreur originant de `MatSlider` dans la section configuration des poids
+
+**Stack trace typique :**
+```
+ERROR RangeError: Maximum call stack size exceeded
+    at detectChangesInternal (core.mjs:14779:13)
+    at ViewRef$1.detectChanges (core.mjs:15416:9)
+    at set step (slider.mjs:1170:19)
+    at MatSliderThumb.initProps (slider.mjs:1274:18)
+    at MatSlider._initUINonRange (slider.mjs:596:16)
+    at MatSlider.ngAfterViewInit (slider.mjs:588:20)
+```
+
+=== Analyse de la cause racine
+
+Le problème était causé par une **boucle infinie de détection de changements** dans Angular :
+
+1. **Problème Principal :** `defaultWeights` défini comme un getter qui retourne un nouveau tableau à chaque appel
+2. **Déclencheur :** La méthode `onWeightChange()` modifiait directement `this.defaultWeights[index].weight`
+3. **Boucle :** 
+   - Modification du poids → Détection de changement Angular
+   - Re-rendu du template → Appel du getter `defaultWeights` 
+   - Nouveau tableau créé → MatSlider se réinitialise
+   - MatSlider déclenche à nouveau `onWeightChange()`
+   - Boucle infinie
+
+**Code problématique :**
+```typescript
+// ❌ Problématique - Getter retournant un nouveau tableau
+get defaultWeights() {
+  return [
+    { criterion_name: 'ethical_score', weight: 0.4, /* ... */ },
+    // ...
+  ];
+}
+
+// ❌ Problématique - Modification directe d'un getter
+onWeightChange(index: number, value: any): void {
+  this.defaultWeights[index].weight = value; // Cause la boucle !
+}
+```
+
+=== Solution implémentée
+
+==== 1. Transformation en propriété normale
+
+```typescript
+// ✅ Solution - Propriété normale
+defaultWeights: any[] = [];
+
+private initializeDefaultWeights(): void {
+  this.defaultWeights = [
+    { criterion_name: 'ethical_score', weight: 0.4, label: 'PROJECTS.CRITERIA.ETHICAL_SCORE', icon: 'security' },
+    { criterion_name: 'technical_score', weight: 0.4, label: 'PROJECTS.CRITERIA.TECHNICAL_SCORE', icon: 'engineering' },
+    // ...
+  ];
+}
+```
+
+==== 2. Amélioration de la gestion des événements
+
+**Template HTML :**
+```html
+<!-- ✅ Utilisation de valueChange au lieu de change -->
+<input matSliderThumb 
+       [value]="weight.weight" 
+       (valueChange)="onWeightChange(i, $event)" 
+       style="width: 100%;" />
+```
+
+==== 3. Validation robuste dans onWeightChange
+
+```typescript
+onWeightChange(index: number, value: any): void {
+  // Validation de l'index
+  if (index < 0 || index >= this.defaultWeights.length) {
+    console.warn('Index de poids invalide:', index);
+    return;
+  }
+
+  // Conversion et validation de la valeur
+  let numericWeight: number;
+  if (typeof value === 'string') {
+    numericWeight = parseFloat(value);
+  } else if (typeof value === 'number') {
+    numericWeight = value;
+  } else {
+    console.warn('Valeur de poids invalide:', value);
+    return;
+  }
+
+  // Validation de la plage
+  if (isNaN(numericWeight) || numericWeight < 0 || numericWeight > 1) {
+    console.warn('Valeur de poids hors plage:', numericWeight);
+    return;
+  }
+
+  // Éviter les modifications inutiles
+  if (Math.abs(this.defaultWeights[index].weight - numericWeight) < 0.001) {
+    return;
+  }
+
+  // Mettre à jour le poids
+  this.defaultWeights[index].weight = numericWeight;
+  
+  // Recalculer les poids actifs
+  this.currentWeights = this.defaultWeights
+    .filter(w => w.weight > 0)
+    .map(w => ({
+      criterion_name: w.criterion_name,
+      weight: w.weight
+    }));
+
+  // Mettre à jour le preview avec un délai pour éviter les appels en cascade
+  setTimeout(() => this.updatePreview(), 100);
+}
+```
+
+=== Fichiers modifiés
+
+- `frontend/src/app/pages/projects/project-form.component.ts`
+- `frontend/src/app/pages/projects/project-form.component.html`
+
+=== Leçons apprises
+
+==== Bonnes pratiques Angular
+
+1. **Éviter les getters complexes** : Les getters sont recalculés à chaque détection de changement
+2. **Propriétés stables** : Utiliser des propriétés normales pour les données manipulées par l'UI
+3. **Validation des événements** : Toujours valider les données d'entrée des événements UI
+4. **Débouncing des updates** : Utiliser `setTimeout()` ou `debounceTime()` pour éviter les cascades d'appels
+
+==== Gestion des composants Material
+
+1. **Événements spécifiques** : Préférer `valueChange` à `change` pour MatSlider
+2. **Binding sécurisé** : Éviter les modifications directes d'objets liés au template
+3. **Initialisation propre** : Initialiser les données dans le constructor ou ngOnInit
+
+==== Debugging des boucles infinies
+
+1. **Stack trace Angular** : Chercher les patterns de `detectChangesInternal`
+2. **Getters suspects** : Examiner tous les getters utilisés dans les templates
+3. **Mutation tracking** : Utiliser les DevTools Angular pour tracer les changements
+
+=== Tests de régression
+
+Pour éviter la réapparition de ce bug :
+
+1. **Test d'interaction** : Vérifier que les sliders peuvent être modifiés sans erreur
+2. **Test de performance** : S'assurer qu'il n'y a pas de boucles de détection de changement
+3. **Test de validation** : Vérifier que les valeurs invalides sont correctement gérées
+
+=== Impact sur l'application
+
+- ✅ **Fonctionnalité critique restaurée** : Création de projets maintenant fonctionnelle
+- ✅ **Stabilité améliorée** : Plus de crashes du frontend
+- ✅ **Performance** : Élimination des boucles infinies
+- ✅ **Expérience utilisateur** : Interface des sliders maintenant fluide
+
+== Méthodes de prévention
+
+=== Code Review Checklist
+
+Lors des reviews de code, vérifier :
+
+- [ ] Aucun getter ne retourne de nouveaux objets/tableaux
+- [ ] Les événements UI sont correctement validés
+- [ ] Les mutations d'état sont isolées des propriétés template
+- [ ] Les appels d'API sont débounced si nécessaire
+
+=== Outils de détection
+
+- **Angular DevTools** : Pour monitorer les cycles de détection de changement
+- **Performance Profiler** : Pour identifier les boucles infinies
+- **ESLint rules** : Règles personnalisées pour détecter les patterns problématiques 

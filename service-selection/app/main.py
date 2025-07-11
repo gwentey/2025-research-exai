@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException, Query, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_
 from typing import List, Optional
 from datetime import datetime
 import math
 import logging
+import uuid
+from pydantic import UUID4
 
 # Configuration du logging
 logging.basicConfig(
@@ -42,6 +44,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- Authentification via headers ---
+
+def get_current_user_id(x_user_id: str = Header(..., alias="X-User-ID")) -> UUID4:
+    """
+    Extrait l'ID de l'utilisateur connecté depuis les headers envoyés par l'API Gateway.
+    """
+    try:
+        user_id = uuid.UUID(x_user_id)
+        return user_id
+    except ValueError:
+        raise HTTPException(
+            status_code=401,
+            detail="ID utilisateur invalide dans les headers"
+        )
 
 # --- Utilitaires pour les requêtes ---
 
@@ -681,23 +698,23 @@ def calculate_criterion_scores(dataset: models.Dataset) -> dict:
 def list_projects(
     page: int = Query(1, ge=1, description="Numéro de page"),
     page_size: int = Query(12, ge=1, le=100, description="Nombre d'éléments par page"),
-    # TODO: Ajouter current_user: User = Depends(current_active_user) quand l'authentification sera configurée
+    current_user_id: UUID4 = Depends(get_current_user_id),
     db: Session = Depends(database.get_db)
 ):
     """
     Liste les projets de l'utilisateur connecté avec pagination.
+    SÉCURISÉ : Filtre automatiquement par user_id.
     """
-    # TODO: Filtrer par user_id quand l'authentification sera disponible
-    # user_id = current_user.id
-    
-    # Pour l'instant, récupérer tous les projets (à modifier avec l'authentification)
     offset = (page - 1) * page_size
     
-    query = db.query(models.Project)
+    # SÉCURITÉ : Filtrer OBLIGATOIREMENT par user_id de l'utilisateur connecté
+    query = db.query(models.Project).filter(models.Project.user_id == current_user_id)
     total_count = query.count()
     projects = query.offset(offset).limit(page_size).all()
     
     total_pages = math.ceil(total_count / page_size)
+    
+    logger.info(f"✅ Utilisateur {current_user_id} - Liste de {len(projects)} projets sur {total_count}")
     
     return schemas.ProjectListResponse(
         projects=projects,
@@ -711,23 +728,20 @@ def list_projects(
 @app.post("/projects", response_model=schemas.ProjectRead, status_code=201)
 def create_project(
     project: schemas.ProjectCreate,
-    # TODO: Ajouter current_user: User = Depends(current_active_user) quand l'authentification sera configurée
+    current_user_id: UUID4 = Depends(get_current_user_id),
     db: Session = Depends(database.get_db)
 ):
     """
-    Créer un nouveau projet.
+    Créer un nouveau projet pour l'utilisateur connecté.
+    SÉCURISÉ : Associe automatiquement le projet à l'utilisateur connecté.
     """
-    # TODO: Utiliser current_user.id quand l'authentification sera disponible
-    # user_id = current_user.id
-    import uuid
-    user_id = uuid.uuid4()  # Temporaire
-    
     # Convertir les critères et poids en JSON pour stockage JSONB
     criteria_dict = project.criteria.dict() if project.criteria else None
     weights_dict = [weight.dict() for weight in project.weights] if project.weights else None
     
+    # SÉCURITÉ : Utiliser OBLIGATOIREMENT l'user_id de l'utilisateur connecté
     db_project = models.Project(
-        user_id=user_id,
+        user_id=current_user_id,
         name=project.name,
         description=project.description,
         criteria=criteria_dict,
@@ -738,26 +752,32 @@ def create_project(
     db.commit()
     db.refresh(db_project)
     
+    logger.info(f"✅ Utilisateur {current_user_id} - Nouveau projet créé: {db_project.id} '{project.name}'")
+    
     return db_project
 
 
 @app.get("/projects/{project_id}", response_model=schemas.ProjectRead)
 def get_project(
     project_id: str,
-    # TODO: Ajouter current_user: User = Depends(current_active_user) quand l'authentification sera configurée
+    current_user_id: UUID4 = Depends(get_current_user_id),
     db: Session = Depends(database.get_db)
 ):
     """
-    Récupérer un projet spécifique.
+    Récupérer un projet spécifique appartenant à l'utilisateur connecté.
+    SÉCURISÉ : Vérifie l'appartenance du projet à l'utilisateur.
     """
-    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    # SÉCURITÉ : Filtrer par projet ET user_id pour empêcher l'accès à d'autres projets
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user_id
+    ).first()
     
     if not project:
+        # Ne pas révéler si le projet existe ou non pour un autre utilisateur
         raise HTTPException(status_code=404, detail="Projet non trouvé")
     
-    # TODO: Vérifier que le projet appartient à l'utilisateur connecté
-    # if project.user_id != current_user.id:
-    #     raise HTTPException(status_code=403, detail="Accès non autorisé à ce projet")
+    logger.info(f"✅ Utilisateur {current_user_id} - Accès au projet: {project_id}")
     
     return project
 
@@ -766,20 +786,22 @@ def get_project(
 def update_project(
     project_id: str,
     project_update: schemas.ProjectUpdate,
-    # TODO: Ajouter current_user: User = Depends(current_active_user) quand l'authentification sera configurée
+    current_user_id: UUID4 = Depends(get_current_user_id),
     db: Session = Depends(database.get_db)
 ):
     """
-    Mettre à jour un projet.
+    Mettre à jour un projet appartenant à l'utilisateur connecté.
+    SÉCURISÉ : Vérifie l'appartenance du projet à l'utilisateur.
     """
-    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    # SÉCURITÉ : Filtrer par projet ET user_id pour empêcher la modification d'autres projets
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user_id
+    ).first()
     
     if not project:
+        # Ne pas révéler si le projet existe ou non pour un autre utilisateur
         raise HTTPException(status_code=404, detail="Projet non trouvé")
-    
-    # TODO: Vérifier que le projet appartient à l'utilisateur connecté
-    # if project.user_id != current_user.id:
-    #     raise HTTPException(status_code=403, detail="Accès non autorisé à ce projet")
     
     # Mettre à jour les champs modifiés
     update_data = project_update.dict(exclude_unset=True)
@@ -799,29 +821,37 @@ def update_project(
     db.commit()
     db.refresh(project)
     
+    logger.info(f"✅ Utilisateur {current_user_id} - Projet mis à jour: {project_id} '{project.name}'")
+    
     return project
 
 
 @app.delete("/projects/{project_id}", status_code=200)
 def delete_project(
     project_id: str,
-    # TODO: Ajouter current_user: User = Depends(current_active_user) quand l'authentification sera configurée
+    current_user_id: UUID4 = Depends(get_current_user_id),
     db: Session = Depends(database.get_db)
 ):
     """
-    Supprimer un projet.
+    Supprimer un projet appartenant à l'utilisateur connecté.
+    SÉCURISÉ : Vérifie l'appartenance du projet à l'utilisateur.
     """
-    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    # SÉCURITÉ : Filtrer par projet ET user_id pour empêcher la suppression d'autres projets
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user_id
+    ).first()
     
     if not project:
+        # Ne pas révéler si le projet existe ou non pour un autre utilisateur
         raise HTTPException(status_code=404, detail="Projet non trouvé")
     
-    # TODO: Vérifier que le projet appartient à l'utilisateur connecté
-    # if project.user_id != current_user.id:
-    #     raise HTTPException(status_code=403, detail="Accès non autorisé à ce projet")
+    project_name = project.name  # Sauvegarder pour le log
     
     db.delete(project)
     db.commit()
+    
+    logger.info(f"✅ Utilisateur {current_user_id} - Projet supprimé: {project_id} '{project_name}'")
     
     return {"message": "Projet supprimé avec succès"}
 
@@ -829,20 +859,22 @@ def delete_project(
 @app.get("/projects/{project_id}/recommendations", response_model=schemas.ProjectRecommendationResponse)
 def get_project_recommendations(
     project_id: str,
-    # TODO: Ajouter current_user: User = Depends(current_active_user) quand l'authentification sera configurée
+    current_user_id: UUID4 = Depends(get_current_user_id),
     db: Session = Depends(database.get_db)
 ):
     """
-    Obtenir les datasets recommandés pour un projet avec leurs scores détaillés.
+    Obtenir les datasets recommandés pour un projet appartenant à l'utilisateur connecté.
+    SÉCURISÉ : Vérifie l'appartenance du projet à l'utilisateur.
     """
-    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    # SÉCURITÉ : Filtrer par projet ET user_id pour empêcher l'accès aux recommandations d'autres projets
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user_id
+    ).first()
     
     if not project:
+        # Ne pas révéler si le projet existe ou non pour un autre utilisateur
         raise HTTPException(status_code=404, detail="Projet non trouvé")
-    
-    # TODO: Vérifier que le projet appartient à l'utilisateur connecté
-    # if project.user_id != current_user.id:
-    #     raise HTTPException(status_code=403, detail="Accès non autorisé à ce projet")
     
     # 1. Construire la requête de base
     query = db.query(models.Dataset)
@@ -921,6 +953,8 @@ def get_project_recommendations(
     # 6. Trier par score décroissant
     scored_datasets.sort(key=lambda x: x.score, reverse=True)
     
+    logger.info(f"✅ Utilisateur {current_user_id} - Recommandations pour projet {project_id}: {len(scored_datasets)} datasets")
+    
     return schemas.ProjectRecommendationResponse(
         project=project,
         datasets=scored_datasets,
@@ -931,6 +965,7 @@ def get_project_recommendations(
 @app.post("/datasets/score", response_model=List[schemas.DatasetScoredRead])
 def score_datasets(
     score_request: schemas.DatasetScoreRequest,
+    current_user_id: UUID4 = Depends(get_current_user_id),
     db: Session = Depends(database.get_db)
 ):
     """
@@ -947,7 +982,7 @@ def score_datasets(
     logger = logging.getLogger(__name__)
     
     # DEBUG: Log des paramètres de la requête
-    logger.info(f"🔍 DEBUG - Requête scoring reçue:")
+    logger.info(f"🔍 DEBUG - Utilisateur {current_user_id} - Requête scoring reçue:")
     logger.info(f"   Filtres: {score_request.filters}")
     logger.info(f"   Poids: {score_request.weights}")
     

@@ -187,16 +187,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
   isLoadingPreview = false;
 
   // Poids prédéfinis disponibles
-  get defaultWeights() {
-    return [
-      { criterion_name: 'ethical_score', weight: 0.4, label: this.translateService.instant('PROJECTS.CRITERIA.ETHICAL_SCORE'), icon: 'security' },
-      { criterion_name: 'technical_score', weight: 0.4, label: this.translateService.instant('PROJECTS.CRITERIA.TECHNICAL_SCORE'), icon: 'engineering' },
-      { criterion_name: 'popularity_score', weight: 0.2, label: this.translateService.instant('PROJECTS.CRITERIA.POPULARITY_SCORE'), icon: 'trending_up' },
-      { criterion_name: 'anonymization', weight: 0.0, label: this.translateService.instant('PROJECTS.CRITERIA.ANONYMIZATION'), icon: 'verified_user' },
-      { criterion_name: 'documentation', weight: 0.0, label: this.translateService.instant('PROJECTS.CRITERIA.DOCUMENTATION'), icon: 'description' },
-      { criterion_name: 'data_quality', weight: 0.0, label: this.translateService.instant('PROJECTS.CRITERIA.DATA_QUALITY'), icon: 'high_quality' }
-    ];
-  }
+  defaultWeights: any[] = [];
 
   constructor() {
     this.projectForm = this.fb.group({
@@ -221,7 +212,22 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
     });
 
     // Initialiser les poids par défaut
+    this.initializeDefaultWeights();
     this.currentWeights = this.projectService.getDefaultWeights();
+  }
+
+  /**
+   * Initialise les poids par défaut
+   */
+  private initializeDefaultWeights(): void {
+    this.defaultWeights = [
+      { criterion_name: 'ethical_score', weight: 0.4, label: 'PROJECTS.CRITERIA.ETHICAL_SCORE', icon: 'security' },
+      { criterion_name: 'technical_score', weight: 0.4, label: 'PROJECTS.CRITERIA.TECHNICAL_SCORE', icon: 'engineering' },
+      { criterion_name: 'popularity_score', weight: 0.2, label: 'PROJECTS.CRITERIA.POPULARITY_SCORE', icon: 'trending_up' },
+      { criterion_name: 'anonymization', weight: 0.0, label: 'PROJECTS.CRITERIA.ANONYMIZATION', icon: 'verified_user' },
+      { criterion_name: 'documentation', weight: 0.0, label: 'PROJECTS.CRITERIA.DOCUMENTATION', icon: 'description' },
+      { criterion_name: 'data_quality', weight: 0.0, label: 'PROJECTS.CRITERIA.DATA_QUALITY', icon: 'high_quality' }
+    ];
   }
 
   ngOnInit(): void {
@@ -251,10 +257,114 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
     this.projectForm.valueChanges
       .pipe(debounceTime(800), takeUntil(this.destroy$))
       .subscribe((formValues) => {
-        // Synchroniser les critères depuis le formulaire
-        this.currentCriteria = { ...formValues.criteria };
+        // Synchroniser les critères depuis le formulaire avec nettoyage
+        this.currentCriteria = this.cleanCriteria(formValues.criteria || {});
         this.updatePreview();
       });
+  }
+
+  /**
+   * Nettoie les critères en supprimant les valeurs falsy et les types invalides
+   */
+  private cleanCriteria(rawCriteria: any): DatasetFilterCriteria {
+    const cleaned: any = {};
+
+    // Fonction helper pour vérifier si une valeur est valide
+    const isValidValue = (value: any): boolean => {
+      if (value === null || value === undefined || value === '') return false;
+      if (Array.isArray(value) && value.length === 0) return false;
+      if (typeof value === 'string' && value.trim() === '') return false;
+      return true;
+    };
+
+    // Nettoyer chaque propriété du critère
+    Object.keys(rawCriteria).forEach(key => {
+      const value = rawCriteria[key];
+      
+      // Validation spécifique selon le type de champ
+      switch (key) {
+        case 'domain':
+        case 'task':
+          // Arrays : nettoyer et garder seulement si non vide
+          if (Array.isArray(value) && value.length > 0) {
+            const cleanedArray = value.filter(v => v && typeof v === 'string' && v.trim() !== '');
+            if (cleanedArray.length > 0) {
+              cleaned[key] = cleanedArray;
+            }
+          }
+          break;
+          
+        case 'year_min':
+        case 'year_max':
+        case 'instances_number_min':
+        case 'instances_number_max':
+        case 'features_number_min':
+        case 'features_number_max':
+        case 'ethical_score_min':
+          // Numbers : convertir et valider
+          if (value !== null && value !== undefined) {
+            const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+            if (!isNaN(numValue) && numValue > 0) {
+              cleaned[key] = numValue;
+            }
+          }
+          break;
+          
+        case 'is_split':
+        case 'is_anonymized':
+        case 'is_public':
+        case 'has_temporal_factors':
+        case 'has_missing_values':
+          // Booleans : garder seulement les true explicites
+          if (value === true) {
+            cleaned[key] = true;
+          }
+          break;
+          
+        case 'dataset_name':
+        case 'objective':
+          // Strings : nettoyer les espaces
+          if (typeof value === 'string' && value.trim() !== '') {
+            cleaned[key] = value.trim();
+          }
+          break;
+          
+        default:
+          // Pour les autres champs, utiliser la validation générique
+          if (isValidValue(value)) {
+            cleaned[key] = value;
+          }
+      }
+    });
+
+    return cleaned;
+  }
+
+  /**
+   * Nettoie et valide les poids avant envoi
+   */
+  private cleanWeights(weights: CriterionWeight[]): CriterionWeight[] {
+    if (!weights || !Array.isArray(weights)) {
+      return this.getDefaultWeightsForPreview();
+    }
+
+    const validWeights = weights.filter(weight => {
+      // Vérifier que le poids a les propriétés requises
+      if (!weight || typeof weight !== 'object') return false;
+      if (!weight.criterion_name || typeof weight.criterion_name !== 'string') return false;
+      if (typeof weight.weight !== 'number') return false;
+      if (isNaN(weight.weight)) return false;
+      if (weight.weight < 0 || weight.weight > 1) return false;
+      
+      return true;
+    });
+
+    // Si aucun poids valide, retourner les poids par défaut
+    if (validWeights.length === 0) {
+      return this.getDefaultWeightsForPreview();
+    }
+
+    return validWeights;
   }
 
   /**
@@ -283,7 +393,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
           
           if (project.criteria) {
             this.projectForm.get('criteria')?.patchValue(project.criteria);
-            this.currentCriteria = project.criteria;
+            this.currentCriteria = this.cleanCriteria(project.criteria);
           }
           
           if (project.weights) {
@@ -307,19 +417,54 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
    * Gestion des changements de poids
    */
   onWeightChange(index: number, value: any): void {
-    const numericWeight = typeof value === 'string' ? parseFloat(value) : value;
+    // Validation de l'index
+    if (index < 0 || index >= this.defaultWeights.length) {
+      console.warn('Index de poids invalide:', index);
+      return;
+    }
+
+    // Conversion et validation de la valeur
+    let numericWeight: number;
+    if (typeof value === 'string') {
+      numericWeight = parseFloat(value);
+    } else if (typeof value === 'number') {
+      numericWeight = value;
+    } else {
+      console.warn('Valeur de poids invalide:', value);
+      return;
+    }
+
+    // Validation de la plage
+    if (isNaN(numericWeight) || numericWeight < 0 || numericWeight > 1) {
+      console.warn('Valeur de poids hors plage:', numericWeight);
+      return;
+    }
+
+    // Éviter les modifications inutiles
+    if (Math.abs(this.defaultWeights[index].weight - numericWeight) < 0.001) {
+      return;
+    }
+
+    // Mettre à jour le poids
     this.defaultWeights[index].weight = numericWeight;
-    this.currentWeights = this.defaultWeights.filter(w => w.weight > 0).map(w => ({
-      criterion_name: w.criterion_name,
-      weight: w.weight
-    }));
-    this.updatePreview();
+    
+    // Recalculer les poids actifs
+    this.currentWeights = this.defaultWeights
+      .filter(w => w.weight > 0)
+      .map(w => ({
+        criterion_name: w.criterion_name,
+        weight: w.weight
+      }));
+
+    // Mettre à jour le preview avec un délai pour éviter les appels en cascade
+    setTimeout(() => this.updatePreview(), 100);
   }
 
   /**
    * Reset des poids aux valeurs par défaut
    */
   resetWeights(): void {
+    // Réinitialiser les poids par défaut
     this.defaultWeights.forEach(w => {
       switch (w.criterion_name) {
         case 'ethical_score':
@@ -335,7 +480,16 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
           w.weight = 0.0;
       }
     });
-    this.currentWeights = this.projectService.getDefaultWeights();
+    
+    // Recalculer les poids actifs
+    this.currentWeights = this.defaultWeights
+      .filter(w => w.weight > 0)
+      .map(w => ({
+        criterion_name: w.criterion_name,
+        weight: w.weight
+      }));
+    
+    // Mettre à jour le preview
     this.updatePreview();
   }
 
@@ -343,17 +497,20 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
    * Met à jour l'aperçu des recommandations
    */
   private updatePreview(): void {
-    // Les critères sont maintenant synchronisés automatiquement depuis le formulaire
-    // via setupPreview()
-    
     // Afficher un aperçu même sans critères spécifiques (avec les poids par défaut)
     if (Object.keys(this.currentCriteria).length === 0 && this.currentWeights.length === 0) {
       // Utiliser les poids par défaut pour l'aperçu initial
       this.currentWeights = this.getDefaultWeightsForPreview();
     }
 
+    // Nettoyer et valider les poids avant envoi
+    const cleanedWeights = this.cleanWeights(this.currentWeights);
+
+    console.log('🔍 DEBUG Preview - Critères:', this.currentCriteria);
+    console.log('🔍 DEBUG Preview - Poids:', cleanedWeights);
+
     this.isLoadingPreview = true;
-    this.projectService.previewRecommendations(this.currentCriteria, this.currentWeights)
+    this.projectService.previewRecommendations(this.currentCriteria, cleanedWeights)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (datasets) => {

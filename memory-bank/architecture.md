@@ -190,6 +190,17 @@ graph LR
         *   **Documentation Complète** :
             *   Guide utilisateur : `docs/user-guide/user-profile-management.adoc`
             *   Documentation technique : `docs/dev-guide/user-profile-components.adoc`
+        *   **Bug Fix Critique (2025-01-25)** : Résolution du bug "Maximum call stack size exceeded" dans le formulaire de création de projet
+            *   **Problème** : Boucle infinie causée par `defaultWeights` défini comme getter retournant un nouveau tableau à chaque appel
+            *   **Solution** : Transformation en propriété normale initialisée dans le constructor avec méthode `initializeDefaultWeights()`
+            *   **Améliorations** : Validation robuste dans `onWeightChange()`, gestion d'événements `valueChange` au lieu de `change`, debounce des updates
+            *   **Impact** : Formulaire de création de projet maintenant stable et fonctionnel
+        *   **Sécurisation Critique des Projets Utilisateur (2025-01-25)** : Correction d'un trou de sécurité majeur
+            *   **Problème** : Tous les projets étaient accessibles à tous les utilisateurs connectés, `user_id` généré aléatoirement
+            *   **Solution** : Transmission `user_id` via headers `X-User-ID` de l'API Gateway vers service-selection
+            *   **Sécurisation** : Tous les endpoints de projets filtrent maintenant obligatoirement par `user_id` de l'utilisateur connecté
+            *   **Endpoints sécurisés** : `/projects` (GET/POST), `/projects/{id}` (GET/PUT/DELETE), `/projects/{id}/recommendations`, `/datasets/score`
+            *   **Impact** : Isolation complète des projets par utilisateur, conformité RGPD, logs de sécurité détaillés
 
 *   **Infrastructure :**
     *   [✅] PostgreSQL déployé sur K8s et accessible.

@@ -24,6 +24,8 @@
 ** xref:dev-guide/sidebar-user-profile.adoc[Profil Utilisateur]
 ** xref:dev-guide/user-profile-components.adoc[👤 Composants Profil Utilisateur]
 ** xref:dev-guide/internationalization.adoc[🌐 Internationalisation (i18n)]
+** xref:dev-guide/frontend-bug-fixes.adoc[🐛 Correctifs de Bugs Frontend]
+** xref:dev-guide/project-security.adoc[🔒 Sécurité des Projets Utilisateur]
 ** xref:dev-guide/secrets-management.adoc[Gestion des Secrets]
 
 * Déploiement

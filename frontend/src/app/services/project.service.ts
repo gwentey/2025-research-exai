@@ -113,6 +113,8 @@ export class ProjectService {
       weights: weights
     };
     
+    console.log('📤 Service - Envoi des données preview:', JSON.stringify(previewData, null, 2));
+    
     // Utilise l'endpoint de scoring des datasets pour l'aperçu
     return this.http.post<any>(`${environment.apiUrl}/datasets/score`, previewData).pipe(
       catchError(this.handleError)

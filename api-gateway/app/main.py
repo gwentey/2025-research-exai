@@ -826,10 +826,12 @@ async def proxy_request(
         # Récupérer les paramètres de query
         query_params = dict(request.query_params)
         
-        # Préparer les headers à transmettre
+        # Préparer les headers à transmettre, incluant l'user_id pour l'authentification
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": "API-Gateway-Proxy/1.0"
+            "User-Agent": "API-Gateway-Proxy/1.0",
+            "X-User-ID": str(current_user.id),  # Transmettre l'ID de l'utilisateur connecté
+            "X-User-Email": current_user.email  # Optionnel : email pour debug
         }
         
         # Récupérer le body si c'est une requête POST/PUT/PATCH
