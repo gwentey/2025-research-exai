@@ -70,7 +70,10 @@ export class AppSideRegisterComponent {
       picture: null,
       given_name: null,
       family_name: null,
-      locale: null
+      locale: null,
+      education_level: null,
+      age: null,
+      ai_familiarity: null
     };
 
     this.authService.signup(userData)
@@ -78,7 +81,8 @@ export class AppSideRegisterComponent {
       .subscribe({
         next: (response) => {
           console.log('Signup successful', response);
-          this.signupSuccess = true;
+          // Rediriger vers l'onboarding au lieu d'afficher le message de succès
+          this.router.navigate(['/onboarding']);
         },
         error: (error) => {
           console.error('Signup failed:', error);
@@ -111,6 +115,8 @@ export class AppSideRegisterComponent {
       .subscribe({
         next: (googleAuthUrl) => {
           // Redirige vers l'URL d'autorisation Google (pas vers notre backend)
+          // Note: Après la connexion OAuth, l'utilisateur sera redirigé vers l'onboarding
+          // si nécessaire via le guard d'onboarding
           window.location.href = googleAuthUrl;
         },
         error: (error) => {

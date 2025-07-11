@@ -36,6 +36,9 @@ export interface SignupData {
   given_name: string | null;
   family_name: string | null;
   locale: string | null;
+  education_level: string | null;
+  age: number | null;
+  ai_familiarity: number | null;
 }
 
 /**
@@ -54,6 +57,9 @@ export interface UserRead {
   family_name?: string;
   locale?: string;
   oauth_accounts?: OAuthAccount[];
+  education_level?: string;
+  age?: number;
+  ai_familiarity?: number;
 }
 
 /**
@@ -72,6 +78,9 @@ export interface UserUpdate {
   given_name?: string | null;
   family_name?: string | null;
   locale?: string | null;
+  education_level?: string | null;
+  age?: number | null;
+  ai_familiarity?: number | null;
 }
 
 /**
@@ -87,4 +96,25 @@ export interface PasswordUpdate {
  */
 export interface ProfilePictureUpload {
   picture: string; // Base64 ou URL de l'image
+}
+
+/**
+ * Interface pour les données d'onboarding.
+ */
+export interface OnboardingData {
+  education_level: string;
+  age: number;
+  ai_familiarity: number;
+}
+
+/**
+ * Énumération pour les niveaux d'éducation.
+ */
+export enum EducationLevel {
+  NO_FORMAL = 'no_formal',
+  HIGH_SCHOOL = 'high_school',
+  BACHELOR = 'bachelor',
+  MASTER = 'master',
+  PHD = 'phd',
+  OTHER = 'other'
 } 

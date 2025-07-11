@@ -398,6 +398,17 @@
       "FIRST_NAME_PLACEHOLDER": "Your first name",
       "LAST_NAME": "Last Name",
       "LAST_NAME_PLACEHOLDER": "Your last name",
+      "EDUCATION_LEVEL": "Education Level",
+      "AGE": "Age",
+      "AGE_PLACEHOLDER": "Your age",
+      "AGE_MIN_ERROR": "Age must be at least 13 years old",
+      "AGE_MAX_ERROR": "Age cannot exceed 120 years",
+      "AI_FAMILIARITY": "AI Familiarity",
+      "AI_FAMILIARITY_1": "Beginner",
+      "AI_FAMILIARITY_2": "Novice",
+      "AI_FAMILIARITY_3": "Intermediate",
+      "AI_FAMILIARITY_4": "Advanced",
+      "AI_FAMILIARITY_5": "Expert",
       "RESET": "Reset",
       "SAVE": "Save",
       "SAVING": "Saving..."
@@ -407,6 +418,14 @@
       "ENGLISH": "English",
       "SPANISH": "Spanish",
       "GERMAN": "German"
+    },
+    "EDUCATION_LEVELS": {
+      "NO_FORMAL": "No formal education",
+      "HIGH_SCHOOL": "High School",
+      "BACHELOR": "Bachelor's Degree",
+      "MASTER": "Master's Degree",
+      "PHD": "PhD",
+      "OTHER": "Other"
     },
          "PASSWORD": {
        "TITLE": "Change Password",
@@ -446,7 +465,55 @@
       "LOAD_PROFILE": "Error loading profile",
       "UPDATE_PROFILE": "Error updating profile",
       "UPDATE_PASSWORD": "Error changing password",
-      "UPLOAD_PICTURE": "Error uploading picture"
+      "UPLOAD_PICTURE": "Error uploading picture",
+      "LOADING_USER_DATA": "Error loading user data"
+    }
+  },
+  "ONBOARDING": {
+    "WELCOME_TITLE": "Welcome {{name}}! A few quick questions before we start",
+    "WELCOME_SUBTITLE": "This will help us personalize your experience. You can modify these settings later.",
+    "STEP_PROGRESS": "Step {{current}} of {{total}}",
+    "STEP1": {
+      "TITLE": "Your education level",
+      "DESCRIPTION": "This helps us tailor content to your profile",
+      "LABEL": "What is your highest level of education?"
+    },
+    "STEP2": {
+      "TITLE": "Your age",
+      "DESCRIPTION": "This information helps us improve the user experience",
+      "LABEL": "How old are you?"
+    },
+    "STEP3": {
+      "TITLE": "Your AI familiarity",
+      "DESCRIPTION": "This allows us to adapt explanations to your level",
+      "LABEL": "How would you rate your familiarity with artificial intelligence?"
+    },
+    "EDUCATION_LEVELS": {
+      "NO_FORMAL": "No formal education",
+      "HIGH_SCHOOL": "High School",
+      "BACHELOR": "Bachelor's Degree",
+      "MASTER": "Master's Degree",
+      "PHD": "PhD",
+      "OTHER": "Other"
+    },
+    "AI_FAMILIARITY": {
+      "BEGINNER": "Beginner",
+      "NOVICE": "Novice",
+      "INTERMEDIATE": "Intermediate",
+      "ADVANCED": "Advanced",
+      "EXPERT": "Expert"
+    },
+    "PREVIOUS": "Previous",
+    "NEXT": "Next",
+    "COMPLETE": "Complete Setup",
+    "ERRORS": {
+      "INVALID_STEP": "Please complete this step before continuing",
+      "INVALID_FORM": "Please complete all required fields",
+      "SAVE_FAILED": "Error saving onboarding data"
+    },
+    "VALIDATION": {
+      "AGE_TOO_LOW": "Age must be at least 13 years old",
+      "AGE_TOO_HIGH": "Age cannot exceed 120 years"
     }
   },
   "DASHBOARD": {

@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment'; // Importer l'environnement
 // Importer les nouvelles interfaces
-import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload } from '../models/auth.models';
+import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData } from '../models/auth.models';
 
 // Définir la clé du token comme constante
 const AUTH_TOKEN_KEY = 'exai_access_token';
@@ -272,6 +272,33 @@ export class AuthService {
     }).pipe(
       tap(user => {
         console.log("updateProfilePicture - Succès, image de profil mise à jour:", user);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Sauvegarde les données d'onboarding de l'utilisateur.
+   * @param data - Objet OnboardingData contenant les réponses d'onboarding.
+   * @returns Observable avec les informations UserRead mises à jour.
+   */
+  saveOnboarding(data: OnboardingData): Observable<UserRead> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("saveOnboarding - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("saveOnboarding - Début de la requête, données:", data);
+    
+    return this.http.patch<UserRead>(`${environment.apiUrl}/users/me`, data, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(user => {
+        console.log("saveOnboarding - Succès, données d'onboarding sauvegardées:", user);
       }),
       catchError(this.handleError)
     );

@@ -1,7 +1,7 @@
 import uuid
 from fastapi_users import schemas
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, validator
 
 # Modèle Pydantic pour les comptes OAuth
 class OAuthAccountRead(BaseModel):
@@ -19,6 +19,10 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     family_name: Optional[str] = None
     locale: Optional[str] = None
     oauth_accounts: List[OAuthAccountRead] = []
+    # Champs onboarding
+    education_level: Optional[str] = None
+    age: Optional[int] = None
+    ai_familiarity: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -46,7 +50,10 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
             given_name=user.given_name,
             family_name=user.family_name,
             locale=user.locale,
-            oauth_accounts=oauth_accounts_data
+            oauth_accounts=oauth_accounts_data,
+            education_level=user.education_level,
+            age=user.age,
+            ai_familiarity=user.ai_familiarity
         )
 
 # Schéma Pydantic pour la création d'un utilisateur
@@ -59,6 +66,10 @@ class UserCreate(schemas.BaseUserCreate):
     given_name: Optional[str] = None
     family_name: Optional[str] = None
     locale: Optional[str] = None
+    # Champs onboarding
+    education_level: Optional[str] = None
+    age: Optional[int] = None
+    ai_familiarity: Optional[int] = None
     
     class Config:
         json_schema_extra = {
@@ -81,6 +92,10 @@ class UserUpdate(schemas.BaseUserUpdate):
     given_name: Optional[str] = None
     family_name: Optional[str] = None
     locale: Optional[str] = None
+    # Champs onboarding
+    education_level: Optional[str] = None
+    age: Optional[int] = None
+    ai_familiarity: Optional[int] = None
 
 # Schéma spécifique pour la mise à jour du profil (sans mot de passe)
 class UserProfileUpdate(BaseModel):
@@ -88,6 +103,10 @@ class UserProfileUpdate(BaseModel):
     given_name: Optional[str] = None
     family_name: Optional[str] = None
     locale: Optional[str] = None
+    # Champs onboarding
+    education_level: Optional[str] = None
+    age: Optional[int] = None
+    ai_familiarity: Optional[int] = None
 
     class Config:
         json_schema_extra = {
@@ -120,5 +139,20 @@ class ProfilePictureUpdate(BaseModel):
         json_schema_extra = {
             "example": {
                 "picture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+            }
+        }
+
+# Schéma pour les données d'onboarding
+class OnboardingData(BaseModel):
+    education_level: str = Field(..., description="Niveau d'éducation")
+    age: int = Field(..., ge=13, le=120, description="Âge de l'utilisateur")
+    ai_familiarity: int = Field(..., ge=1, le=5, description="Familiarité avec l'IA (1-5)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "education_level": "bachelor",
+                "age": 25,
+                "ai_familiarity": 3
             }
         } 

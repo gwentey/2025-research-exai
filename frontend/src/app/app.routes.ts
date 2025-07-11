@@ -2,12 +2,13 @@ import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
 import { authGuard } from './guards/auth.guard';
+import { onboardingGuard } from './guards/onboarding.guard';
 
 export const routes: Routes = [
   {
     path: '',
     component: FullComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, onboardingGuard],
     children: [
       {
         path: '',
@@ -50,6 +51,14 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./pages/authentication/authentication.routes').then(
             (m) => m.AuthenticationRoutes
+          ),
+      },
+      {
+        path: 'onboarding',
+        canActivate: [authGuard],
+        loadChildren: () =>
+          import('./pages/authentication/onboarding/onboarding.routes').then(
+            (m) => m.OnboardingRoutes
           ),
       },
     ],

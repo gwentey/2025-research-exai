@@ -176,6 +176,56 @@
                       <mat-icon matSuffix>family_restroom</mat-icon>
                     </mat-form-field>
                   </div>
+
+                  <!-- Niveau d'éducation -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.PERSONAL_INFO.EDUCATION_LEVEL' | translate }}</mat-label>
+                      <mat-select formControlName="education_level">
+                        <mat-option *ngFor="let level of educationLevels" [value]="level.code">
+                          {{ level.name }}
+                        </mat-option>
+                      </mat-select>
+                      <mat-icon matSuffix>school</mat-icon>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Âge -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.PERSONAL_INFO.AGE' | translate }}</mat-label>
+                      <input 
+                        matInput 
+                        type="number"
+                        formControlName="age"
+                        min="13"
+                        max="120"
+                        [placeholder]="'PROFILE.PERSONAL_INFO.AGE_PLACEHOLDER' | translate"
+                      />
+                      <mat-icon matSuffix>person</mat-icon>
+                      <mat-error *ngIf="profileForm.get('age')?.hasError('min')">
+                        {{ 'PROFILE.PERSONAL_INFO.AGE_MIN_ERROR' | translate }}
+                      </mat-error>
+                      <mat-error *ngIf="profileForm.get('age')?.hasError('max')">
+                        {{ 'PROFILE.PERSONAL_INFO.AGE_MAX_ERROR' | translate }}
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Familiarité avec l'IA -->
+                  <div class="col-md-6 col-12 m-b-16">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'PROFILE.PERSONAL_INFO.AI_FAMILIARITY' | translate }}</mat-label>
+                      <mat-select formControlName="ai_familiarity">
+                        <mat-option [value]="1">1 - {{ 'PROFILE.PERSONAL_INFO.AI_FAMILIARITY_1' | translate }}</mat-option>
+                        <mat-option [value]="2">2 - {{ 'PROFILE.PERSONAL_INFO.AI_FAMILIARITY_2' | translate }}</mat-option>
+                        <mat-option [value]="3">3 - {{ 'PROFILE.PERSONAL_INFO.AI_FAMILIARITY_3' | translate }}</mat-option>
+                        <mat-option [value]="4">4 - {{ 'PROFILE.PERSONAL_INFO.AI_FAMILIARITY_4' | translate }}</mat-option>
+                        <mat-option [value]="5">5 - {{ 'PROFILE.PERSONAL_INFO.AI_FAMILIARITY_5' | translate }}</mat-option>
+                      </mat-select>
+                      <mat-icon matSuffix>psychology</mat-icon>
+                    </mat-form-field>
+                  </div>
                 </div>
 
                 <!-- Actions du formulaire -->

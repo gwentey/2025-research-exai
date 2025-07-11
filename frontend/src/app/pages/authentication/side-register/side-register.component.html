@@ -50,20 +50,10 @@
 
                     <div class="or-border m-t-30">{{ 'AUTH.OR_CONTINUE_WITH' | translate }}</div>
 
-                    <!-- Display Signup Success -->
-                    @if(signupSuccess) {
-                      <div class="alert alert-success m-t-20" role="alert">
-                        {{ 'AUTH.REGISTER.SUCCESS' | translate }}
-                        <a [routerLink]="['/authentication/login']" class="alert-link">{{ 'AUTH.LOGIN' | translate }}</a>.
-                      </div>
-                    }
-
                     <!-- Display Signup Error -->
                     @if(signupError) {
                       <mat-error class="m-t-20 m-b-10">{{ signupError }}</mat-error>
                     }
-
-                    @if(!signupSuccess) {
                       <form
                         class="m-t-30"
                         [formGroup]="form"
@@ -147,7 +137,6 @@
                         </button>
                         <!-- input -->
                       </form>
-                    }
                     <span class="d-block f-w-500 d-block m-t-24">{{ 'AUTH.REGISTER.SIGN_IN_LINK' | translate }}
                       <a
                         [routerLink]="['/authentication/login']"

@@ -1,0 +1,199 @@
+<div class="blank-layout-container justify-content-center">
+  <div class="auth-wrapper">
+    <div class="position-relative shaper-wrapper">
+      <div class="w-100 position-relative rounded bg-white auth-card onboarding-card">
+        <div class="auth-body">
+          <div class="m-t-20">
+            <app-branding></app-branding>
+          </div>
+
+          <div class="onboarding-content">
+            <!-- En-tête avec message de bienvenue -->
+            <div class="text-center m-b-32">
+              <h3 class="f-w-700 f-s-28 lh-base m-0">
+                {{ 'ONBOARDING.WELCOME_TITLE' | translate: { name: getUserDisplayName() } }}
+              </h3>
+              <p class="f-s-16 mat-body-1 m-t-8 text-muted">
+                {{ 'ONBOARDING.WELCOME_SUBTITLE' | translate }}
+              </p>
+            </div>
+
+            <!-- Barre de progression -->
+            <div class="progress-container m-b-32">
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="getProgressPercentage()"
+                class="onboarding-progress">
+              </mat-progress-bar>
+              <div class="progress-text m-t-8">
+                {{ 'ONBOARDING.STEP_PROGRESS' | translate: { current: currentStep + 1, total: totalSteps } }}
+              </div>
+            </div>
+
+            <!-- Affichage d'erreur globale -->
+            @if(error) {
+              <div class="alert alert-danger m-b-24" role="alert">
+                <mat-icon class="m-r-8">error</mat-icon>
+                {{ error }}
+              </div>
+            }
+
+            <!-- Contenu des étapes -->
+            <div class="stepper-content">
+              <!-- Étape 1: Niveau d'éducation -->
+              @if(currentStep === 0) {
+                <div class="step-container">
+                  <div class="step-header m-b-24">
+                    <mat-icon class="step-icon">school</mat-icon>
+                    <h4 class="step-title">{{ 'ONBOARDING.STEP1.TITLE' | translate }}</h4>
+                    <p class="step-description">{{ 'ONBOARDING.STEP1.DESCRIPTION' | translate }}</p>
+                  </div>
+                  
+                  <form [formGroup]="educationForm" class="step-form">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'ONBOARDING.STEP1.LABEL' | translate }}</mat-label>
+                      <mat-select formControlName="education_level">
+                        @for(level of educationLevels; track level.value) {
+                          <mat-option [value]="level.value">
+                            {{ 'ONBOARDING.EDUCATION_LEVELS.' + level.key | translate }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                      @if(educationForm.get('education_level')?.touched && educationForm.get('education_level')?.invalid) {
+                        <mat-error>{{ 'FORMS.VALIDATION.REQUIRED' | translate }}</mat-error>
+                      }
+                    </mat-form-field>
+                  </form>
+                </div>
+              }
+
+              <!-- Étape 2: Âge -->
+              @if(currentStep === 1) {
+                <div class="step-container">
+                  <div class="step-header m-b-24">
+                    <mat-icon class="step-icon">person</mat-icon>
+                    <h4 class="step-title">{{ 'ONBOARDING.STEP2.TITLE' | translate }}</h4>
+                    <p class="step-description">{{ 'ONBOARDING.STEP2.DESCRIPTION' | translate }}</p>
+                  </div>
+                  
+                  <form [formGroup]="ageForm" class="step-form">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'ONBOARDING.STEP2.LABEL' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="age" min="13" max="120">
+                      @if(ageForm.get('age')?.touched && ageForm.get('age')?.invalid) {
+                        <mat-error>
+                          @if(ageForm.get('age')?.errors?.['required']) {
+                            {{ 'FORMS.VALIDATION.REQUIRED' | translate }}
+                          }
+                          @if(ageForm.get('age')?.errors?.['min']) {
+                            {{ 'ONBOARDING.VALIDATION.AGE_TOO_LOW' | translate }}
+                          }
+                          @if(ageForm.get('age')?.errors?.['max']) {
+                            {{ 'ONBOARDING.VALIDATION.AGE_TOO_HIGH' | translate }}
+                          }
+                        </mat-error>
+                      }
+                    </mat-form-field>
+                  </form>
+                </div>
+              }
+
+              <!-- Étape 3: Familiarité avec l'IA -->
+              @if(currentStep === 2) {
+                <div class="step-container">
+                  <div class="step-header m-b-24">
+                    <mat-icon class="step-icon">psychology</mat-icon>
+                    <h4 class="step-title">{{ 'ONBOARDING.STEP3.TITLE' | translate }}</h4>
+                    <p class="step-description">{{ 'ONBOARDING.STEP3.DESCRIPTION' | translate }}</p>
+                  </div>
+                  
+                  <form [formGroup]="familiarityForm" class="step-form">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>{{ 'ONBOARDING.STEP3.LABEL' | translate }}</mat-label>
+                      <mat-select formControlName="ai_familiarity">
+                        @for(level of familiarityLevels; track level.value) {
+                          <mat-option [value]="level.value">
+                            {{ level.value }} - {{ 'ONBOARDING.AI_FAMILIARITY.' + level.key | translate }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                      @if(familiarityForm.get('ai_familiarity')?.touched && familiarityForm.get('ai_familiarity')?.invalid) {
+                        <mat-error>{{ 'FORMS.VALIDATION.REQUIRED' | translate }}</mat-error>
+                      }
+                    </mat-form-field>
+                  </form>
+                </div>
+              }
+            </div>
+
+            <!-- Boutons de navigation -->
+            <div class="navigation-buttons m-t-32">
+              <div class="d-flex justify-content-between">
+                <button 
+                  mat-stroked-button 
+                  (click)="previousStep()" 
+                  [disabled]="currentStep === 0"
+                  class="step-button">
+                  <mat-icon>arrow_back</mat-icon>
+                  {{ 'ONBOARDING.PREVIOUS' | translate }}
+                </button>
+
+                @if(currentStep < totalSteps - 1) {
+                  <button 
+                    mat-flat-button 
+                    color="primary" 
+                    (click)="nextStep()"
+                    [disabled]="!isCurrentStepValid()"
+                    class="step-button">
+                    {{ 'ONBOARDING.NEXT' | translate }}
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                                 } @else {
+                   <button 
+                     mat-flat-button 
+                     color="primary" 
+                     (click)="submitOnboarding()"
+                     [disabled]="!areAllFormsValid() || isLoading"
+                     class="step-button">
+                     @if(isLoading) {
+                       <mat-spinner diameter="20" class="m-r-8"></mat-spinner>
+                       {{ 'COMMON.LOADING' | translate }}
+                     } @else {
+                       <ng-container>
+                         {{ 'ONBOARDING.COMPLETE' | translate }}
+                         <mat-icon>check</mat-icon>
+                       </ng-container>
+                     }
+                   </button>
+                 }
+              </div>
+            </div>
+
+            <!-- Indicateur d'étapes -->
+            <div class="steps-indicator m-t-24">
+              <div class="d-flex justify-content-center">
+                @for(step of [0, 1, 2]; track step) {
+                  <div 
+                    class="step-dot" 
+                    [class.active]="step === currentStep"
+                    [class.completed]="step < currentStep">
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fond avec bulles animées -->
+<div class="bubble-background">
+  <div class="bubble bubble-1"></div>
+  <div class="bubble bubble-2"></div>
+  <div class="bubble bubble-3"></div>
+  <div class="bubble bubble-4"></div>
+  <div class="bubble bubble-5"></div>
+  <div class="bubble bubble-6"></div>
+</div> 

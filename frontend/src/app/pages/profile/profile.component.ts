@@ -50,8 +50,12 @@ export class ProfileComponent implements OnInit {
   // Langues disponibles - initialisées une seule fois pour éviter les problèmes de performance
   languages: Array<{code: string, name: string}> = [];
 
+  // Niveaux d'éducation disponibles
+  educationLevels: Array<{code: string, name: string}> = [];
+
   ngOnInit(): void {
     this.initializeLanguages();
+    this.initializeEducationLevels();
     this.initializeForms();
     this.loadUserProfile();
   }
@@ -69,6 +73,20 @@ export class ProfileComponent implements OnInit {
   }
 
   /**
+   * Initialise la liste des niveaux d'éducation une seule fois
+   */
+  initializeEducationLevels(): void {
+    this.educationLevels = [
+      { code: 'no_formal', name: this.translateService.instant('PROFILE.EDUCATION_LEVELS.NO_FORMAL') },
+      { code: 'high_school', name: this.translateService.instant('PROFILE.EDUCATION_LEVELS.HIGH_SCHOOL') },
+      { code: 'bachelor', name: this.translateService.instant('PROFILE.EDUCATION_LEVELS.BACHELOR') },
+      { code: 'master', name: this.translateService.instant('PROFILE.EDUCATION_LEVELS.MASTER') },
+      { code: 'phd', name: this.translateService.instant('PROFILE.EDUCATION_LEVELS.PHD') },
+      { code: 'other', name: this.translateService.instant('PROFILE.EDUCATION_LEVELS.OTHER') }
+    ];
+  }
+
+  /**
    * Initialise les formulaires réactifs
    */
   initializeForms(): void {
@@ -77,7 +95,10 @@ export class ProfileComponent implements OnInit {
       pseudo: [''],
       given_name: [''],
       family_name: [''],
-      locale: ['fr']
+      locale: ['fr'],
+      education_level: [''],
+      age: ['', [Validators.min(13), Validators.max(120)]],
+      ai_familiarity: ['', [Validators.min(1), Validators.max(5)]]
     });
 
     // Formulaire de mot de passe
@@ -136,7 +157,10 @@ export class ProfileComponent implements OnInit {
       pseudo: user.pseudo || '',
       given_name: user.given_name || '',
       family_name: user.family_name || '',
-      locale: user.locale || 'fr'
+      locale: user.locale || 'fr',
+      education_level: user.education_level || '',
+      age: user.age || null,
+      ai_familiarity: user.ai_familiarity || null
     });
   }
 
@@ -151,7 +175,10 @@ export class ProfileComponent implements OnInit {
         pseudo: this.profileForm.value.pseudo || null,
         given_name: this.profileForm.value.given_name || null,
         family_name: this.profileForm.value.family_name || null,
-        locale: this.profileForm.value.locale || null
+        locale: this.profileForm.value.locale || null,
+        education_level: this.profileForm.value.education_level || null,
+        age: this.profileForm.value.age || null,
+        ai_familiarity: this.profileForm.value.ai_familiarity || null
       };
 
       this.authService.updateProfile(updateData).subscribe({

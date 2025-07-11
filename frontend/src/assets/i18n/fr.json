@@ -398,6 +398,17 @@
       "FIRST_NAME_PLACEHOLDER": "Votre prénom",
       "LAST_NAME": "Nom de famille",
       "LAST_NAME_PLACEHOLDER": "Votre nom de famille",
+      "EDUCATION_LEVEL": "Niveau d'éducation",
+      "AGE": "Âge",
+      "AGE_PLACEHOLDER": "Votre âge",
+      "AGE_MIN_ERROR": "L'âge doit être d'au moins 13 ans",
+      "AGE_MAX_ERROR": "L'âge ne peut pas dépasser 120 ans",
+      "AI_FAMILIARITY": "Familiarité avec l'IA",
+      "AI_FAMILIARITY_1": "Débutant",
+      "AI_FAMILIARITY_2": "Novice",
+      "AI_FAMILIARITY_3": "Intermédiaire",
+      "AI_FAMILIARITY_4": "Avancé",
+      "AI_FAMILIARITY_5": "Expert",
       "RESET": "Réinitialiser",
       "SAVE": "Enregistrer",
       "SAVING": "Enregistrement..."
@@ -407,6 +418,14 @@
       "ENGLISH": "Anglais",
       "SPANISH": "Espagnol",
       "GERMAN": "Allemand"
+    },
+    "EDUCATION_LEVELS": {
+      "NO_FORMAL": "Aucune éducation formelle",
+      "HIGH_SCHOOL": "Lycée",
+      "BACHELOR": "Licence",
+      "MASTER": "Master",
+      "PHD": "Doctorat",
+      "OTHER": "Autre"
     },
          "PASSWORD": {
        "TITLE": "Changer le Mot de Passe",
@@ -446,7 +465,55 @@
       "LOAD_PROFILE": "Erreur lors du chargement du profil",
       "UPDATE_PROFILE": "Erreur lors de la mise à jour du profil",
       "UPDATE_PASSWORD": "Erreur lors du changement de mot de passe",
-      "UPLOAD_PICTURE": "Erreur lors du téléchargement de la photo"
+      "UPLOAD_PICTURE": "Erreur lors du téléchargement de la photo",
+      "LOADING_USER_DATA": "Erreur lors du chargement des données utilisateur"
+    }
+  },
+  "ONBOARDING": {
+    "WELCOME_TITLE": "Bienvenue {{name}} ! Quelques questions avant de commencer",
+    "WELCOME_SUBTITLE": "Cela nous aidera à personnaliser votre expérience. Vous pourrez modifier ces informations ultérieurement.",
+    "STEP_PROGRESS": "Étape {{current}} sur {{total}}",
+    "STEP1": {
+      "TITLE": "Votre niveau d'éducation",
+      "DESCRIPTION": "Cela nous aide à adapter le contenu à votre profil",
+      "LABEL": "Quel est votre niveau d'éducation le plus élevé ?"
+    },
+    "STEP2": {
+      "TITLE": "Votre âge",
+      "DESCRIPTION": "Cette information nous aide à améliorer l'expérience utilisateur",
+      "LABEL": "Quel âge avez-vous ?"
+    },
+    "STEP3": {
+      "TITLE": "Votre familiarité avec l'IA",
+      "DESCRIPTION": "Cela nous permet d'adapter les explications à votre niveau",
+      "LABEL": "Comment évaluez-vous votre familiarité avec l'intelligence artificielle ?"
+    },
+    "EDUCATION_LEVELS": {
+      "NO_FORMAL": "Aucune éducation formelle",
+      "HIGH_SCHOOL": "Lycée",
+      "BACHELOR": "Licence",
+      "MASTER": "Master",
+      "PHD": "Doctorat",
+      "OTHER": "Autre"
+    },
+    "AI_FAMILIARITY": {
+      "BEGINNER": "Débutant",
+      "NOVICE": "Novice",
+      "INTERMEDIATE": "Intermédiaire",
+      "ADVANCED": "Avancé",
+      "EXPERT": "Expert"
+    },
+    "PREVIOUS": "Précédent",
+    "NEXT": "Suivant",
+    "COMPLETE": "Terminer la configuration",
+    "ERRORS": {
+      "INVALID_STEP": "Veuillez compléter cette étape avant de continuer",
+      "INVALID_FORM": "Veuillez compléter tous les champs obligatoires",
+      "SAVE_FAILED": "Erreur lors de la sauvegarde des données d'onboarding"
+    },
+    "VALIDATION": {
+      "AGE_TOO_LOW": "L'âge doit être d'au moins 13 ans",
+      "AGE_TOO_HIGH": "L'âge ne peut pas dépasser 120 ans"
     }
   },
   "DASHBOARD": {
