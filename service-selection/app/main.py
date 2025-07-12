@@ -75,11 +75,13 @@ def apply_filters(query, filters: schemas.DatasetFilterCriteria):
         query = query.filter(models.Dataset.objective.ilike(f"%{filters.objective}%"))
     
     # --- FILTRES DE LISTES (domaines et tâches) ---
+    # Logique AND : le dataset doit contenir TOUS les domaines sélectionnés
     if filters.domain:
-        query = query.filter(models.Dataset.domain.op("&&")(filters.domain))
+        query = query.filter(models.Dataset.domain.op("@>")(filters.domain))
     
+    # Logique AND : le dataset doit contenir TOUTES les tâches sélectionnées
     if filters.task:
-        query = query.filter(models.Dataset.task.op("&&")(filters.task))
+        query = query.filter(models.Dataset.task.op("@>")(filters.task))
     
     # --- FILTRES CATÉGORIELS ---
     if filters.access:
@@ -143,10 +145,23 @@ def apply_filters(query, filters: schemas.DatasetFilterCriteria):
             models.Dataset.accountability_defined
         ]
         
-        # Somme des critères vrais
-        true_count = sum(case([(criterion == True, 1)], else_=0) for criterion in ethical_criteria)
+        # Créer l'expression SQLAlchemy pour calculer le score
+        # Additionner tous les critères vrais avec la syntaxe SQLAlchemy correcte
+        true_count_expr = (
+            case((models.Dataset.informed_consent == True, 1), else_=0) +
+            case((models.Dataset.transparency == True, 1), else_=0) +
+            case((models.Dataset.user_control == True, 1), else_=0) +
+            case((models.Dataset.equity_non_discrimination == True, 1), else_=0) +
+            case((models.Dataset.security_measures_in_place == True, 1), else_=0) +
+            case((models.Dataset.data_quality_documented == True, 1), else_=0) +
+            case((models.Dataset.anonymization_applied == True, 1), else_=0) +
+            case((models.Dataset.record_keeping_policy_exists == True, 1), else_=0) +
+            case((models.Dataset.purpose_limitation_respected == True, 1), else_=0) +
+            case((models.Dataset.accountability_defined == True, 1), else_=0)
+        )
+        
         total_criteria = len(ethical_criteria)
-        ethical_score_percent = cast(true_count * 100.0 / total_criteria, Float)
+        ethical_score_percent = cast(true_count_expr * 100.0 / total_criteria, Float)
         
         query = query.filter(ethical_score_percent >= filters.ethical_score_min)
     

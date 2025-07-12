@@ -72,11 +72,13 @@
               <mat-form-field appearance="outline" class="sort-field" color="primary">
                 <mat-label>{{ 'DATASETS.LISTING.SORT_BY' | translate }}</mat-label>
                 <mat-select [(value)]="currentSort" (selectionChange)="onSortChange($event)">
-                  <mat-option value="relevance">{{ 'DATASETS.SORT.RELEVANCE' | translate }}</mat-option>
-                  <mat-option value="name">{{ 'DATASETS.LISTING.SORT_NAME' | translate }}</mat-option>
+                  <mat-option value="dataset_name">{{ 'DATASETS.SORT.DATASET_NAME' | translate }}</mat-option>
                   <mat-option value="year">{{ 'DATASETS.SORT.YEAR' | translate }}</mat-option>
-                  <mat-option value="instances">{{ 'DATASETS.SORT.INSTANCES' | translate }}</mat-option>
-                  <mat-option value="updated">{{ 'DATASETS.LISTING.SORT_DATE' | translate }}</mat-option>
+                  <mat-option value="instances_number">{{ 'DATASETS.SORT.INSTANCES_NUMBER' | translate }}</mat-option>
+                  <mat-option value="features_number">{{ 'DATASETS.SORT.FEATURES_NUMBER' | translate }}</mat-option>
+                  <mat-option value="num_citations">{{ 'DATASETS.SORT.NUM_CITATIONS' | translate }}</mat-option>
+                  <mat-option value="created_at">{{ 'DATASETS.SORT.CREATED_AT' | translate }}</mat-option>
+                  <mat-option value="updated_at">{{ 'DATASETS.SORT.UPDATED_AT' | translate }}</mat-option>
                 </mat-select>
               </mat-form-field>
 

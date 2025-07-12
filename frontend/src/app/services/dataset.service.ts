@@ -85,20 +85,59 @@ export class DatasetService {
     if (filters.year_max !== undefined) {
       httpParams = httpParams.set('year_max', filters.year_max.toString());
     }
+    if (filters.ethical_score_min !== undefined) {
+      httpParams = httpParams.set('ethical_score_min', filters.ethical_score_min.toString());
+    }
+    if (filters.representativity_level) {
+      httpParams = httpParams.set('representativity_level', filters.representativity_level);
+    }
     if (filters.has_missing_values !== undefined) {
       httpParams = httpParams.set('has_missing_values', filters.has_missing_values.toString());
     }
     if (filters.split !== undefined) {
       httpParams = httpParams.set('split', filters.split.toString());
     }
+    if (filters.is_split !== undefined) {
+      httpParams = httpParams.set('is_split', filters.is_split.toString());
+    }
     if (filters.anonymization_applied !== undefined) {
       httpParams = httpParams.set('anonymization_applied', filters.anonymization_applied.toString());
+    }
+    if (filters.is_anonymized !== undefined) {
+      httpParams = httpParams.set('is_anonymized', filters.is_anonymized.toString());
+    }
+    if (filters.has_temporal_factors !== undefined) {
+      httpParams = httpParams.set('has_temporal_factors', filters.has_temporal_factors.toString());
+    }
+    if (filters.is_public !== undefined) {
+      httpParams = httpParams.set('is_public', filters.is_public.toString());
     }
     if (filters.informed_consent !== undefined) {
       httpParams = httpParams.set('informed_consent', filters.informed_consent.toString());
     }
     if (filters.transparency !== undefined) {
       httpParams = httpParams.set('transparency', filters.transparency.toString());
+    }
+    if (filters.user_control !== undefined) {
+      httpParams = httpParams.set('user_control', filters.user_control.toString());
+    }
+    if (filters.equity_non_discrimination !== undefined) {
+      httpParams = httpParams.set('equity_non_discrimination', filters.equity_non_discrimination.toString());
+    }
+    if (filters.security_measures_in_place !== undefined) {
+      httpParams = httpParams.set('security_measures_in_place', filters.security_measures_in_place.toString());
+    }
+    if (filters.data_quality_documented !== undefined) {
+      httpParams = httpParams.set('data_quality_documented', filters.data_quality_documented.toString());
+    }
+    if (filters.record_keeping_policy_exists !== undefined) {
+      httpParams = httpParams.set('record_keeping_policy_exists', filters.record_keeping_policy_exists.toString());
+    }
+    if (filters.purpose_limitation_respected !== undefined) {
+      httpParams = httpParams.set('purpose_limitation_respected', filters.purpose_limitation_respected.toString());
+    }
+    if (filters.accountability_defined !== undefined) {
+      httpParams = httpParams.set('accountability_defined', filters.accountability_defined.toString());
     }
     
     return this.http.get<DatasetListResponse>(this.baseUrl, { params: httpParams }).pipe(

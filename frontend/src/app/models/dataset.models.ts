@@ -137,14 +137,23 @@ export interface DatasetFilterCriteria {
   ethical_score_min?: number;
   representativity_level?: string;
   
-  // Filtres booléens
+  // Filtres booléens techniques
   has_missing_values?: boolean;
   split?: boolean;
   anonymization_applied?: boolean;
+  
+  // Filtres éthiques booléens
   informed_consent?: boolean;
   transparency?: boolean;
+  user_control?: boolean;
+  equity_non_discrimination?: boolean;
+  security_measures_in_place?: boolean;
+  data_quality_documented?: boolean;
+  record_keeping_policy_exists?: boolean;
+  purpose_limitation_respected?: boolean;
+  accountability_defined?: boolean;
   
-  // Nouveaux filtres booléens pour l'interface moderne
+  // Filtres raccourcis pour l'interface moderne
   is_split?: boolean;
   is_anonymized?: boolean;
   has_temporal_factors?: boolean;
@@ -242,13 +251,13 @@ export interface SortOption {
  * Options de tri disponibles
  */
 export const SORT_OPTIONS: SortOption[] = [
-  { key: 'dataset_name', label: 'Nom', default_order: 'asc' },
-  { key: 'year', label: 'Année', default_order: 'desc' },
-  { key: 'instances_number', label: 'Nombre d\'instances', default_order: 'desc' },
-  { key: 'features_number', label: 'Nombre de features', default_order: 'desc' },
-  { key: 'num_citations', label: 'Citations', default_order: 'desc' },
-  { key: 'created_at', label: 'Date de création', default_order: 'desc' },
-  { key: 'updated_at', label: 'Dernière modification', default_order: 'desc' }
+  { key: 'dataset_name', label: 'DATASETS.SORT.DATASET_NAME', default_order: 'asc' },
+  { key: 'year', label: 'DATASETS.SORT.YEAR', default_order: 'desc' },
+  { key: 'instances_number', label: 'DATASETS.SORT.INSTANCES_NUMBER', default_order: 'desc' },
+  { key: 'features_number', label: 'DATASETS.SORT.FEATURES_NUMBER', default_order: 'desc' },
+  { key: 'num_citations', label: 'DATASETS.SORT.NUM_CITATIONS', default_order: 'desc' },
+  { key: 'created_at', label: 'DATASETS.SORT.CREATED_AT', default_order: 'desc' },
+  { key: 'updated_at', label: 'DATASETS.SORT.UPDATED_AT', default_order: 'desc' }
 ];
 
 /**

@@ -40,6 +40,17 @@ La nouvelle architecture suit le principe *backend-first* avec :
 
 Support complet de tous les filtres frontend avec aliases :
 
+[IMPORTANT]
+====
+**Logique de Filtrage Multi-Critères :**
+
+* **Filtres de listes** (domaines, tâches) : Logique **AND** - Le dataset doit contenir TOUS les éléments sélectionnés
+* **Filtres numériques** : Logique **ET** - Toutes les conditions doivent être respectées
+* **Filtres booléens** : Logique **ET** - Tous les critères `true` doivent être présents
+
+*Exemple :* Si vous sélectionnez "Finance" ET "Healthcare" dans les domaines, seuls les datasets ayant les deux domaines seront retournés.
+====
+
 [source,http]
 ----
 GET /api/v1/datasets?page=1&page_size=24&sort_by=dataset_name&sort_order=asc

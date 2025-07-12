@@ -231,6 +231,32 @@ graph LR
         *   **Documentation Technique** : Guide complet dans `docs/dev-guide/dataset-detail-visualization.adoc`
         *   **Évolutions Prévues** : Graphiques interactifs, export PDF, intégration ML Pipeline, comparaison de datasets
 
+    *   **Correction Critique Filtrage Multi-Critères (2025-01-25)** : Résolution du problème de logique AND/OR dans les filtres
+        *   **Problème** : Quand l'utilisateur sélectionnait 2 critères dans "Domaine d'application", le système retournait les datasets ayant l'un OU l'autre (logique OR)
+        *   **Comportement Attendu** : L'utilisateur voulait que les datasets aient tous les critères sélectionnés (logique AND)
+        *   **Solution** : Remplacement de l'opérateur PostgreSQL `&&` (intersection) par `@>` (contient) dans `service-selection/app/main.py`
+        *   **Impact** : 
+            *   Filtres de domaines : Un dataset doit contenir TOUS les domaines sélectionnés
+            *   Filtres de tâches : Un dataset doit contenir TOUTES les tâches sélectionnées
+            *   Comportement cohérent avec les attentes utilisateur
+        *   **Autres Filtres** : La logique AND était déjà correcte pour les autres types de filtres (numériques, booléens)
+        *   **Compatibilité** : Aucun impact sur la fonction `find_similar_datasets` qui utilise correctement l'opérateur `&&` pour trouver des similarités
+
+    *   **Correction Bug Critique Score Éthique (2025-01-25)** : Résolution de l'erreur HTTP 500 lors de l'utilisation du filtre "Score éthique minimum"
+        *   **Problème** : Erreur HTTP 500 quand l'utilisateur appliquait le filtre "Score éthique > 80%" ou toute autre valeur
+        *   **Cause Technique** : Utilisation incorrecte de `sum()` Python avec des expressions SQLAlchemy dans `apply_filters()`
+        *   **Code Problématique** : `true_count = sum(case([(criterion == True, 1)], else_=0) for criterion in ethical_criteria)`
+        *   **Solution** : Remplacement par une expression SQLAlchemy native avec addition explicite de tous les critères
+        *   **Code Corrigé** : Addition manuelle de 10 expressions `case()` pour chaque critère éthique
+        *   **Critères Évalués** : informed_consent, transparency, user_control, equity_non_discrimination, security_measures_in_place, data_quality_documented, anonymization_applied, record_keeping_policy_exists, purpose_limitation_respected, accountability_defined
+        *   **Calcul** : (nombre_critères_vrais / 10) * 100 = pourcentage éthique
+        *   **Test** : Filtre "Score éthique ≥ 80%" fonctionne maintenant correctement
+        *   **Correction Syntaxe SQLAlchemy (2025-01-25)** : Résolution d'une erreur de syntaxe additionnelle
+            *   **Erreur Supplémentaire** : `ArgumentError: The "whens" argument to case() is now passed as a series of positional elements, rather than as a list`
+            *   **Problème Syntaxe** : `case([(condition, value)], else_=0)` (crochets pour listes)
+            *   **Correction Syntaxe** : `case((condition, value), else_=0)` (parenthèses pour tuples)
+            *   **Impact** : Compatibilité avec SQLAlchemy récent, toutes les expressions `case()` mises à jour
+
 *   **Infrastructure :**
     *   [✅] PostgreSQL déployé sur K8s et accessible.
         *   **Note importante (2024-04-27) :** La gestion de PostgreSQL a été migrée d'un Deployment vers un **StatefulSet** pour une meilleure gestion de l'état, une identité stable des pods, et pour résoudre les problèmes d'attachement de volume ReadWriteOnce (RWO) lors des mises à jour.

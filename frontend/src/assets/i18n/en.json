@@ -357,9 +357,13 @@
       "FILTERED": "filtered"
     },
     "SORT": {
-      "RELEVANCE": "Relevance",
+      "DATASET_NAME": "Name",
       "YEAR": "Year",
-      "INSTANCES": "Nb instances"
+      "INSTANCES_NUMBER": "Number of instances",
+      "FEATURES_NUMBER": "Number of features",
+      "NUM_CITATIONS": "Citations",
+      "CREATED_AT": "Creation date",
+      "UPDATED_AT": "Last modified"
     },
     "FILTERS": {
       "TITLE": "Advanced Filters",

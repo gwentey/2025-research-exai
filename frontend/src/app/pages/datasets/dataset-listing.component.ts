@@ -86,7 +86,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
 
   // Affichage
   viewMode: 'grid' | 'list' = 'grid';
-  currentSort = 'relevance';
+  currentSort = 'dataset_name';
 
   ngOnInit(): void {
     this.loadDatasets();
@@ -553,6 +553,10 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
     if (this.quickSearchTerm) {
       filters.dataset_name = this.quickSearchTerm;
     }
+
+    // DEBUG: Log des filtres transmis
+    console.log('🔍 Filtres transmis au backend:', filters);
+    console.log('📋 Paramètres de pagination:', params);
 
     this.datasetService.getDatasets(params, filters)
       .pipe(takeUntil(this.destroy$))
