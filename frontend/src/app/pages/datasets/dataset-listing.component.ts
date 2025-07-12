@@ -268,13 +268,67 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
    * Supprime un filtre spécifique
    */
   removeFilter(filter: FilterChip): void {
-    if (filter.key === 'search') {
-      this.quickSearchTerm = '';
-    } else {
-      const newFilters = { ...this.currentFilters };
-      delete (newFilters as any)[filter.key];
-      this.currentFilters = newFilters;
+    const newFilters = { ...this.currentFilters };
+
+    switch (filter.key) {
+      case 'search':
+        this.quickSearchTerm = '';
+        break;
+        
+      case 'domain':
+        delete newFilters.domain;
+        break;
+        
+      case 'task':
+        delete newFilters.task;
+        break;
+        
+      case 'instances':
+        delete newFilters.instances_number_min;
+        delete newFilters.instances_number_max;
+        break;
+        
+      case 'features':
+        delete newFilters.features_number_min;
+        delete newFilters.features_number_max;
+        break;
+        
+      case 'year':
+        delete newFilters.year_min;
+        delete newFilters.year_max;
+        break;
+        
+      case 'ethical_score':
+        delete newFilters.ethical_score_min;
+        break;
+        
+      case 'representativity':
+        delete newFilters.representativity_level;
+        break;
+        
+      case 'is_split':
+        delete newFilters.is_split;
+        break;
+        
+      case 'is_anonymized':
+        delete newFilters.is_anonymized;
+        break;
+        
+      case 'has_temporal_factors':
+        delete newFilters.has_temporal_factors;
+        break;
+        
+      case 'is_public':
+        delete newFilters.is_public;
+        break;
+        
+      default:
+        // Fallback pour les autres filtres
+        delete (newFilters as any)[filter.key];
+        break;
     }
+    
+    this.currentFilters = newFilters;
     this.loadDatasets();
   }
 

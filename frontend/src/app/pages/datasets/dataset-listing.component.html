@@ -107,15 +107,18 @@
                 <span>{{ 'DATASETS.FILTERS.ACTIVE_FILTERS_COUNT' | translate: {count: getActiveFiltersCount()} }}</span>
               </div>
               <div class="d-flex flex-wrap gap-8">
-                <mat-chip 
+                <div 
                   *ngFor="let filter of getActiveFiltersChips()" 
-                  [removable]="true"
-                  (removed)="removeFilter(filter)"
-                  class="active-filter-chip">
-                  <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
-                  {{ filter.label }}
-                  <mat-icon matChipRemove>cancel</mat-icon>
-                </mat-chip>
+                  class="custom-filter-chip">
+                  <mat-icon class="chip-icon">{{ filter.icon }}</mat-icon>
+                  <span class="chip-label">{{ filter.label }}</span>
+                  <span 
+                    class="chip-remove-btn"
+                    (click)="removeFilter(filter)"
+                    [title]="'Supprimer ce filtre: ' + filter.label">
+                    <mat-icon>close</mat-icon>
+                  </span>
+                </div>
               </div>
             </div>
             <button 
