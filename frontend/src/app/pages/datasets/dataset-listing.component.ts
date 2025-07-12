@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,6 +37,7 @@ interface FilterChip {
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
+    MatCardModule,
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,

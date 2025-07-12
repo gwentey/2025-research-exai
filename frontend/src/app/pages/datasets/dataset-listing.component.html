@@ -1,178 +1,245 @@
-<div class="dataset-listing-container">
-  <!-- Header principal simple et clair -->
-  <div class="main-header">
-    <div class="header-left">
-      <h1>{{ 'DATASETS.TITLE' | translate }}</h1>
-      <span class="results-count" *ngIf="datasets.length > 0">
-        {{ 'DATASETS.LISTING.TOTAL_DATASETS' | translate: {count: datasets.length} }}
-        <span *ngIf="hasActiveFilters()" class="filtered-indicator">• {{ 'DATASETS.LISTING.FILTERED' | translate }}</span>
-      </span>
-    </div>
+<!-- Page Container -->
+<div class="container-fluid">
+  <!-- Header principal avec carte blanche -->
+  <div class="row">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card m-b-20">
+        <mat-card-content class="p-20">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-16">
+            <!-- Titre et statistiques -->
+            <div class="d-flex align-items-center">
+              <div>
+                <h2 class="mat-h2 m-b-0 d-flex align-items-center">
+                  <mat-icon class="m-r-12 text-primary">dataset</mat-icon>
+                  {{ 'DATASETS.TITLE' | translate }}
+                </h2>
+                <p class="mat-body-2 text-muted m-b-0" *ngIf="datasets.length > 0">
+                  {{ 'DATASETS.LISTING.TOTAL_DATASETS' | translate: {count: datasets.length} }}
+                  <span *ngIf="hasActiveFilters()" class="filtered-indicator">• {{ 'DATASETS.LISTING.FILTERED' | translate }}</span>
+                </p>
+              </div>
+            </div>
 
-    <div class="header-controls">
-      <!-- Barre de recherche rapide -->
-      <div class="quick-search">
-        <mat-form-field appearance="outline" class="search-field">
-          <input 
-            matInput 
-            [(ngModel)]="quickSearchTerm"
-            (input)="onQuickSearch($event)"
-            [placeholder]="'DATASETS.LISTING.SEARCH_PLACEHOLDER' | translate"
-            autocomplete="off">
-          <mat-icon matPrefix>search</mat-icon>
-          <button 
-            *ngIf="quickSearchTerm" 
-            mat-icon-button 
-            matSuffix 
-            (click)="clearQuickSearch()"
-            [matTooltip]="'COMMON.CLEAR' | translate">
-            <mat-icon>clear</mat-icon>
+            <!-- Contrôles principaux -->
+            <div class="d-flex align-items-center gap-12">
+              <!-- Barre de recherche rapide -->
+              <mat-form-field appearance="outline" class="search-field" color="primary">
+                <input 
+                  matInput 
+                  [(ngModel)]="quickSearchTerm"
+                  (input)="onQuickSearch($event)"
+                  [placeholder]="'DATASETS.LISTING.SEARCH_PLACEHOLDER' | translate"
+                  autocomplete="off">
+                <mat-icon matPrefix>search</mat-icon>
+                <button 
+                  *ngIf="quickSearchTerm" 
+                  mat-icon-button 
+                  matSuffix 
+                  (click)="clearQuickSearch()"
+                  [matTooltip]="'COMMON.CLEAR' | translate">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <!-- Bouton Filtres avec indicateur -->
+              <button 
+                mat-raised-button 
+                color="primary"
+                (click)="openFiltersModal()"
+                class="m-r-8"
+                [class.has-filters]="hasActiveFilters()">
+                <mat-icon class="m-r-4">tune</mat-icon>
+                {{ 'COMMON.FILTER' | translate }}
+                <mat-chip *ngIf="hasActiveFilters()" class="filters-count">
+                  {{ getActiveFiltersCount() }}
+                </mat-chip>
+              </button>
+
+              <!-- Contrôles d'affichage -->
+              <mat-button-toggle-group 
+                [(value)]="viewMode" 
+                (change)="onViewChange($event)"
+                class="view-toggle m-r-8">
+                <mat-button-toggle value="grid" [matTooltip]="'DATASETS.LISTING.GRID_VIEW' | translate">
+                  <mat-icon>grid_view</mat-icon>
+                </mat-button-toggle>
+                <mat-button-toggle value="list" [matTooltip]="'DATASETS.LISTING.LIST_VIEW' | translate">
+                  <mat-icon>view_list</mat-icon>
+                </mat-button-toggle>
+              </mat-button-toggle-group>
+
+              <!-- Tri -->
+              <mat-form-field appearance="outline" class="sort-field" color="primary">
+                <mat-label>{{ 'DATASETS.LISTING.SORT_BY' | translate }}</mat-label>
+                <mat-select [(value)]="currentSort" (selectionChange)="onSortChange($event)">
+                  <mat-option value="relevance">{{ 'DATASETS.SORT.RELEVANCE' | translate }}</mat-option>
+                  <mat-option value="name">{{ 'DATASETS.LISTING.SORT_NAME' | translate }}</mat-option>
+                  <mat-option value="year">{{ 'DATASETS.SORT.YEAR' | translate }}</mat-option>
+                  <mat-option value="instances">{{ 'DATASETS.SORT.INSTANCES' | translate }}</mat-option>
+                  <mat-option value="updated">{{ 'DATASETS.LISTING.SORT_DATE' | translate }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Refresh -->
+              <button 
+                mat-icon-button 
+                (click)="refreshDatasets()"
+                [matTooltip]="'COMMON.REFRESH' | translate"
+                color="primary">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Filtres actifs (si présents) -->
+  <div class="row" *ngIf="hasActiveFilters()">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card m-b-20">
+        <mat-card-content class="p-16">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
+            <div class="d-flex align-items-center gap-12">
+              <div class="d-flex align-items-center text-muted">
+                <mat-icon class="m-r-8">filter_list</mat-icon>
+                <span>{{ 'DATASETS.FILTERS.ACTIVE_FILTERS_COUNT' | translate: {count: getActiveFiltersCount()} }}</span>
+              </div>
+              <div class="d-flex flex-wrap gap-8">
+                <mat-chip 
+                  *ngFor="let filter of getActiveFiltersChips()" 
+                  [removable]="true"
+                  (removed)="removeFilter(filter)"
+                  class="active-filter-chip">
+                  <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
+                  {{ filter.label }}
+                  <mat-icon matChipRemove>cancel</mat-icon>
+                </mat-chip>
+              </div>
+            </div>
+            <button 
+              mat-button 
+              color="warn"
+              (click)="clearAllFilters()">
+              <mat-icon class="m-r-4">clear_all</mat-icon>
+              {{ 'DATASETS.FILTERS.CLEAR' | translate }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="row" *ngIf="isLoading">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <mat-spinner diameter="60"></mat-spinner>
+          <p class="mat-body-1 m-t-16">{{ 'DATASETS.LISTING.LOADING' | translate }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="row" *ngIf="error && !isLoading">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <mat-icon class="icon-48 text-warn m-b-16">error_outline</mat-icon>
+          <h3 class="mat-h3 m-b-12">{{ 'DATASETS.LISTING.ERROR_TITLE' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-20">{{ error }}</p>
+          <button mat-raised-button color="primary" (click)="refreshDatasets()">
+            <mat-icon class="m-r-4">refresh</mat-icon>
+            {{ 'COMMON.RETRY' | translate }}
           </button>
-        </mat-form-field>
-      </div>
-
-      <!-- Bouton Filtres avec indicateur -->
-      <button 
-        mat-raised-button 
-        color="primary"
-        (click)="openFiltersModal()"
-        class="filters-button"
-        [class.has-filters]="hasActiveFilters()">
-        <mat-icon>tune</mat-icon>
-        {{ 'COMMON.FILTER' | translate }}
-        <mat-chip *ngIf="hasActiveFilters()" class="filters-count">
-          {{ getActiveFiltersCount() }}
-        </mat-chip>
-      </button>
-
-      <!-- Contrôles d'affichage -->
-      <div class="view-controls">
-        <mat-button-toggle-group 
-          [(value)]="viewMode" 
-          (change)="onViewChange($event)"
-          class="view-toggle">
-          <mat-button-toggle value="grid" [matTooltip]="'DATASETS.LISTING.GRID_VIEW' | translate">
-            <mat-icon>grid_view</mat-icon>
-          </mat-button-toggle>
-          <mat-button-toggle value="list" [matTooltip]="'DATASETS.LISTING.LIST_VIEW' | translate">
-            <mat-icon>view_list</mat-icon>
-          </mat-button-toggle>
-        </mat-button-toggle-group>
-
-        <!-- Tri -->
-        <mat-form-field appearance="outline" class="sort-field">
-          <mat-label>{{ 'DATASETS.LISTING.SORT_BY' | translate }}</mat-label>
-          <mat-select [(value)]="currentSort" (selectionChange)="onSortChange($event)">
-            <mat-option value="relevance">{{ 'DATASETS.SORT.RELEVANCE' | translate }}</mat-option>
-            <mat-option value="name">{{ 'DATASETS.LISTING.SORT_NAME' | translate }}</mat-option>
-            <mat-option value="year">{{ 'DATASETS.SORT.YEAR' | translate }}</mat-option>
-            <mat-option value="instances">{{ 'DATASETS.SORT.INSTANCES' | translate }}</mat-option>
-            <mat-option value="updated">{{ 'DATASETS.LISTING.SORT_DATE' | translate }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <!-- Refresh -->
-        <button 
-          mat-icon-button 
-          (click)="refreshDatasets()"
-          [matTooltip]="'COMMON.REFRESH' | translate"
-          class="refresh-btn">
-          <mat-icon>refresh</mat-icon>
-        </button>
-      </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
 
-  <!-- Filtres actifs compacts (si présents) -->
-  <div class="active-filters-bar" *ngIf="hasActiveFilters()">
-    <div class="filters-summary">
-      <mat-icon>filter_list</mat-icon>
-      <span>{{ 'DATASETS.FILTERS.ACTIVE_FILTERS_COUNT' | translate: {count: getActiveFiltersCount()} }}</span>
+  <!-- Empty State - Aucun dataset -->
+  <div class="row" *ngIf="!isLoading && !error && datasets.length === 0 && !hasActiveFilters()">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <div class="empty-state-icon m-b-20">
+            <mat-icon class="icon-64 text-primary">dataset</mat-icon>
+          </div>
+          <h3 class="mat-h3 m-b-12">{{ 'DATASETS.LISTING.NO_DATASETS_TITLE' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-24">
+            {{ 'DATASETS.LISTING.NO_DATASETS_MESSAGE' | translate }}
+          </p>
+          <button mat-raised-button color="primary" size="large" (click)="refreshDatasets()">
+            <mat-icon class="m-r-8">refresh</mat-icon>
+            {{ 'COMMON.REFRESH' | translate }}
+          </button>
+        </mat-card-content>
+      </mat-card>
     </div>
-    <div class="filters-chips">
-      <mat-chip 
-        *ngFor="let filter of getActiveFiltersChips()" 
-        [removable]="true"
-        (removed)="removeFilter(filter)"
-        class="active-filter-chip">
-        <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
-        {{ filter.label }}
-        <mat-icon matChipRemove>cancel</mat-icon>
-      </mat-chip>
-    </div>
-    <button 
-      mat-button 
-      color="warn"
-      (click)="clearAllFilters()"
-      class="clear-all-btn">
-      <mat-icon>clear_all</mat-icon>
-      {{ 'DATASETS.FILTERS.CLEAR' | translate }}
-    </button>
   </div>
 
-  <!-- Zone principale des datasets -->
-  <div class="content-area">
-    <!-- Loading -->
-    <div class="loading-state" *ngIf="isLoading">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p>{{ 'DATASETS.LISTING.LOADING' | translate }}</p>
+  <!-- Empty State - Aucun résultat -->
+  <div class="row" *ngIf="!isLoading && !error && datasets.length === 0 && hasActiveFilters()">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <div class="empty-state-icon m-b-20">
+            <mat-icon class="icon-64 text-muted">search_off</mat-icon>
+          </div>
+          <h3 class="mat-h3 m-b-12">{{ 'DATASETS.LISTING.NO_RESULTS' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-24">
+            {{ 'DATASETS.LISTING.NO_RESULTS_MESSAGE' | translate }}
+          </p>
+          <div class="d-flex justify-content-center gap-12 flex-wrap">
+            <button mat-raised-button color="primary" (click)="clearAllFilters()">
+              <mat-icon class="m-r-4">clear_all</mat-icon>
+              {{ 'DATASETS.FILTERS.CLEAR' | translate }}
+            </button>
+            <button mat-button (click)="openFiltersModal()">
+              <mat-icon class="m-r-4">tune</mat-icon>
+              {{ 'DATASETS.FILTERS.MODIFY' | translate }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
+  </div>
 
-    <!-- Erreur -->
-    <div class="error-state" *ngIf="error && !isLoading">
-      <mat-icon color="warn">error_outline</mat-icon>
-      <h3>{{ 'DATASETS.LISTING.ERROR_TITLE' | translate }}</h3>
-      <p>{{ error }}</p>
-      <button mat-raised-button color="primary" (click)="refreshDatasets()">
-        <mat-icon>refresh</mat-icon>
-        {{ 'COMMON.RETRY' | translate }}
-      </button>
-    </div>
-
-    <!-- Pas de résultats -->
-    <div class="no-results-state" *ngIf="!isLoading && !error && datasets.length === 0">
-      <mat-icon>search_off</mat-icon>
-      <h3>{{ 'DATASETS.LISTING.NO_RESULTS' | translate }}</h3>
-      <p>{{ 'DATASETS.LISTING.NO_RESULTS_MESSAGE' | translate }}</p>
-      <div class="no-results-actions">
-        <button mat-raised-button color="primary" (click)="clearAllFilters()" *ngIf="hasActiveFilters()">
-          <mat-icon>clear_all</mat-icon>
-          {{ 'DATASETS.FILTERS.CLEAR' | translate }}
-        </button>
-        <button mat-button (click)="openFiltersModal()">
-          <mat-icon>tune</mat-icon>
-          {{ 'DATASETS.FILTERS.MODIFY' | translate }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Grille des datasets -->
-    <div 
-      class="datasets-grid" 
-      *ngIf="!isLoading && !error && datasets.length > 0"
-      [class.list-view]="viewMode === 'list'">
+  <!-- Grille des datasets -->
+  <div class="row" *ngIf="!isLoading && !error && datasets.length > 0">
+    <div class="col-lg-4 col-md-6 col-sm-12 m-b-20" 
+         *ngFor="let dataset of datasets; trackBy: trackByDataset"
+         [class.col-lg-12]="viewMode === 'list'">
       <app-dataset-card
-        *ngFor="let dataset of datasets; trackBy: trackByDataset"
         [dataset]="dataset"
         [compact]="viewMode === 'list'"
         [showActions]="true"
         (onSelect)="onSelectDataset($event)"
         (onView)="onViewDataset($event)"
-        (onFavorite)="onToggleFavorite($event)"
-        class="dataset-card-item">
+        (onFavorite)="onToggleFavorite($event)">
       </app-dataset-card>
     </div>
+  </div>
 
-    <!-- Pagination -->
-    <div class="pagination-container" *ngIf="!isLoading && !error && datasets.length > 0">
-      <mat-paginator
-        [length]="totalDatasets"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="[12, 24, 48, 96]"
-        [pageIndex]="currentPage"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
+  <!-- Pagination -->
+  <div class="row" *ngIf="!isLoading && !error && datasets.length > 0">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="d-flex justify-content-center p-16">
+          <mat-paginator
+            [length]="totalDatasets"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[12, 24, 48, 96]"
+            [pageIndex]="currentPage"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+            class="mat-elevation-0">
+          </mat-paginator>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
 </div>
@@ -236,9 +303,4 @@
       </div>
     </div>
   </div>
-</div>
-
-<!-- Fonction de tracking pour le ngFor -->
-<ng-container>
-  <!-- Cette fonction sera définie dans le composant TypeScript -->
-</ng-container> 
+</div> 
