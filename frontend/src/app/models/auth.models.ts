@@ -108,6 +108,21 @@ export interface OnboardingData {
 }
 
 /**
+ * Interface pour la suppression de compte.
+ */
+export interface AccountDeletionRequest {
+  email_confirmation: string; // Email pour confirmer la suppression (insensible à la casse)
+}
+
+/**
+ * Interface pour la réponse de suppression de compte.
+ */
+export interface AccountDeletionResponse {
+  message: string;
+  success: boolean;
+}
+
+/**
  * Énumération pour les niveaux d'éducation.
  */
 export enum EducationLevel {

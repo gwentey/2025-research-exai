@@ -456,6 +456,34 @@
        "UPDATING": "Mise à jour...",
        "UPDATE_PASSWORD": "Modifier le Mot de Passe"
      },
+     "DELETE_ACCOUNT": {
+       "TITLE": "Zone Dangereuse",
+       "BUTTON": "Supprimer mon compte",
+       "DIALOG_TITLE": "Confirmer la suppression de compte",
+       "DIALOG_WARNING": "Cette action est irréversible et supprimera définitivement votre compte.",
+       "DIALOG_DETAILS": "Toutes vos données seront immédiatement supprimées :",
+       "DIALOG_DETAILS_LIST": [
+         "Votre profil utilisateur",
+         "Tous vos projets",
+         "Vos modèles entraînés",
+         "Vos explications XAI",
+         "Votre historique d'activité"
+       ],
+       "DIALOG_FINAL_WARNING": "Aucune information ne sera conservée et vous perdrez tout accès à la plateforme.",
+       "PASSWORD_REQUIRED": "Veuillez saisir votre mot de passe pour confirmer",
+       "PASSWORD_LABEL": "Mot de passe actuel",
+       "PASSWORD_PLACEHOLDER": "Saisissez votre mot de passe pour confirmer",
+       "EMAIL_REQUIRED": "Veuillez saisir votre email pour confirmer",
+       "EMAIL_LABEL": "Adresse email",
+       "EMAIL_PLACEHOLDER": "Saisissez votre adresse email pour confirmer",
+       "EMAIL_MISMATCH": "L'email saisi ne correspond pas à votre adresse email",
+       "EMAIL_INSTRUCTION": "Confirmez la suppression en saisissant votre adresse email",
+       "CONFIRM_BUTTON": "Oui, supprimer définitivement mon compte",
+       "CANCEL_BUTTON": "Non, conserver mon compte",
+       "DELETING": "Suppression du compte en cours...",
+       "SUCCESS": "Votre compte a été supprimé avec succès",
+       "ERROR": "Erreur lors de la suppression du compte"
+     },
     "MESSAGES": {
       "PROFILE_UPDATED": "Profil mis à jour avec succès",
       "PASSWORD_UPDATED": "Mot de passe modifié avec succès",
@@ -470,23 +498,25 @@
     }
   },
   "ONBOARDING": {
-    "WELCOME_TITLE": "Bienvenue {{name}} ! Quelques questions avant de commencer",
-    "WELCOME_SUBTITLE": "Cela nous aidera à personnaliser votre expérience. Vous pourrez modifier ces informations ultérieurement.",
-    "STEP_PROGRESS": "Étape {{current}} sur {{total}}",
+    "WELCOME_TITLE": "Bienvenue {{name}} !",
+    "WELCOME_SUBTITLE": "Quelques questions rapides pour personnaliser votre expérience",
+    "STEP_PROGRESS": "Question {{current}} sur {{total}}",
+    "INTRO": {
+      "PERSONALIZATION": "Expérience personnalisée",
+      "QUICK": "Rapide et simple",
+      "CUSTOMIZABLE": "Modifiable à tout moment"
+    },
     "STEP1": {
-      "TITLE": "Votre niveau d'éducation",
-      "DESCRIPTION": "Cela nous aide à adapter le contenu à votre profil",
+      "TITLE": "Niveau d'éducation",
       "LABEL": "Quel est votre niveau d'éducation le plus élevé ?"
     },
     "STEP2": {
       "TITLE": "Votre âge",
-      "DESCRIPTION": "Cette information nous aide à améliorer l'expérience utilisateur",
       "LABEL": "Quel âge avez-vous ?"
     },
     "STEP3": {
-      "TITLE": "Votre familiarité avec l'IA",
-      "DESCRIPTION": "Cela nous permet d'adapter les explications à votre niveau",
-      "LABEL": "Comment évaluez-vous votre familiarité avec l'intelligence artificielle ?"
+      "TITLE": "Familiarité avec l'IA",
+      "LABEL": "Comment évaluez-vous votre niveau en IA ?"
     },
     "EDUCATION_LEVELS": {
       "NO_FORMAL": "Aucune éducation formelle",

@@ -44,7 +44,7 @@ export class OnboardingWizardComponent implements OnInit {
 
   // État du stepper
   currentStep = 0;
-  totalSteps = 3;
+  totalSteps = 4; // Introduction + 3 questions
   isLoading = false;
   error: string | null = null;
 
@@ -121,10 +121,13 @@ export class OnboardingWizardComponent implements OnInit {
   getCurrentForm(): FormGroup {
     switch (this.currentStep) {
       case 0:
-        return this.educationForm;
+        // Étape d'introduction - pas de formulaire
+        return this.educationForm; // On retourne un form valide par défaut
       case 1:
-        return this.ageForm;
+        return this.educationForm;
       case 2:
+        return this.ageForm;
+      case 3:
         return this.familiarityForm;
       default:
         return this.educationForm;
@@ -135,6 +138,10 @@ export class OnboardingWizardComponent implements OnInit {
    * Vérifie si l'étape courante est valide
    */
   isCurrentStepValid(): boolean {
+    // L'étape d'introduction est toujours valide
+    if (this.currentStep === 0) {
+      return true;
+    }
     return this.getCurrentForm().valid;
   }
 
@@ -209,7 +216,11 @@ export class OnboardingWizardComponent implements OnInit {
    * Retourne le pourcentage de progression
    */
   getProgressPercentage(): number {
-    return ((this.currentStep + 1) / this.totalSteps) * 100;
+    // Ne pas inclure l'étape d'introduction dans le calcul de progression
+    if (this.currentStep === 0) {
+      return 0;
+    }
+    return (this.currentStep / (this.totalSteps - 1)) * 100;
   }
 
   /**

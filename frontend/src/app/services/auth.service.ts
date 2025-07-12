@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment'; // Importer l'environnement
 // Importer les nouvelles interfaces
-import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData } from '../models/auth.models';
+import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData, AccountDeletionRequest, AccountDeletionResponse } from '../models/auth.models';
 
 // Définir la clé du token comme constante
 const AUTH_TOKEN_KEY = 'exai_access_token';
@@ -299,6 +299,37 @@ export class AuthService {
     }).pipe(
       tap(user => {
         console.log("saveOnboarding - Succès, données d'onboarding sauvegardées:", user);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Supprime définitivement le compte de l'utilisateur.
+   * @param deletionData - Objet AccountDeletionRequest contenant le mot de passe pour confirmer.
+   * @returns Observable avec la réponse de suppression.
+   */
+  deleteAccount(deletionData: AccountDeletionRequest): Observable<AccountDeletionResponse> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("deleteAccount - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("deleteAccount - Début de la requête de suppression de compte");
+    console.log("deleteAccount - Email de confirmation:", deletionData.email_confirmation);
+    
+    return this.http.delete<AccountDeletionResponse>(`${environment.apiUrl}/users/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: deletionData
+    }).pipe(
+      tap(response => {
+        console.log("deleteAccount - Succès, compte supprimé:", response);
+        // Supprimer immédiatement le token local après suppression réussie
+        this.logout();
       }),
       catchError(this.handleError)
     );

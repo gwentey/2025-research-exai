@@ -201,6 +201,16 @@ graph LR
             *   **Sécurisation** : Tous les endpoints de projets filtrent maintenant obligatoirement par `user_id` de l'utilisateur connecté
             *   **Endpoints sécurisés** : `/projects` (GET/POST), `/projects/{id}` (GET/PUT/DELETE), `/projects/{id}/recommendations`, `/datasets/score`
             *   **Impact** : Isolation complète des projets par utilisateur, conformité RGPD, logs de sécurité détaillés
+        *   **Suppression de Compte Sécurisée (2025-01-25)** : Fonctionnalité de suppression définitive avec confirmation par mot de passe
+            *   **Interface Utilisateur** : Section "Zone Dangereuse" dans les paramètres de sécurité du profil
+            *   **Boîte de Dialogue** : Confirmation détaillée avec liste des données supprimées et saisie du mot de passe
+            *   **Sécurité** : Validation du mot de passe actuel obligatoire avant suppression
+            *   **Backend API** : Endpoint `DELETE /users/me` avec vérification de mot de passe
+            *   **Suppression Complète** : Toutes les données utilisateur supprimées (profil, projets, historique, OAuth accounts)
+            *   **Interface Moderne** : Boîte de dialogue Angular Material avec styles visuels d'avertissement
+            *   **Traduction** : Support FR/EN avec clés `PROFILE.SECURITY.DELETE_ACCOUNT.*`
+            *   **Logging** : Traçabilité complète des demandes et suppressions de compte
+            *   **Redirection** : Déconnexion automatique et redirection vers la page de connexion
 
     *   **Visualisation Détaillée des Datasets (2025-01-25)** : Interface complète similaire à Kaggle
         *   **Composant Principal** : `DatasetDetailComponent` avec routing intégré `/datasets/:id`

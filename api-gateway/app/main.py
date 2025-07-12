@@ -17,7 +17,7 @@ from httpx_oauth.clients.google import GoogleOAuth2
 
 from .core.config import settings
 from .db import get_async_session
-from .schemas.user import UserCreate, UserRead, UserUpdate, UserProfileUpdate, PasswordUpdate, ProfilePictureUpdate
+from .schemas.user import UserCreate, UserRead, UserUpdate, UserProfileUpdate, PasswordUpdate, ProfilePictureUpdate, AccountDeletionRequest
 from .models.user import User as UserModel, OAuthAccount
 from .managers.user import UserManager
 
@@ -674,6 +674,80 @@ async def update_user_picture(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de la mise à jour de l'image de profil"
         )
+
+@app.delete("/users/me", tags=["users"])
+async def delete_user_account(
+    deletion_request: AccountDeletionRequest,
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    user_manager: UserManager = Depends(get_user_manager)
+):
+    """
+    Supprime définitivement le compte de l'utilisateur actuel.
+    
+    Cette opération est irréversible et supprime toutes les données associées :
+    - Le profil utilisateur
+    - Tous les projets de l'utilisateur
+    - L'historique d'activité
+    - Les données d'onboarding
+    
+    L'utilisateur doit confirmer en saisissant son adresse email.
+    La vérification est insensible à la casse.
+    
+    Parameters:
+        deletion_request: Contient l'email de confirmation
+        current_user: Utilisateur authentifié (injecté par dépendance)
+        session: Session de base de données (injectée par dépendance)
+        user_manager: Gestionnaire d'utilisateurs (injecté par dépendance)
+    
+    Returns:
+        JSONResponse: Confirmation de la suppression
+    
+    Raises:
+        HTTPException: 
+            - 400 si l'email de confirmation est incorrect
+            - 500 si erreur lors de la suppression
+    """
+    try:
+        logger.info(f"User account deletion requested for user {current_user.id}")
+        
+        # 1. Vérifier l'email de confirmation (insensible à la casse)
+        if deletion_request.email_confirmation.lower() != current_user.email.lower():
+            logger.warning(f"Invalid email confirmation provided for account deletion by user {current_user.id}")
+            logger.warning(f"Expected: {current_user.email.lower()}, Got: {deletion_request.email_confirmation.lower()}")
+            raise HTTPException(
+                status_code=400,
+                detail="L'email de confirmation ne correspond pas à votre adresse email"
+            )
+        
+        # 2. Supprimer l'utilisateur (cela supprimera automatiquement les données liées grâce aux CASCADE)
+        await user_manager.delete(current_user)
+        
+        logger.info(f"User account {current_user.id} deleted successfully")
+        
+        # 3. Retourner une confirmation
+        return JSONResponse(
+            status_code=200,
+            content={
+                "message": "Compte supprimé avec succès",
+                "success": True
+            }
+        )
+    
+    except HTTPException:
+        # Re-raise HTTPException pour qu'elle soit gérée par FastAPI
+        raise
+    
+    except Exception as e:
+        logger.error(f"Error deleting user account {current_user.id}: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Erreur lors de la suppression du compte"
+        )
+    
+    finally:
+        await session.close()
 
 # Auth routes (login, logout)
 app.include_router(

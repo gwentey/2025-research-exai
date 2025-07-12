@@ -10,6 +10,7 @@
 ** xref:user-guide/ml-pipeline.adoc[Pipeline Machine Learning]
 ** xref:user-guide/xai-recommendation.adoc[Recommandations XAI]
 ** xref:user-guide/user-profile-management.adoc[👤 Gestion du Profil]
+** xref:user-guide/account-deletion.adoc[🗑️ Suppression de Compte]
 ** xref:user-guide/language-settings.adoc[🌐 Paramètres de Langue]
 ** xref:user-guide/datasets-oulad.adoc[Datasets OULAD]
 

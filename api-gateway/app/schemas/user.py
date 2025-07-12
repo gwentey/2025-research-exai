@@ -155,4 +155,15 @@ class OnboardingData(BaseModel):
                 "age": 25,
                 "ai_familiarity": 3
             }
+        }
+
+# Schéma pour la suppression de compte
+class AccountDeletionRequest(BaseModel):
+    email_confirmation: str = Field(..., description="Adresse email pour confirmer la suppression (insensible à la casse)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email_confirmation": "user@example.com"
+            }
         } 

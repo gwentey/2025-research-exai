@@ -456,6 +456,34 @@
        "UPDATING": "Updating...",
        "UPDATE_PASSWORD": "Update Password"
      },
+     "DELETE_ACCOUNT": {
+       "TITLE": "Danger Zone",
+       "BUTTON": "Delete my account",
+       "DIALOG_TITLE": "Confirm Account Deletion",
+       "DIALOG_WARNING": "This action is irreversible and will permanently delete your account.",
+       "DIALOG_DETAILS": "All your data will be immediately deleted:",
+       "DIALOG_DETAILS_LIST": [
+         "Your user profile",
+         "All your projects",
+         "Your trained models",
+         "Your XAI explanations",
+         "Your activity history"
+       ],
+       "DIALOG_FINAL_WARNING": "No information will be retained and you will lose all access to the platform.",
+       "PASSWORD_REQUIRED": "Please enter your password to confirm",
+       "PASSWORD_LABEL": "Current Password",
+       "PASSWORD_PLACEHOLDER": "Enter your password to confirm",
+       "EMAIL_REQUIRED": "Please enter your email to confirm",
+       "EMAIL_LABEL": "Email Address",
+       "EMAIL_PLACEHOLDER": "Enter your email address to confirm",
+       "EMAIL_MISMATCH": "The entered email does not match your email address",
+       "EMAIL_INSTRUCTION": "Confirm deletion by entering your email address",
+       "CONFIRM_BUTTON": "Yes, permanently delete my account",
+       "CANCEL_BUTTON": "No, keep my account",
+       "DELETING": "Deleting account...",
+       "SUCCESS": "Your account has been successfully deleted",
+       "ERROR": "Error deleting account"
+     },
     "MESSAGES": {
       "PROFILE_UPDATED": "Profile updated successfully",
       "PASSWORD_UPDATED": "Password changed successfully",
@@ -470,23 +498,25 @@
     }
   },
   "ONBOARDING": {
-    "WELCOME_TITLE": "Welcome {{name}}! A few quick questions before we start",
-    "WELCOME_SUBTITLE": "This will help us personalize your experience. You can modify these settings later.",
-    "STEP_PROGRESS": "Step {{current}} of {{total}}",
+    "WELCOME_TITLE": "Welcome {{name}}!",
+    "WELCOME_SUBTITLE": "A few quick questions to personalize your experience",
+    "STEP_PROGRESS": "Question {{current}} of {{total}}",
+    "INTRO": {
+      "PERSONALIZATION": "Personalized experience",
+      "QUICK": "Quick and simple",
+      "CUSTOMIZABLE": "Customizable anytime"
+    },
     "STEP1": {
-      "TITLE": "Your education level",
-      "DESCRIPTION": "This helps us tailor content to your profile",
+      "TITLE": "Education Level",
       "LABEL": "What is your highest level of education?"
     },
     "STEP2": {
-      "TITLE": "Your age",
-      "DESCRIPTION": "This information helps us improve the user experience",
+      "TITLE": "Your Age",
       "LABEL": "How old are you?"
     },
     "STEP3": {
-      "TITLE": "Your AI familiarity",
-      "DESCRIPTION": "This allows us to adapt explanations to your level",
-      "LABEL": "How would you rate your familiarity with artificial intelligence?"
+      "TITLE": "AI Familiarity",
+      "LABEL": "How would you rate your AI knowledge?"
     },
     "EDUCATION_LEVELS": {
       "NO_FORMAL": "No formal education",

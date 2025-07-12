@@ -8,27 +8,19 @@
           </div>
 
           <div class="onboarding-content">
-            <!-- En-tête avec message de bienvenue -->
-            <div class="text-center m-b-32">
-              <h3 class="f-w-700 f-s-28 lh-base m-0">
-                {{ 'ONBOARDING.WELCOME_TITLE' | translate: { name: getUserDisplayName() } }}
-              </h3>
-              <p class="f-s-16 mat-body-1 m-t-8 text-muted">
-                {{ 'ONBOARDING.WELCOME_SUBTITLE' | translate }}
-              </p>
-            </div>
-
-            <!-- Barre de progression -->
-            <div class="progress-container m-b-32">
-              <mat-progress-bar 
-                mode="determinate" 
-                [value]="getProgressPercentage()"
-                class="onboarding-progress">
-              </mat-progress-bar>
-              <div class="progress-text m-t-8">
-                {{ 'ONBOARDING.STEP_PROGRESS' | translate: { current: currentStep + 1, total: totalSteps } }}
+            <!-- Barre de progression (seulement si pas sur l'intro) -->
+            @if(currentStep > 0) {
+              <div class="progress-container m-b-32">
+                <mat-progress-bar 
+                  mode="determinate" 
+                  [value]="getProgressPercentage()"
+                  class="onboarding-progress">
+                </mat-progress-bar>
+                <div class="progress-text m-t-8">
+                  {{ 'ONBOARDING.STEP_PROGRESS' | translate: { current: currentStep, total: totalSteps - 1 } }}
+                </div>
               </div>
-            </div>
+            }
 
             <!-- Affichage d'erreur globale -->
             @if(error) {
@@ -40,13 +32,43 @@
 
             <!-- Contenu des étapes -->
             <div class="stepper-content">
-              <!-- Étape 1: Niveau d'éducation -->
+              <!-- Étape 0: Introduction -->
               @if(currentStep === 0) {
+                <div class="step-container intro-step">
+                  <div class="intro-content text-center">
+                    <div class="welcome-icon m-b-24">
+                      <mat-icon class="welcome-icon-large">waving_hand</mat-icon>
+                    </div>
+                    <h2 class="welcome-title f-w-700 f-s-32 lh-base m-0 m-b-16">
+                      {{ 'ONBOARDING.WELCOME_TITLE' | translate: { name: getUserDisplayName() } }}
+                    </h2>
+                    <p class="welcome-subtitle f-s-18 mat-body-1 text-muted m-b-32">
+                      {{ 'ONBOARDING.WELCOME_SUBTITLE' | translate }}
+                    </p>
+                    <div class="intro-features">
+                      <div class="feature-item">
+                        <mat-icon class="feature-icon">personalize</mat-icon>
+                        <span>{{ 'ONBOARDING.INTRO.PERSONALIZATION' | translate }}</span>
+                      </div>
+                      <div class="feature-item">
+                        <mat-icon class="feature-icon">speed</mat-icon>
+                        <span>{{ 'ONBOARDING.INTRO.QUICK' | translate }}</span>
+                      </div>
+                      <div class="feature-item">
+                        <mat-icon class="feature-icon">settings</mat-icon>
+                        <span>{{ 'ONBOARDING.INTRO.CUSTOMIZABLE' | translate }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Étape 1: Niveau d'éducation -->
+              @if(currentStep === 1) {
                 <div class="step-container">
                   <div class="step-header m-b-24">
                     <mat-icon class="step-icon">school</mat-icon>
                     <h4 class="step-title">{{ 'ONBOARDING.STEP1.TITLE' | translate }}</h4>
-                    <p class="step-description">{{ 'ONBOARDING.STEP1.DESCRIPTION' | translate }}</p>
                   </div>
                   
                   <form [formGroup]="educationForm" class="step-form">
@@ -68,12 +90,11 @@
               }
 
               <!-- Étape 2: Âge -->
-              @if(currentStep === 1) {
+              @if(currentStep === 2) {
                 <div class="step-container">
                   <div class="step-header m-b-24">
                     <mat-icon class="step-icon">person</mat-icon>
                     <h4 class="step-title">{{ 'ONBOARDING.STEP2.TITLE' | translate }}</h4>
-                    <p class="step-description">{{ 'ONBOARDING.STEP2.DESCRIPTION' | translate }}</p>
                   </div>
                   
                   <form [formGroup]="ageForm" class="step-form">
@@ -99,12 +120,11 @@
               }
 
               <!-- Étape 3: Familiarité avec l'IA -->
-              @if(currentStep === 2) {
+              @if(currentStep === 3) {
                 <div class="step-container">
                   <div class="step-header m-b-24">
                     <mat-icon class="step-icon">psychology</mat-icon>
                     <h4 class="step-title">{{ 'ONBOARDING.STEP3.TITLE' | translate }}</h4>
-                    <p class="step-description">{{ 'ONBOARDING.STEP3.DESCRIPTION' | translate }}</p>
                   </div>
                   
                   <form [formGroup]="familiarityForm" class="step-form">
@@ -169,18 +189,20 @@
               </div>
             </div>
 
-            <!-- Indicateur d'étapes -->
-            <div class="steps-indicator m-t-24">
-              <div class="d-flex justify-content-center">
-                @for(step of [0, 1, 2]; track step) {
-                  <div 
-                    class="step-dot" 
-                    [class.active]="step === currentStep"
-                    [class.completed]="step < currentStep">
-                  </div>
-                }
+            <!-- Indicateur d'étapes (seulement pour les questions, pas l'intro) -->
+            @if(currentStep > 0) {
+              <div class="steps-indicator m-t-24">
+                <div class="d-flex justify-content-center">
+                  @for(step of [1, 2, 3]; track step) {
+                    <div 
+                      class="step-dot" 
+                      [class.active]="step === currentStep"
+                      [class.completed]="step < currentStep">
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
+            }
           </div>
         </div>
       </div>

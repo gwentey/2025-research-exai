@@ -94,6 +94,34 @@
               </div>
             </mat-card-content>
           </mat-card>
+
+          <!-- Section de suppression de compte - DANGER ZONE -->
+          <mat-card class="cardWithShadow danger-card">
+            <mat-card-header class="p-24 p-b-0">
+              <mat-card-title class="f-s-18 f-w-600 d-flex align-items-center">
+                <i-tabler name="alert-triangle" class="icon-20 m-r-8 text-danger"></i-tabler>
+                {{ 'PROFILE.DELETE_ACCOUNT.TITLE' | translate }}
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="p-24">
+              <div class="danger-zone">
+                <p class="danger-description">
+                  {{ 'PROFILE.DELETE_ACCOUNT.DIALOG_WARNING' | translate }}
+                </p>
+                <button 
+                  mat-flat-button 
+                  class="delete-account-btn"
+                  (click)="openDeleteAccountDialog()"
+                  [disabled]="isLoadingProfile || isLoadingPassword"
+                >
+                  <span class="d-flex align-items-center justify-content-center w-100">
+                    <i-tabler name="trash" class="icon-16 m-r-8"></i-tabler>
+                    {{ 'PROFILE.DELETE_ACCOUNT.BUTTON' | translate }}
+                  </span>
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
         </div>
 
         <!-- Formulaires de modification -->
@@ -352,4 +380,104 @@
       </div>
     </div>
   </div>
-</div> 
+</div>
+
+<!-- Boîte de dialogue de suppression de compte - STRUCTURE CUSTOM SANS MAT-DIALOG-* -->
+<ng-template #deleteAccountDialog>
+  <!-- Container custom qui remplace mat-dialog-title/content/actions -->
+  <div class="custom-dialog-wrapper" style="padding: 24px; max-height: none; overflow: visible;">
+    
+    <!-- Titre custom (remplace mat-dialog-title) -->
+    <div class="dialog-header-custom" style="margin-bottom: 20px;">
+      <h2 class="mat-subtitle-1 m-0 d-flex align-items-center">
+        <i-tabler name="alert-triangle" class="icon-20 m-r-8 text-danger"></i-tabler>
+        {{ 'PROFILE.DELETE_ACCOUNT.DIALOG_TITLE' | translate }}
+      </h2>
+    </div>
+    
+    <!-- Contenu custom (remplace mat-dialog-content) -->
+    <div class="dialog-content-custom mat-typography" style="margin-bottom: 20px;">
+      <!-- Section d'avertissement -->
+      <div class="m-b-20 p-16 bg-warning-light border-radius-4">
+        <div class="d-flex align-items-center">
+          <mat-icon class="text-warning m-r-12">warning</mat-icon>
+          <p class="mat-body-1 m-0 f-w-500">
+            {{ 'PROFILE.DELETE_ACCOUNT.DIALOG_WARNING' | translate }}
+          </p>
+        </div>
+      </div>
+      
+      <!-- Détails de suppression -->
+      <h3 class="mat-body-2 f-w-600 m-t-16 m-b-12">
+        {{ 'PROFILE.DELETE_ACCOUNT.DIALOG_DETAILS' | translate }}
+      </h3>
+      <ul class="mat-body-1 lh-24 m-b-20">
+        <li *ngFor="let item of ('PROFILE.DELETE_ACCOUNT.DIALOG_DETAILS_LIST' | translate)" class="m-b-8">
+          <mat-icon class="text-error icon-16 m-r-8">close</mat-icon>
+          {{ item }}
+        </li>
+      </ul>
+      
+      <!-- Avertissement final -->
+      <div class="m-b-24 p-16 bg-error-light border-radius-4">
+        <div class="d-flex align-items-center">
+          <mat-icon class="text-error m-r-12">error</mat-icon>
+          <p class="mat-body-1 m-0 f-w-600 text-error">
+            {{ 'PROFILE.DELETE_ACCOUNT.DIALOG_FINAL_WARNING' | translate }}
+          </p>
+        </div>
+      </div>
+      
+      <!-- Instructions pour la suppression -->
+      <div class="account-type-info m-b-16 p-12" style="background-color: #f5f5f5; border-radius: 4px;">
+        <div class="d-flex align-items-center">
+          <mat-icon class="m-r-8 text-primary">
+            email
+          </mat-icon>
+          <span class="mat-body-2 f-w-500">
+            {{ 'PROFILE.DELETE_ACCOUNT.EMAIL_INSTRUCTION' | translate }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Champ email de confirmation -->
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>{{ 'PROFILE.DELETE_ACCOUNT.EMAIL_LABEL' | translate }}</mat-label>
+        <input 
+          matInput 
+          type="email" 
+          [(ngModel)]="deleteAccountEmailConfirmation"
+          [placeholder]="'PROFILE.DELETE_ACCOUNT.EMAIL_PLACEHOLDER' | translate"
+          required
+        />
+        <mat-icon matSuffix class="text-error">email</mat-icon>
+        <mat-error *ngIf="!deleteAccountEmailConfirmation">
+          {{ 'PROFILE.DELETE_ACCOUNT.EMAIL_REQUIRED' | translate }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    
+    <!-- Actions custom (remplace mat-dialog-actions) -->
+    <div class="dialog-actions-custom d-flex justify-content-end gap-12">
+      <button 
+        mat-stroked-button 
+        color="primary"
+        mat-dialog-close
+        [disabled]="isDeletingAccount"
+      >
+        {{ 'PROFILE.DELETE_ACCOUNT.CANCEL_BUTTON' | translate }}
+      </button>
+      <button 
+        mat-flat-button 
+        color="warn"
+        (click)="confirmDeleteAccount()"
+        [disabled]="isDeletingAccount || !deleteAccountEmailConfirmation"
+      >
+        <mat-spinner diameter="16" class="m-r-8" *ngIf="isDeletingAccount"></mat-spinner>
+        <i-tabler name="trash" class="icon-16 m-r-8" *ngIf="!isDeletingAccount"></i-tabler>
+        {{ isDeletingAccount ? ('PROFILE.DELETE_ACCOUNT.DELETING' | translate) : ('PROFILE.DELETE_ACCOUNT.CONFIRM_BUTTON' | translate) }}
+      </button>
+    </div>
+    
+  </div>
+</ng-template> 

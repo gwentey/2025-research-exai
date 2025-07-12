@@ -1,13 +1,14 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { MaterialModule } from '../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
-import { UserRead, UserUpdate, PasswordUpdate } from '../../models/auth.models';
+import { UserRead, UserUpdate, PasswordUpdate, AccountDeletionRequest } from '../../models/auth.models';
 
 @Component({
   selector: 'app-profile',
@@ -15,6 +16,7 @@ import { UserRead, UserUpdate, PasswordUpdate } from '../../models/auth.models';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MaterialModule,
     TablerIconsModule,
     TranslateModule
@@ -30,6 +32,10 @@ export class ProfileComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
   private translateService = inject(TranslateService);
+  private dialog = inject(MatDialog);
+
+  // Template reference pour le dialogue de suppression
+  @ViewChild('deleteAccountDialog', { static: false }) deleteAccountDialog!: TemplateRef<any>;
 
   // Données utilisateur
   currentUser: UserRead | null = null;
@@ -42,10 +48,14 @@ export class ProfileComponent implements OnInit {
   isLoadingProfile = false;
   isLoadingPassword = false;
   isLoadingPicture = false;
+  isDeletingAccount = false;
   
   // Variables pour l'upload d'image
   selectedFile: File | null = null;
   imagePreview: string | null = null;
+
+  // Variables pour la suppression de compte
+  deleteAccountEmailConfirmation: string = '';
 
   // Langues disponibles - initialisées une seule fois pour éviter les problèmes de performance
   languages: Array<{code: string, name: string}> = [];
@@ -354,5 +364,66 @@ export class ProfileComponent implements OnInit {
    */
   goBack(): void {
     this.router.navigate(['/starter']);
+  }
+
+
+
+  /**
+   * Ouvre le dialogue de confirmation de suppression de compte
+   */
+  openDeleteAccountDialog(): void {
+    this.deleteAccountEmailConfirmation = '';
+    this.dialog.open(this.deleteAccountDialog, {
+      width: '800px',
+      maxWidth: '95vw',
+      minWidth: '700px',
+      maxHeight: '90vh',
+      disableClose: true,
+      autoFocus: true,
+      hasBackdrop: true
+    });
+  }
+
+  /**
+   * Confirme et exécute la suppression de compte
+   */
+  confirmDeleteAccount(): void {
+    // Validation de l'email de confirmation
+    if (!this.deleteAccountEmailConfirmation) {
+      this.showError(this.translateService.instant('PROFILE.DELETE_ACCOUNT.EMAIL_REQUIRED'));
+      return;
+    }
+    
+    if (this.deleteAccountEmailConfirmation.toLowerCase() !== this.currentUser?.email.toLowerCase()) {
+      this.showError(this.translateService.instant('PROFILE.DELETE_ACCOUNT.EMAIL_MISMATCH'));
+      return;
+    }
+
+    this.isDeletingAccount = true;
+    
+    // Construire la requête avec l'email de confirmation
+    const deletionRequest: AccountDeletionRequest = {
+      email_confirmation: this.deleteAccountEmailConfirmation
+    };
+
+    this.authService.deleteAccount(deletionRequest).subscribe({
+      next: (response) => {
+        this.isDeletingAccount = false;
+        this.showSuccess(this.translateService.instant('PROFILE.DELETE_ACCOUNT.SUCCESS'));
+        
+        // Fermer la boîte de dialogue
+        this.dialog.closeAll();
+        
+        // Rediriger vers la page de connexion après un délai
+        setTimeout(() => {
+          this.router.navigate(['/authentication/login']);
+        }, 2000);
+      },
+      error: (error) => {
+        this.isDeletingAccount = false;
+        console.error('Erreur lors de la suppression du compte:', error);
+        this.showError(this.translateService.instant('PROFILE.DELETE_ACCOUNT.ERROR'));
+      }
+    });
   }
 } 
