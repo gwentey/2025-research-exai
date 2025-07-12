@@ -137,13 +137,49 @@ export class AuthService {
   }
 
   /**
-   * Vérifie si l'utilisateur est actuellement authentifié (basé sur la présence du token).
-   * Note : Pour une vérification robuste, il faudrait valider le token (ex: expiration).
-   * @returns true si un token existe, false sinon.
+   * Vérifie si l'utilisateur est actuellement authentifié (basé sur la présence et la validité du token).
+   * @returns true si un token valide existe, false sinon.
    */
   isAuthenticated(): boolean {
-    return this.getToken() !== null;
-    // TODO: Ajouter une vérification de validité/expiration du token
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+    
+    // Vérifier si le token est expiré
+    if (this.isTokenExpired(token)) {
+      console.log('Token expiré détecté, nettoyage automatique');
+      this.logout();
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Vérifie si un token JWT est expiré
+   * @param token - Le token JWT à vérifier
+   * @returns true si le token est expiré, false sinon
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      // Décoder le payload du JWT (partie centrale encodée en base64)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      
+      // Vérifier la date d'expiration (exp est en secondes, Date.now() en millisecondes)
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      if (payload.exp && payload.exp < currentTime) {
+        console.log(`Token expiré: exp=${payload.exp}, current=${currentTime}`);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      // Si on ne peut pas décoder le token, le considérer comme invalide
+      console.warn('Impossible de décoder le token JWT, considéré comme expiré:', error);
+      return true;
+    }
   }
 
   /**

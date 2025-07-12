@@ -257,6 +257,25 @@ graph LR
             *   **Correction Syntaxe** : `case((condition, value), else_=0)` (parenthèses pour tuples)
             *   **Impact** : Compatibilité avec SQLAlchemy récent, toutes les expressions `case()` mises à jour
 
+    *   **Correction Bug Expiration Token JWT (2025-01-25)** : Résolution du problème d'erreur 401 lors de la suppression des filtres
+        *   **Problème** : Après application d'un filtre qui fonctionne, la suppression du filtre génère une erreur HTTP 401 (Non autorisé)
+        *   **Cause** : Token JWT expiré entre l'application et la suppression du filtre, mais pas de gestion proactive de l'expiration
+        *   **Symptômes** : 
+            *   Filtre "Éthique ≥ 80%" fonctionne
+            *   Suppression du filtre → Erreur 401 et message "Non autorisé"
+            *   Interface bloquée jusqu'à rechargement de page
+        *   **Solutions Appliquées** :
+            *   **Intercepteur étendu** : Gestion d'expiration sur TOUS les endpoints API (pas seulement `/users/me`)
+            *   **Vérification proactive** : Méthode `isTokenExpired()` qui décode et vérifie le JWT avant les requêtes
+            *   **Déconnexion automatique** : Nettoyage automatique du localStorage quand token expiré
+            *   **Redirection préventive** : Redirection vers login AVANT requête si token expiré
+        *   **Améliorations Techniques** :
+            *   Décodage sécurisé du payload JWT (`atob(token.split('.')[1])`)
+            *   Comparaison timestamps (exp vs current time)
+            *   Gestion d'erreurs si token malformé
+            *   Messages d'erreur explicites avec query params
+        *   **Résultat** : Plus d'erreur 401 inattendue, expérience utilisateur fluide avec reconnexion guidée
+
 *   **Infrastructure :**
     *   [✅] PostgreSQL déployé sur K8s et accessible.
         *   **Note importante (2024-04-27) :** La gestion de PostgreSQL a été migrée d'un Deployment vers un **StatefulSet** pour une meilleure gestion de l'état, une identité stable des pods, et pour résoudre les problèmes d'attachement de volume ReadWriteOnce (RWO) lors des mises à jour.

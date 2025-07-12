@@ -26,8 +26,8 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   const isApiRequest = req.url.startsWith(environment.apiUrl) || 
                       (!req.url.startsWith('http') && !req.url.startsWith('./assets'));
 
-  // Si on a un token, l'ajouter à toutes les requêtes vers l'API
-  if (authToken && isApiRequest) {
+  // Si on a un token ET que l'utilisateur est encore authentifié (token valide)
+  if (authToken && isApiRequest && authService.isAuthenticated()) {
     // Clone la requête et ajoute le header d'authentification
     const authReq = req.clone({
       headers: req.headers.set('Authorization', `Bearer ${authToken}`)
@@ -45,11 +45,11 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
         if (error.status === 401 || error.status === 403) {
           console.log(`\n[Intercepteur] Erreur d'authentification détectée, vérifiez le token et les permissions`);
           
-          // Si l'erreur est sur /users/me, cela peut indiquer un problème avec le token OAuth
-          if (req.url.includes('/users/me')) {
-            console.log('[Intercepteur] Erreur sur /users/me, possible problème de token OAuth');
+          // Gérer l'expiration du token pour TOUS les endpoints API
+          if (isApiRequest && authToken) {
+            console.log('[Intercepteur] Token expiré ou invalide détecté, déconnexion automatique');
             
-            // Déconnecter l'utilisateur après une erreur d'authentification persistante
+            // Déconnecter l'utilisateur après une erreur d'authentification
             // et rediriger vers la page de connexion
             setTimeout(() => {
               authService.logout();
@@ -67,6 +67,23 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
         return throwError(() => error);
       })
     );
+  }
+
+  // Si on a un token mais qu'il est expiré, rediriger vers la connexion
+  if (authToken && isApiRequest && !authService.isAuthenticated()) {
+    console.log(`[Intercepteur] Token expiré pour requête: ${req.url}, redirection vers login`);
+    router.navigate(['/authentication/login'], { 
+      queryParams: { 
+        auth_error: 'token_expired',
+        msg: 'Votre session a expiré, veuillez vous reconnecter.'
+      } 
+    });
+    // Retourner une erreur 401 pour arrêter la requête
+    return throwError(() => new HttpErrorResponse({
+      status: 401,
+      statusText: 'Token expiré',
+      url: req.url
+    }));
   }
 
   // Si pas de token ou pas une requête API, laisse passer la requête sans modification
