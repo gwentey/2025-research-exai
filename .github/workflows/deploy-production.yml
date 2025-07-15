@@ -126,6 +126,12 @@ jobs:
           sudo install skaffold /usr/local/bin/
           skaffold version
 
+      # --- Supprimer les anciens jobs AVANT Skaffold pour éviter les conflits ---
+      - name: Delete Previous Migration Jobs (if exist)
+        run: |
+          kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+          kubectl delete job service-selection-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+
       - name: Deploy ALL applications and infrastructure via Skaffold
         run: skaffold deploy --profile=azure --tag=${{ env.sha_short }} -n ${{ env.K8S_NAMESPACE }}
 
@@ -135,13 +141,6 @@ jobs:
         # ATTENTION: Ceci ne garantit pas que la DB interne est prête, mais c'est un bon début.
         # Augmenter le timeout si nécessaire.
         run: kubectl wait pod --selector=app=postgresql --for=condition=Ready -n ${{ env.K8S_NAMESPACE }} --timeout=5m
-
-      # --- Migration de la base de données (MAINTENANT APRÈS SKAFFOLD DEPLOY) ---
-      # Optionnel: Supprimer les anciens jobs s'ils existent pour éviter les conflits
-      - name: Delete Previous Migration Jobs (if exist)
-        run: |
-          kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
-          kubectl delete job service-selection-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
 
       - name: Wait for Database Migration Jobs to Complete
         run: |
