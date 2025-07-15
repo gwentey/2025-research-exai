@@ -13,6 +13,7 @@ env:
   API_GATEWAY_IMAGE_NAME: 'exai-api-gateway'
   SERVICE_SELECTION_IMAGE_NAME: 'service-selection'
   FRONTEND_IMAGE_NAME: 'frontend'
+  WITH_DATA: 'false'
 
 jobs:
   build_push_deploy:
@@ -149,6 +150,14 @@ jobs:
       # --- (Optionnel) Redémarrer les applications dépendant de la DB ---
       - name: Rollout restart API Gateway (ensure it uses migrated schema)
         run: kubectl rollout restart deployment api-gateway -n ${{ env.K8S_NAMESPACE }}
+
+      - name: Wait for Service Selection Pod to be Ready (for data init)
+        if: env.WITH_DATA == 'true'
+        run: kubectl wait --for=condition=ready pod -l app=service-selection -n ${{ env.K8S_NAMESPACE }} --timeout=5m
+
+      - name: Initialize sample data
+        if: env.WITH_DATA == 'true'
+        run: kubectl exec -n ${{ env.K8S_NAMESPACE }} deployment/service-selection -- python scripts/init_datasets.py all
 
       # (Ajouter ici d'autres 'rollout restart' pour service-selection, etc. si nécessaire)
 
