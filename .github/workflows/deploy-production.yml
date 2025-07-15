@@ -7,7 +7,7 @@ on:
 
 env:
   AZURE_CONTAINER_REGISTRY: 'exaiprodacr'
-  AZURE_RESOURCE_GROUP: 'exai-prod-rg'
+  AZURE_RESOURCE_GROUP: 'exai-perso-rg'
   AKS_CLUSTER_NAME: 'exai-prod-aks'
   K8S_NAMESPACE: 'exai'
   API_GATEWAY_IMAGE_NAME: 'exai-api-gateway'
