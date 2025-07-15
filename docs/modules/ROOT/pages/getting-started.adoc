@@ -14,6 +14,22 @@ Installez les outils suivants:
 | Python 3.8+ | Avec le package python-dotenv - `pip install python-dotenv`
 |===
 
+=== Lancement rapide
+
+**IMPORTANT:** Le Makefile utilise des commandes Unix et permet de remplacer l'ensemble des commandesq si dessous.
+
+[source,bash]
+----
+# Utiliser Git Bash au lieu de PowerShell
+# Dans Git Bash
+make dev
+# Installation complète + données de test
+make dev-with-data  
+----
+
+====  Commandes manuelles (PowerShell)
+Si vous ne pouvez pas utiliser WSL/Git Bash, utilisez les commandes détaillées ci-dessous.
+
 Pour Linux (Debian/Ubuntu):
 [source,bash]
 ----
@@ -58,6 +74,33 @@ GOOGLE_CLIENT_SECRET=votre-client-secret-google
 # Elle sera surchargée en production par un secret GitHub Actions.
 # Utilisée par k8s/base/api-gateway/gateway-secrets.yaml (placeholder: REPLACE_WITH_OAUTH_REDIRECT_URL)
 OAUTH_REDIRECT_URL=http://localhost:8080/authentication/callback
+
+# URLs des services backend pour le reverse proxy de l'API Gateway
+# Ces URLs permettent à l'API Gateway de rediriger les requêtes vers les bons services
+
+# Service de sélection des datasets
+# Développement local (Minikube) - valeur par défaut
+SERVICE_SELECTION_URL=http://service-selection-service.exai.svc.cluster.local
+# Développement local (services en local)
+# SERVICE_SELECTION_URL=http://localhost:8001
+
+# Pipeline ML
+# Développement local (Minikube) - valeur par défaut
+ML_PIPELINE_URL=http://ml-pipeline-service.exai.svc.cluster.local
+# Développement local (services en local)
+# ML_PIPELINE_URL=http://localhost:8002
+
+# Moteur XAI
+# Développement local (Minikube) - valeur par défaut
+XAI_ENGINE_URL=http://xai-engine-service.exai.svc.cluster.local
+# Développement local (services en local)
+# XAI_ENGINE_URL=http://localhost:8003
+
+# Domaines de production pour la détection automatique HTTPS
+PRODUCTION_DOMAINS=your-domain.com,api.your-domain.com
+
+# Origins autorisées pour CORS (séparées par des virgules)
+BACKEND_CORS_ORIGINS=http://localhost:8080,https://your-domain.com,https://www.your-domain.com
 ----
 
 NOTE: Le fichier `.env` est déjà ajouté à `.gitignore` pour éviter de commiter des secrets. Adaptez les valeurs à votre propre configuration, notamment les identifiants Google.
@@ -88,6 +131,106 @@ Avant de pousser votre code vers le dépôt Git, il est recommandé d'exécuter 
 python -m scripts.reset-placeholders
 ----
 
+== 🚀 Démarrage Ultra-Rapide
+
+[NOTE]
+====
+**Linux/macOS/WSL/Git Bash:** Toutes les étapes ci-dessous peuvent être réalisées en une seule commande :
+[source,bash]
+----
+make dev
+----
+Cette commande démarre Minikube, déploie l'application, exécute les migrations et affiche les logs.
+
+**Windows PowerShell:** Utilisez les commandes détaillées ci-dessous.
+====
+
+== 🪟 Démarrage Manuel (Windows PowerShell)
+
+Si vous ne pouvez pas utiliser WSL/Git Bash, voici les étapes détaillées :
+
+=== 1. Vérification des prérequis
+[source,powershell]
+----
+# Vérifier que les outils sont installés
+docker --version
+minikube version
+kubectl version --client
+skaffold version
+python --version
+
+# Vérifier le fichier .env
+if (Test-Path .env) { "✅ Fichier .env trouvé" } else { "❌ Fichier .env manquant" }
+----
+
+=== 2. Démarrage de Minikube
+[source,powershell]
+----
+# Démarrer Minikube
+minikube start --memory 4096 --cpus 2 --disk-size 20g
+minikube addons enable ingress
+minikube addons enable storage-provisioner
+----
+
+=== 3. Configuration
+[source,powershell]
+----
+# Créer le namespace
+kubectl create namespace exai
+
+# Mettre à jour les secrets
+python -m scripts.update-local-secrets
+
+# Configurer Docker pour Minikube
+& minikube -p minikube docker-env --shell powershell | Invoke-Expression
+----
+
+=== 4. Déploiement
+[source,powershell]
+----
+# Déployer l'application
+skaffold run --profile=local --namespace=exai
+----
+
+=== 5. Attendre que les services soient prêts
+[source,powershell]
+----
+# Attendre PostgreSQL
+kubectl wait --for=condition=ready pod -l app=postgresql -n exai --timeout=300s
+
+# Attendre API Gateway
+kubectl wait --for=condition=ready pod -l app=api-gateway -n exai --timeout=300s
+
+# Attendre Service Selection
+kubectl wait --for=condition=ready pod -l app=service-selection -n exai --timeout=300s
+----
+
+=== 6. Migrations
+[source,powershell]
+----
+# Supprimer les anciens jobs
+kubectl delete job api-gateway-migration-job -n exai --ignore-not-found=true
+kubectl delete job service-selection-migration-job -n exai --ignore-not-found=true
+
+# Lancer les migrations
+kubectl apply -f k8s/base/jobs/api-gateway-migration-job.yaml -n exai
+kubectl wait --for=condition=complete job/api-gateway-migration-job -n exai --timeout=300s
+
+kubectl apply -f k8s/base/jobs/service-selection-migration-job.yaml -n exai
+kubectl wait --for=condition=complete job/service-selection-migration-job -n exai --timeout=300s
+----
+
+=== 7. Accès aux services
+[source,powershell]
+----
+# Démarrer les logs et redirections de port
+skaffold dev --profile=local --namespace=exai
+----
+
+**Accès aux services :**
+- **Frontend:** http://localhost:8080
+- **API Gateway:** http://localhost:9000
+- **Documentation API:** http://localhost:9000/docs
 
 == Déploiement Local avec Minikube et Skaffold
 

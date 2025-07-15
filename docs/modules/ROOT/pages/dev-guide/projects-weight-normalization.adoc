@@ -1,0 +1,135 @@
+= Correction Bug - Pondération des Critères et Normalisation
+:page-partial:
+
+== Problème Résolu
+
+=== Description du Bug
+
+Lors de la modification d'un projet avec l'ajout de nouvelles pondérations de critères, une erreur HTTP 500 se produisait côté serveur. Le problème était double :
+
+1. **Erreur de conversion de type** : Le code backend tentait d'appeler `.dict()` sur des objets qui pouvaient déjà être des dictionnaires
+2. **Dépassement de poids** : La somme des poids pouvait dépasser 1.0 (ex: 0.4 + 0.4 + 0.2 + 0.4 = 1.4)
+
+=== Solution Implémentée
+
+==== Gestion Intelligente des Types
+
+Le code dans `service-selection/app/main.py` a été corrigé pour gérer différents types de données :
+
+[source,python]
+----
+# Gestion robuste des critères
+if 'criteria' in update_data and update_data['criteria']:
+    criteria = update_data['criteria']
+    if hasattr(criteria, 'dict'):
+        # C'est un objet Pydantic
+        update_data['criteria'] = criteria.dict()
+    elif isinstance(criteria, dict):
+        # C'est déjà un dictionnaire
+        update_data['criteria'] = criteria
+    else:
+        # Autre cas, essayer la conversion
+        update_data['criteria'] = dict(criteria)
+
+# Gestion robuste des poids
+if 'weights' in update_data and update_data['weights']:
+    weights = update_data['weights']
+    converted_weights = []
+    for weight in weights:
+        if hasattr(weight, 'dict'):
+            converted_weights.append(weight.dict())
+        elif isinstance(weight, dict):
+            converted_weights.append(weight)
+        else:
+            converted_weights.append(dict(weight))
+----
+
+==== Normalisation Automatique des Poids
+
+Un système de normalisation automatique a été ajouté :
+
+[source,python]
+----
+# Normaliser les poids si leur somme dépasse 1.0
+total_weight = sum(w.get('weight', 0) for w in converted_weights)
+if total_weight > 1.0:
+    logger.warning(f"Normalisation des poids: somme {total_weight} > 1.0")
+    for weight in converted_weights:
+        weight['weight'] = weight.get('weight', 0) / total_weight
+----
+
+== Comportement Après Correction
+
+=== Scénarios Gérés
+
+1. **Objets Pydantic** : Conversion avec `.dict()`
+2. **Dictionnaires existants** : Utilisation directe
+3. **Autres types** : Tentative de conversion avec `dict()`
+4. **Somme > 1.0** : Normalisation automatique proportionnelle
+
+=== Exemple de Normalisation
+
+Si l'utilisateur définit les poids suivants :
+----
+- ethical_score: 0.4 (40%)
+- technical_score: 0.4 (40%) 
+- popularity_score: 0.2 (20%)
+- documentation: 0.4 (40%)
+Total: 1.4 (140%)
+----
+
+Le système normalise automatiquement :
+----
+- ethical_score: 0.286 (28.6%)
+- technical_score: 0.286 (28.6%)
+- popularity_score: 0.143 (14.3%)
+- documentation: 0.286 (28.6%)
+Total: 1.0 (100%)
+----
+
+== Impact Utilisateur
+
+=== Avant la Correction
+- ❌ Erreur HTTP 500 lors de la sauvegarde
+- ❌ Impossibilité d'ajouter de nouveaux critères
+- ❌ Perte de données utilisateur
+
+=== Après la Correction
+- ✅ Sauvegarde fluide des projets
+- ✅ Ajout libre de critères multiples
+- ✅ Normalisation transparente des poids
+- ✅ Logs informatifs pour le debugging
+
+== Debugging et Monitoring
+
+=== Logs Disponibles
+- Warning lors de la normalisation des poids
+- Information de succès avec détails utilisateur et projet
+- Gestion d'erreurs robuste avec contexte
+
+=== Exemple de Log
+----
+WARNING - Normalisation des poids: somme 1.4 > 1.0
+INFO - ✅ Utilisateur 98fd4ad3-8a22-4360-8487-da306501da5d - Projet mis à jour: 82aa0844-1de1-4d23-b3bd-db3474bc8d5b 'Mon Projet'
+----
+
+== Tests de Validation
+
+=== Cas de Test Recommandés
+
+1. **Test de poids normaux** (somme ≤ 1.0)
+2. **Test de poids excessifs** (somme > 1.0)
+3. **Test de critères vides**
+4. **Test de types mixtes** (objets Pydantic + dictionnaires)
+5. **Test d'ajout incrémental** de critères
+
+=== Validation Frontend
+
+Le frontend continue de fonctionner normalement, la normalisation étant transparente côté utilisateur. La heatmap de recommandation affiche les poids normalisés correctement.
+
+== Historique
+
+- **Date** : 2025-01-09
+- **Impacté** : service-selection/app/main.py, méthode update_project
+- **Type** : Bug critique → Correction production
+- **Impact** : Amélioration UX majeure 

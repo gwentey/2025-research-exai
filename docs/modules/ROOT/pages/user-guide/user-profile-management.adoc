@@ -1,0 +1,132 @@
+= Gestion du Profil Utilisateur
+:description: Guide complet pour gérer votre profil utilisateur dans EXAI
+:keywords: profil, utilisateur, paramètres, photo, mot de passe, EXAI
+
+== Vue d'ensemble
+
+La gestion du profil utilisateur vous permet de personnaliser votre expérience EXAI en modifiant vos informations personnelles, votre photo de profil et vos paramètres de sécurité.
+
+== Accès au profil
+
+Pour accéder à la gestion de votre profil :
+
+. Cliquez sur votre avatar dans l'en-tête de l'application (en haut à droite)
+. Sélectionnez *"Mon Profil"* dans le menu déroulant
+. Vous êtes redirigé vers la page de gestion du profil
+
+== Informations personnelles
+
+=== Modification des données
+
+Vous pouvez modifier les informations suivantes :
+
+* **Pseudo** : Nom d'affichage personnalisé
+* **Prénom** : Votre prénom
+* **Nom de famille** : Votre nom de famille  
+* **Langue préférée** : Interface utilisateur (Français, English, Español, Deutsch)
+
+[NOTE]
+====
+Votre adresse email ne peut pas être modifiée pour des raisons de sécurité.
+====
+
+=== Procédure de modification
+
+. Dans la section *"Informations Personnelles"*
+. Modifiez les champs souhaités
+. Cliquez sur *"Sauvegarder"* pour confirmer les modifications
+. Un message de confirmation apparaîtra en cas de succès
+
+== Photo de profil
+
+=== Upload d'une nouvelle photo
+
+. Cliquez sur l'icône caméra sur votre photo de profil
+. Sélectionnez une image depuis votre ordinateur
+. L'aperçu s'affiche immédiatement
+. Cliquez sur *"Confirmer"* pour finaliser l'upload
+
+=== Contraintes techniques
+
+* **Formats acceptés** : JPG, PNG, GIF
+* **Taille maximale** : 5 MB
+* **Résolution recommandée** : 300x300 pixels minimum
+
+[TIP]
+====
+Pour une meilleure qualité, utilisez une image carrée avec un visage centré.
+====
+
+== Sécurité
+
+=== Changement de mot de passe
+
+Pour modifier votre mot de passe :
+
+. Dans la section *"Sécurité"*
+. Saisissez votre *mot de passe actuel*
+. Entrez votre *nouveau mot de passe* (minimum 8 caractères)
+. *Confirmez* le nouveau mot de passe
+. Cliquez sur *"Modifier le mot de passe"*
+
+[IMPORTANT]
+====
+Assurez-vous d'utiliser un mot de passe sécurisé contenant :
+
+* Au moins 8 caractères
+* Une combinaison de lettres, chiffres et symboles
+* Évitez les mots du dictionnaire
+====
+
+=== Recommandations de sécurité
+
+* Changez votre mot de passe régulièrement
+* Ne partagez jamais vos identifiants
+* Déconnectez-vous sur les ordinateurs partagés
+* Activez l'authentification à deux facteurs (si disponible)
+
+== États du profil
+
+Votre profil affiche différents badges de statut :
+
+* **Vérifié** : Votre email a été confirmé
+* **Actif** : Votre compte est en bon état
+
+== Navigation
+
+* **Retour au tableau de bord** : Bouton en haut à droite de la page
+* **Déconnexion** : Accessible via le menu profil de l'en-tête
+
+== Dépannage
+
+=== Problèmes courants
+
+**L'image ne se charge pas**::
+Vérifiez que le fichier respecte les contraintes (taille, format). Rafraîchissez la page.
+
+**Erreur de sauvegarde**::
+Vérifiez votre connexion internet. Contactez le support si le problème persiste.
+
+**Mot de passe refusé**::
+Assurez-vous que votre mot de passe actuel est correct et que le nouveau respecte les critères de sécurité.
+
+=== Support
+
+En cas de problème persistant :
+
+. Consultez la section *Aide & Support* depuis le menu profil
+. Contactez l'équipe technique avec une description détaillée du problème
+. Incluez les messages d'erreur éventuels
+
+== Interface responsive
+
+La gestion du profil s'adapte automatiquement à tous les appareils :
+
+* **Desktop** : Interface complète avec sidebar
+* **Tablette** : Disposition optimisée en colonnes  
+* **Mobile** : Interface verticale avec boutons pleine largeur
+
+[TIP]
+====
+Sur mobile, les formulaires s'affichent en pleine largeur pour une meilleure utilisation tactile.
+==== 

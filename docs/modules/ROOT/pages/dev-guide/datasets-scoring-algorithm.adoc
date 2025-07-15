@@ -1,0 +1,582 @@
+= Système de Recommandation Avancé - Documentation Technique
+:description: Documentation technique complète du système de scoring intelligent avec visualisation Apache ECharts dans EXAI
+:keywords: scoring, algorithme, ECharts, recommandation, Angular, CDN, heatmap
+
+== Architecture du Système
+
+=== Vue d'ensemble de la Stack
+
+Le nouveau système de recommandation d'EXAI combine :
+- **Backend** : FastAPI avec algorithme de scoring optimisé
+- **Frontend** : Angular 17+ avec Apache ECharts
+- **Visualisation** : ECharts CDN pour performance et compatibilité
+- **Interface** : Heat Map interactive en temps réel
+
+[.lead]
+**Flux de données :**
+```
+Critères Utilisateur → API Gateway → Service-Selection → 
+Algorithm Scoring → JSON Response → Angular → ECharts Rendering
+```
+
+=== Composants Clés
+
+==== 1. Backend - Algorithme de Scoring
+
+**Endpoint principal :** `POST /datasets/score`
+
+**Paramètres d'entrée :**
+[source,json]
+----
+{
+  "criteria": {
+    "objective": "classification étudiants",
+    "domain": ["education"],
+    "task": ["classification"]
+  },
+  "weights": [
+    {
+      "criterion_name": "ethical_score",
+      "weight": 0.4
+    },
+    {
+      "criterion_name": "technical_score", 
+      "weight": 0.4
+    },
+    {
+      "criterion_name": "popularity_score",
+      "weight": 0.2
+    }
+  ]
+}
+----
+
+**Response JSON :**
+[source,json]
+----
+{
+  "datasets": [
+    {
+      "dataset_id": "123e4567-e89b-12d3-a456-426614174000",
+      "dataset_name": "EdNet",
+      "score": 0.953,
+      "ethical_score": 0.9,
+      "technical_score": 0.996,
+      "popularity_score": 0.976,
+      "instances_number": 131441538,
+      "features_number": 28,
+      "objective": "Student performance prediction"
+    }
+  ]
+}
+----
+
+==== 2. Frontend - Composant Angular
+
+**Fichier :** `recommendation-heatmap.component.ts`
+
+[source,typescript]
+----
+@Component({
+  selector: 'app-recommendation-heatmap',
+  template: `
+    <div *ngIf="isEChartsLoading" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Chargement d'Apache ECharts...</p>
+    </div>
+    
+    <div [id]="echartsId" 
+         style="width: 100%; height: 400px; min-height: 400px;"
+         *ngIf="!isEChartsLoading">
+    </div>
+  `
+})
+export class RecommendationHeatmapComponent implements OnInit, OnDestroy {
+  @Input() datasets: any[] = [];
+  @Input() weights: any[] = [];
+  
+  private echarts: any;
+  private chartInstance: any;
+  echartsId = `echarts-${Math.random().toString(36).substr(2, 9)}`;
+}
+----
+
+==== 3. Apache ECharts via CDN
+
+**Stratégie de chargement :**
+[source,typescript]
+----
+private loadECharts(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== 'undefined' && (window as any).echarts) {
+      resolve((window as any).echarts);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+    script.onload = () => resolve((window as any).echarts);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+----
+
+== Algorithme de Scoring Détaillé
+
+=== 1. Score Éthique (`ethical_score`)
+
+**Méthode de calcul :**
+[source,python]
+----
+def calculate_ethical_score(dataset: Dataset) -> float:
+    """Calcule le score éthique basé sur 10 critères binaires"""
+    criteria = [
+        dataset.informed_consent,
+        dataset.transparency,
+        dataset.user_control,
+        dataset.equity_non_discrimination,
+        dataset.security_measures_in_place,
+        dataset.data_quality_documented,
+        dataset.anonymization_applied,
+        dataset.record_keeping_policy_exists,
+        dataset.purpose_limitation_respected,
+        dataset.accountability_defined
+    ]
+    
+    respected_criteria = sum(1 for criterion in criteria if criterion)
+    return respected_criteria / len(criteria)
+----
+
+**Mapping base de données :**
+[cols="2,1,3"]
+|===
+|Critère Éthique |Type |Description
+
+|`informed_consent`
+|Boolean
+|Consentement éclairé obtenu
+
+|`transparency`
+|Boolean  
+|Transparence sur les données et processus
+
+|`user_control`
+|Boolean
+|Contrôle utilisateur sur ses données
+
+|`equity_non_discrimination`
+|Boolean
+|Équité et non-discrimination
+
+|`security_measures_in_place`
+|Boolean
+|Mesures de sécurité implémentées
+
+|`data_quality_documented`
+|Boolean
+|Qualité des données documentée
+
+|`anonymization_applied`
+|Boolean
+|Anonymisation appliquée
+
+|`record_keeping_policy_exists`
+|Boolean
+|Politique de conservation
+
+|`purpose_limitation_respected`
+|Boolean
+|Limitation d'objectif respectée
+
+|`accountability_defined`
+|Boolean
+|Responsabilité définie
+|===
+
+=== 2. Score Technique (`technical_score`)
+
+**Algorithme composite :**
+[source,python]
+----
+def calculate_technical_score(dataset: Dataset) -> float:
+    """Score technique = Documentation + Qualité + Taille/Richesse"""
+    
+    # Documentation (30% du score technique)
+    doc_score = 0.0
+    if dataset.metadata_provided_with_dataset:
+        doc_score += 0.15
+    if dataset.external_documentation_available:
+        doc_score += 0.15
+    
+    # Qualité des données (40% du score technique) 
+    quality_score = 0.0
+    
+    # Valeurs manquantes
+    if dataset.missing_values_percentage is not None:
+        missing_score = 0.2 * (100 - dataset.missing_values_percentage) / 100
+        quality_score += max(0, missing_score)
+    elif not dataset.has_missing_values:
+        quality_score += 0.2
+    
+    # Dataset pré-splitté
+    if dataset.is_split:
+        quality_score += 0.2
+    
+    # Taille et richesse (30% du score technique)
+    size_score = 0.0
+    
+    # Score logarithmique des instances
+    if dataset.instances_number and dataset.instances_number > 0:
+        log_instances = math.log10(dataset.instances_number)
+        instances_score = min(1, max(0, (log_instances - 2) / 3)) * 0.15
+        size_score += instances_score
+    
+    # Score des features (optimal entre 10-100)
+    if dataset.features_number:
+        if 10 <= dataset.features_number <= 100:
+            features_score = 0.15
+        elif dataset.features_number > 100:
+            features_score = 0.15 * max(0.5, 1 - (dataset.features_number - 100) / 1000)
+        else:  # < 10
+            features_score = 0.15 * dataset.features_number / 10
+        size_score += features_score
+    
+    total_score = doc_score + quality_score + size_score
+    max_possible = 0.3 + 0.4 + 0.3  # 1.0
+    
+    return total_score / max_possible
+----
+
+=== 3. Score de Popularité (`popularity_score`)
+
+**Formule logarithmique optimisée :**
+[source,python]
+----
+def calculate_popularity_score(dataset: Dataset) -> float:
+    """Score basé sur les citations académiques (échelle log)"""
+    if not dataset.citations or dataset.citations <= 0:
+        return 0.0
+    
+    # Échelle logarithmique : 1000+ citations = score maximal
+    log_citations = math.log10(dataset.citations)
+    return min(1.0, max(0.0, log_citations / 3.0))
+----
+
+**Exemples de mapping :**
+- 1 citation → 0% (log₁₀(1) = 0)
+- 10 citations → 33% (log₁₀(10) = 1)
+- 100 citations → 67% (log₁₀(100) = 2)  
+- 1000+ citations → 100% (log₁₀(1000) = 3)
+
+== Configuration ECharts
+
+=== Options de la Heat Map
+
+[source,typescript]
+----
+private getEChartsOption() {
+  const datasets = this.datasets;
+  const weights = this.weights;
+  
+  // Préparation des données au format ECharts [x, y, value]
+  const data: any[] = [];
+  const yAxisData: string[] = [];
+  const xAxisData: string[] = [];
+  
+  // Construction des axes
+  datasets.forEach((dataset, datasetIndex) => {
+    yAxisData.push(dataset.dataset_name);
+    
+    weights.forEach((weight, weightIndex) => {
+      if (datasetIndex === 0) {
+        xAxisData.push(this.formatCriterionName(weight.criterion_name));
+      }
+      
+      const score = this.getDatasetScore(dataset, weight.criterion_name);
+      data.push([weightIndex, datasetIndex, score]);
+    });
+  });
+
+  return {
+    tooltip: {
+      position: 'top',
+      formatter: (params: any) => {
+        const dataset = datasets[params.data[1]];
+        const weight = weights[params.data[0]];
+        const score = params.data[2];
+        
+        return `
+          <div style="padding: 10px;">
+            <strong>${dataset.dataset_name}</strong><br/>
+            <strong>${this.formatCriterionName(weight.criterion_name)}</strong><br/>
+            Score: <strong>${(score * 100).toFixed(1)}%</strong><br/>
+            Poids: ${(weight.weight * 100).toFixed(0)}%<br/>
+            Instances: ${dataset.instances_number?.toLocaleString() || 'N/A'}<br/>
+            Features: ${dataset.features_number || 'N/A'}
+          </div>
+        `;
+      }
+    },
+    
+    grid: {
+      height: '80%',
+      top: '10%',
+      left: '20%',
+      right: '10%'
+    },
+    
+    xAxis: {
+      type: 'category',
+      data: xAxisData,
+      splitArea: { show: true },
+      axisLabel: {
+        rotate: 45,
+        fontSize: 11
+      }
+    },
+    
+    yAxis: {
+      type: 'category',
+      data: yAxisData,
+      splitArea: { show: true },
+      axisLabel: { fontSize: 11 }
+    },
+    
+    visualMap: {
+      min: 0,
+      max: 1,
+      calculable: true,
+      orient: 'horizontal',
+      left: 'center',
+      bottom: '5%',
+      inRange: {
+        color: ['#d73027', '#fc8d59', '#fee08b', '#91cf60', '#4575b4']
+      },
+      text: ['Excellent', 'Faible'],
+      textStyle: { fontSize: 10 }
+    },
+    
+    series: [{
+      name: 'Scores',
+      type: 'heatmap',
+      data: data,
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: 'rgba(0, 0, 0, 0.5)'
+        }
+      }
+    }]
+  };
+}
+----
+
+=== Gestion de la Responsivité
+
+[source,typescript]
+----
+private setupResizeHandler(): void {
+  if (typeof window !== 'undefined') {
+    const resizeHandler = () => {
+      if (this.chartInstance && !this.chartInstance.isDisposed()) {
+        this.chartInstance.resize();
+      }
+    };
+    
+    window.addEventListener('resize', resizeHandler);
+    
+    // Cleanup dans ngOnDestroy
+    this.resizeListener = () => {
+      window.removeEventListener('resize', resizeHandler);
+    };
+  }
+}
+----
+
+== Performance et Optimisation
+
+=== 1. Stratégie CDN
+
+**Avantages d'Apache ECharts via CDN :**
+- ✅ **Évite les conflits TypeScript** avec les modules ES2022
+- ✅ **Chargement différé** uniquement quand nécessaire  
+- ✅ **Cache navigateur** optimisé
+- ✅ **Taille bundle réduite** (~500KB économisés)
+- ✅ **Compatibilité universelle** navigateurs
+
+**Fallback et gestion d'erreurs :**
+[source,typescript]
+----
+private async initializeECharts(): Promise<void> {
+  try {
+    this.isEChartsLoading = true;
+    this.echarts = await this.loadECharts();
+    await this.initChart();
+  } catch (error) {
+    console.error('Erreur lors du chargement d\'ECharts:', error);
+    this.showFallbackMessage();
+  } finally {
+    this.isEChartsLoading = false;
+  }
+}
+
+private showFallbackMessage(): void {
+  // Affichage d'un message de fallback ou composant alternatif
+}
+----
+
+=== 2. Optimisation des Données
+
+**Limitation intelligente :**
+[source,typescript]
+----
+// Limitation à 20 datasets max pour la visualisation
+private optimizeDataForVisualization(datasets: any[]): any[] {
+  if (datasets.length <= 20) {
+    return datasets;
+  }
+  
+  // Prendre les 20 datasets avec les meilleurs scores
+  return datasets
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 20);
+}
+----
+
+**Mise à jour différée :**
+[source,typescript]
+----
+// Debounce des updates lors des changements de poids
+private debouncedUpdate = debounce((datasets: any[], weights: any[]) => {
+  this.updateChart(datasets, weights);
+}, 300);
+----
+
+=== 3. Gestion Mémoire
+
+[source,typescript]
+----
+ngOnDestroy(): void {
+  if (this.chartInstance && !this.chartInstance.isDisposed()) {
+    this.chartInstance.dispose();
+  }
+  
+  if (this.resizeListener) {
+    this.resizeListener();
+  }
+}
+----
+
+== Tests et Validation
+
+=== Tests Unitaires Angular
+
+[source,typescript]
+----
+describe('RecommendationHeatmapComponent', () => {
+  let component: RecommendationHeatmapComponent;
+  let fixture: ComponentFixture<RecommendationHeatmapComponent>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      declarations: [RecommendationHeatmapComponent],
+      imports: [MatProgressSpinnerModule]
+    });
+  });
+
+  it('should load ECharts via CDN', async () => {
+    await component.loadECharts();
+    expect((window as any).echarts).toBeDefined();
+  });
+  
+  it('should format dataset data correctly for ECharts', () => {
+    const mockDatasets = [...];
+    const mockWeights = [...];
+    
+    component.datasets = mockDatasets;
+    component.weights = mockWeights;
+    
+    const option = component.getEChartsOption();
+    expect(option.series[0].data).toHaveLength(6); // 2 datasets × 3 critères
+  });
+});
+----
+
+=== Tests d'Intégration Backend
+
+[source,python]
+----
+def test_scoring_algorithm_integration():
+    """Test l'algorithme complet de scoring"""
+    
+    # Dataset de test
+    dataset = Dataset(
+        dataset_name="Test Dataset",
+        ethical_score=0.8,
+        technical_score=0.9,
+        popularity_score=0.7,
+        instances_number=50000,
+        features_number=25
+    )
+    
+    # Poids de test
+    weights = [
+        Weight(criterion_name="ethical_score", weight=0.4),
+        Weight(criterion_name="technical_score", weight=0.4),
+        Weight(criterion_name="popularity_score", weight=0.2)
+    ]
+    
+    # Calcul du score final
+    final_score = calculate_final_score(dataset, weights)
+    
+    expected_score = (0.8 * 0.4 + 0.9 * 0.4 + 0.7 * 0.2) / 1.0
+    assert abs(final_score - expected_score) < 0.001
+----
+
+== Déploiement et Configuration
+
+=== Variables d'Environnement
+
+[source,env]
+----
+# Configuration ECharts
+ECHARTS_CDN_URL=https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js
+HEATMAP_MAX_DATASETS=20
+HEATMAP_UPDATE_DEBOUNCE_MS=300
+
+# Configuration scoring
+DEFAULT_ETHICAL_WEIGHT=0.4
+DEFAULT_TECHNICAL_WEIGHT=0.4  
+DEFAULT_POPULARITY_WEIGHT=0.2
+----
+
+=== Configuration TypeScript
+
+[source,json]
+----
+// tsconfig.json
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}
+----
+
+=== Déclarations TypeScript Globales
+
+[source,typescript]
+----
+// global.d.ts
+declare global {
+  interface Window {
+    echarts: any;
+  }
+}
+
+export {};
+----
+
+Cette architecture garantit une visualisation **performante, accessible et maintenable** des recommandations de datasets avec une expérience utilisateur optimale ! 🚀📊 

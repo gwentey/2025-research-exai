@@ -1,0 +1,396 @@
+= Structure de Base de Données : Datasets Normalisés
+:page-description: Documentation technique de la structure de base de données normalisée pour la gestion des datasets
+:page-keywords: database, schema, datasets, normalization, postgresql
+:toc: left
+:toclevels: 3
+
+== Vue d'ensemble
+
+La structure de base de données d'EXAI a été entièrement refondée pour supporter une approche normalisée de la gestion des datasets. Cette nouvelle architecture remplace l'ancienne table unique `datasets` par 5 tables relationnelles interconnectées qui offrent une granularité et une flexibilité bien supérieures.
+
+=== Objectifs de la Refonte
+
+* **Normalisation** : Élimination de la redondance et amélioration de l'intégrité des données
+* **Granularité** : Gestion détaillée des fichiers et colonnes individuels
+* **Métadonnées éthiques** : Support étendu pour les critères éthiques de l'IA explicable
+* **Multi-fichiers** : Support natif des datasets composés de plusieurs fichiers
+* **Relations** : Traçabilité des relations entre fichiers et colonnes
+* **Évolutivité** : Structure adaptée aux besoins futurs d'EXAI
+
+== Structure des Tables
+
+La nouvelle structure comprend 5 tables principales organisées hiérarchiquement :
+
+[plantuml]
+----
+@startuml
+!theme plain
+
+entity "datasets" as dataset {
+  + id : UUID [PK]
+  --
+  dataset_name : VARCHAR(255)
+  year : INTEGER
+  objective : TEXT
+  access : VARCHAR(100)
+  availability : VARCHAR(100)
+  num_citations : INTEGER
+  citation_link : TEXT
+  sources : TEXT
+  storage_uri : VARCHAR(500)
+  ...
+  (40+ champs métadonnées)
+  --
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "dataset_files" as file {
+  + id : UUID [PK]
+  --
+  dataset_id : UUID [FK]
+  file_name_in_storage : VARCHAR(255)
+  logical_role : VARCHAR(255)
+  format : VARCHAR(50)
+  mime_type : VARCHAR(100)
+  size_bytes : BIGINT
+  row_count : BIGINT
+  description : TEXT
+  --
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "file_columns" as column {
+  + id : UUID [PK]
+  --
+  dataset_file_id : UUID [FK]
+  column_name : VARCHAR(255)
+  data_type_original : VARCHAR(100)
+  data_type_interpreted : VARCHAR(50)
+  description : TEXT
+  is_primary_key_component : BOOLEAN
+  is_nullable : BOOLEAN
+  is_pii : BOOLEAN
+  example_values : TEXT[]
+  position : INTEGER
+  stats : JSONB
+  --
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "dataset_relationships" as relationship {
+  + id : UUID [PK]
+  --
+  dataset_id : UUID [FK]
+  from_file_id : UUID [FK]
+  to_file_id : UUID [FK]
+  relationship_type : VARCHAR(50)
+  description : TEXT
+  --
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "dataset_relationship_column_links" as link {
+  + id : UUID [PK]
+  --
+  relationship_id : UUID [FK]
+  from_column_id : UUID [FK]
+  to_column_id : UUID [FK]
+  link_order : INTEGER
+}
+
+dataset ||--o{ file
+file ||--o{ column
+dataset ||--o{ relationship
+file ||--o{ relationship
+relationship ||--o{ link
+column ||--o{ link
+
+@enduml
+----
+
+=== Table `datasets` (Principale)
+
+La table principale contient toutes les métadonnées d'un dataset, organisées en sections logiques :
+
+==== Identification & Informations Générales
+* `dataset_name` : Nom du dataset
+* `year` : Année de création/publication
+* `objective` : Description de l'objectif du dataset
+* `access` : Niveau d'accès (public, privé, etc.)
+* `availability` : Disponibilité du dataset
+* `num_citations` : Nombre de citations
+* `citation_link` : Lien vers les informations de citation
+* `sources` : Sources et origines du dataset
+* `storage_uri` : URI de stockage du dataset
+
+==== Caractéristiques Techniques
+* `instances_number` : Nombre d'instances/lignes
+* `features_description` : Description des caractéristiques
+* `features_number` : Nombre de caractéristiques/colonnes
+* `domain` : Domaines d'application (array)
+* `representativity_description` : Description de la représentativité
+* `representativity_level` : Niveau de représentativité
+* `sample_balance_description` : Description de l'équilibre des échantillons
+* `sample_balance_level` : Niveau d'équilibre des échantillons
+* `split` : Dataset déjà divisé en train/test
+* `missing_values_description` : Description des valeurs manquantes
+* `has_missing_values` : Présence de valeurs manquantes
+* `global_missing_percentage` : Pourcentage global de valeurs manquantes
+* `missing_values_handling_method` : Méthode de traitement des valeurs manquantes
+* `temporal_factors` : Présence de facteurs temporels
+* `metadata_provided_with_dataset` : Métadonnées fournies avec le dataset
+* `external_documentation_available` : Documentation externe disponible
+* `documentation_link` : Lien vers la documentation
+* `task` : Types de tâches ML supportées (array)
+
+==== Critères Éthiques (Spécifiques à EXAI)
+* `informed_consent` : Consentement éclairé obtenu
+* `transparency` : Transparence des données
+* `user_control` : Contrôle utilisateur
+* `equity_non_discrimination` : Équité et non-discrimination
+* `security_measures_in_place` : Mesures de sécurité en place
+* `data_quality_documented` : Qualité des données documentée
+* `data_errors_description` : Description des erreurs de données
+* `anonymization_applied` : Anonymisation appliquée
+* `record_keeping_policy_exists` : Politique de conservation des données
+* `purpose_limitation_respected` : Limitation d'usage respectée
+* `accountability_defined` : Responsabilités définies
+
+=== Table `dataset_files`
+
+Gère les fichiers individuels associés à un dataset.
+
+[source,sql]
+----
+-- Exemple : Dataset avec fichiers multiples
+INSERT INTO dataset_files (dataset_id, file_name_in_storage, logical_role) VALUES
+  ('uuid-dataset', 'train.csv', 'training_data'),
+  ('uuid-dataset', 'test.csv', 'test_data'),
+  ('uuid-dataset', 'metadata.json', 'metadata');
+----
+
+==== Champs principaux
+* `logical_role` : Rôle du fichier (`training_data`, `test_data`, `metadata`, `documentation`, etc.)
+* `format` : Format du fichier (`csv`, `json`, `parquet`, etc.)
+* `mime_type` : Type MIME (`text/csv`, `application/json`, etc.)
+* `size_bytes` : Taille en octets
+* `row_count` : Nombre de lignes
+
+=== Table `file_columns`
+
+Décrit chaque colonne/feature d'un fichier avec ses métadonnées détaillées.
+
+[source,sql]
+----
+-- Exemple : Colonnes d'un fichier CSV
+INSERT INTO file_columns (dataset_file_id, column_name, data_type_interpreted, is_pii, position) VALUES
+  ('uuid-file', 'user_id', 'identifier', true, 1),
+  ('uuid-file', 'age', 'numerical', false, 2),
+  ('uuid-file', 'income', 'numerical', false, 3);
+----
+
+==== Champs spécialisés
+* `data_type_original` : Type original dans le fichier
+* `data_type_interpreted` : Type interprété (`numerical`, `categorical`, `text`, `identifier`, etc.)
+* `is_primary_key_component` : Fait partie de la clé primaire
+* `is_pii` : Contient des informations personnelles (important pour l'éthique)
+* `example_values` : Exemples de valeurs (array)
+* `stats` : Statistiques calculées (JSON) - min, max, mean, std, etc.
+
+=== Table `dataset_relationships`
+
+Décrit les relations logiques entre fichiers d'un même dataset ou de datasets différents.
+
+[source,sql]
+----
+-- Exemple : Relation foreign key entre deux fichiers
+INSERT INTO dataset_relationships (dataset_id, from_file_id, to_file_id, relationship_type) VALUES
+  ('uuid-dataset', 'uuid-users-file', 'uuid-orders-file', 'foreign_key');
+----
+
+==== Types de relations
+* `foreign_key` : Clé étrangère classique
+* `join` : Possibilité de jointure
+* `reference` : Référence logique
+* `aggregation` : Relation d'agrégation
+* `derived` : Données dérivées
+
+=== Table `dataset_relationship_column_links`
+
+Spécifie précisément quelles colonnes sont liées dans une relation.
+
+[source,sql]
+----
+-- Exemple : Lien user_id -> customer_id
+INSERT INTO dataset_relationship_column_links (relationship_id, from_column_id, to_column_id, link_order) VALUES
+  ('uuid-relationship', 'uuid-user-id-column', 'uuid-customer-id-column', 1);
+----
+
+== Migration et Compatibilité
+
+=== Migration Alembic
+
+La migration `71ec68fa0302` effectue la transition complète :
+
+[source,bash]
+----
+# Application de la migration
+cd service-selection
+alembic upgrade head
+----
+
+La migration :
+1. **Supprime** l'ancienne table `datasets`
+2. **Crée** les 5 nouvelles tables avec toutes leurs contraintes
+3. **Ajoute** tous les index nécessaires pour les performances
+
+WARNING: Cette migration est **destructive** et supprime toutes les données existantes. Assurez-vous d'avoir une sauvegarde si nécessaire.
+
+=== Rollback
+
+Un rollback vers l'ancienne structure est possible :
+
+[source,bash]
+----
+# Retour à la version précédente
+alembic downgrade d0542934a037
+----
+
+== Modèles Pydantic
+
+La refonte inclut des schémas Pydantic complets pour chaque table :
+
+=== Schémas de base
+* `DatasetBase/Create/Update/Read`
+* `DatasetFileBase/Create/Update/Read`
+* `FileColumnBase/Create/Update/Read`
+* `DatasetRelationshipBase/Create/Update/Read`
+* `DatasetRelationshipColumnLinkBase/Create/Update/Read`
+
+=== Schémas composés
+* `DatasetWithFiles` : Dataset avec ses fichiers
+* `DatasetFileWithColumns` : Fichier avec ses colonnes
+* `DatasetComplete` : Dataset complet avec fichiers et colonnes
+
+=== Schémas de filtrage
+* `DatasetFilterCriteria` : Critères de recherche avancée
+* `DatasetScoreRequest` : Requête de scoring
+* `DatasetScoredRead` : Dataset avec score calculé
+
+== Exemples d'Usage
+
+=== Création d'un dataset complet
+
+[source,python]
+----
+# 1. Créer le dataset principal
+dataset = Dataset(
+    dataset_name="Customer Analytics Dataset",
+    year=2024,
+    objective="Analyse comportementale des clients",
+    domain=["marketing", "analytics"],
+    task=["classification", "clustering"],
+    anonymization_applied=True,
+    informed_consent=True
+)
+
+# 2. Ajouter des fichiers
+train_file = DatasetFile(
+    dataset_id=dataset.id,
+    file_name_in_storage="customers_train.csv",
+    logical_role="training_data",
+    format="csv",
+    row_count=10000
+)
+
+test_file = DatasetFile(
+    dataset_id=dataset.id,
+    file_name_in_storage="customers_test.csv",
+    logical_role="test_data",
+    format="csv",
+    row_count=2500
+)
+
+# 3. Décrire les colonnes
+columns = [
+    FileColumn(
+        dataset_file_id=train_file.id,
+        column_name="customer_id",
+        data_type_interpreted="identifier",
+        is_primary_key_component=True,
+        is_pii=True,
+        position=1
+    ),
+    FileColumn(
+        dataset_file_id=train_file.id,
+        column_name="age_group",
+        data_type_interpreted="categorical",
+        example_values=["18-25", "26-35", "36-50", "50+"],
+        position=2
+    )
+]
+----
+
+=== Requête de filtrage avancée
+
+[source,python]
+----
+# Recherche avec critères éthiques
+filters = DatasetFilterCriteria(
+    domain=["healthcare", "finance"],
+    anonymization_applied=True,
+    informed_consent=True,
+    instances_number_min=1000,
+    year_min=2020
+)
+
+# Scoring basé sur critères éthiques
+weights = [
+    CriterionWeight(criterion_name="anonymization_applied", weight=2.0),
+    CriterionWeight(criterion_name="informed_consent", weight=2.0),
+    CriterionWeight(criterion_name="transparency", weight=1.5),
+    CriterionWeight(criterion_name="data_quality_documented", weight=1.0)
+]
+
+score_request = DatasetScoreRequest(filters=filters, weights=weights)
+----
+
+== Performance et Index
+
+=== Index automatiques
+* Clés primaires UUID sur toutes les tables
+* Index sur les clés étrangères
+* Index sur les champs de recherche fréquents (`dataset_name`, `column_name`)
+
+=== Requêtes optimisées
+* Utilisation des relations ORM SQLAlchemy pour les jointures
+* Pagination efficace avec `LIMIT/OFFSET`
+* Filtrage au niveau BDD pour réduire le transfert de données
+
+== Considérations de Sécurité
+
+=== Données personnelles (PII)
+* Champ `is_pii` pour marquer les colonnes sensibles
+* Critères éthiques intégrés dans la structure
+* Support pour les politiques de conservation
+
+=== Audit et traçabilité
+* Timestamps automatiques sur toutes les tables
+* Historique des modifications via `updated_at`
+* Relations préservées pour la traçabilité
+
+== Évolution Future
+
+Cette structure normalisée prépare le terrain pour :
+
+* **Versioning des datasets** : Ajout de tables de versions
+* **Provenance des données** : Traçabilité complète de l'origine
+* **Métadonnées ML** : Informations sur les modèles entraînés
+* **Audit avancé** : Logs détaillés des accès et modifications
+* **Fédération** : Support de datasets distribués
+
+TIP: Cette architecture respecte les principes de normalisation de base de données tout en étant optimisée pour les besoins spécifiques d'EXAI en matière d'explicabilité et d'éthique de l'IA. 

@@ -1,0 +1,354 @@
+<!-- Header de la page -->
+<div class="d-flex justify-content-between align-items-center m-b-20">
+  <div>
+    <h2 class="mat-h2 m-b-0 d-flex align-items-center">
+      <mat-icon class="m-r-8">{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+      {{ getPageTitle() }}
+    </h2>
+    <p class="mat-body-1 text-muted m-t-8">{{ isEditMode ? ('PROJECTS.FORM.EDIT_SUBTITLE' | translate) : ('PROJECTS.FORM.CREATE_SUBTITLE' | translate) }}</p>
+  </div>
+  <div class="d-flex gap-8">
+    <button mat-stroked-button (click)="onCancel()" [disabled]="isSaving">
+      <mat-icon>close</mat-icon>
+      {{ 'COMMON.CANCEL' | translate }}
+    </button>
+    <button mat-flat-button color="primary" (click)="onSave()" [disabled]="projectForm.invalid || isSaving">
+      <mat-icon>{{ isSaving ? 'hourglass_empty' : 'save' }}</mat-icon>
+      {{ isEditMode ? ('PROJECTS.FORM.UPDATE' | translate) : ('PROJECTS.FORM.SAVE' | translate) }}
+    </button>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div *ngIf="!isLoading">
+  <!-- Première ligne - Informations du projet et Aperçu -->
+  <div class="row">
+    <!-- Colonne gauche - Informations -->
+    <div class="col-lg-8">
+      <!-- Informations du projet -->
+      <mat-card class="cardWithShadow theme-card m-b-20" style="height: 400px;">
+        <mat-card-header>
+          <mat-card-title class="m-b-0 d-flex align-items-center">
+            <mat-icon class="m-r-8">info</mat-icon>
+            {{ 'PROJECTS.FORM.PROJECT_INFO' | translate }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="b-t-1" style="display: flex; flex-direction: column; height: calc(100% - 72px);">
+          <form [formGroup]="projectForm" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="row" style="flex-shrink: 0;">
+              <div class="col-lg-12">
+                <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">{{ 'PROJECTS.FORM.NAME_LABEL' | translate }}</mat-label>
+                <mat-form-field appearance="outline" class="w-100" color="primary">
+                  <input matInput formControlName="name" [placeholder]="'PROJECTS.FORM.NAME_PLACEHOLDER' | translate" required>
+                  <mat-icon matSuffix>title</mat-icon>
+                  <mat-error *ngIf="projectForm.get('name')?.hasError('required')">
+                    {{ 'PROJECTS.FORM.NAME_REQUIRED' | translate }}
+                  </mat-error>
+                  <mat-error *ngIf="projectForm.get('name')?.hasError('maxlength')">
+                    {{ 'FORMS.VALIDATION.NAME_TOO_LONG' | translate }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+            
+            <div class="row" style="flex: 1; display: flex;">
+              <div class="col-lg-12" style="display: flex; flex-direction: column;">
+                <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">{{ 'PROJECTS.FORM.DESCRIPTION_LABEL' | translate }}</mat-label>
+                <mat-form-field appearance="outline" class="w-100" color="primary" style="flex: 1;">
+                  <textarea matInput formControlName="description" 
+                           [placeholder]="'PROJECTS.FORM.DESCRIPTION_PLACEHOLDER' | translate"
+                           style="min-height: 120px; resize: vertical;"></textarea>
+                  <mat-icon matSuffix>description</mat-icon>
+                </mat-form-field>
+              </div>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Colonne droite - Aperçu Propre -->
+    <div class="col-lg-4">
+      <mat-card class="cardWithShadow theme-card" style="height: 400px;">
+        <mat-card-header>
+          <mat-card-title class="m-b-0 d-flex align-items-center">
+            <mat-icon class="m-r-8">leaderboard</mat-icon>
+            {{ 'PROJECTS.RECOMMENDATIONS.TOP_3' | translate }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="b-t-1 full-height-content">
+          
+          <!-- Loading -->
+          <div *ngIf="isLoadingPreview" class="loading-state">
+            <mat-spinner diameter="30"></mat-spinner>
+            <p class="mat-body-2 m-t-8">{{ 'PROJECTS.RECOMMENDATIONS.CALCULATING' | translate }}</p>
+          </div>
+
+          <!-- Aucun résultat -->
+          <div *ngIf="!isLoadingPreview && previewCount === 0" class="empty-state">
+            <mat-icon class="empty-icon">search_off</mat-icon>
+            <p class="mat-body-1">{{ 'PROJECTS.RECOMMENDATIONS.NO_DATASETS_FOUND' | translate }}</p>
+            <p class="mat-caption text-muted">{{ 'PROJECTS.RECOMMENDATIONS.ADJUST_CRITERIA' | translate }}</p>
+          </div>
+
+          <!-- Top 3 avec badges -->
+          <div *ngIf="!isLoadingPreview && previewDatasets.length > 0" class="rankings-list">
+            <div *ngFor="let dataset of previewDatasets.slice(0, 3); index as i" class="ranking-item">
+              <div class="ranking-badge" [class]="'badge-' + (i + 1)">
+                {{ i + 1 }}
+              </div>
+              <div class="dataset-info">
+                <h6 class="dataset-name">{{ dataset.dataset_name }}</h6>
+                <p class="dataset-meta">{{ dataset.instances_number | number }} instances</p>
+              </div>
+              <div class="score-display">
+                <span class="score-value" [style.color]="getScoreColor(dataset.score)">
+                  {{ (dataset.score * 100) | number:'1.0-0' }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Deuxième ligne - Critères de sélection (largeur 100%) -->
+  <div class="row">
+    <div class="col-lg-12">
+      <!-- Critères de sélection -->
+      <mat-card class="cardWithShadow theme-card m-b-20">
+      <mat-card-header>
+        <mat-card-title class="m-b-0 d-flex align-items-center">
+          <mat-icon class="m-r-8">filter_list</mat-icon>
+          {{ 'PROJECTS.FORM.SELECTION_CRITERIA' | translate }}
+        </mat-card-title>
+        <mat-card-subtitle>{{ 'PROJECTS.CRITERIA.SUBTITLE' | translate }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="b-t-1">
+        <form [formGroup]="projectForm">
+          <div formGroupName="criteria">
+            
+            <!-- Section 1: Contexte et objectif -->
+            <div class="criteria-section m-b-24">
+              <h6 class="mat-h6 m-b-16 d-flex align-items-center text-primary">
+                <mat-icon class="m-r-8">assignment</mat-icon>
+                {{ 'PROJECTS.CRITERIA.PROJECT_CONTEXT' | translate }}
+              </h6>
+              <div class="row">
+                <div class="col-lg-12">
+                  <mat-form-field appearance="outline" class="w-100" color="primary">
+                    <mat-label>{{ 'PROJECTS.CRITERIA.OBJECTIVE_DESCRIPTION' | translate }}</mat-label>
+                    <textarea matInput formControlName="objective" rows="2" 
+                             [placeholder]="'PROJECTS.CRITERIA.OBJECTIVE_PLACEHOLDER' | translate"></textarea>
+                    <mat-icon matSuffix>description</mat-icon>
+                    <mat-hint>{{ 'PROJECTS.CRITERIA.OBJECTIVE_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Domaine d'application -->
+            <div class="criteria-section m-b-24">
+              <h6 class="mat-h6 m-b-16 d-flex align-items-center text-primary">
+                <mat-icon class="m-r-8">category</mat-icon>
+                {{ 'PROJECTS.CRITERIA.APPLICATION_DOMAIN' | translate }}
+              </h6>
+              <div class="row">
+                <div class="col-lg-6">
+                  <mat-form-field appearance="outline" class="w-100" color="primary">
+                    <mat-label>{{ 'PROJECTS.CRITERIA.ACTIVITY_SECTORS' | translate }}</mat-label>
+                    <mat-select formControlName="domain" multiple>
+                      <mat-option value="education">🎓 {{ 'PROJECTS.CRITERIA.DOMAINS.EDUCATION' | translate }}</mat-option>
+                      <mat-option value="health">🏥 {{ 'PROJECTS.CRITERIA.DOMAINS.HEALTH' | translate }}</mat-option>
+                      <mat-option value="finance">💰 {{ 'PROJECTS.CRITERIA.DOMAINS.FINANCE' | translate }}</mat-option>
+                      <mat-option value="transport">🚗 {{ 'PROJECTS.CRITERIA.DOMAINS.TRANSPORT' | translate }}</mat-option>
+                      <mat-option value="retail">🛒 {{ 'PROJECTS.CRITERIA.DOMAINS.RETAIL' | translate }}</mat-option>
+                    </mat-select>
+                    <mat-hint>{{ 'PROJECTS.CRITERIA.SELECT_SECTORS_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                </div>
+                <div class="col-lg-6">
+                  <mat-form-field appearance="outline" class="w-100" color="primary">
+                    <mat-label>{{ 'PROJECTS.CRITERIA.ML_TASK_TYPE' | translate }}</mat-label>
+                    <mat-select formControlName="task" multiple>
+                      <mat-option value="classification">🎯 {{ 'PROJECTS.CRITERIA.TASKS.CLASSIFICATION' | translate }}</mat-option>
+                      <mat-option value="regression">📈 {{ 'PROJECTS.CRITERIA.TASKS.REGRESSION' | translate }}</mat-option>
+                      <mat-option value="clustering">🔄 {{ 'PROJECTS.CRITERIA.TASKS.CLUSTERING' | translate }}</mat-option>
+                      <mat-option value="nlp">💬 {{ 'PROJECTS.CRITERIA.TASKS.NLP' | translate }}</mat-option>
+                      <mat-option value="computer_vision">👁️ {{ 'PROJECTS.CRITERIA.TASKS.COMPUTER_VISION' | translate }}</mat-option>
+                    </mat-select>
+                    <mat-hint>{{ 'PROJECTS.CRITERIA.ALGORITHMS_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Exigences techniques (repliable) -->
+            <div class="criteria-section m-b-24">
+              <h6 class="mat-h6 m-b-16 d-flex align-items-center text-primary">
+                <mat-icon class="m-r-8">settings</mat-icon>
+                {{ 'PROJECTS.CRITERIA.TECHNICAL_REQUIREMENTS' | translate }}
+                <span class="mat-caption text-muted m-l-8">({{ 'PROJECTS.CRITERIA.OPTIONAL' | translate }})</span>
+              </h6>
+              
+              <!-- Taille du dataset -->
+              <div class="row m-b-16">
+                <div class="col-lg-6">
+                  <mat-label class="mat-subtitle-2 m-b-8 d-block">{{ 'PROJECTS.CRITERIA.INSTANCES_NUMBER' | translate }}</mat-label>
+                  <div class="d-flex gap-8 align-items-center">
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>{{ 'PROJECTS.CRITERIA.MIN' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="instances_number_min" placeholder="1000">
+                    </mat-form-field>
+                    <span class="text-muted">{{ 'PROJECTS.CRITERIA.TO' | translate }}</span>
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>{{ 'PROJECTS.CRITERIA.MAX' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="instances_number_max" placeholder="1M+">
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <mat-label class="mat-subtitle-2 m-b-8 d-block">{{ 'PROJECTS.CRITERIA.FEATURES_NUMBER' | translate }}</mat-label>
+                  <div class="d-flex gap-8 align-items-center">
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>{{ 'PROJECTS.CRITERIA.MIN' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="features_number_min" placeholder="5">
+                    </mat-form-field>
+                    <span class="text-muted">{{ 'PROJECTS.CRITERIA.TO' | translate }}</span>
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>{{ 'PROJECTS.CRITERIA.MAX' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="features_number_max" placeholder="100">
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Période et qualité -->
+              <div class="row">
+                <div class="col-lg-4">
+                  <mat-label class="mat-subtitle-2 m-b-8 d-block">{{ 'PROJECTS.CRITERIA.CREATION_PERIOD' | translate }}</mat-label>
+                  <div class="d-flex gap-8 align-items-center">
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <input matInput type="number" formControlName="year_min" placeholder="2015">
+                    </mat-form-field>
+                    <span class="text-muted">-</span>
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <input matInput type="number" formControlName="year_max" placeholder="2024">
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>{{ 'PROJECTS.CRITERIA.MIN_ETHICAL_SCORE' | translate }}</mat-label>
+                    <mat-select formControlName="ethical_score_min">
+                      <mat-option [value]="null">{{ 'PROJECTS.CRITERIA.NO_REQUIREMENT' | translate }}</mat-option>
+                      <mat-option [value]="0.3">30% - {{ 'PROJECTS.CRITERIA.ACCEPTABLE' | translate }}</mat-option>
+                      <mat-option [value]="0.5">50% - {{ 'PROJECTS.CRITERIA.GOOD' | translate }}</mat-option>
+                      <mat-option [value]="0.7">70% - {{ 'PROJECTS.CRITERIA.VERY_GOOD' | translate }}</mat-option>
+                      <mat-option [value]="0.9">90% - {{ 'PROJECTS.CRITERIA.EXCELLENT' | translate }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-lg-4">
+                  <mat-label class="mat-subtitle-2 m-b-8 d-block">{{ 'PROJECTS.CRITERIA.CHARACTERISTICS' | translate }}</mat-label>
+                  <div class="d-flex flex-column gap-8">
+                    <mat-checkbox formControlName="is_split" color="primary" class="mat-caption">
+                      {{ 'PROJECTS.CRITERIA.ALREADY_SPLIT' | translate }}
+                    </mat-checkbox>
+                    <mat-checkbox formControlName="is_anonymized" color="primary" class="mat-caption">
+                      {{ 'PROJECTS.CRITERIA.ANONYMIZED' | translate }}
+                    </mat-checkbox>
+                    <mat-checkbox formControlName="is_public" color="primary" class="mat-caption">
+                      {{ 'PROJECTS.CRITERIA.PUBLIC_ACCESS' | translate }}
+                    </mat-checkbox>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Troisième ligne - Configuration des poids (largeur 100%) -->
+  <div class="row">
+    <div class="col-lg-12">
+      <!-- Configuration des poids -->
+      <mat-card class="cardWithShadow theme-card">
+      <mat-card-header>
+        <mat-card-title class="m-b-0 d-flex align-items-center">
+          <mat-icon class="m-r-8">tune</mat-icon>
+          {{ 'PROJECTS.WEIGHTS.TITLE' | translate }}
+        </mat-card-title>
+        <mat-card-subtitle>{{ 'PROJECTS.WEIGHTS.SUBTITLE' | translate }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="b-t-1">
+        <div class="d-flex justify-content-end m-b-16">
+          <button mat-stroked-button (click)="resetWeights()">
+            <mat-icon>refresh</mat-icon>
+            {{ 'PROJECTS.WEIGHTS.DEFAULT_VALUES' | translate }}
+          </button>
+        </div>
+
+        <div class="row">
+          <div *ngFor="let weight of defaultWeights; index as i" class="col-lg-6 m-b-12">
+            <div class="p-12 border rounded">
+              <div class="d-flex justify-content-between align-items-center m-b-12">
+                <div class="d-flex align-items-center flex-1">
+                  <mat-icon [color]="weight.weight > 0 ? 'primary' : 'disabled'" class="m-r-8">{{ weight.icon }}</mat-icon>
+                  <span class="mat-subtitle-2 f-w-600">{{ weight.label | translate }}</span>
+                </div>
+                <div class="text-right" style="min-width: 50px;">
+                  <span class="mat-h6 text-primary f-w-700">{{ (weight.weight * 100) | number:'1.0-0' }}%</span>
+                </div>
+              </div>
+              <div style="width: 100%; padding: 0 8px;">
+                <mat-slider min="0" max="1" step="0.1" style="width: 100%;" color="primary">
+                  <input matSliderThumb 
+                         [value]="weight.weight" 
+                         (valueChange)="onWeightChange(i, $event)" 
+                         style="width: 100%;" />
+                </mat-slider>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="currentWeights.length > 0" class="m-t-20">
+          <mat-divider class="m-b-16"></mat-divider>
+          <h5 class="mat-subtitle-2 f-w-600 m-b-12">{{ 'PROJECTS.WEIGHTS.ACTIVE_CRITERIA' | translate }}</h5>
+          <mat-chip-set>
+            <mat-chip *ngFor="let weight of currentWeights" color="primary" selected>
+              {{ weight.criterion_name }} ({{ (weight.weight * 100) | number:'1.0-0' }}%)
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<!-- Quatrième ligne - Heat Map des recommandations (largeur 100%) -->
+<div class="row" *ngIf="previewDatasets.length > 0">
+  <div class="col-lg-12">
+    <app-recommendation-heatmap 
+      [datasets]="previewDatasets" 
+      [weights]="currentWeights">
+    </app-recommendation-heatmap>
+  </div>
+</div>
+
+<!-- États de chargement et d'erreur -->
+<div *ngIf="isLoading" class="text-center p-40">
+  <mat-spinner diameter="60"></mat-spinner>
+  <p class="mat-body-1 m-t-16">{{ 'PROJECTS.FORM.LOADING' | translate }}</p>
+</div>
+
+<div *ngIf="error" class="text-center p-40">
+  <mat-icon class="icon-48 text-warn">error</mat-icon>
+  <p class="mat-body-1 m-t-12">{{ error }}</p>
+</div> 

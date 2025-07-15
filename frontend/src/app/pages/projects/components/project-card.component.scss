@@ -1,0 +1,81 @@
+/* Indicateurs de date modernes */
+.date-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  
+  &.created-indicator {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  }
+  
+  &.updated-indicator {
+    background: linear-gradient(135deg, #2196F3, #1565C0);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+  }
+}
+
+/* Chip moderne pour "Récent" */
+.recent-chip {
+  height: 20px !important;
+  padding: 0 8px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #FF9800, #F57C00) !important;
+  color: white !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3) !important;
+  
+  .chip-icon {
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+    margin-right: 2px !important;
+  }
+}
+
+/* Animation hover pour les cartes */
+mat-card {
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+    border-color: rgba(33, 150, 243, 0.2);
+  }
+}
+
+/* Style pour les actions */
+mat-card-actions {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.01);
+  
+  button {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+/* Responsive pour les dates */
+@media (max-width: 768px) {
+  .date-indicator {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .recent-chip {
+    height: 18px !important;
+    font-size: 10px !important;
+    
+    .chip-icon {
+      font-size: 12px !important;
+      width: 12px !important;
+      height: 12px !important;
+    }
+  }
+} 

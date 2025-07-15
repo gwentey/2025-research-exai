@@ -26,9 +26,34 @@ Vous y trouverez :
 
 ---
 
-## 🚀 Démarrage Rapide (Aperçu)
+## 🚀 Démarrage Ultra-Rapide
 
-Pour un aperçu rapide des étapes initiales, référez-vous à la section "Installation & Démarrage" de la [documentation principale](https://gwentey.github.io/2025-research-exai/EXAI/1.0/getting-started.html). Les commandes spécifiques et la configuration détaillée y sont expliquées.
+**Installation simplifiée avec Makefile intelligent** :
+
+```bash
+# 1. Cloner le projet
+git clone <URL_DU_DEPOT>
+cd 2025-research-exai
+
+# 2. Créer le fichier .env (voir documentation)
+cp .env.example .env  # Et modifier les valeurs
+
+# 3. Installation complète en une commande
+make dev
+```
+
+**🎯 C'est tout !** Le Makefile gère automatiquement :
+- ✅ Vérification des prérequis
+- ✅ Démarrage de Minikube
+- ✅ Déploiement de tous les services
+- ✅ Migrations de base de données automatiques
+- ✅ Affichage des logs en temps réel
+
+**Accès aux services :**
+- Frontend : http://localhost:8080
+- API : http://localhost:9000/docs
+
+➡️ **Documentation complète :** [Guide de démarrage détaillé](https://gwentey.github.io/2025-research-exai/)
 
 ---
 

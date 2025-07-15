@@ -1,88 +1,88 @@
 import { NavItem } from './nav-item/nav-item';
+import { TranslateService } from '@ngx-translate/core';
 
+// Version statique pour compatibilité (fallback en anglais)
 export const navItems: NavItem[] = [
   {
-    navCap: 'Home',
+    navCap: 'Navigation',
   },
   {
-    displayName: 'Starter',
-    iconName: 'home',
+    displayName: 'Dashboard',
+    iconName: 'dashboard',
     bgcolor: 'primary',
     route: '/starter',
   },
   {
-    displayName: 'Login',
-    iconName: 'lock',
-    bgcolor: 'secondary',
-    route: '/authentication/login',
+    navCap: 'Data & Analysis',
   },
   {
-    displayName: 'Register',
-    iconName: 'user-edit',
+    displayName: 'Datasets',
+    iconName: 'database',
+    bgcolor: 'accent',
+    route: '/datasets',
+  },
+  {
+    displayName: 'Projects',
+    iconName: 'folder',
+    bgcolor: 'primary',
+    route: '/projects',
+  },
+  {
+    displayName: 'ML Pipeline',
+    iconName: 'chart-dots',
+    bgcolor: 'warning',
+    route: '/ml-pipeline',
+    disabled: true, // À activer quand le module sera implémenté
+  },
+  {
+    displayName: 'XAI Explanations',
+    iconName: 'bulb',
     bgcolor: 'success',
-    route: '/authentication/register',
-  },
-  {
-    navCap: 'Other',
-  },
-  {
-    displayName: 'Menu Level',
-    iconName: 'box-multiple',
-    bgcolor: 'error',
-    route: '/menu-level',
-    children: [
-      {
-        displayName: 'Menu 1',
-        iconName: 'point',
-        route: '/menu-1',
-        children: [
-          {
-            displayName: 'Menu 1',
-            iconName: 'point',
-            route: '/menu-1',
-          },
-
-          {
-            displayName: 'Menu 2',
-            iconName: 'point',
-            route: '/menu-2',
-          },
-        ],
-      },
-
-      {
-        displayName: 'Menu 2',
-        iconName: 'point',
-        route: '/menu-2',
-      },
-    ],
-  },
-  {
-    displayName: 'Disabled',
-    iconName: 'ban',
-    route: '/disabled',
-    disabled: true,
-  },
-  {
-    displayName: 'Chip',
-    iconName: 'mood-smile',
-    route: '/',
-    chip: true,
-    chipClass: 'bg-primary text-white',
-    chipContent: '9',
-  },
-  {
-    displayName: 'Outlined',
-    iconName: 'mood-smile',
-    route: '/',
-    chip: true,
-    chipClass: 'b-1 border-primary text-primary',
-    chipContent: 'outlined',
-  },
-  {
-    displayName: 'External Link',
-    iconName: 'star',
-    route: 'https://www.google.com/',
-    external: true,
+    route: '/xai-explanations',
+    disabled: true, // À activer quand le module sera implémenté
   },
 ];
+
+// Fonction pour générer les navItems avec traductions
+export function getTranslatedNavItems(translate: TranslateService): NavItem[] {
+  return [
+    {
+      navCap: translate.instant('MENU.NAVIGATION') || 'Navigation',
+    },
+    {
+      displayName: translate.instant('MENU.DASHBOARD') || 'Dashboard',
+      iconName: 'dashboard',
+      bgcolor: 'primary',
+      route: '/starter',
+    },
+    {
+      navCap: translate.instant('MENU.DATA_ANALYSIS') || 'Data & Analysis',
+    },
+    {
+      displayName: translate.instant('MENU.DATASETS') || 'Datasets',
+      iconName: 'database',
+      bgcolor: 'accent',
+      route: '/datasets',
+    },
+    {
+      displayName: translate.instant('MENU.PROJECTS') || 'Projects',
+      iconName: 'folder',
+      bgcolor: 'primary',
+      route: '/projects',
+    },
+    {
+      displayName: translate.instant('MENU.ML_PIPELINE') || 'ML Pipeline',
+      iconName: 'chart-dots',
+      bgcolor: 'warning',
+      route: '/ml-pipeline',
+      disabled: true, // À activer quand le module sera implémenté
+    },
+    {
+      displayName: translate.instant('MENU.XAI_EXPLANATIONS') || 'XAI Explanations',
+      iconName: 'bulb',
+      bgcolor: 'success',
+      route: '/xai-explanations',
+      disabled: true, // À activer quand le module sera implémenté
+    },
+  ];
+}

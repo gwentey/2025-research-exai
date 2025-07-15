@@ -1,0 +1,211 @@
+= 📚 Dataset OULAD - Open University Learning Analytics
+:toc:
+:toc-title: Sommaire
+
+== Vue d'ensemble
+
+Le dataset **OULAD (Open University Learning Analytics Dataset)** est un dataset majeur dans le domaine de l'analyse de l'apprentissage en ligne. Il contient des données détaillées sur l'interaction de plus de 32 000 étudiants avec l'environnement d'apprentissage virtuel (VLE) de l'Open University au Royaume-Uni.
+
+=== Caractéristiques principales
+
+[cols="1,3"]
+|===
+|**Domaine** |Éducation - Analyse de l'apprentissage
+|**Tâches ML** |Classification (prédiction de réussite)
+|**Instances** |32 593 étudiants
+|**Fichiers** |14 fichiers CSV
+|**Colonnes totales** |93 colonnes
+|**Année** |2014
+|**Accès** |Public
+|**Licence** |Recherche et éducation
+|===
+
+=== Objectif du dataset
+
+Analyser l'apprentissage en ligne dans l'enseignement supérieur, notamment :
+
+* **Prédiction du succès académique** : Identifier les étudiants à risque d'échec
+* **Analyse comportementale** : Comprendre les patterns d'interaction avec le VLE
+* **Personnalisation de l'apprentissage** : Adapter le contenu selon le profil étudiant
+* **Optimisation pédagogique** : Améliorer les parcours et ressources éducatives
+
+== Structure des données
+
+=== 📁 Fichiers principaux
+
+==== 1. Informations étudiants
+* **`studentInfo.csv`** (3.46 MB) - Profils démographiques et académiques
+* **`studentRegistration.csv`** (1.11 MB) - Inscriptions et désinscriptions
+* **`studentAssessment.csv`** (5.69 MB) - Résultats aux évaluations
+
+==== 2. Structure des cours
+* **`courses.csv`** (526 B) - Métadonnées des modules de cours
+* **`assessments.csv`** (8.2 kB) - Informations sur les évaluations
+
+==== 3. Environnement virtuel d'apprentissage (VLE)
+* **`vle.csv`** (260 kB) - Description des activités VLE
+* **`studentVle_0.csv` à `studentVle_7.csv`** (8 fichiers, ~57 MB chacun) - Interactions détaillées
+
+=== 🏗️ Modèle de données
+
+==== Entités principales
+
+===== Étudiant
+[cols="1,1,3"]
+|===
+|**Champ** |**Type** |**Description**
+|`id_student` |int |Identifiant unique (anonymisé)
+|`gender` |string |Genre (M/F)
+|`region` |string |Région de résidence UK
+|`highest_education` |string |Niveau d'éducation le plus élevé
+|`imd_band` |string |Indice de défavorisation (quintiles)
+|`age_band` |string |Tranche d'âge
+|`disability` |string |Statut de handicap (Y/N)
+|`final_result` |string |Résultat final (Pass/Withdrawn/Fail/Distinction)
+|===
+
+===== Module de cours
+[cols="1,1,3"]
+|===
+|**Champ** |**Type** |**Description**
+|`code_module` |string |Code du module (AAA, BBB, CCC, etc.)
+|`code_presentation` |string |Session du cours (2013J, 2014B, etc.)
+|`module_presentation_length` |int |Durée en jours
+|===
+
+===== Évaluations
+[cols="1,1,3"]
+|===
+|**Champ** |**Type** |**Description**
+|`id_assessment` |int |Identifiant de l'évaluation
+|`assessment_type` |string |Type (TMA, CMA, Exam)
+|`date` |int |Date relative au début du cours
+|`weight` |float |Poids dans la note finale (%)
+|`score` |float |Score obtenu par l'étudiant
+|`is_banked` |bool |Évaluation mise en banque
+|===
+
+===== Interactions VLE
+[cols="1,1,3"]
+|===
+|**Champ** |**Type** |**Description**
+|`id_site` |int |Identifiant de l'activité VLE
+|`activity_type` |string |Type d'activité (resource, subpage, etc.)
+|`date` |int |Jour relatif de l'interaction
+|`sum_click` |int |Nombre de clics ce jour-là
+|`week` |int |Semaine relative du cours
+|===
+
+== Utilisation recommandée
+
+=== 🎯 Cas d'usage typiques
+
+==== 1. Prédiction de réussite
+```adoc
+**Objectif** : Prédire si un étudiant va réussir son cours
+**Variables cibles** : `final_result` (Pass/Fail/Withdrawn/Distinction)
+**Features principales** :
+- Données démographiques (age_band, highest_education, imd_band)
+- Activité VLE (sum_click, fréquence d'accès)
+- Performance aux évaluations intermédiaires
+```
+
+==== 2. Détection précoce des décrocheurs
+```adoc
+**Objectif** : Identifier les étudiants à risque d'abandon
+**Variable cible** : `final_result` == "Withdrawn"
+**Features clés** :
+- Patterns d'engagement VLE (diminution d'activité)
+- Retard dans les soumissions d'évaluations
+- Profil démographique à risque
+```
+
+==== 3. Analyse comportementale
+```adoc
+**Objectif** : Comprendre les patterns d'apprentissage
+**Analyses** :
+- Clustering des profils d'engagement
+- Analyse temporelle des interactions
+- Corrélations entre activité VLE et performance
+```
+
+=== 📊 Pipeline ML recommandé
+
+==== Préparation des données
+
+===== 1. Nettoyage
+* **Gestion des valeurs manquantes** : ~0.5% de données manquantes (principalement scores)
+* **Suppression des doublons** : Vérifier l'unicité des étudiants par cours
+* **Validation temporelle** : Cohérence des dates d'évaluation et d'interaction
+
+===== 2. Feature engineering
+* **Agrégation temporelle** : Activité VLE par semaine/période
+* **Métriques d'engagement** : Régularité, intensité, patterns d'accès
+* **Performance relative** : Comparaison aux moyennes de la cohorte
+* **Variables de progression** : Évolution des scores dans le temps
+
+===== 3. Encodage
+* **Variables catégorielles** : One-hot encoding pour region, highest_education
+* **Variables ordinales** : Label encoding pour age_band, imd_band
+* **Normalisation** : StandardScaler pour les métriques d'activité
+
+==== Modélisation
+
+===== Modèles recommandés
+* **Random Forest** : Excellente performance sur données tabulaires, interprétabilité
+* **Gradient Boosting** : XGBoost/LightGBM pour optimiser la précision
+* **Réseaux de neurones** : Pour capturer les interactions complexes
+* **Modèles de survie** : Cox pour analyser le temps jusqu'au décrochage
+
+===== Validation
+* **Split temporel** : Validation sur une session ultérieure (2014J après 2013B)
+* **Validation croisée** : Stratifiée par module et résultat final
+* **Métriques** : Précision, rappel, F1-score, AUC-ROC pour chaque classe
+
+== Considérations éthiques
+
+=== 🛡️ Score éthique : 85%
+
+Le dataset OULAD présente un excellent score éthique grâce à :
+
+==== ✅ Points forts
+* **Anonymisation complète** : Tous les identifiants sont anonymisés
+* **Consentement institutionnel** : Collecte dans le cadre éducatif légal
+* **Transparence** : Documentation complète et accessible
+* **Finalité claire** : Amélioration de l'éducation et recherche
+* **Sécurité** : Hébergement académique sécurisé
+
+==== ⚠️ Précautions d'usage
+* **Biais géographique** : Données limitées au contexte UK
+* **Biais temporel** : Données de 2013-2014, évolution possible des pratiques
+* **Représentativité** : Population spécifique (enseignement à distance)
+
+=== 📋 Conformité RGPD
+* **Base légale** : Intérêt légitime éducatif et de recherche
+* **Minimisation** : Données pertinentes pour l'analyse d'apprentissage
+* **Anonymisation** : Aucune donnée permettant la ré-identification
+* **Conservation** : Archivage académique à long terme justifié
+
+== Ressources et références
+
+=== 📖 Documentation officielle
+* **Article de référence** : Kuzilek et al. (2017) - Scientific Data 4:170171
+* **DOI** : 10.1038/sdata.2017.171
+* **Citations** : Plus de 1800 citations académiques
+
+=== 🔗 Liens utiles
+* **Dataset original** : https://analyse.kmi.open.ac.uk/open_dataset
+* **Code exemple** : Notebooks Jupyter communautaires
+* **Forum de discussion** : Groupe de recherche Learning Analytics
+
+=== 📚 Références bibliographiques
+* Kuzilek, J., Hlosta, M., & Zdrahal, Z. (2017). Open University Learning Analytics dataset. Scientific Data, 4, 170171.
+* Ferguson, R. (2012). Learning analytics: drivers, developments and challenges. International Journal of Technology Enhanced Learning, 4(5-6), 304-317.
+
+== Support technique
+
+Pour toute question sur l'utilisation du dataset OULAD dans EXAI :
+
+* **Documentation API** : Consultez la section développeur
+* **Exemples de code** : Disponibles dans les tutoriels EXAI
+* **Support communautaire** : Forum des utilisateurs EXAI 

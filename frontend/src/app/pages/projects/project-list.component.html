@@ -1,0 +1,182 @@
+<!-- Page Header -->
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card m-b-20">
+        <mat-card-content class="p-20">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-16">
+            <!-- Titre et statistiques -->
+            <div class="d-flex align-items-center">
+              <div>
+                <h2 class="mat-h2 m-b-0 d-flex align-items-center">
+                  <mat-icon class="m-r-12 text-primary">folder</mat-icon>
+                  {{ 'PROJECTS.TITLE' | translate }}
+                </h2>
+                <p class="mat-body-2 text-muted m-b-0" *ngIf="projects.length > 0">
+                  {{ 'PROJECTS.LIST.RESULTS_COUNT' | translate: {count: projects.length} }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Actions principales -->
+            <div class="d-flex align-items-center gap-12">
+              <!-- Recherche -->
+              <mat-form-field appearance="outline" class="search-field" color="primary">
+                <input 
+                  matInput 
+                  [(ngModel)]="searchTerm"
+                  (keyup.enter)="onSearch()"
+                  [placeholder]="'COMMON.SEARCH' | translate"
+                  autocomplete="off">
+                <mat-icon matPrefix>search</mat-icon>
+                <button 
+                  *ngIf="searchTerm" 
+                  mat-icon-button 
+                  matSuffix 
+                  (click)="clearSearch()"
+                  [matTooltip]="'COMMON.CLEAR' | translate">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <button 
+                mat-raised-button 
+                color="primary"
+                (click)="onSearch()"
+                class="m-r-8">
+                <mat-icon class="m-r-4">search</mat-icon>
+                {{ 'COMMON.SEARCH' | translate }}
+              </button>
+
+              <button 
+                mat-fab 
+                color="primary"
+                (click)="createNewProject()"
+                [matTooltip]="'PROJECTS.NEW_PROJECT' | translate"
+                class="m-r-8">
+                <mat-icon>add</mat-icon>
+              </button>
+
+              <button 
+                mat-icon-button 
+                (click)="refreshProjects()"
+                [matTooltip]="'COMMON.REFRESH' | translate"
+                color="primary">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="row" *ngIf="isLoading">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <mat-spinner diameter="60"></mat-spinner>
+          <p class="mat-body-1 m-t-16">{{ 'PROJECTS.LIST.LOADING' | translate }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="row" *ngIf="error && !isLoading">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <mat-icon class="icon-48 text-warn m-b-16">error_outline</mat-icon>
+          <h3 class="mat-h3 m-b-12">{{ 'PROJECTS.LIST.LOADING_ERROR_TITLE' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-20">{{ error }}</p>
+          <button mat-raised-button color="primary" (click)="refreshProjects()">
+            <mat-icon class="m-r-4">refresh</mat-icon>
+            {{ 'COMMON.RETRY' | translate }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Empty State - Aucun projet -->
+  <div class="row" *ngIf="!isLoading && !error && projects.length === 0 && !searchTerm">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <div class="empty-state-icon m-b-20">
+            <mat-icon class="icon-64 text-primary">folder_open</mat-icon>
+          </div>
+          <h3 class="mat-h3 m-b-12">{{ 'PROJECTS.LIST.NO_PROJECTS_TITLE' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-24">
+            {{ 'PROJECTS.LIST.NO_PROJECTS_MESSAGE' | translate }}
+          </p>
+          <button mat-raised-button color="primary" size="large" (click)="createNewProject()">
+            <mat-icon class="m-r-8">add</mat-icon>
+            {{ 'PROJECTS.LIST.CREATE_FIRST_PROJECT' | translate }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Empty State - Aucun résultat de recherche -->
+  <div class="row" *ngIf="!isLoading && !error && projects.length === 0 && searchTerm">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <div class="empty-state-icon m-b-20">
+            <mat-icon class="icon-64 text-muted">search_off</mat-icon>
+          </div>
+          <h3 class="mat-h3 m-b-12">{{ 'PROJECTS.LIST.NO_SEARCH_RESULTS_TITLE' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-24">
+            {{ 'PROJECTS.LIST.NO_SEARCH_RESULTS_MESSAGE' | translate: {searchTerm: searchTerm} }}
+          </p>
+          <div class="d-flex justify-content-center gap-12 flex-wrap">
+            <button mat-raised-button color="primary" (click)="clearSearch()">
+              <mat-icon class="m-r-4">clear</mat-icon>
+              {{ 'PROJECTS.LIST.CLEAR_SEARCH' | translate }}
+            </button>
+            <button mat-button (click)="createNewProject()">
+              <mat-icon class="m-r-4">add</mat-icon>
+              {{ 'PROJECTS.LIST.CREATE_NEW_PROJECT' | translate }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Grille des projets -->
+  <div class="row" *ngIf="!isLoading && !error && projects.length > 0">
+    <div class="col-lg-4 col-md-6 col-sm-12 m-b-20" 
+         *ngFor="let project of projects; trackBy: trackByProject">
+      <app-project-card
+        [project]="project"
+        (onView)="onViewProject($event)"
+        (onEdit)="onEditProject($event)"
+        (onDelete)="onDeleteProject($event)">
+      </app-project-card>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="row" *ngIf="!isLoading && !error && projects.length > 0">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="d-flex justify-content-center p-16">
+          <mat-paginator
+            [length]="totalProjects"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[6, 12, 24, 48]"
+            [pageIndex]="currentPage"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+            class="mat-elevation-0">
+          </mat-paginator>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div> 

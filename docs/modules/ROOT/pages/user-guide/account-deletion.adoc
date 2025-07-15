@@ -1,0 +1,91 @@
+= Suppression de Compte Utilisateur
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: highlight.js
+
+== Vue d'ensemble
+
+La plateforme EXAI offre la possibilité de supprimer définitivement votre compte utilisateur. Cette fonctionnalité est disponible dans les paramètres de sécurité de votre profil utilisateur.
+
+[WARNING]
+====
+La suppression de compte est une action *irréversible*. Toutes vos données seront supprimées définitivement et ne pourront pas être récupérées.
+====
+
+== Données supprimées
+
+Lors de la suppression de votre compte, les éléments suivants sont supprimés de manière permanente :
+
+* **Profil utilisateur** : Toutes vos informations personnelles (nom, email, préférences, etc.)
+* **Projets** : Tous vos projets d'analyse ML et leurs configurations
+* **Modèles entraînés** : Tous les modèles générés par vos pipelines ML
+* **Explications XAI** : Toutes les explications générées pour vos modèles
+* **Historique d'activité** : Votre historique de navigation et d'utilisation
+* **Comptes OAuth** : Vos liens d'authentification (Google, etc.)
+
+== Procédure de suppression
+
+=== Étape 1 : Accéder aux paramètres de sécurité
+
+. Connectez-vous à votre compte EXAI
+. Cliquez sur votre profil en haut à droite
+. Sélectionnez "Profil" dans le menu déroulant
+. Descendez jusqu'à la section "Zone Dangereuse" dans les paramètres de sécurité
+
+=== Étape 2 : Initier la suppression
+
+. Cliquez sur le bouton rouge "Supprimer mon compte définitivement"
+. Une boîte de dialogue de confirmation s'ouvre
+
+=== Étape 3 : Confirmer la suppression
+
+. Lisez attentivement les informations sur les données qui seront supprimées
+. Saisissez votre mot de passe actuel pour confirmer votre identité
+. Cliquez sur "Oui, supprimer définitivement mon compte"
+
+=== Étape 4 : Validation
+
+. Le système procède à la suppression de toutes vos données
+. Vous êtes automatiquement déconnecté
+. Une confirmation vous est affichée
+. Vous êtes redirigé vers la page de connexion
+
+== Sécurité
+
+La suppression de compte est protégée par les mesures de sécurité suivantes :
+
+* **Authentification requise** : Vous devez être connecté pour supprimer votre compte
+* **Confirmation par mot de passe** : Votre mot de passe actuel est obligatoire pour confirmer l'action
+* **Dialogue de confirmation** : Une interface détaillée vous informe des conséquences
+* **Logging de sécurité** : Toutes les demandes de suppression sont tracées dans les logs système
+
+== Alternatives à la suppression
+
+Avant de supprimer votre compte, considérez ces alternatives :
+
+* **Désactivation temporaire** : Contactez le support pour désactiver temporairement votre compte
+* **Suppression sélective** : Supprimez uniquement certains projets ou données
+* **Anonymisation** : Demandez l'anonymisation de vos données personnelles
+
+== Support
+
+Si vous avez des questions ou des préoccupations concernant la suppression de votre compte, contactez notre équipe de support :
+
+* Email : support@exai-platform.com
+* Documentation : xref:user-guide/index.adoc[Guide utilisateur]
+* FAQ : xref:user-guide/faq.adoc[Foire aux questions]
+
+== Conformité RGPD
+
+La fonctionnalité de suppression de compte est conforme au Règlement Général sur la Protection des Données (RGPD) :
+
+* **Droit à l'effacement** : Vous avez le droit de demander la suppression de vos données personnelles
+* **Suppression complète** : Toutes vos données sont supprimées de nos serveurs
+* **Confirmation** : Nous vous confirmons la suppression de vos données
+* **Délai** : La suppression est effectuée immédiatement après votre demande
+
+[NOTE]
+====
+Les données de logs de sécurité peuvent être conservées pendant une durée limitée pour des raisons de sécurité et de conformité légale, conformément à notre politique de confidentialité.
+==== 

@@ -1,0 +1,391 @@
+= Guide d'Internationalisation (i18n)
+:toc:
+:toclevels: 3
+
+Ce guide explique comment l'internationalisation est implémentée dans l'application ExAI et comment ajouter de nouvelles traductions.
+
+== Vue d'ensemble
+
+L'application utilise `@ngx-translate/core` pour fournir un support multilingue complet. Les langues actuellement supportées sont :
+
+* **Français** (fr) - Langue par défaut
+* **Anglais** (en) - Langue secondaire
+* **Espagnol** (es) - Placeholders en attente de traduction native
+* **Allemand** (de) - Placeholders en attente de traduction native
+
+== Architecture i18n
+
+=== Structure des fichiers
+
+[source]
+----
+frontend/src/assets/i18n/
+├── en.json       # Traductions anglaises
+├── fr.json       # Traductions françaises  
+├── es.json       # Traductions espagnoles (placeholders)
+└── de.json       # Traductions allemandes (placeholders)
+----
+
+=== Services clés
+
+==== LanguageService
+Gère le changement de langue et la persistence des préférences utilisateur.
+
+[source,typescript]
+----
+// Changement de langue
+this.languageService.changeLanguage('en');
+
+// Obtenir la langue actuelle
+const currentLang = this.languageService.getCurrentLanguage();
+----
+
+==== FormErrorService
+Service centralisé pour les erreurs de formulaire traduites.
+
+[source,typescript]
+----
+// Obtenir un message d'erreur traduit
+const errorMsg = this.formErrorService.getErrorMessage(control, 'Email');
+
+// Vérifier si afficher l'erreur
+const shouldShow = this.formErrorService.shouldShowError(control);
+----
+
+== Structure des clés de traduction
+
+=== Organisation hiérarchique
+
+Les clés sont organisées par section fonctionnelle :
+
+[source,json]
+----
+{
+  "AUTH": {
+    "LOGIN": { ... },
+    "REGISTER": { ... }
+  },
+  "DASHBOARD": {
+    "TITLE": "...",
+    "METRICS": { ... },
+    "ACTIVITY": { ... }
+  },
+  "PROJECTS": {
+    "FORM": { ... },
+    "LIST": { ... },
+    "DETAIL": { ... }
+  },
+  "FORMS": {
+    "VALIDATION": { ... }
+  }
+}
+----
+
+=== Conventions de nommage
+
+* **SECTIONS** : Majuscules (AUTH, DASHBOARD, PROJECTS)
+* **SOUS-SECTIONS** : Majuscules (LOGIN, REGISTER, FORM)
+* **CLÉS FINALES** : Majuscules séparées par underscore (TITLE, FIRST_NAME, EMAIL_REQUIRED)
+
+== Implémentation dans les composants
+
+=== Composants standard
+
+==== 1. Imports requis
+
+[source,typescript]
+----
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
+@Component({
+  // ...
+  imports: [/* autres modules */, TranslateModule],
+})
+----
+
+==== 2. Injection du service
+
+[source,typescript]
+----
+export class MyComponent {
+  private translate = inject(TranslateService);
+}
+----
+
+==== 3. Utilisation dans le template
+
+[source,html]
+----
+<!-- Traduction simple -->
+<h1>{{ 'DASHBOARD.TITLE' | translate }}</h1>
+
+<!-- Traduction avec paramètres -->
+<p>{{ 'DASHBOARD.WELCOME' | translate: {name: userName} }}</p>
+
+<!-- Traduction d'attributs -->
+<input [placeholder]="'FORMS.EMAIL_PLACEHOLDER' | translate">
+----
+
+==== 4. Traductions programmatiques
+
+[source,typescript]
+----
+// Traduction immédiate
+const message = this.translate.instant('SUCCESS_MESSAGE');
+
+// Traduction avec paramètres
+const welcomeMsg = this.translate.instant('WELCOME', { name: 'John' });
+
+// Traduction asynchrone (Observable)
+this.translate.get('ASYNC_MESSAGE').subscribe(translation => {
+  console.log(translation);
+});
+----
+
+=== Données dynamiques
+
+Pour les données qui changent avec la langue, utilisez des getters :
+
+[source,typescript]
+----
+export class DashboardComponent {
+  private baseMetrics = [
+    { titleKey: 'DASHBOARD.METRICS.DATASETS', value: 5 },
+    { titleKey: 'DASHBOARD.METRICS.PIPELINES', value: 3 }
+  ];
+
+  get dashboardMetrics() {
+    return this.baseMetrics.map(metric => ({
+      title: this.translate.instant(metric.titleKey),
+      value: metric.value
+    }));
+  }
+}
+----
+
+== Gestion des formulaires
+
+=== Validation avec traductions
+
+[source,typescript]
+----
+// Dans le composant
+constructor() {
+  this.formErrorService = inject(FormErrorService);
+}
+
+// Obtenir le message d'erreur
+getFieldError(fieldName: string): string | null {
+  const control = this.form.get(fieldName);
+  return this.formErrorService.getErrorMessage(control, fieldName);
+}
+----
+
+[source,html]
+----
+<!-- Dans le template -->
+<mat-form-field>
+  <mat-label>{{ 'FORMS.EMAIL' | translate }}</mat-label>
+  <input matInput formControlName="email">
+  <mat-error *ngIf="formErrorService.shouldShowError(form.get('email'))">
+    {{ getFieldError('email') }}
+  </mat-error>
+</mat-form-field>
+----
+
+=== Messages d'erreur standardisés
+
+Le `FormErrorService` gère automatiquement :
+
+* `required` - Champ obligatoire
+* `email` - Format email invalide  
+* `minlength` - Longueur minimale
+* `maxlength` - Longueur maximale
+* `pattern` - Format invalide
+* `mismatch` - Confirmation mot de passe
+
+== Ajouter une nouvelle langue
+
+=== 1. Créer le fichier de traduction
+
+Créez `frontend/src/assets/i18n/[code].json` avec la structure complète :
+
+[source,json]
+----
+{
+  "AUTH": {
+    "LOGIN": {
+      "TITLE": "Connexion",
+      "EMAIL": "Email",
+      // ... toutes les clés
+    }
+    // ... toutes les sections
+  }
+}
+----
+
+=== 2. Mettre à jour LanguageService
+
+[source,typescript]
+----
+// Dans language.service.ts
+languages = [
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' }  // Nouvelle langue
+];
+----
+
+=== 3. Configurer le module de traduction
+
+Le fichier sera automatiquement chargé via `TranslateHttpLoader`.
+
+== Bonnes pratiques
+
+=== 1. Cohérence des clés
+
+* Utilisez des clés descriptives et hiérarchiques
+* Évitez les clés trop longues ou trop courtes
+* Groupez par fonctionnalité logique
+
+=== 2. Gestion des paramètres
+
+[source,json]
+----
+{
+  "WELCOME_MESSAGE": "Bienvenue {{name}} !",
+  "ITEMS_COUNT": "{{count}} élément{{count > 1 ? 's' : ''}}"
+}
+----
+
+=== 3. Pluralisation
+
+Pour les textes avec pluriel, utilisez des clés distinctes :
+
+[source,json]
+----
+{
+  "DATASET_COUNT_ZERO": "Aucun dataset",
+  "DATASET_COUNT_ONE": "1 dataset", 
+  "DATASET_COUNT_OTHER": "{{count}} datasets"
+}
+----
+
+=== 4. Valeurs par défaut
+
+Toujours fournir une valeur par défaut pour éviter les clés manquantes :
+
+[source,typescript]
+----
+const title = this.translate.instant('MISSING_KEY') || 'Titre par défaut';
+----
+
+== Tests
+
+=== Test des traductions
+
+[source,typescript]
+----
+describe('Component i18n', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot({
+        loader: {
+          provide: TranslateLoader,
+          useClass: TranslateFakeLoader
+        }
+      })]
+    });
+  });
+
+  it('should translate text correctly', () => {
+    const translateService = TestBed.inject(TranslateService);
+    translateService.setTranslation('en', { 'HELLO': 'Hello' });
+    translateService.use('en');
+    
+    expect(translateService.instant('HELLO')).toBe('Hello');
+  });
+});
+----
+
+== Performance
+
+=== Optimisations
+
+* Les traductions sont chargées une seule fois au démarrage
+* Utilisez `translate.instant()` pour les traductions synchrones
+* Les getters recalculent automatiquement lors du changement de langue
+* Évitez les translations dans les boucles *ngFor*
+
+=== Lazy loading
+
+Les fichiers de traduction sont chargés à la demande via HTTP. Seule la langue active est chargée en mémoire.
+
+== Dépannage
+
+=== Problèmes courants
+
+==== Clé manquante
+```
+ERROR: Missing translation for key 'MY_KEY'
+```
+**Solution** : Vérifiez que la clé existe dans tous les fichiers de traduction.
+
+==== Traduction non mise à jour
+**Solution** : Utilisez des getters au lieu de propriétés statiques pour les données dynamiques.
+
+==== Paramètres non interpolés
+```json
+{"MESSAGE": "Hello {{name}}"}
+```
+**Solution** : Vérifiez que les paramètres sont passés correctement :
+```typescript
+this.translate.instant('MESSAGE', { name: 'John' })
+```
+
+== Migration d'un texte existant
+
+=== Étapes pour traduire un composant
+
+1. **Identifier les textes** à traduire
+2. **Créer les clés** dans les fichiers JSON
+3. **Ajouter TranslateModule** aux imports du composant
+4. **Injecter TranslateService** 
+5. **Remplacer les textes** par les pipes de traduction
+6. **Tester** le changement de langue
+
+=== Exemple de migration
+
+**Avant :**
+[source,html]
+----
+<h1>Tableau de bord</h1>
+<p>Bienvenue sur votre dashboard</p>
+----
+
+**Après :**
+[source,html]
+----
+<h1>{{ 'DASHBOARD.TITLE' | translate }}</h1>
+<p>{{ 'DASHBOARD.WELCOME' | translate }}</p>
+----
+
+**Fichier de traduction :**
+[source,json]
+----
+{
+  "DASHBOARD": {
+    "TITLE": "Tableau de bord",
+    "WELCOME": "Bienvenue sur votre dashboard"
+  }
+}
+----
+
+== Ressources
+
+* Documentation ngx-translate : https://github.com/ngx-translate/core
+* Guide Angular i18n : https://angular.io/guide/i18n
+* FormErrorService : `frontend/src/app/services/form-error.service.ts`
+* LanguageService : `frontend/src/app/services/language.service.ts` 

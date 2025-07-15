@@ -164,4 +164,198 @@ Voici la structure actualisée du code source, reflétant la centralisation des 
 └── skaffold.yaml             # Configuration Skaffold pour automatiser build et déploiement
 ```
 
-Cette nouvelle structure reflète l'organisation actualisée où tous les fichiers de configuration Kubernetes sont centralisés dans le dossier `k8s/` à la racine du projet, divisé en `base/` (configurations communes) et `overlays/` (configurations spécifiques à chaque environnement) selon les principes de Kustomize. Les microservices conservent uniquement leur code source et leurs Dockerfiles. 
+Cette nouvelle structure reflète l'organisation actualisée où tous les fichiers de configuration Kubernetes sont centralisés dans le dossier `k8s/` à la racine du projet, divisé en `base/` (configurations communes) et `overlays/` (configurations spécifiques à chaque environnement) selon les principes de Kustomize. Les microservices conservent uniquement leur code source et leurs Dockerfiles.
+
+= Architecture du Reverse Proxy
+:icons: font
+:sectnums:
+:toc:
+
+Ce document explique comment l'API Gateway EXAI fait du reverse proxy vers les services backend et comment cette configuration fonctionne automatiquement en développement et en production.
+
+== Vue d'ensemble
+
+L'API Gateway (port 9000) sert de point d'entrée unique pour toutes les requêtes API. Il fait du reverse proxy vers les différents services backend, permettant au frontend d'avoir une seule URL d'API tout en conservant les avantages de l'architecture microservices.
+
+== Configuration Automatique
+
+=== Valeurs par Défaut
+
+Les URLs des services backend sont configurées automatiquement pour fonctionner avec Kubernetes (Minikube en développement, AKS en production) :
+
+[source,python]
+----
+# api-gateway/app/core/config.py
+SERVICE_SELECTION_URL: str = os.getenv("SERVICE_SELECTION_URL", "http://service-selection-service.exai.svc.cluster.local")
+ML_PIPELINE_URL: str = os.getenv("ML_PIPELINE_URL", "http://ml-pipeline-service.exai.svc.cluster.local")
+XAI_ENGINE_URL: str = os.getenv("XAI_ENGINE_URL", "http://xai-engine-service.exai.svc.cluster.local")
+----
+
+Ces URLs utilisent le DNS interne de Kubernetes et fonctionnent automatiquement sans configuration supplémentaire.
+
+=== Routage des Requêtes
+
+L'API Gateway intercepte et redirige les requêtes selon le pattern suivant :
+
+[cols="2,3,3", options="header"]
+|===
+| Pattern | Service de Destination | Exemple
+| `/datasets/*` | SERVICE_SELECTION_URL | `/datasets` → `http://service-selection-service.exai.svc.cluster.local/datasets`
+| `/ml-pipeline/*` | ML_PIPELINE_URL | `/ml-pipeline/jobs` → `http://ml-pipeline-service.exai.svc.cluster.local/jobs`
+| `/xai/*` | XAI_ENGINE_URL | `/xai/explain` → `http://xai-engine-service.exai.svc.cluster.local/explain`
+|===
+
+== Implémentation Technique
+
+=== Fonction Proxy Générique
+
+L'API Gateway utilise une fonction `proxy_request` générique qui :
+
+1. Construit l'URL de destination
+2. Transmet les paramètres de query
+3. Transmet le body pour les requêtes POST/PUT/PATCH
+4. Gère les erreurs de communication
+5. Retourne la réponse du service backend
+
+[source,python]
+----
+async def proxy_request(
+    request: Request,
+    service_url: str,
+    path: str,
+    current_user: UserModel
+):
+    # Construire l'URL complète
+    target_url = f"{service_url.rstrip('/')}/{path.lstrip('/')}"
+    
+    # Faire la requête avec httpx
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.request(
+            method=request.method,
+            url=target_url,
+            params=dict(request.query_params),
+            headers={"Content-Type": "application/json"},
+            content=await request.body() if request.method in ["POST", "PUT", "PATCH"] else None
+        )
+        
+        return JSONResponse(
+            status_code=response.status_code,
+            content=response.json() if response.content else None
+        )
+----
+
+=== Routes Proxy
+
+Chaque service backend a ses routes proxy dédiées :
+
+[source,python]
+----
+@app.api_route("/datasets", methods=["GET", "POST"], tags=["datasets"])
+async def datasets_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets", current_user)
+
+@app.get("/datasets/domains", tags=["datasets"])
+async def datasets_domains_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/domains", current_user)
+----
+
+== Environnements
+
+=== Développement Local (Minikube)
+
+Les services communiquent via le DNS interne de Kubernetes :
+- `service-selection-service.exai.svc.cluster.local`
+- `ml-pipeline-service.exai.svc.cluster.local`
+- `xai-engine-service.exai.svc.cluster.local`
+
+Aucune configuration supplémentaire n'est nécessaire.
+
+=== Développement Local (Services en Local)
+
+Si vous voulez faire tourner les services directement sur votre machine, créez un fichier `.env` :
+
+[source,properties]
+----
+SERVICE_SELECTION_URL=http://localhost:8001
+ML_PIPELINE_URL=http://localhost:8002
+XAI_ENGINE_URL=http://localhost:8003
+----
+
+=== Production (Azure)
+
+Les services communiquent via le DNS interne d'AKS avec les mêmes URLs que Minikube. Les variables d'environnement peuvent être surchargées via des secrets Kubernetes si nécessaire.
+
+== Gestion des Erreurs
+
+=== Erreurs de Communication
+
+Si un service backend n'est pas disponible, l'API Gateway retourne :
+
+[source,json]
+----
+{
+    "detail": "Service temporairement indisponible"
+}
+----
+
+Avec un code de statut HTTP 503 (Service Unavailable).
+
+=== Erreurs de Service
+
+Si un service backend retourne une erreur, l'API Gateway propage le code de statut et la réponse exacte du service.
+
+== Sécurité
+
+=== Authentification
+
+Toutes les routes proxy requièrent une authentification :
+
+[source,python]
+----
+current_user: UserModel = Depends(current_active_user)
+----
+
+L'utilisateur authentifié est passé à la fonction proxy mais n'est pas actuellement transmis au service backend (évolution future).
+
+=== Headers
+
+L'API Gateway transmet les headers suivants aux services backend :
+
+- `Content-Type: application/json`
+- `User-Agent: API-Gateway-Proxy/1.0`
+
+== Monitoring et Observabilité
+
+=== Logs
+
+L'API Gateway log toutes les requêtes proxy avec :
+- URL de destination
+- Méthode HTTP
+- Code de statut de réponse
+- Erreurs de communication
+
+=== Métriques
+
+Les métriques suivantes sont disponibles :
+- Nombre de requêtes par service
+- Temps de réponse moyen
+- Taux d'erreur par service
+
+== Évolution et Extensibilité
+
+=== Ajout de Nouveaux Services
+
+Pour ajouter un nouveau service backend :
+
+1. Ajouter la variable d'environnement dans `config.py`
+2. Créer les routes proxy dans `main.py`
+3. Mettre à jour la documentation
+4. Déployer les services Kubernetes
+
+=== Load Balancing
+
+Kubernetes gère automatiquement le load balancing entre les réplicas de chaque service. L'API Gateway n'a pas besoin de configuration supplémentaire.
+
+=== Circuit Breaker
+
+Une évolution future pourrait inclure un circuit breaker pour gérer les pannes temporaires des services backend. 

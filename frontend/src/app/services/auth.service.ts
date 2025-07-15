@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment'; // Importer l'environnement
 // Importer les nouvelles interfaces
-import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse } from '../models/auth.models';
+import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData, AccountDeletionRequest, AccountDeletionResponse } from '../models/auth.models';
 
 // Définir la clé du token comme constante
 const AUTH_TOKEN_KEY = 'exai_access_token';
@@ -137,13 +137,49 @@ export class AuthService {
   }
 
   /**
-   * Vérifie si l'utilisateur est actuellement authentifié (basé sur la présence du token).
-   * Note : Pour une vérification robuste, il faudrait valider le token (ex: expiration).
-   * @returns true si un token existe, false sinon.
+   * Vérifie si l'utilisateur est actuellement authentifié (basé sur la présence et la validité du token).
+   * @returns true si un token valide existe, false sinon.
    */
   isAuthenticated(): boolean {
-    return this.getToken() !== null;
-    // TODO: Ajouter une vérification de validité/expiration du token
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+    
+    // Vérifier si le token est expiré
+    if (this.isTokenExpired(token)) {
+      console.log('Token expiré détecté, nettoyage automatique');
+      this.logout();
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Vérifie si un token JWT est expiré
+   * @param token - Le token JWT à vérifier
+   * @returns true si le token est expiré, false sinon
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      // Décoder le payload du JWT (partie centrale encodée en base64)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      
+      // Vérifier la date d'expiration (exp est en secondes, Date.now() en millisecondes)
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      if (payload.exp && payload.exp < currentTime) {
+        console.log(`Token expiré: exp=${payload.exp}, current=${currentTime}`);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      // Si on ne peut pas décoder le token, le considérer comme invalide
+      console.warn('Impossible de décoder le token JWT, considéré comme expiré:', error);
+      return true;
+    }
   }
 
   /**
@@ -193,6 +229,145 @@ export class AuthService {
         
         return this.handleError(error);
       })
+    );
+  }
+
+  /**
+   * Met à jour les informations du profil utilisateur.
+   * @param userData - Objet UserUpdate contenant les champs à mettre à jour.
+   * @returns Observable avec les informations UserRead mises à jour.
+   */
+  updateProfile(userData: UserUpdate): Observable<UserRead> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("updateProfile - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("updateProfile - Début de la requête, données:", userData);
+    
+    return this.http.patch<UserRead>(`${environment.apiUrl}/users/me`, userData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(user => {
+        console.log("updateProfile - Succès, profil mis à jour:", user);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Met à jour le mot de passe de l'utilisateur.
+   * @param passwordData - Objet PasswordUpdate contenant l'ancien et le nouveau mot de passe.
+   * @returns Observable indiquant le succès de l'opération.
+   */
+  updatePassword(passwordData: PasswordUpdate): Observable<any> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("updatePassword - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("updatePassword - Début de la requête");
+    
+    return this.http.patch(`${environment.apiUrl}/users/me/password`, passwordData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(() => {
+        console.log("updatePassword - Succès, mot de passe mis à jour");
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Met à jour l'image de profil de l'utilisateur.
+   * @param pictureData - Objet ProfilePictureUpload contenant l'image encodée.
+   * @returns Observable avec les informations UserRead mises à jour.
+   */
+  updateProfilePicture(pictureData: ProfilePictureUpload): Observable<UserRead> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("updateProfilePicture - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("updateProfilePicture - Début de la requête");
+    
+    return this.http.patch<UserRead>(`${environment.apiUrl}/users/me/picture`, pictureData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(user => {
+        console.log("updateProfilePicture - Succès, image de profil mise à jour:", user);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Sauvegarde les données d'onboarding de l'utilisateur.
+   * @param data - Objet OnboardingData contenant les réponses d'onboarding.
+   * @returns Observable avec les informations UserRead mises à jour.
+   */
+  saveOnboarding(data: OnboardingData): Observable<UserRead> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("saveOnboarding - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("saveOnboarding - Début de la requête, données:", data);
+    
+    return this.http.patch<UserRead>(`${environment.apiUrl}/users/me`, data, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(user => {
+        console.log("saveOnboarding - Succès, données d'onboarding sauvegardées:", user);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Supprime définitivement le compte de l'utilisateur.
+   * @param deletionData - Objet AccountDeletionRequest contenant le mot de passe pour confirmer.
+   * @returns Observable avec la réponse de suppression.
+   */
+  deleteAccount(deletionData: AccountDeletionRequest): Observable<AccountDeletionResponse> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("deleteAccount - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("deleteAccount - Début de la requête de suppression de compte");
+    console.log("deleteAccount - Email de confirmation:", deletionData.email_confirmation);
+    
+    return this.http.delete<AccountDeletionResponse>(`${environment.apiUrl}/users/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: deletionData
+    }).pipe(
+      tap(response => {
+        console.log("deleteAccount - Succès, compte supprimé:", response);
+        // Supprimer immédiatement le token local après suppression réussie
+        this.logout();
+      }),
+      catchError(this.handleError)
     );
   }
 

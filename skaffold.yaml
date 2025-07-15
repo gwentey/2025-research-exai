@@ -6,19 +6,33 @@ build:
   # Pas de defaultRepo global
   tagPolicy:
     sha256: {}
+  # Configuration pour optimiser le cache mais permettre le pull des images manquantes
+  local:
+    push: false
+    useDockerCLI: true
+    useBuildkit: true
   artifacts:
     # Noms d'images de base SANS préfixe
     - image: exai-api-gateway
       context: api-gateway
-      docker: { dockerfile: Dockerfile }
+      docker: 
+        dockerfile: Dockerfile
+        # Optimiser le cache Docker
+        noCache: false
+        pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
     - image: service-selection
       context: service-selection
-      docker: { dockerfile: Dockerfile }
+      docker: 
+        dockerfile: Dockerfile
+        noCache: false
+        pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
     - image: frontend
       context: frontend
       # Définir buildArgs pour l'environnement par défaut (local)
       docker:
         dockerfile: Dockerfile
+        noCache: false
+        pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
         buildArgs:
           ANGULAR_ENV: development
 

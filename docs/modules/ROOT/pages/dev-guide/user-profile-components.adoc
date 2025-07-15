@@ -1,0 +1,251 @@
+= Composants du Profil Utilisateur
+:toc: left
+:toclevels: 3
+
+Le composant profile permet aux utilisateurs de gérer leurs informations personnelles, paramètres de sécurité et préférences.
+
+== Architecture du Composant
+
+=== Structure des fichiers
+
+[source]
+----
+frontend/src/app/pages/profile/
+├── profile.component.ts          # Logique du composant
+├── profile.component.html        # Template avec formulaires
+├── profile.component.scss        # Styles spécifiques
+└── profile.routes.ts             # Configuration des routes
+----
+
+=== Modèles de données
+
+Le composant utilise les interfaces définies dans `models/auth.models.ts` :
+
+* `UserRead` - Données utilisateur en lecture
+* `UserUpdate` - Données pour mise à jour du profil  
+* `PasswordUpdate` - Données pour changement de mot de passe
+
+== Fonctionnalités
+
+=== Informations personnelles
+
+* **Email** : Affichage en lecture seule
+* **Pseudo** : Nom d'utilisateur modifiable
+* **Prénom/Nom** : Informations optionnelles
+* **Langue** : Sélection de la langue préférée
+
+=== Sécurité
+
+* **Changement de mot de passe** : Formulaire sécurisé avec validation
+* **Validation des mots de passe** : Correspondance et longueur minimale
+* **Authentification** : Vérification du mot de passe actuel
+
+=== Photo de profil
+
+* **Upload d'image** : Sélection et aperçu
+* **Validation** : Type de fichier et taille maximale (5MB)
+* **Gestion d'erreurs** : Messages d'erreur explicites
+
+== Configuration des Traductions
+
+Le composant utilise le système de traduction ngx-translate avec les clés suivantes :
+
+=== Structure des clés principales
+
+[source,json]
+----
+{
+  "PROFILE": {
+    "TITLE": "Profil Utilisateur",
+    "SUBTITLE": "Gérez vos informations personnelles et préférences",
+    "PERSONAL_INFO": {
+      "TITLE": "Informations Personnelles",
+      "EMAIL": "Adresse E-mail",
+      // ... autres clés
+    },
+    "SECURITY": {
+      "TITLE": "Paramètres de Sécurité",
+      "CURRENT_PASSWORD": "Mot de passe actuel",
+      // ... autres clés
+    },
+    "LANGUAGES": {
+      "FRENCH": "Français",
+      "ENGLISH": "Anglais"
+      // ... autres langues
+    }
+  }
+}
+----
+
+== Dépannage
+
+=== Problème : Affichage "undefined" dans la page profil
+
+**Symptômes :**
+- La page profile affiche "undefined" au lieu du texte traduit
+- L'application peut planter lors de l'accès à `/profile`
+
+**Cause :**
+Clés de traduction manquantes dans les fichiers `i18n/*.json`
+
+**Solution :**
+
+1. **Vérifier les fichiers de traduction** :
+   - `frontend/src/assets/i18n/fr.json`
+   - `frontend/src/assets/i18n/en.json`
+
+2. **S'assurer que toutes les clés PROFILE sont présentes** :
+   - `PROFILE.TITLE`, `PROFILE.SUBTITLE`
+   - `PROFILE.PERSONAL_INFO.*`
+   - `PROFILE.SECURITY.*`
+   - `PROFILE.LANGUAGES.*`
+   - `PROFILE.STATUS.*`
+   - `PROFILE.MESSAGES.*`
+   - `PROFILE.ERRORS.*`
+
+3. **Structure complète requise** :
++
+[source,json]
+----
+{
+  "PROFILE": {
+    "TITLE": "...",
+    "SUBTITLE": "...",
+    "BACK_TO_DASHBOARD": "...",
+    "CHANGE_PHOTO": "...",
+    "STATUS": {
+      "VERIFIED": "...",
+      "ACTIVE": "..."
+    },
+    "PERSONAL_INFO": {
+      "TITLE": "...",
+      "EMAIL": "...",
+      "PSEUDO": "...",
+      // ... toutes les clés utilisées
+    },
+    "SECURITY": {
+      "TITLE": "...",
+      "CURRENT_PASSWORD": "...",
+      // ... toutes les clés utilisées
+    }
+  }
+}
+----
+
+=== Problème : Erreur de chargement des données utilisateur
+
+**Symptômes :**
+- Message d'erreur "Erreur lors du chargement du profil"
+- Champs de formulaire vides
+
+**Solutions possibles :**
+
+1. **Vérifier l'authentification** :
+   - Token JWT valide dans le localStorage
+   - Connexion à l'API Gateway
+
+2. **Tester l'endpoint API** :
++
+[source,bash]
+----
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+     http://localhost:8000/users/me
+----
+
+3. **Vérifier les logs de développement** :
+   - Console navigateur (F12)
+   - Logs du service d'authentification
+
+=== Problème : Formulaires non fonctionnels
+
+**Symptômes :**
+- Boutons désactivés
+- Validation incorrecte
+
+**Solutions :**
+
+1. **Vérifier la configuration des formulaires réactifs**
+2. **S'assurer que les validateurs sont correctement définis**
+3. **Contrôler l'état des FormControls**
+
+== Tests
+
+=== Tests unitaires
+
+[source,typescript]
+----
+// Exemple de test pour le composant profile
+describe('ProfileComponent', () => {
+  it('should load user profile on init', () => {
+    // Test du chargement des données
+  });
+  
+  it('should update profile successfully', () => {
+    // Test de mise à jour du profil
+  });
+});
+----
+
+=== Tests d'intégration
+
+* Test du flux complet de mise à jour du profil
+* Validation des interactions avec l'API
+* Test des scénarios d'erreur
+
+== Sécurité
+
+=== Bonnes pratiques
+
+* **Validation côté client et serveur**
+* **Hashage sécurisé des mots de passe**
+* **Vérification des permissions**
+* **Validation des types de fichiers uploadés**
+* **Limitation de la taille des fichiers**
+
+=== Authentification
+
+Le composant nécessite une authentification valide :
+- Token JWT dans le localStorage
+- Guard `authGuard` sur la route
+- Intercepteur pour ajouter le token aux requêtes
+
+== Maintenance
+
+=== Ajout de nouvelles traductions
+
+1. Mettre à jour les fichiers `i18n/*.json`
+2. Ajouter les clés correspondantes dans tous les langages supportés
+3. Tester l'affichage dans chaque langue
+
+=== Modification des formulaires
+
+1. Mettre à jour le FormBuilder dans le composant
+2. Ajuster le template HTML
+3. Mettre à jour les validateurs si nécessaire
+4. Tester la validation et la soumission 
+
+== Débogage et Résolutions de Problèmes
+
+=== Erreur 500 lors de la mise à jour du profil
+
+**Problème :** L'endpoint `PATCH /users/me` retournait une erreur HTTP 500 malgré une mise à jour réussie en base de données.
+
+**Cause :** La méthode `SQLAlchemy.refresh()` ne rechargeait pas correctement les relations (`oauth_accounts`) après la mise à jour, causant une erreur lors de la sérialisation FastAPI.
+
+**Solution appliquée :**
+```python
+# Avant (problématique)
+await session.commit()
+await session.refresh(user_in_session)
+return UserRead.model_validate(user_in_session)
+
+# Après (corrigé)
+await session.commit()
+# Nouveau SELECT pour garantir le chargement des relations
+stmt_updated = select(UserModel).where(UserModel.id == current_user.id)
+result_updated = await session.execute(stmt_updated)
+updated_user = result_updated.unique().scalar_one()
+return UserRead.model_validate(updated_user)
+```
+
+**Tests :** Vérifier que la mise à jour du profil ne génère plus d'erreur 500 et que l'interface se met à jour immédiatement. 

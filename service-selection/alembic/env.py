@@ -15,15 +15,17 @@ from alembic import context
 try:
     # Essayer d'abord l'import direct (quand exécuté depuis le répertoire du service)
     try:
-        from app.models import Base, Dataset
-        target_metadata = Base.metadata  # Utiliser Base.metadata au lieu de Dataset.metadata
+        from app.models import Base
+        target_metadata = Base.metadata
+        print("Successfully imported Base metadata from app.models")
     except ImportError:
         # Si l'import direct échoue, essayer depuis le répertoire courant
-        from models import Base, Dataset
-        target_metadata = Base.metadata  # Utiliser Base.metadata au lieu de Dataset.metadata
+        from models import Base
+        target_metadata = Base.metadata
+        print("Successfully imported Base metadata from models")
 except ImportError as e:
     print(f"Erreur d'importation: {e}")
-    print("Could not import Dataset model from app.models or directly from models. Check path and model name.")
+    print("Could not import Base metadata. Using None for manual migrations.")
     target_metadata = None # Set to None if model cannot be imported
 
 # Alembic Config object
@@ -40,6 +42,10 @@ def run_migrations_offline() -> None:
     if not offline_url:
         # Fallback to config file if env var not set for offline
         offline_url = config.get_main_option("sqlalchemy.url")
+    
+    # Convert PostgreSQL URL to asyncpg for consistency
+    if offline_url and offline_url.startswith("postgresql://"):
+        offline_url = offline_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     
     if target_metadata is None:
         print("ERROR: Target metadata could not be determined. Cannot run offline migrations.")
@@ -58,12 +64,11 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection):
     if target_metadata is None:
-        # This should ideally not happen in online mode as import error would likely occur earlier
-        print("ERROR: Target metadata could not be determined. Cannot run migrations.")
-        return
+        print("WARNING: Target metadata is None. Running manual migrations only.")
+    
     context.configure(
         connection=connection,
-        target_metadata=target_metadata,
+        target_metadata=target_metadata,  # Peut être None pour les migrations manuelles
         version_table=config.get_main_option("version_table", "alembic_version"),
     )
 
@@ -73,14 +78,17 @@ def do_run_migrations(connection):
 async def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     if target_metadata is None:
-        print("ERROR: Target metadata could not be determined. Cannot run online migrations.")
-        return
+        print("WARNING: Target metadata is None. Running manual migrations only.")
         
     # Get URL directly from environment variable
     db_url = os.getenv("DATABASE_URL")
     if not db_url:
         raise ValueError("Environment variable DATABASE_URL is not set.")
 
+    # Convert PostgreSQL URL to asyncpg for async SQLAlchemy
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
     print(f"DEBUG [Alembic env.py - service-selection]: Connecting to database with URL: {db_url}")
 
     # Create an async engine specifically for Alembic online mode

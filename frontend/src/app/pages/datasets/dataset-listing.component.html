@@ -1,0 +1,311 @@
+<!-- Page Container -->
+<div class="container-fluid">
+  <!-- Header principal avec carte blanche -->
+  <div class="row">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card m-b-20">
+        <mat-card-content class="p-20">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-16">
+            <!-- Titre et statistiques -->
+            <div class="d-flex align-items-center">
+              <div>
+                <h2 class="mat-h2 m-b-0 d-flex align-items-center">
+                  <mat-icon class="m-r-12 text-primary">dataset</mat-icon>
+                  {{ 'DATASETS.TITLE' | translate }}
+                </h2>
+                <p class="mat-body-2 text-muted m-b-0" *ngIf="datasets.length > 0">
+                  {{ 'DATASETS.LISTING.TOTAL_DATASETS' | translate: {count: datasets.length} }}
+                  <span *ngIf="hasActiveFilters()" class="filtered-indicator">• {{ 'DATASETS.LISTING.FILTERED' | translate }}</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Contrôles principaux -->
+            <div class="d-flex align-items-center gap-12">
+              <!-- Barre de recherche rapide -->
+              <mat-form-field appearance="outline" class="search-field" color="primary">
+                <input 
+                  matInput 
+                  [(ngModel)]="quickSearchTerm"
+                  (input)="onQuickSearch($event)"
+                  [placeholder]="'DATASETS.LISTING.SEARCH_PLACEHOLDER' | translate"
+                  autocomplete="off">
+                <mat-icon matPrefix>search</mat-icon>
+                <button 
+                  *ngIf="quickSearchTerm" 
+                  mat-icon-button 
+                  matSuffix 
+                  (click)="clearQuickSearch()"
+                  [matTooltip]="'COMMON.CLEAR' | translate">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <!-- Bouton Filtres avec indicateur -->
+              <button 
+                mat-raised-button 
+                color="primary"
+                (click)="openFiltersModal()"
+                class="m-r-8"
+                [class.has-filters]="hasActiveFilters()">
+                <mat-icon class="m-r-4">tune</mat-icon>
+                {{ 'COMMON.FILTER' | translate }}
+                <mat-chip *ngIf="hasActiveFilters()" class="filters-count">
+                  {{ getActiveFiltersCount() }}
+                </mat-chip>
+              </button>
+
+              <!-- Contrôles d'affichage -->
+              <mat-button-toggle-group 
+                [(value)]="viewMode" 
+                (change)="onViewChange($event)"
+                class="view-toggle m-r-8">
+                <mat-button-toggle value="grid" [matTooltip]="'DATASETS.LISTING.GRID_VIEW' | translate">
+                  <mat-icon>grid_view</mat-icon>
+                </mat-button-toggle>
+                <mat-button-toggle value="list" [matTooltip]="'DATASETS.LISTING.LIST_VIEW' | translate">
+                  <mat-icon>view_list</mat-icon>
+                </mat-button-toggle>
+              </mat-button-toggle-group>
+
+              <!-- Tri -->
+              <mat-form-field appearance="outline" class="sort-field" color="primary">
+                <mat-label>{{ 'DATASETS.LISTING.SORT_BY' | translate }}</mat-label>
+                <mat-select [(value)]="currentSort" (selectionChange)="onSortChange($event)">
+                  <mat-option value="dataset_name">{{ 'DATASETS.SORT.DATASET_NAME' | translate }}</mat-option>
+                  <mat-option value="year">{{ 'DATASETS.SORT.YEAR' | translate }}</mat-option>
+                  <mat-option value="instances_number">{{ 'DATASETS.SORT.INSTANCES_NUMBER' | translate }}</mat-option>
+                  <mat-option value="features_number">{{ 'DATASETS.SORT.FEATURES_NUMBER' | translate }}</mat-option>
+                  <mat-option value="num_citations">{{ 'DATASETS.SORT.NUM_CITATIONS' | translate }}</mat-option>
+                  <mat-option value="created_at">{{ 'DATASETS.SORT.CREATED_AT' | translate }}</mat-option>
+                  <mat-option value="updated_at">{{ 'DATASETS.SORT.UPDATED_AT' | translate }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Refresh -->
+              <button 
+                mat-icon-button 
+                (click)="refreshDatasets()"
+                [matTooltip]="'COMMON.REFRESH' | translate"
+                color="primary">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Filtres actifs (si présents) -->
+  <div class="row" *ngIf="hasActiveFilters()">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card m-b-20">
+        <mat-card-content class="p-16">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
+            <div class="d-flex align-items-center gap-12">
+              <div class="d-flex align-items-center text-muted">
+                <mat-icon class="m-r-8">filter_list</mat-icon>
+                <span>{{ 'DATASETS.FILTERS.ACTIVE_FILTERS_COUNT' | translate: {count: getActiveFiltersCount()} }}</span>
+              </div>
+              <div class="d-flex flex-wrap gap-8">
+                <div 
+                  *ngFor="let filter of getActiveFiltersChips()" 
+                  class="custom-filter-chip">
+                  <mat-icon class="chip-icon">{{ filter.icon }}</mat-icon>
+                  <span class="chip-label">{{ filter.label }}</span>
+                  <span 
+                    class="chip-remove-btn"
+                    (click)="removeFilter(filter)"
+                    [title]="'Supprimer ce filtre: ' + filter.label">
+                    <mat-icon>close</mat-icon>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button 
+              mat-button 
+              color="warn"
+              (click)="clearAllFilters()">
+              <mat-icon class="m-r-4">clear_all</mat-icon>
+              {{ 'DATASETS.FILTERS.CLEAR' | translate }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="row" *ngIf="isLoading">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <mat-spinner diameter="60"></mat-spinner>
+          <p class="mat-body-1 m-t-16">{{ 'DATASETS.LISTING.LOADING' | translate }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="row" *ngIf="error && !isLoading">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <mat-icon class="icon-48 text-warn m-b-16">error_outline</mat-icon>
+          <h3 class="mat-h3 m-b-12">{{ 'DATASETS.LISTING.ERROR_TITLE' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-20">{{ error }}</p>
+          <button mat-raised-button color="primary" (click)="refreshDatasets()">
+            <mat-icon class="m-r-4">refresh</mat-icon>
+            {{ 'COMMON.RETRY' | translate }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Empty State - Aucun dataset -->
+  <div class="row" *ngIf="!isLoading && !error && datasets.length === 0 && !hasActiveFilters()">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <div class="empty-state-icon m-b-20">
+            <mat-icon class="icon-64 text-primary">dataset</mat-icon>
+          </div>
+          <h3 class="mat-h3 m-b-12">{{ 'DATASETS.LISTING.NO_DATASETS_TITLE' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-24">
+            {{ 'DATASETS.LISTING.NO_DATASETS_MESSAGE' | translate }}
+          </p>
+          <button mat-raised-button color="primary" size="large" (click)="refreshDatasets()">
+            <mat-icon class="m-r-8">refresh</mat-icon>
+            {{ 'COMMON.REFRESH' | translate }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Empty State - Aucun résultat -->
+  <div class="row" *ngIf="!isLoading && !error && datasets.length === 0 && hasActiveFilters()">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="text-center p-40">
+          <div class="empty-state-icon m-b-20">
+            <mat-icon class="icon-64 text-muted">search_off</mat-icon>
+          </div>
+          <h3 class="mat-h3 m-b-12">{{ 'DATASETS.LISTING.NO_RESULTS' | translate }}</h3>
+          <p class="mat-body-1 text-muted m-b-24">
+            {{ 'DATASETS.LISTING.NO_RESULTS_MESSAGE' | translate }}
+          </p>
+          <div class="d-flex justify-content-center gap-12 flex-wrap">
+            <button mat-raised-button color="primary" (click)="clearAllFilters()">
+              <mat-icon class="m-r-4">clear_all</mat-icon>
+              {{ 'DATASETS.FILTERS.CLEAR' | translate }}
+            </button>
+            <button mat-button (click)="openFiltersModal()">
+              <mat-icon class="m-r-4">tune</mat-icon>
+              {{ 'DATASETS.FILTERS.MODIFY' | translate }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Grille des datasets -->
+  <div class="row" *ngIf="!isLoading && !error && datasets.length > 0">
+    <div class="col-lg-4 col-md-6 col-sm-12 m-b-20" 
+         *ngFor="let dataset of datasets; trackBy: trackByDataset"
+         [class.col-lg-12]="viewMode === 'list'">
+      <app-dataset-card
+        [dataset]="dataset"
+        [compact]="viewMode === 'list'"
+        [showActions]="true"
+        (onSelect)="onSelectDataset($event)"
+        (onView)="onViewDataset($event)"
+        (onFavorite)="onToggleFavorite($event)">
+      </app-dataset-card>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="row" *ngIf="!isLoading && !error && datasets.length > 0">
+    <div class="col-lg-12">
+      <mat-card class="cardWithShadow theme-card">
+        <mat-card-content class="d-flex justify-content-center p-16">
+          <mat-paginator
+            [length]="totalDatasets"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[12, 24, 48, 96]"
+            [pageIndex]="currentPage"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+            class="mat-elevation-0">
+          </mat-paginator>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Filtrage -->
+<div class="filters-modal-overlay" *ngIf="showFiltersModal" (click)="closeFiltersModal()">
+  <div class="filters-modal" (click)="$event.stopPropagation()">
+    <!-- Header de la modal -->
+    <div class="modal-header">
+      <div class="modal-title">
+        <mat-icon>tune</mat-icon>
+        <h2>{{ 'DATASETS.FILTERS.TITLE' | translate }}</h2>
+      </div>
+      <button mat-icon-button (click)="closeFiltersModal()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Corps de la modal -->
+    <div class="modal-body">
+      <app-dataset-filters
+        [initialFilters]="tempFilters"
+        [autoApply]="false"
+        [showApplyButton]="false"
+        (filtersChange)="onFiltersPreview($event)"
+        class="modal-filters">
+      </app-dataset-filters>
+    </div>
+
+    <!-- Aperçu des résultats -->
+    <div class="modal-preview" *ngIf="previewCount !== null">
+      <mat-icon>info</mat-icon>
+      <span>{{ previewCount }} dataset{{ previewCount > 1 ? 's' : '' }} trouvé{{ previewCount > 1 ? 's' : '' }}</span>
+    </div>
+
+    <!-- Footer avec actions -->
+    <div class="modal-footer">
+      <div class="modal-actions-left">
+        <button 
+          mat-button 
+          color="warn"
+          (click)="resetFiltersModal()"
+          [disabled]="!hasActiveFilters()">
+          <mat-icon>clear_all</mat-icon>
+          Tout effacer
+        </button>
+      </div>
+      
+      <div class="modal-actions-right">
+        <button mat-button (click)="closeFiltersModal()">
+          Annuler
+        </button>
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="applyFiltersModal()"
+          [disabled]="!hasFilterChanges()">
+          <mat-icon>check</mat-icon>
+          Appliquer
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

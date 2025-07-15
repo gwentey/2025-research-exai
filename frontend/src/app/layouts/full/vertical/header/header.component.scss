@@ -1,0 +1,90 @@
+.search-container {
+  .search-btn-expanded {
+    border: 1px solid #e0e0e0 !important;
+    color: #666 !important;
+    padding: 8px 16px !important;
+    
+    &:hover {
+      border-color: #1976d2 !important;
+      background-color: #f5f5f5 !important;
+    }
+    
+    .text-muted {
+      color: #999 !important;
+      font-size: 14px;
+    }
+  }
+}
+
+.max-width-400 {
+  max-width: 400px;
+}
+
+.topbar {
+  .pulse {
+    position: relative;
+    
+    .heartbit {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: heartbeat 2s infinite;
+    }
+    
+    .point {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+    }
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+// Responsive adjustments for mobile
+@media (max-width: 768px) {
+  .search-container {
+    display: none !important;
+  }
+  
+  .profile-btn {
+    .text-left {
+      display: none !important;
+    }
+  }
+}
+
+// EXAI specific styling
+.exai-notifications {
+  .notification-item {
+    &:hover {
+      background-color: #f8f9ff;
+    }
+  }
+}
+
+.exai-shortcuts {
+  .shortcut-item {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+  }
+} 

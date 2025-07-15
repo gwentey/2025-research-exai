@@ -1,0 +1,407 @@
+= Système de Filtrage et Scoring des Datasets
+:description: Guide technique pour le système optimisé de filtrage et scoring des datasets
+:keywords: datasets, filtrage, scoring, API, backend, frontend
+
+[abstract]
+Guide technique détaillé du système de filtrage et de scoring des datasets dans EXAI, incluant les optimisations de performance et l'architecture backend-first.
+
+== Vue d'ensemble
+
+Le système de filtrage et de scoring des datasets d'EXAI a été entièrement optimisé pour déplacer toute la logique côté backend, éliminant les problèmes de performance et de cohérence de l'ancienne approche hybride.
+
+=== Problèmes de l'Ancienne Architecture
+
+[WARNING]
+====
+*Problèmes identifiés dans l'implémentation précédente :*
+
+* **Double filtrage** : API backend + filtrage côté client redondant
+* **Performance dégradée** : Transfer de toutes les données puis filtrage local
+* **Pagination incorrecte** : Basée sur les données pré-filtrage
+* **Logique dupliquée** : Maintenance difficile avec code dans 2 endroits
+* **Scoring manquant** : Endpoint `/datasets/score` non implémenté
+====
+
+=== Nouvelle Architecture Optimisée
+
+La nouvelle architecture suit le principe *backend-first* avec :
+
+* ✅ **Filtrage complet côté backend** avec SQL optimisé
+* ✅ **Scoring sophistiqué** avec algorithmes multi-critères
+* ✅ **Pagination cohérente** basée sur les données filtrées
+* ✅ **Performance optimale** avec transferts de données minimaux
+* ✅ **Endpoint `/datasets/score`** entièrement implémenté
+
+== API Backend : service-selection
+
+=== Endpoint de Filtrage Principal
+
+==== GET `/datasets`
+
+Support complet de tous les filtres frontend avec aliases :
+
+[IMPORTANT]
+====
+**Logique de Filtrage Multi-Critères :**
+
+* **Filtres de listes** (domaines, tâches) : Logique **AND** - Le dataset doit contenir TOUS les éléments sélectionnés
+* **Filtres numériques** : Logique **ET** - Toutes les conditions doivent être respectées
+* **Filtres booléens** : Logique **ET** - Tous les critères `true` doivent être présents
+
+*Exemple :* Si vous sélectionnez "Finance" ET "Healthcare" dans les domaines, seuls les datasets ayant les deux domaines seront retournés.
+====
+
+[source,http]
+----
+GET /api/v1/datasets?page=1&page_size=24&sort_by=dataset_name&sort_order=asc
+  &dataset_name=student
+  &domain=éducation,santé
+  &instances_number_min=1000
+  &instances_number_max=100000
+  &ethical_score_min=70
+  &is_anonymized=true
+  &is_public=true
+----
+
+[TIP]
+====
+**Filtres supportés :**
+
+* **Textuels** : `dataset_name`, `objective`
+* **Listes** : `domain`, `task` (séparés par virgules)
+* **Numériques** : `year_min/max`, `instances_min/max`, `features_min/max`, `citations_min/max`
+* **Scores** : `ethical_score_min` (0-100%)
+* **Booléens** : `has_missing_values`, `split`, `anonymization_applied`, etc.
+* **Raccourcis** : `is_anonymized`, `is_public`, `is_split`, `has_temporal_factors`
+* **Aliases** : `instances_number_min/max`, `features_number_min/max` pour compatibilité frontend
+====
+
+=== Endpoint de Scoring Avancé
+
+==== POST `/datasets/score`
+
+Endpoint sophistiqué pour le scoring multi-critères :
+
+[source,json]
+----
+{
+  "filters": {
+    "domain": ["éducation"],
+    "instances_number_min": 1000,
+    "ethical_score_min": 60
+  },
+  "weights": [
+    {"criterion_name": "ethical_score", "weight": 0.4},
+    {"criterion_name": "technical_score", "weight": 0.4},
+    {"criterion_name": "popularity_score", "weight": 0.2}
+  ]
+}
+----
+
+*Réponse :* Liste de datasets scorés triés par pertinence décroissante.
+
+=== Algorithmes de Scoring
+
+==== Score Éthique
+
+[source,python]
+----
+def calculate_ethical_score(dataset) -> float:
+    ethical_criteria = [
+        dataset.informed_consent,
+        dataset.transparency,
+        dataset.user_control,
+        dataset.equity_non_discrimination,
+        dataset.security_measures_in_place,
+        dataset.data_quality_documented,
+        dataset.anonymization_applied,
+        dataset.record_keeping_policy_exists,
+        dataset.purpose_limitation_respected,
+        dataset.accountability_defined
+    ]
+    
+    positive_count = sum(1 for criterion in ethical_criteria if criterion is True)
+    return positive_count / len(ethical_criteria)
+----
+
+==== Score Technique
+
+Le score technique combine :
+
+* **Documentation** (30%) : Métadonnées + documentation externe
+* **Qualité des données** (40%) : Valeurs manquantes + split préparé
+* **Taille et richesse** (30%) : Nombre d'instances + features optimal (10-100)
+
+==== Score de Popularité
+
+Score logarithmique basé sur les citations académiques.
+
+=== Critères de Scoring Disponibles
+
+[cols="1,3,1"]
+|===
+|Critère |Description |Type
+
+|`ethical_score`
+|Score éthique global (0.0-1.0)
+|Composé
+
+|`technical_score`
+|Score technique global (0.0-1.0)
+|Composé
+
+|`popularity_score`
+|Score de popularité basé sur citations
+|Composé
+
+|`anonymization`
+|Anonymisation appliquée (1.0/0.0)
+|Binaire
+
+|`transparency`
+|Transparence documentée (1.0/0.0)
+|Binaire
+
+|`informed_consent`
+|Consentement éclairé (1.0/0.0)
+|Binaire
+
+|`documentation`
+|Documentation disponible (1.0/0.0)
+|Binaire
+
+|`data_quality`
+|Qualité des données (0.0-1.0)
+|Continue
+
+|`instances_count`
+|Score basé sur nombre d'instances
+|Continue
+
+|`features_count`
+|Score basé sur nombre de features
+|Continue
+
+|`citations`
+|Score basé sur citations
+|Continue
+
+|`year`
+|Score de nouveauté (2000-2024)
+|Continue
+|===
+
+== Frontend Angular
+
+=== Service DatasetService
+
+==== Méthodes Principales
+
+[source,typescript]
+----
+// Filtrage standard
+getDatasets(params: PaginationParams, filters: DatasetFilterCriteria): Observable<DatasetListResponse>
+
+// Scoring personnalisé
+getDatasetsByScore(scoreRequest: DatasetScoreRequest): Observable<DatasetScored[]>
+
+// Scoring automatique avec profils prédéfinis
+getDatasetsByAutoScore(filters?: DatasetFilterCriteria, scoringProfile: string = 'balanced'): Observable<DatasetScored[]>
+----
+
+==== Profils de Scoring Prédéfinis
+
+[source,typescript]
+----
+const scoringProfiles = {
+  'ethical': [
+    { criterion_name: 'ethical_score', weight: 0.7 },
+    { criterion_name: 'anonymization', weight: 0.2 },
+    { criterion_name: 'informed_consent', weight: 0.1 }
+  ],
+  'technical': [
+    { criterion_name: 'technical_score', weight: 0.6 },
+    { criterion_name: 'data_quality', weight: 0.3 },
+    { criterion_name: 'documentation', weight: 0.1 }
+  ],
+  'popularity': [
+    { criterion_name: 'popularity_score', weight: 0.8 },
+    { criterion_name: 'citations', weight: 0.2 }
+  ],
+  'balanced': [
+    { criterion_name: 'ethical_score', weight: 0.4 },
+    { criterion_name: 'technical_score', weight: 0.4 },
+    { criterion_name: 'popularity_score', weight: 0.2 }
+  ]
+};
+----
+
+=== Composant DatasetListingComponent
+
+==== Suppression du Filtrage Côté Client
+
+[IMPORTANT]
+====
+**Migration terminée :**
+
+* ❌ Méthode `applyClientSideFilters()` supprimée
+* ❌ Méthode `calculateBasicEthicalScore()` supprimée  
+* ✅ Filtrage 100% côté backend
+* ✅ Pagination cohérente avec `response.total_count`
+* ✅ Preview temps réel via appels API
+====
+
+==== Fonctionnalités Conservées
+
+* **Modal de filtrage moderne** avec preview en temps réel
+* **Chips de filtres actifs** avec suppression individuelle
+* **Recherche rapide** intégrée aux filtres backend
+* **Pagination** basée sur les données filtrées backend
+
+== Performance et Optimisations
+
+=== Gains de Performance
+
+[cols="2,3,3"]
+|===
+|Aspect |Avant |Après
+
+|**Transfer réseau**
+|Tous les datasets puis filtrage local
+|Seulement datasets pertinents
+
+|**Pagination**
+|Basée sur données pré-filtrage
+|Basée sur données filtrées
+
+|**Preview temps réel**
+|Simulation côté client
+|Appel API avec `page_size=1`
+
+|**Scoring éthique**
+|Calcul basique frontend
+|Algorithme sophistiqué backend
+
+|**Maintenance**
+|Logic dupliquée (2 endroits)
+|Logique centralisée backend
+|===
+
+=== Optimisations SQL
+
+Le backend utilise des requêtes SQL optimisées :
+
+* **Filtrage natif** avec indexes appropriés
+* **Calcul de score éthique** en SQL avec `CASE` statements
+* **Pagination efficace** avec `OFFSET`/`LIMIT`
+* **Tri performant** avec colonnes indexées
+
+== Guide d'Utilisation
+
+=== Filtrage Standard
+
+[source,typescript]
+----
+// Dans un composant Angular
+const filters: DatasetFilterCriteria = {
+  domain: ['éducation', 'santé'],
+  instances_number_min: 1000,
+  ethical_score_min: 70,
+  is_anonymized: true
+};
+
+const params: PaginationParams = {
+  page: 1,
+  page_size: 24,
+  sort_by: 'num_citations',
+  sort_order: 'desc'
+};
+
+this.datasetService.getDatasets(params, filters).subscribe(response => {
+  this.datasets = response.datasets;
+  this.totalCount = response.total_count;
+});
+----
+
+=== Scoring Personnalisé
+
+[source,typescript]
+----
+// Scoring avec critères personnalisés
+const scoreRequest: DatasetScoreRequest = {
+  filters: {
+    domain: ['éducation'],
+    instances_number_min: 500
+  },
+  weights: [
+    { criterion_name: 'ethical_score', weight: 0.6 },
+    { criterion_name: 'technical_score', weight: 0.3 },
+    { criterion_name: 'citations', weight: 0.1 }
+  ]
+};
+
+this.datasetService.getDatasetsByScore(scoreRequest).subscribe(scoredDatasets => {
+  // Datasets triés par score de pertinence décroissant
+  this.datasets = scoredDatasets;
+});
+----
+
+=== Scoring Automatique
+
+[source,typescript]
+----
+// Utilisation d'un profil prédéfini
+this.datasetService.getDatasetsByAutoScore(filters, 'ethical').subscribe(datasets => {
+  // Datasets scorés selon profil éthique
+});
+----
+
+== Tests et Validation
+
+=== Tests Backend
+
+[source,bash]
+----
+# Test de l'endpoint de filtrage
+curl -X GET "http://localhost:8000/datasets?instances_number_min=1000&ethical_score_min=70"
+
+# Test de l'endpoint de scoring
+curl -X POST "http://localhost:8000/datasets/score" \
+  -H "Content-Type: application/json" \
+  -d '{"filters":{"domain":["éducation"]},"weights":[{"criterion_name":"ethical_score","weight":0.8}]}'
+----
+
+=== Tests Frontend
+
+Tous les tests existants continuent de fonctionner car l'interface publique du `DatasetService` reste compatible.
+
+== Migration et Rétrocompatibilité
+
+=== Compatibilité API
+
+* ✅ **Endpoint `/datasets`** : Compatible avec ajouts de paramètres
+* ✅ **Modèles TypeScript** : Aucune modification breaking
+* ✅ **Service Angular** : Interface publique préservée
+* ✅ **Composants** : Fonctionnalités utilisateur identiques
+
+=== Points d'Attention
+
+[CAUTION]
+====
+**Changements internes uniquement :**
+
+* La méthode `applyClientSideFilters()` n'existe plus
+* Le calcul de score éthique ne se fait plus côté frontend
+* Les appels API peuvent retourner moins de datasets (filtrage backend)
+====
+
+== Conclusion
+
+L'optimisation du système de filtrage et scoring représente une amélioration majeure :
+
+* **Performance** : Transferts réseau réduits et requêtes SQL optimisées
+* **Maintenabilité** : Logique centralisée côté backend
+* **Fonctionnalités** : Scoring sophistiqué multi-critères
+* **UX** : Preview temps réel et pagination cohérente
+
+Cette architecture backend-first constitue une base solide pour les futures évolutions du système de recommandation de datasets. 

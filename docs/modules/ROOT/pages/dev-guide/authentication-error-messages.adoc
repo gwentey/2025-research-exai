@@ -1,0 +1,173 @@
+= Messages d'Erreur d'Authentification Améliorés
+:description: Gestion des messages d'erreur spécifiques lors de l'inscription et de la connexion
+:keywords: authentification, erreurs, messages, OAuth, inscription
+
+== Vue d'ensemble
+
+Cette documentation explique les améliorations apportées aux messages d'erreur d'authentification pour fournir des retours plus précis et utiles aux utilisateurs lors de l'inscription et de la connexion.
+
+== Problématiques Adressées
+
+=== Messages d'erreur génériques
+Avant ces améliorations, les utilisateurs recevaient des messages d'erreur génériques comme "Accès refusé" qui ne fournissaient pas suffisamment d'informations pour comprendre le problème et prendre les bonnes actions.
+
+=== Conflits entre comptes OAuth et classiques
+Lorsqu'un utilisateur essayait de s'inscrire avec un email déjà associé à un compte Google, le système ne distinguait pas ce cas d'une simple duplication d'email.
+
+== Améliorations Implémentées
+
+=== 1. Détection de Comptes OAuth Existants
+
+Dans l'API Gateway, la route d'inscription (`/auth/register`) vérifie maintenant :
+
+1. Si l'email existe dans la table `User`
+2. Si l'email est associé à un compte OAuth (table `OAuthAccount`)
+
+[source,python]
+----
+# Vérifier si l'email existe déjà
+query = select(func.count()).select_from(UserModel).where(UserModel.email == user_create.email)
+result = await session.execute(query)
+count = result.scalar()
+
+if count > 0:
+    # L'email existe déjà, vérifier s'il est associé à un compte OAuth
+    oauth_query = select(func.count()).select_from(OAuthAccount).where(OAuthAccount.account_email == user_create.email)
+    oauth_result = await session.execute(oauth_query)
+    oauth_count = oauth_result.scalar()
+    
+    if oauth_count > 0:
+        # Compte OAuth détecté
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "EMAIL_ALREADY_LINKED_TO_OAUTH", "error_code": "EMAIL_OAUTH_CONFLICT"}
+        )
+    else:
+        # Duplication d'email classique
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "EMAIL_ALREADY_EXISTS", "error_code": "EMAIL_DUPLICATE"}
+        )
+----
+
+=== 2. Codes d'Erreur Structurés
+
+Le backend retourne maintenant des codes d'erreur spécifiques :
+
+- `EMAIL_OAUTH_CONFLICT` : L'email est déjà associé à un compte OAuth
+- `EMAIL_DUPLICATE` : L'email est déjà utilisé par un compte classique
+
+=== 3. Messages d'Erreur Localisés
+
+Nouveaux messages ajoutés dans les fichiers de traduction :
+
+==== Français (`fr.json`)
+[source,json]
+----
+"EMAIL_ALREADY_LINKED_TO_OAUTH": "Votre compte est déjà associé à un compte Google. Veuillez vous connecter avec Google.",
+"EMAIL_ALREADY_EXISTS": "Un compte est déjà associé à cette adresse email. Veuillez vous connecter ou utiliser une autre adresse."
+----
+
+==== Anglais (`en.json`)
+[source,json]
+----
+"EMAIL_ALREADY_LINKED_TO_OAUTH": "Your account is already linked to a Google account. Please sign in with Google.",
+"EMAIL_ALREADY_EXISTS": "An account is already associated with this email address. Please sign in or use a different email."
+----
+
+=== 4. Gestion Frontend
+
+Le composant d'inscription (`side-register.component.ts`) traite maintenant les nouveaux codes d'erreur :
+
+[source,typescript]
+----
+error: (error) => {
+  console.error('Signup failed:', error);
+  this.signupSuccess = false;
+  
+  // Gérer les nouveaux codes d'erreur spécifiques du backend
+  if (error.message?.includes('EMAIL_ALREADY_LINKED_TO_OAUTH')) {
+    this.signupError = this.translate.instant('ERRORS.EMAIL_ALREADY_LINKED_TO_OAUTH');
+  } else if (error.message?.includes('EMAIL_ALREADY_EXISTS')) {
+    this.signupError = this.translate.instant('ERRORS.EMAIL_ALREADY_EXISTS');
+  } else if (error.message?.includes('400')) {
+    this.signupError = this.translate.instant('ERRORS.ACCESS_DENIED');
+  } else {
+    this.signupError = error.message || this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
+  }
+}
+----
+
+== Scénarios de Test
+
+=== Scénario 1 : Inscription avec Email OAuth Existant
+
+1. Un utilisateur se connecte via Google avec `user@example.com`
+2. Plus tard, le même utilisateur essaie de s'inscrire avec le formulaire classique en utilisant `user@example.com`
+3. **Résultat attendu** : Message "Votre compte est déjà associé à un compte Google. Veuillez vous connecter avec Google."
+
+=== Scénario 2 : Double Inscription Classique
+
+1. Un utilisateur s'inscrit via le formulaire classique avec `user@example.com`
+2. Le même utilisateur essaie de s'inscrire à nouveau avec `user@example.com`
+3. **Résultat attendu** : Message "Un compte est déjà associé à cette adresse email. Veuillez vous connecter ou utiliser une autre adresse."
+
+=== Scénario 3 : Inscription Normale
+
+1. Un utilisateur s'inscrit avec un email non utilisé
+2. **Résultat attendu** : Inscription réussie
+
+== Architecture Technique
+
+=== Flux de Validation
+
+. **Frontend** : Validation du formulaire
+. **API Gateway** : Réception de la requête d'inscription
+. **Base de Données** : Vérifications en 2 étapes
+  .. Vérification dans la table `User`
+  .. Si email existe, vérification dans la table `OAuthAccount`
+. **Réponse** : Code d'erreur spécifique ou succès
+. **Frontend** : Affichage du message approprié
+
+=== Tables Impliquées
+
+[cols="1,3"]
+|===
+|Table |Utilisation
+
+|`user`
+|Stockage des comptes utilisateurs (OAuth et classiques)
+
+|`oauth_account`
+|Liaison entre utilisateurs et comptes OAuth (Google, etc.)
+|===
+
+== Maintenance et Évolutions
+
+=== Ajout de Nouveaux Fournisseurs OAuth
+
+Pour ajouter un nouveau fournisseur OAuth (Microsoft, Facebook, etc.) :
+
+1. Modifier la requête de vérification pour inclure le nouveau fournisseur
+2. Adapter les messages d'erreur si nécessaire
+3. Mettre à jour la documentation
+
+=== Extension des Messages d'Erreur
+
+Pour ajouter de nouveaux types d'erreurs :
+
+1. Définir un nouveau code d'erreur dans le backend
+2. Ajouter le message dans les fichiers de traduction
+3. Mettre à jour la logique de gestion d'erreur frontend
+4. Créer les tests appropriés
+
+== Impact Utilisateur
+
+Ces améliorations permettent aux utilisateurs de :
+
+- **Comprendre** exactement pourquoi leur inscription a échoué
+- **Identifier** le type de compte qu'ils possèdent déjà
+- **Prendre la bonne action** (se connecter avec Google, utiliser un autre email, etc.)
+- **Éviter la frustration** liée aux messages d'erreur vagues
+
+Cette approche améliore significativement l'expérience utilisateur et réduit les demandes de support liées à l'authentification. 

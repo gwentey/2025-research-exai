@@ -1,0 +1,196 @@
+// Styles pour le composant de profil
+
+.avatar-container {
+  .avatar-edit-btn {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+.image-upload-actions {
+  .mat-flat-button,
+  .mat-stroked-button {
+    min-width: 100px;
+  }
+}
+
+// Styles pour les chips de statut
+.chip-success {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  
+  .icon-14 {
+    color: #4caf50;
+  }
+}
+
+.chip-primary {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  
+  .icon-14 {
+    color: #2196f3;
+  }
+}
+
+// Amélioration de l'affichage responsive
+@media (max-width: 768px) {
+  .avatar-container {
+    img {
+      width: 100px !important;
+      height: 100px !important;
+    }
+  }
+  
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 16px;
+    
+    button {
+      align-self: stretch;
+    }
+  }
+  
+  .image-upload-actions {
+    .mat-flat-button,
+    .mat-stroked-button {
+      width: 100%;
+      margin: 4px 0 !important;
+    }
+  }
+  
+  .gap-12 {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+      margin: 4px 0 !important;
+    }
+  }
+}
+
+// Animation pour le spinner
+.mat-spinner {
+  display: inline-block;
+}
+
+// Styles pour les mat-cards
+.cardWithShadow {
+  transition: box-shadow 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Amélioration de l'espacement des formulaires
+.mat-form-field {
+  .mat-icon {
+    color: rgba(0, 0, 0, 0.54);
+  }
+}
+
+// Style pour les boutons d'action
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-12 {
+  gap: 12px;
+}
+
+// Styles pour la zone de danger
+.danger-card {
+  border-left: 4px solid #f44336;
+  background: linear-gradient(135deg, #fff 0%, #fff8f8 100%);
+  
+  // Le header utilise maintenant les classes standard (p-24 p-b-0)
+  // Le titre utilise les classes standard (f-s-18 f-w-600 d-flex align-items-center)  
+  // L'icône utilise les classes standard (icon-20 m-r-8 text-danger)
+  
+  .danger-zone {
+    .danger-description {
+      color: #5f5f5f;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 16px 0;
+      font-weight: 400;
+    }
+    
+    .delete-account-btn {
+      background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: none;
+      box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+      transition: all 0.3s ease;
+      width: 100%;
+      min-height: 44px;
+      
+      // Alignement parfait de l'icône avec le texte
+      i-tabler[name="trash"] {
+        color: white;
+        vertical-align: middle;
+        display: inline-flex;
+        align-items: center;
+        margin-top: -2px; // Ajustement fin pour l'alignement parfait
+      }
+      
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+        transform: translateY(-1px);
+      }
+      
+      &:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+      }
+      
+      &:disabled {
+        background: #e0e0e0;
+        color: #9e9e9e;
+        box-shadow: none;
+        cursor: not-allowed;
+        
+        i-tabler[name="trash"] {
+          color: #9e9e9e;
+        }
+      }
+    }
+  }
+}
+
+// Styles pour la boîte de dialogue de suppression de compte - utilise les styles standard du projet
+::ng-deep .cdk-overlay-pane {
+  max-width: none !important;
+}
+
+// Forcer l'affichage complet des boutons dans la dialog
+::ng-deep .mat-mdc-dialog-actions {
+  min-height: 80px !important;
+  padding-bottom: 32px !important;
+  padding-top: 32px !important;
+  overflow: visible !important;
+  
+  button {
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+    min-height: 44px !important;
+  }
+}
+
+// Couleurs des icônes
+.text-danger {
+  color: #f44336 !important;
+} 

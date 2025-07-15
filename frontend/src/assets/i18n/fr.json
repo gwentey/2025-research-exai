@@ -1,7 +1,888 @@
 {
-  "Starter": "Analytique",
-  "Menu Level": "Niveau menu",
-  "Menu 1": "Menu 1",
-  "Menu 2": "Menu 2",
-  "Disabled": "Désactivé"
+  "MENU": {
+    "NAVIGATION": "Navigation",
+    "DATA_ANALYSIS": "Données & Analyse",
+    "DASHBOARD": "Tableau de bord",
+    "PROJECTS": "Projets",
+    "DATASETS": "Jeux de données",
+    "ML_PIPELINE": "Pipeline ML",
+    "XAI_EXPLANATIONS": "Explications XAI",
+    "PROFILE": "Profil",
+    "HELP": "Aide et Support"
+  },
+  "AUTH": {
+    "LOGIN": "Connexion",
+    "REGISTER": "Inscription",
+    "LOGOUT": "Déconnexion",
+    "EMAIL": "E-mail",
+    "PASSWORD": "Mot de passe",
+    "CONFIRM_PASSWORD": "Confirmer le mot de passe",
+    "REMEMBER_ME": "Se souvenir de moi",
+    "FORGOT_PASSWORD": "Mot de passe oublié ?",
+    "SIGN_IN": "Se connecter",
+    "SIGN_UP": "S'inscrire",
+    "WELCOME_BACK": "Bon retour",
+    "CREATE_ACCOUNT": "Créer votre compte",
+    "OR_CONTINUE_WITH": "Ou continuer avec",
+    "GOOGLE": "Google",
+    "MICROSOFT": "Microsoft",
+    "LOGIN": {
+      "TITLE": "Bon retour",
+      "SUBTITLE": "Connectez-vous pour accéder à votre espace ExAI",
+      "EMAIL_LABEL": "Adresse e-mail",
+      "PASSWORD_LABEL": "Mot de passe",
+      "SUBMIT": "Se connecter",
+      "GOOGLE": "Se connecter avec Google",
+      "GOOGLE_LOADING": "Connexion avec Google en cours...",
+      "FORGOT_PASSWORD": "Mot de passe oublié ?",
+      "CREATE_ACCOUNT": "Pas de compte ? Créez-en un",
+      "EMAIL_REQUIRED": "L'e-mail est obligatoire",
+      "EMAIL_INVALID": "Veuillez saisir une adresse e-mail valide",
+      "PASSWORD_REQUIRED": "Le mot de passe est obligatoire",
+      "FORM_INVALID": "Veuillez corriger les erreurs ci-dessous",
+      "INVALID_CREDENTIALS": "E-mail ou mot de passe incorrect"
+    },
+    "REGISTER": {
+      "TITLE": "Créer un compte",
+      "SUBTITLE": "Rejoignez la plateforme ExAI pour commencer",
+      "EMAIL_LABEL": "Adresse e-mail",
+      "PASSWORD_LABEL": "Mot de passe",
+      "CONFIRM_PASSWORD_LABEL": "Confirmer le mot de passe",
+      "FIRST_NAME_LABEL": "Prénom",
+      "LAST_NAME_LABEL": "Nom",
+      "SUBMIT": "Créer le compte",
+      "GOOGLE": "S'inscrire avec Google",
+      "SIGN_IN_LINK": "Déjà un compte ? Connectez-vous",
+      "TERMS_ACCEPTANCE": "J'accepte les Conditions d'utilisation et la Politique de confidentialité",
+      "SUCCESS": "Compte créé avec succès",
+      "PASSWORD_MISMATCH": "Les mots de passe ne correspondent pas",
+      "TERMS_REQUIRED": "Vous devez accepter les conditions pour continuer"
+    }
+  },
+  "COMMON": {
+    "LOADING": "Chargement..."
+  },
+  "DASHBOARD": {
+    "TITLE": "Tableau de Bord EXAI",
+    "SUBTITLE": "Vue d'ensemble de votre plateforme d'IA explicable",
+    "REFRESH": "Actualiser",
+    "NEW_PROJECT": "Nouveau Projet",
+    "METRICS": {
+      "DATASETS": {
+        "TITLE": "DATASETS DISPONIBLES",
+        "CHANGE": "+{{count}} cette semaine"
+      },
+      "PIPELINES": {
+        "TITLE": "PIPELINES ML ACTIFS",
+        "CHANGE": "{{count}} en cours"
+      },
+      "EXPLANATIONS": {
+        "TITLE": "EXPLICATIONS XAI",
+        "CHANGE": "+{{count}} ce mois"
+      },
+      "USERS": {
+        "TITLE": "UTILISATEURS ACTIFS",
+        "CHANGE": "Aujourd'hui"
+      }
+    },
+    "ACTIVITY": {
+      "TITLE": "Activité Récente",
+      "SUBTITLE": "Dernières actions sur la plateforme",
+      "ITEMS": {
+        "DATASET_ADDED": {
+          "TITLE": "Dataset EdNet ajouté",
+          "DESCRIPTION": "Nouveau dataset éducationnel avec 5 fichiers",
+          "TIMESTAMP": "Il y a 2 heures"
+        },
+        "PIPELINE_COMPLETED": {
+          "TITLE": "Pipeline ML terminé",
+          "DESCRIPTION": "Classification des étudiants - Accuracy: 94.2%",
+          "TIMESTAMP": "Il y a 5 heures"
+        },
+        "EXPLANATION_GENERATED": {
+          "TITLE": "Explication SHAP générée",
+          "DESCRIPTION": "Analyse des features importantes pour la prédiction",
+          "TIMESTAMP": "Hier"
+        },
+        "USER_LOGIN": {
+          "TITLE": "Connexion utilisateur",
+          "DESCRIPTION": "Nouvel utilisateur connecté via OAuth",
+          "TIMESTAMP": "Il y a 1 jour"
+        }
+      }
+    },
+    "DATASETS": {
+      "TITLE": "Répartition des Datasets",
+      "SUBTITLE": "{{total}} datasets disponibles",
+      "DOMAINS": {
+        "EDUCATION": "Éducation",
+        "HEALTH": "Santé",
+        "FINANCE": "Finance",
+        "OTHER": "Autres"
+      }
+    },
+    "QUICK_ACTIONS": {
+      "TITLE": "Actions Rapides",
+      "SUBTITLE": "Démarrez votre analyse",
+      "ITEMS": {
+        "EXPLORE_DATASETS": {
+          "TITLE": "Explorer les Datasets",
+          "DESCRIPTION": "Parcourir et sélectionner vos données"
+        },
+        "CREATE_PIPELINE": {
+          "TITLE": "Créer un Pipeline ML",
+          "DESCRIPTION": "Entraîner un nouveau modèle"
+        },
+        "GENERATE_EXPLANATIONS": {
+          "TITLE": "Générer des Explications",
+          "DESCRIPTION": "Comprendre vos modèles avec XAI"
+        },
+        "VIEW_DOCUMENTATION": {
+          "TITLE": "Voir la Documentation",
+          "DESCRIPTION": "Guides et tutoriels EXAI"
+        }
+      }
+    },
+    "SYSTEM_STATUS": {
+      "TITLE": "État du Système",
+      "SUBTITLE": "Services EXAI",
+      "API_GATEWAY": "API Gateway",
+      "DATASET_SERVICE": "Service Datasets",
+      "ML_PIPELINE": "Pipeline ML",
+      "XAI_ENGINE": "Moteur XAI",
+      "ONLINE": "En ligne",
+      "DEVELOPMENT": "En développement",
+      "LAST_UPDATE": "Dernière mise à jour: il y a 5 min"
+    }
+  },
+  "PROJECTS": {
+    "TITLE": "Mes Projets",
+    "NEW_PROJECT": "Nouveau Projet",
+    "PROJECT_NAME": "Nom du Projet",
+    "PROJECT_DESCRIPTION": "Description du Projet",
+    "DATASET": "Jeu de données",
+    "SELECT_DATASET": "Sélectionner un jeu de données",
+    "CREATED": "Créé",
+    "UPDATED": "Dernière mise à jour",
+    "ACTIONS": "Actions",
+    "EDIT": "Modifier",
+    "DELETE": "Supprimer",
+    "VIEW": "Voir",
+    "NO_PROJECTS": "Aucun projet trouvé",
+    "CREATE_FIRST": "Créez votre premier projet pour commencer",
+    "RECENT": "Récent",
+    "STATUS": {
+      "ACTIVE": "Actif",
+      "COMPLETED": "Terminé",
+      "DRAFT": "Brouillon"
+    },
+    "FORM": {
+      "CREATE_PROJECT": "Créer un Nouveau Projet",
+      "EDIT_PROJECT": "Modifier le Projet",
+      "CREATE_SUBTITLE": "Créez un nouveau projet d'analyse ML avec scoring automatique",
+      "EDIT_SUBTITLE": "Modifiez les paramètres de votre projet",
+      "NAME_REQUIRED": "Le nom du projet est obligatoire",
+      "DESCRIPTION_REQUIRED": "La description est obligatoire",
+      "DATASET_REQUIRED": "Veuillez sélectionner un jeu de données",
+      "SAVE": "Créer le Projet",
+      "UPDATE": "Mettre à Jour",
+      "CANCEL": "Annuler",
+      "PROJECT_INFO": "Informations du Projet",
+      "SELECTION_CRITERIA": "Critères de Sélection",
+      "NAME_LABEL": "Nom du Projet",
+      "NAME_PLACEHOLDER": "Saisissez un nom descriptif pour votre projet",
+      "DESCRIPTION_LABEL": "Description (optionnelle)",
+      "DESCRIPTION_PLACEHOLDER": "Décrivez l'objectif et le contexte de votre projet",
+      "DATASET_LABEL": "Sélection du Jeu de Données",
+      "DATASET_PLACEHOLDER": "Choisissez un jeu de données pour l'analyse",
+      "LOADING": "Création du projet en cours..."
+    },
+    "DETAIL": {
+      "TITLE": "Détails du Projet",
+      "OVERVIEW": "Vue d'ensemble",
+      "CONFIGURATION": "Configuration",
+      "RESULTS": "Résultats",
+      "EDIT": "Modifier le Projet",
+      "DELETE": "Supprimer le Projet",
+      "PIPELINE_STATUS": "Statut du Pipeline",
+      "LAST_RUN": "Dernière Exécution",
+      "ACCURACY": "Précision du Modèle"
+    },
+    "LIST": {
+      "RESULTS_COUNT": "{{count}} projets trouvés",
+      "LOADING": "Chargement des projets...",
+      "LOADING_ERROR": "Erreur lors du chargement des projets. Veuillez réessayer.",
+      "LOADING_ERROR_TITLE": "Erreur de chargement",
+      "NO_PROJECTS": "Aucun projet disponible",
+      "NO_PROJECTS_TITLE": "Aucun projet",
+      "NO_PROJECTS_MESSAGE": "Créez votre premier projet pour commencer à organiser vos recherches de datasets.",
+      "NO_SEARCH_RESULTS_TITLE": "Aucun projet trouvé",
+      "NO_SEARCH_RESULTS_MESSAGE": "Aucun projet ne correspond à votre recherche \"{{searchTerm}}\".",
+      "CREATE_FIRST_PROJECT": "Créer mon premier projet",
+      "CREATE_NEW_PROJECT": "Créer un nouveau projet",
+      "CLEAR_SEARCH": "Effacer la recherche",
+      "SEARCH_PLACEHOLDER": "Rechercher des projets...",
+      "SORT_BY": "Trier par",
+      "SORT_NAME": "Nom",
+      "SORT_DATE": "Date de création",
+      "FILTER_STATUS": "Filtrer par Statut"
+    },
+    "DELETE": {
+      "CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir supprimer le projet \"{{name}}\" ?",
+      "ERROR": "Erreur lors de la suppression du projet."
+    },
+    "CRITERIA": {
+      "ETHICAL_SCORE": "Score Éthique",
+      "TECHNICAL_SCORE": "Score Technique",
+      "POPULARITY_SCORE": "Popularité",
+      "ANONYMIZATION": "Anonymisation",
+      "DOCUMENTATION": "Documentation",
+      "DATA_QUALITY": "Qualité des Données",
+      "SUBTITLE": "Définissez les critères pour filtrer les datasets",
+      "PROJECT_CONTEXT": "Contexte du Projet",
+      "OBJECTIVE_DESCRIPTION": "Description ou mots-clés de l'objectif",
+      "OBJECTIVE_PLACEHOLDER": "Ex: analyse prédictive, classification étudiants, détection anomalies...",
+      "OBJECTIVE_HINT": "Décrivez le type d'analyse ou d'objectif recherché",
+      "APPLICATION_DOMAIN": "Domaine d'Application",
+      "ACTIVITY_SECTORS": "Secteurs d'activité",
+      "SELECT_SECTORS_HINT": "Sélectionnez un ou plusieurs secteurs",
+      "ML_TASK_TYPE": "Type de tâche ML",
+      "ALGORITHMS_HINT": "Types d'algorithmes envisagés",
+      "DOMAINS": {
+        "EDUCATION": "Éducation",
+        "HEALTH": "Santé",
+        "FINANCE": "Finance",
+        "TRANSPORT": "Transport",
+        "RETAIL": "Commerce"
+      },
+      "TASKS": {
+        "CLASSIFICATION": "Classification",
+        "REGRESSION": "Régression",
+        "CLUSTERING": "Clustering",
+        "NLP": "NLP",
+        "COMPUTER_VISION": "Vision"
+      },
+      "TECHNICAL_REQUIREMENTS": "Exigences Techniques",
+      "OPTIONAL": "optionnel",
+      "INSTANCES_NUMBER": "Nombre d'instances",
+      "FEATURES_NUMBER": "Nombre de variables",
+      "MIN": "Min",
+      "MAX": "Max",
+      "TO": "à",
+      "CREATION_PERIOD": "Période de création",
+      "MIN_ETHICAL_SCORE": "Score éthique minimum",
+      "NO_REQUIREMENT": "Aucune exigence",
+      "ACCEPTABLE": "Acceptable",
+      "GOOD": "Bon",
+      "VERY_GOOD": "Très bon",
+      "EXCELLENT": "Excellent",
+      "CHARACTERISTICS": "Caractéristiques",
+      "ALREADY_SPLIT": "Déjà divisé (train/test)",
+      "ANONYMIZED": "Anonymisé",
+      "PUBLIC_ACCESS": "Accès public"
+    },
+    "WEIGHTS": {
+      "TITLE": "Pondération des Critères",
+      "SUBTITLE": "Ajustez l'importance de chaque critère de scoring",
+      "DEFAULT_VALUES": "Valeurs par défaut",
+      "ACTIVE_CRITERIA": "Critères actifs :"
+    },
+    "RECOMMENDATIONS": {
+      "TOP_3": "Top 3 Recommandations",
+      "CALCULATING": "Calcul en cours...",
+      "NO_DATASETS_FOUND": "Aucun dataset trouvé",
+      "ADJUST_CRITERIA": "Ajustez vos critères"
+    },
+    "HEATMAP": {
+      "TITLE": "Heat Map des Recommandations Apache ECharts",
+      "SUBTITLE": "Visualisation interactive Apache ECharts - {{datasets}} datasets sur {{criteria}} critères",
+      "LEGEND": {
+        "LOW": "Faible (0-30%)",
+        "MEDIUM": "Moyen (30-60%)",
+        "GOOD": "Bon (60-85%)",
+        "EXCELLENT": "Excellent (85%+)"
+      },
+      "INFO": {
+        "CRITERIA_ANALYZED": "{{count}} critères analysés",
+        "DATASETS_COMPARED": "{{count}} datasets comparés",
+        "CDN_POWERED": "Apache ECharts CDN"
+      },
+      "LOADING": "Chargement d'ECharts...",
+      "NO_DATA": "Configurez des poids pour afficher la heat map ECharts",
+      "CRITERIA_LABELS": {
+        "ETHICAL_SCORE": "Éthique",
+        "TECHNICAL_SCORE": "Technique",
+        "POPULARITY_SCORE": "Popularité",
+        "ANONYMIZATION": "Anonymisation",
+        "TRANSPARENCY": "Transparence",
+        "INFORMED_CONSENT": "Consentement",
+        "DOCUMENTATION": "Documentation",
+        "DATA_QUALITY": "Qualité"
+      }
+    }
+  },
+  "DATASETS": {
+    "TITLE": "Jeux de Données Disponibles",
+    "SEARCH": "Rechercher des jeux de données...",
+    "FILTER": "Filtrer",
+    "TYPE": "Type",
+    "SIZE": "Taille",
+    "LAST_UPDATED": "Dernière mise à jour",
+    "DESCRIPTION": "Description",
+    "DOWNLOAD": "Télécharger",
+    "PREVIEW": "Aperçu",
+    "SELECT": "Sélectionner",
+    "SELECTED": "Sélectionné",
+    "NO_DATASETS": "Aucun jeu de données disponible",
+    "EDUCATIONAL": "Éducationnel",
+    "BEHAVIORAL": "Comportemental",
+    "ENGAGEMENT": "Engagement",
+    "LISTING": {
+      "TITLE": "Collection de Jeux de Données",
+      "SUBTITLE": "Explorez et sélectionnez parmi nos jeux de données organisés",
+      "SEARCH_PLACEHOLDER": "Rechercher par nom, type ou description...",
+      "GRID_VIEW": "Vue en Grille",
+      "LIST_VIEW": "Vue en Liste",
+      "SORT_BY": "Trier par",
+      "SORT_NAME": "Nom",
+      "SORT_SIZE": "Taille",
+      "SORT_DATE": "Date d'ajout",
+      "FILTER_TYPE": "Filtrer par Type",
+      "FILTER_SIZE": "Filtrer par Taille",
+      "NO_RESULTS": "Aucun jeu de données ne correspond à vos critères",
+      "NO_RESULTS_MESSAGE": "Essayez de modifier vos critères de recherche ou de filtrage.",
+      "LOADING": "Chargement des jeux de données...",
+      "ERROR_TITLE": "Erreur de chargement",
+      "TOTAL_DATASETS": "{{count}} jeux de données disponibles",
+      "FILTERED": "filtrés"
+    },
+    "SORT": {
+      "DATASET_NAME": "Nom",
+      "YEAR": "Année",
+      "INSTANCES_NUMBER": "Nombre d'instances",
+      "FEATURES_NUMBER": "Nombre de features",
+      "NUM_CITATIONS": "Citations",
+      "CREATED_AT": "Date de création",
+      "UPDATED_AT": "Dernière modification"
+    },
+    "FILTERS": {
+      "TITLE": "Filtres Avancés",
+      "APPLY": "Appliquer les Filtres",
+      "CLEAR": "Tout Effacer",
+      "MODIFY": "Modifier les filtres",
+      "TYPE_LABEL": "Type de Jeu de Données",
+      "SIZE_LABEL": "Taille du Jeu de Données",
+      "DATE_LABEL": "Plage de Dates",
+      "DOMAIN_LABEL": "Domaine",
+      "RESET": "Réinitialiser les Filtres",
+      "ACTIVE_FILTERS_COUNT": "{{count}} filtre(s) actif(s) :"
+    }
+  },
+  "PROFILE": {
+    "TITLE": "Profil Utilisateur",
+    "SUBTITLE": "Gérez vos informations personnelles et préférences",
+    "BACK_TO_DASHBOARD": "Retour au Tableau de Bord",
+    "CHANGE_PHOTO": "Changer la Photo",
+    "UPLOADING": "Téléchargement...",
+    "CONFIRM": "Confirmer",
+    "CANCEL": "Annuler",
+    "STATUS": {
+      "VERIFIED": "Vérifié",
+      "ACTIVE": "Actif"
+    },
+    "PERSONAL_INFO": {
+      "TITLE": "Informations Personnelles",
+      "EMAIL": "Adresse E-mail",
+      "EMAIL_PLACEHOLDER": "Votre adresse e-mail",
+      "EMAIL_READONLY": "L'adresse e-mail ne peut pas être modifiée",
+      "PSEUDO": "Nom d'utilisateur",
+      "PSEUDO_PLACEHOLDER": "Choisissez un nom d'utilisateur",
+      "LANGUAGE": "Langue",
+      "FIRST_NAME": "Prénom",
+      "FIRST_NAME_PLACEHOLDER": "Votre prénom",
+      "LAST_NAME": "Nom de famille",
+      "LAST_NAME_PLACEHOLDER": "Votre nom de famille",
+      "EDUCATION_LEVEL": "Niveau d'éducation",
+      "AGE": "Âge",
+      "AGE_PLACEHOLDER": "Votre âge",
+      "AGE_MIN_ERROR": "L'âge doit être d'au moins 13 ans",
+      "AGE_MAX_ERROR": "L'âge ne peut pas dépasser 120 ans",
+      "AI_FAMILIARITY": "Familiarité avec l'IA",
+      "AI_FAMILIARITY_1": "Débutant",
+      "AI_FAMILIARITY_2": "Novice",
+      "AI_FAMILIARITY_3": "Intermédiaire",
+      "AI_FAMILIARITY_4": "Avancé",
+      "AI_FAMILIARITY_5": "Expert",
+      "RESET": "Réinitialiser",
+      "SAVE": "Enregistrer",
+      "SAVING": "Enregistrement..."
+    },
+    "LANGUAGES": {
+      "FRENCH": "Français",
+      "ENGLISH": "Anglais",
+      "SPANISH": "Espagnol",
+      "GERMAN": "Allemand"
+    },
+    "EDUCATION_LEVELS": {
+      "NO_FORMAL": "Aucune éducation formelle",
+      "HIGH_SCHOOL": "Lycée",
+      "BACHELOR": "Licence",
+      "MASTER": "Master",
+      "PHD": "Doctorat",
+      "OTHER": "Autre"
+    },
+         "PASSWORD": {
+       "TITLE": "Changer le Mot de Passe",
+       "CURRENT_PASSWORD": "Mot de passe actuel",
+       "CURRENT_PASSWORD_PLACEHOLDER": "Saisissez votre mot de passe actuel",
+       "NEW_PASSWORD": "Nouveau mot de passe",
+       "NEW_PASSWORD_PLACEHOLDER": "Choisissez un nouveau mot de passe",
+       "CONFIRM_PASSWORD": "Confirmer le mot de passe",
+       "CONFIRM_PASSWORD_PLACEHOLDER": "Confirmez votre nouveau mot de passe",
+       "SAVE": "Changer le Mot de Passe",
+       "SAVING": "Modification...",
+       "RESET": "Réinitialiser"
+     },
+     "SECURITY": {
+       "TITLE": "Paramètres de Sécurité",
+       "CURRENT_PASSWORD": "Mot de passe actuel",
+       "CURRENT_PASSWORD_PLACEHOLDER": "Saisissez votre mot de passe actuel",
+       "CURRENT_PASSWORD_REQUIRED": "Le mot de passe actuel est obligatoire",
+       "NEW_PASSWORD": "Nouveau mot de passe",
+       "NEW_PASSWORD_PLACEHOLDER": "Choisissez un nouveau mot de passe",
+       "NEW_PASSWORD_REQUIRED": "Le nouveau mot de passe est obligatoire",
+       "PASSWORD_MIN_LENGTH": "Le mot de passe doit contenir au moins 8 caractères",
+       "CONFIRM_PASSWORD": "Confirmer le mot de passe",
+       "CONFIRM_PASSWORD_PLACEHOLDER": "Confirmez votre nouveau mot de passe",
+       "CONFIRM_PASSWORD_REQUIRED": "La confirmation du mot de passe est obligatoire",
+       "PASSWORDS_MISMATCH": "Les mots de passe ne correspondent pas",
+       "CANCEL": "Annuler",
+       "UPDATING": "Mise à jour...",
+       "UPDATE_PASSWORD": "Modifier le Mot de Passe"
+     },
+     "DELETE_ACCOUNT": {
+       "TITLE": "Zone Dangereuse",
+       "BUTTON": "Supprimer mon compte",
+       "DIALOG_TITLE": "Confirmer la suppression de compte",
+       "DIALOG_WARNING": "Cette action est irréversible et supprimera définitivement votre compte.",
+       "DIALOG_DETAILS": "Toutes vos données seront immédiatement supprimées :",
+       "DIALOG_DETAILS_LIST": [
+         "Votre profil utilisateur",
+         "Tous vos projets",
+         "Vos modèles entraînés",
+         "Vos explications XAI",
+         "Votre historique d'activité"
+       ],
+       "DIALOG_FINAL_WARNING": "Aucune information ne sera conservée et vous perdrez tout accès à la plateforme.",
+       "PASSWORD_REQUIRED": "Veuillez saisir votre mot de passe pour confirmer",
+       "PASSWORD_LABEL": "Mot de passe actuel",
+       "PASSWORD_PLACEHOLDER": "Saisissez votre mot de passe pour confirmer",
+       "EMAIL_REQUIRED": "Veuillez saisir votre email pour confirmer",
+       "EMAIL_LABEL": "Adresse email",
+       "EMAIL_PLACEHOLDER": "Saisissez votre adresse email pour confirmer",
+       "EMAIL_MISMATCH": "L'email saisi ne correspond pas à votre adresse email",
+       "EMAIL_INSTRUCTION": "Confirmez la suppression en saisissant votre adresse email",
+       "CONFIRM_BUTTON": "Oui, supprimer définitivement mon compte",
+       "CANCEL_BUTTON": "Non, conserver mon compte",
+       "DELETING": "Suppression du compte en cours...",
+       "SUCCESS": "Votre compte a été supprimé avec succès",
+       "ERROR": "Erreur lors de la suppression du compte"
+     },
+    "MESSAGES": {
+      "PROFILE_UPDATED": "Profil mis à jour avec succès",
+      "PASSWORD_UPDATED": "Mot de passe modifié avec succès",
+      "PICTURE_UPLOADED": "Photo de profil mise à jour"
+    },
+    "ERRORS": {
+      "LOAD_PROFILE": "Erreur lors du chargement du profil",
+      "UPDATE_PROFILE": "Erreur lors de la mise à jour du profil",
+      "UPDATE_PASSWORD": "Erreur lors du changement de mot de passe",
+      "UPLOAD_PICTURE": "Erreur lors du téléchargement de la photo",
+      "LOADING_USER_DATA": "Erreur lors du chargement des données utilisateur"
+    }
+  },
+  "ONBOARDING": {
+    "WELCOME_TITLE": "Bienvenue {{name}} !",
+    "WELCOME_SUBTITLE": "Quelques questions rapides pour personnaliser votre expérience",
+    "STEP_PROGRESS": "Question {{current}} sur {{total}}",
+    "INTRO": {
+      "PERSONALIZATION": "Expérience personnalisée",
+      "QUICK": "Rapide et simple",
+      "CUSTOMIZABLE": "Modifiable à tout moment"
+    },
+    "STEP1": {
+      "TITLE": "Niveau d'éducation",
+      "LABEL": "Quel est votre niveau d'éducation le plus élevé ?"
+    },
+    "STEP2": {
+      "TITLE": "Votre âge",
+      "LABEL": "Quel âge avez-vous ?"
+    },
+    "STEP3": {
+      "TITLE": "Familiarité avec l'IA",
+      "LABEL": "Comment évaluez-vous votre niveau en IA ?"
+    },
+    "EDUCATION_LEVELS": {
+      "NO_FORMAL": "Aucune éducation formelle",
+      "HIGH_SCHOOL": "Lycée",
+      "BACHELOR": "Licence",
+      "MASTER": "Master",
+      "PHD": "Doctorat",
+      "OTHER": "Autre"
+    },
+    "AI_FAMILIARITY": {
+      "BEGINNER": "Débutant",
+      "NOVICE": "Novice",
+      "INTERMEDIATE": "Intermédiaire",
+      "ADVANCED": "Avancé",
+      "EXPERT": "Expert"
+    },
+    "PREVIOUS": "Précédent",
+    "NEXT": "Suivant",
+    "COMPLETE": "Terminer la configuration",
+    "ERRORS": {
+      "INVALID_STEP": "Veuillez compléter cette étape avant de continuer",
+      "INVALID_FORM": "Veuillez compléter tous les champs obligatoires",
+      "SAVE_FAILED": "Erreur lors de la sauvegarde des données d'onboarding"
+    },
+    "VALIDATION": {
+      "AGE_TOO_LOW": "L'âge doit être d'au moins 13 ans",
+      "AGE_TOO_HIGH": "L'âge ne peut pas dépasser 120 ans"
+    }
+  },
+  "DASHBOARD": {
+    "TITLE": "Tableau de Bord ExAI",
+    "SUBTITLE": "Vue d'ensemble de vos projets d'apprentissage automatique et jeux de données",
+    "WELCOME": "Bienvenue sur la Plateforme ExAI",
+    "METRICS": {
+      "DATASETS_AVAILABLE": "Jeux de Données Disponibles",
+      "ACTIVE_PROJECTS": "Projets Actifs",
+      "MODELS_TRAINED": "Modèles Entraînés",
+      "EXPLANATIONS_GENERATED": "Explications Générées"
+    },
+    "RECENT_ACTIVITY": "Activité Récente",
+    "QUICK_ACTIONS": "Actions Rapides",
+    "SYSTEM_STATUS": "Statut du Système",
+    "NO_ACTIVITY": "Aucune activité récente",
+    "ALL_SYSTEMS_OPERATIONAL": "Tous les systèmes sont opérationnels",
+    "CREATE_PROJECT": "Créer un Nouveau Projet",
+    "EXPLORE_DATASETS": "Explorer les Jeux de Données",
+    "VIEW_EXPLANATIONS": "Voir les Explications",
+    "ACTIVITY": {
+      "PROJECT_CREATED": "Projet créé",
+      "MODEL_TRAINED": "Entraînement du modèle terminé",
+      "EXPLANATION_GENERATED": "Explication générée",
+      "DATASET_UPLOADED": "Jeu de données téléchargé"
+    }
+  },
+  "CARDS": {
+    "PROJECT": {
+      "VIEW": "Voir le Projet",
+      "EDIT": "Modifier",
+      "DELETE": "Supprimer",
+      "CONFIGURED": "Configuré",
+      "NOT_CONFIGURED": "Non Configuré",
+      "NO_DESCRIPTION": "Aucune description disponible",
+      "CREATED_ON": "Créé le",
+      "LAST_MODIFIED": "Dernière modification",
+      "VIEW_RECOMMENDATIONS": "Voir les Recommandations"
+    },
+    "DATASET": {
+      "PUBLIC": "Public",
+      "PRIVATE": "Privé",
+      "INSTANCES": "Instances",
+      "FEATURES": "Caractéristiques",
+      "SPLIT": "Division Train/Test",
+      "ANONYMOUS": "Anonymisé",
+      "ETHICS_SCORE": "Score Éthique",
+      "VIEW": "Voir les Détails",
+      "SELECT": "Sélectionner le Jeu de Données",
+      "DOWNLOAD": "Télécharger",
+      "EXPLORE": "Explorer",
+      "TYPE": "Type",
+      "SIZE": "Taille",
+      "DOMAIN": "Domaine",
+      "LICENSE": "Licence"
+    }
+  },
+  "FORMS": {
+    "VALIDATION": {
+      "REQUIRED": "Ce champ est obligatoire",
+      "EMAIL_INVALID": "Veuillez saisir une adresse e-mail valide",
+      "PASSWORD_TOO_SHORT": "Le mot de passe doit contenir au moins 8 caractères",
+      "PASSWORDS_MISMATCH": "Les mots de passe ne correspondent pas",
+      "NAME_TOO_SHORT": "Le nom doit contenir au moins 2 caractères",
+      "NAME_TOO_LONG": "Le nom ne peut pas dépasser 255 caractères",
+      "DESCRIPTION_TOO_SHORT": "La description doit contenir au moins 10 caractères"
+    },
+    "PROJECT": {
+      "NAME_LABEL": "Nom du Projet",
+      "NAME_PLACEHOLDER": "Saisissez le nom du projet",
+      "NAME_REQUIRED": "Le nom du projet est obligatoire",
+      "DESCRIPTION_LABEL": "Description du Projet",
+      "DESCRIPTION_PLACEHOLDER": "Décrivez les objectifs de votre projet",
+      "DESCRIPTION_REQUIRED": "La description du projet est obligatoire"
+    },
+    "USER": {
+      "FIRST_NAME_LABEL": "Prénom",
+      "LAST_NAME_LABEL": "Nom",
+      "EMAIL_LABEL": "Adresse E-mail",
+      "USERNAME_LABEL": "Nom d'utilisateur",
+      "PASSWORD_LABEL": "Mot de passe",
+      "CONFIRM_PASSWORD_LABEL": "Confirmer le mot de passe"
+    }
+  },
+  "COMMON": {
+    "SAVE": "Enregistrer",
+    "CANCEL": "Annuler",
+    "DELETE": "Supprimer",
+    "EDIT": "Modifier",
+    "VIEW": "Voir",
+    "CLOSE": "Fermer",
+    "CONFIRM": "Confirmer",
+    "YES": "Oui",
+    "NO": "Non",
+    "LOADING": "Chargement...",
+    "ERROR": "Erreur",
+    "SUCCESS": "Succès",
+    "WARNING": "Avertissement",
+    "INFO": "Information",
+    "SEARCH": "Rechercher",
+    "FILTER": "Filtrer",
+    "SORT": "Trier",
+    "EXPORT": "Exporter",
+    "IMPORT": "Importer",
+    "REFRESH": "Actualiser",
+    "CLEAR": "Effacer",
+    "RETRY": "Réessayer"
+  },
+  "NOTIFICATIONS": {
+    "ML_PIPELINE_COMPLETED": "Pipeline ML Terminé",
+    "MODEL_READY": "Votre modèle de classification est prêt",
+    "NEW_XAI_EXPLANATION": "Nouvelle Explication XAI",
+    "SHAP_GENERATED": "Explication SHAP générée avec succès",
+    "DATASET_UPDATED": "Jeu de Données Mis à Jour",
+    "DATASET_SYNCHRONIZED": "Jeu de données EdNet synchronisé",
+    "ANALYSIS_COMPLETED": "Analyse Terminée",
+    "PERFORMANCE_CALCULATED": "Métriques de performance calculées",
+    "REPORT_GENERATED": "Rapport Généré",
+    "EXPLANATIONS_AVAILABLE": "Rapport d'explications disponible"
+  },
+  "HEADER": {
+    "SEARCH_PLACEHOLDER": "Rechercher...",
+    "NOTIFICATIONS": "Notifications",
+    "SHORTCUTS": "Raccourcis",
+    "DATASETS": "Jeux de données",
+    "USER_PROFILE": "Profil Utilisateur",
+    "LOGOUT": "Déconnexion",
+    "DATASETS_EXPLORE": "Explorer les jeux de données disponibles",
+    "PROFILE_MENU": {
+      "MY_PROFILE": "Mon Profil",
+      "ACCOUNT_SETTINGS": "Paramètres du Compte",
+      "PREFERENCES": "Préférences",
+      "EXAI_CONFIGURATION": "Configuration EXAI",
+      "HELP_SUPPORT": "Aide et Support",
+      "DOCUMENTATION": "Documentation et FAQ"
+    }
+  },
+  "ERRORS": {
+    "GENERIC": "Une erreur s'est produite",
+    "NETWORK": "Erreur réseau",
+    "UNAUTHORIZED": "Accès non autorisé",
+    "NOT_FOUND": "Ressource non trouvée",
+    "VALIDATION": "Erreur de validation",
+    "REQUIRED_FIELD": "Ce champ est obligatoire",
+    "PAGE_NOT_FOUND_TITLE": "Page Non Trouvée",
+    "PAGE_NOT_FOUND_MESSAGE": "La page que vous recherchez n'existe pas",
+    "GO_HOME": "Aller à l'Accueil",
+    "LOADING_PROJECTS": "Erreur lors du chargement des projets",
+    "NO_PROJECTS_FOUND": "Aucun projet trouvé",
+    "LOADING_DATASETS": "Erreur lors du chargement des jeux de données",
+    "NO_DATASETS_FOUND": "Aucun jeu de données trouvé",
+    "SAVE_FAILED": "Échec de la sauvegarde",
+    "DELETE_FAILED": "Échec de la suppression",
+    "NETWORK_ERROR": "Erreur de connexion réseau",
+    "SERVER_ERROR": "Erreur serveur",
+    "AUTHENTICATION_FAILED": "Échec de l'authentification",
+    "ACCESS_DENIED": "Accès refusé",
+    "EMAIL_ALREADY_LINKED_TO_OAUTH": "Votre compte est déjà associé à un compte Google. Veuillez vous connecter avec Google.",
+    "EMAIL_ALREADY_EXISTS": "Un compte est déjà associé à cette adresse email. Veuillez vous connecter ou utiliser une autre adresse."
+  },
+  "WIDGETS": {
+    "DEMO_CONTENT": "Contenu de Démonstration",
+    "SAMPLE_DATA": "Données d'Exemple",
+    "PLACEHOLDER_TEXT": "Ceci est un contenu de remplacement",
+    "EXAMPLE_WIDGET": "Widget d'Exemple",
+    "TEST_COMPONENT": "Composant de Test"
+  },
+  "TOOLTIPS": {
+    "DATASET_DETAIL": {
+      "OVERALL_SCORE": "Score global de qualité basé sur la complétude, consistance, précision et conformité éthique des données. Plus le score est élevé, plus le dataset est fiable pour vos analyses.",
+      "GLOBAL_SCORE_METRIC": "Évaluation générale combinant tous les critères de qualité : complétude, consistance, précision et conformité éthique",
+      "COMPLETENESS": "Pourcentage de données présentes par rapport aux données attendues. Une complétude élevée signifie peu de valeurs manquantes",
+      "CONSISTENCY": "Mesure la cohérence des données : formats uniformes, absence de doublons, respect des contraintes. Une consistance élevée facilite l'analyse",
+      "ETHICAL_COMPLIANCE": "Évalue le respect des principes éthiques : consentement éclairé, anonymisation, transparence, équité et protection des données personnelles",
+      "GENERAL_INFO_ICON": "Métadonnées et caractéristiques techniques du dataset : source, accessibilité, représentativité et structure des données",
+      "QUALITY_METRICS_ICON": "Évaluation automatique de la qualité du dataset selon 4 critères : complétude, consistance, conformité éthique et fiabilité générale",
+      "REPRESENTATIVITY": "Indique dans quelle mesure l'échantillon de données représente fidèlement la population cible. Une bonne représentativité assure la validité des analyses.",
+      "BALANCE": "Mesure l'équilibre entre les différentes classes ou catégories dans le dataset. Un bon équilibre évite les biais dans les modèles ML.",
+      "SPLIT": "Indique si le dataset est déjà divisé en ensembles d'entraînement et de test, facilitant l'évaluation des modèles ML",
+      "ANONYMIZATION": "Confirme que les données personnelles identifiables ont été anonymisées ou pseudonymisées pour protéger la vie privée",
+      "TEMPORAL_FACTORS": "Indique si le dataset contient des variables temporelles importantes à considérer dans l'analyse (dates, séries temporelles)",
+      "METADATA": "Confirme que des métadonnées détaillées accompagnent le dataset (descriptions des colonnes, contexte, méthodologie)"
+    }
+  },
+  "DATASET_DETAIL": {
+    "BACK": "Retour",
+    "DOWNLOAD": "Télécharger",
+    "FAVORITES": "Favoris",
+    "SHARE": "Partager",
+    "REPORT": "Signaler",
+    "SCORE": "Score",
+    "INSTANCES": "instances",
+    "FEATURES": "features",
+    "CITATIONS": "citations",
+    "DOMAINS": "Domaines",
+    "ML_TASKS": "Tâches ML",
+    "QUALITY_ALERTS": {
+      "TITLE": "Alertes de Qualité",
+      "SUBTITLE": "point(s) d'attention détecté(s)",
+      "SEVERITY": "Sévérité"
+    },
+    "TABS": {
+      "OVERVIEW": "Vue d'ensemble",
+      "FILES_STRUCTURE": "Fichiers et Structure",
+      "DATA_PREVIEW": "Aperçu des Données",
+      "ANALYTICS": "Analytics"
+    },
+    "OVERVIEW": {
+      "QUICK_STATS": "Statistiques Rapides",
+      "GENERAL_INFO": {
+        "TITLE": "Informations Générales",
+        "SOURCE": "Source",
+        "ACCESS": "Accès",
+        "AVAILABILITY": "Disponibilité",
+        "REPRESENTATIVITY": "Représentativité",
+        "BALANCE": "Équilibre",
+        "SPLIT": "Dataset divisé (train/test)",
+        "ANONYMIZED": "Anonymisation appliquée",
+        "TEMPORAL": "Facteurs temporels",
+        "METADATA": "Métadonnées fournies"
+      },
+      "ETHICS": {
+        "TITLE": "Conformité Éthique",
+        "SUBTITLE": "Respect des principes de protection des données",
+        "INFORMED_CONSENT": "Consentement éclairé",
+        "TRANSPARENCY": "Transparence",
+        "USER_CONTROL": "Contrôle utilisateur",
+        "NON_DISCRIMINATION": "Non-discrimination",
+        "SECURITY": "Mesures de sécurité",
+        "ACCOUNTABILITY": "Responsabilité définie"
+      },
+      "QUALITY": {
+        "TITLE": "Métriques de Qualité",
+        "OVERALL_SCORE": "Score Global",
+        "COMPLETENESS": "Complétude",
+        "CONSISTENCY": "Consistance",
+        "ETHICAL_COMPLIANCE": "Conformité Éthique"
+      },
+      "SIMILAR": {
+        "TITLE": "Datasets Similaires",
+        "SUBTITLE": "Découvrez des datasets connexes"
+      }
+    },
+    "FILES": {
+      "TITLE": "Fichiers du Dataset",
+      "SUBTITLE": "fichier(s) disponible(s)",
+      "SELECTED": "sélectionné",
+      "DETAILS": "Détails du fichier",
+      "LOGICAL_ROLE": "Rôle logique",
+      "FORMAT": "Format",
+      "SIZE": "Taille",
+      "ROWS": "Lignes",
+      "COLUMNS": "Colonnes",
+      "DESCRIPTION": "Description",
+      "NOT_SPECIFIED": "Non spécifié",
+      "COLUMNS_TABLE": {
+        "POSITION": "Position",
+        "NAME": "Nom",
+        "TYPE": "Type",
+        "NULLABLE": "Nullable",
+        "EXAMPLES": "Exemples",
+        "DESCRIPTION": "Description",
+        "PII": "Données personnelles identifiables",
+        "PRIMARY_KEY": "Clé primaire",
+        "NOT_SPECIFIED": "Non spécifiée"
+      },
+      "NO_FILES": {
+        "TITLE": "Aucun fichier disponible",
+        "MESSAGE": "Ce dataset ne contient pas de fichiers accessibles pour l'aperçu."
+      }
+    },
+    "PREVIEW": {
+      "HEADER": {
+        "TOTAL_ROWS": "lignes totales",
+        "COLUMNS": "colonnes",
+        "DISPLAYED_ROWS": "lignes affichées"
+      },
+      "DATA_TABLE": {
+        "TITLE": "Échantillon de Données",
+        "LIMITED_NOTE": "Affichage limité aux 50 premières lignes.",
+        "ADDITIONAL_ROWS": "lignes supplémentaires disponibles."
+      },
+      "COLUMN_STATS": {
+        "TITLE": "Statistiques des Colonnes",
+        "SUBTITLE": "Analyse descriptive des données",
+        "NON_NULL": "Non-null",
+        "UNIQUE_VALUES": "Valeurs uniques",
+        "MEAN": "Moyenne",
+        "STD": "Écart-type",
+        "EXAMPLES": "Exemples"
+      },
+      "NO_PREVIEW": {
+        "TITLE": "Aperçu non disponible",
+        "MESSAGE": "L'aperçu des données n'est pas disponible pour ce dataset."
+      }
+    },
+    "ANALYTICS": {
+      "CORRELATIONS": {
+        "TITLE": "Corrélations entre Features",
+        "SUBTITLE": "corrélations les plus fortes",
+        "FEATURE1": "Feature 1",
+        "FEATURE2": "Feature 2",
+        "CORRELATION": "Corrélation",
+        "TYPE": "Type"
+      },
+      "MISSING_PATTERNS": {
+        "TITLE": "Patterns de Données Manquantes",
+        "SUBTITLE": "Analyse des patterns de valeurs manquantes",
+        "OCCURRENCES": "occurrences"
+      },
+      "CLASS_DISTRIBUTION": {
+        "TITLE": "Distribution des Classes",
+        "TARGET_VARIABLE": "Variable cible"
+      },
+      "FEATURE_IMPORTANCE": {
+        "TITLE": "Importance des Features",
+        "SUBTITLE": "Contribution relative de chaque feature"
+      }
+    },
+    "QUALITY_ALERTS_MESSAGES": {
+      "MISSING_DATA": "Données manquantes importantes",
+      "OUTLIERS": "Valeurs aberrantes détectées",
+      "PII_RISK": "Risque d'exposition de données personnelles",
+      "MISSING_DATA_RECOMMENDATION": "Considérez des techniques d'imputation ou filtrez les colonnes avec trop de valeurs manquantes",
+      "OUTLIERS_RECOMMENDATION": "Analysez ces valeurs pour déterminer si elles sont légitimes ou doivent être traitées",
+      "PII_RECOMMENDATION": "Vérifiez l'anonymisation et la conformité RGPD avant utilisation"
+    },
+    "LOADING": {
+      "TITLE": "Chargement des détails du dataset...",
+      "MESSAGE": "Veuillez patienter pendant que nous récupérons toutes les informations."
+    },
+    "ERROR": {
+      "TITLE": "Erreur de chargement",
+      "RETRY": "Réessayer",
+      "BACK": "Retour"
+    }
+  }
 }

@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
       - name: api-gateway-migration
-        # Utilise l'image :latest (avec les mises en garde pour la prod)
-        image: exaiprodacr.azurecr.io/exai-api-gateway:latest
-        imagePullPolicy: Always # Force la récupération de la dernière :latest
+        # Image par défaut pour développement local (sera surchargée par overlays)
+        image: exai-api-gateway:latest
+        imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
         command: ["alembic", "upgrade", "head"]
         workingDir: /app # Répertoire où se trouve alembic.ini
         env:

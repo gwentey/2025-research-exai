@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormGroup,
@@ -11,7 +11,8 @@ import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AuthService } from 'src/app/services/auth.service';
-import { finalize } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { finalize, Subscription } from 'rxjs';
 import { LoginCredentials } from '../../../models/auth.models';
 
 @Component({
@@ -23,14 +24,17 @@ import { LoginCredentials } from '../../../models/auth.models';
     FormsModule,
     ReactiveFormsModule,
     BrandingComponent,
+    TranslateModule,
   ],
   templateUrl: './side-login.component.html',
 })
-export class AppSideLoginComponent {
+export class AppSideLoginComponent implements OnInit, OnDestroy {
   // Inject services
   private authService = inject(AuthService);
   private router = inject(Router);
   private settings = inject(CoreService);
+  private translate = inject(TranslateService);
+  private langChangeSubscription?: Subscription;
 
   // Initialize options using the injected service
   options = this.settings.getOptions();
@@ -38,6 +42,24 @@ export class AppSideLoginComponent {
   isLoading = false;
   isGoogleLoading = false;
   loginError: string | null = null;
+
+  // Labels traduits
+  loginTitle: string = '';
+  loginSubtitle: string = '';
+  orContinueWith: string = '';
+  emailLabel: string = '';
+  passwordLabel: string = '';
+  rememberMe: string = '';
+  forgotPassword: string = '';
+  createAccount: string = '';
+  signUp: string = '';
+  submitLabel: string = '';
+  googleLabel: string = '';
+  googleLoadingLabel: string = '';
+  emailRequired: string = '';
+  emailInvalid: string = '';
+  passwordRequired: string = '';
+  loadingLabel: string = '';
 
   // Update form to use email instead of uname
   form = new FormGroup({
@@ -49,6 +71,42 @@ export class AppSideLoginComponent {
     return this.form.controls;
   }
 
+  ngOnInit(): void {
+    // Initialiser les traductions
+    this.updateTranslations();
+    
+    // S'abonner aux changements de langue
+    this.langChangeSubscription = this.translate.onLangChange.subscribe(() => {
+      this.updateTranslations();
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Nettoyer les abonnements
+    if (this.langChangeSubscription) {
+      this.langChangeSubscription.unsubscribe();
+    }
+  }
+
+  private updateTranslations(): void {
+    this.loginTitle = this.translate.instant('AUTH.LOGIN.TITLE');
+    this.loginSubtitle = this.translate.instant('AUTH.LOGIN.SUBTITLE');
+    this.orContinueWith = this.translate.instant('AUTH.OR_CONTINUE_WITH');
+    this.emailLabel = this.translate.instant('AUTH.LOGIN.EMAIL_LABEL');
+    this.passwordLabel = this.translate.instant('AUTH.LOGIN.PASSWORD_LABEL');
+    this.rememberMe = this.translate.instant('AUTH.REMEMBER_ME');
+    this.forgotPassword = this.translate.instant('AUTH.LOGIN.FORGOT_PASSWORD');
+    this.createAccount = this.translate.instant('AUTH.LOGIN.CREATE_ACCOUNT');
+    this.signUp = this.translate.instant('AUTH.SIGN_UP');
+    this.submitLabel = this.translate.instant('AUTH.LOGIN.SUBMIT');
+    this.googleLabel = this.translate.instant('AUTH.LOGIN.GOOGLE');
+    this.googleLoadingLabel = this.translate.instant('AUTH.LOGIN.GOOGLE_LOADING');
+    this.emailRequired = this.translate.instant('AUTH.LOGIN.EMAIL_REQUIRED');
+    this.emailInvalid = this.translate.instant('AUTH.LOGIN.EMAIL_INVALID');
+    this.passwordRequired = this.translate.instant('AUTH.LOGIN.PASSWORD_REQUIRED');
+    this.loadingLabel = this.translate.instant('COMMON.LOADING');
+  }
+
   /**
    * Traite le formulaire de connexion standard
    */
@@ -56,7 +114,7 @@ export class AppSideLoginComponent {
     if (this.form.invalid) {
       // Optionally mark fields as touched to show validation errors
       this.form.markAllAsTouched();
-      this.loginError = 'Veuillez remplir correctement tous les champs.'
+      this.loginError = this.translate.instant('AUTH.LOGIN.FORM_INVALID');
       return;
     }
 
@@ -80,8 +138,8 @@ export class AppSideLoginComponent {
           console.error('Login failed:', error);
           // Display specific error from backend if available, otherwise generic message
           this.loginError = error.message?.includes('400')
-            ? 'Email ou mot de passe incorrect.' // Specific message for 400 Bad Request from fastapi-users login
-            : (error.message || 'Échec de la connexion. Veuillez réessayer.');
+            ? this.translate.instant('AUTH.LOGIN.INVALID_CREDENTIALS') // Specific message for 400 Bad Request from fastapi-users login
+            : (error.message || this.translate.instant('ERRORS.AUTHENTICATION_FAILED'));
         }
       });
   }
@@ -103,7 +161,7 @@ export class AppSideLoginComponent {
         },
         error: (error) => {
           console.error('Échec de récupération de l\'URL d\'autorisation Google:', error);
-          this.loginError = 'Impossible d\'initialiser la connexion avec Google. Veuillez réessayer.';
+          this.loginError = this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
         }
       });
   }

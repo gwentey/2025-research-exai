@@ -11,6 +11,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { SignupData } from '../../../models/auth.models';
 
@@ -23,6 +24,7 @@ import { SignupData } from '../../../models/auth.models';
     FormsModule,
     ReactiveFormsModule,
     BrandingComponent,
+    TranslateModule,
   ],
   templateUrl: './side-register.component.html',
 })
@@ -30,6 +32,7 @@ export class AppSideRegisterComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private settings = inject(CoreService);
+  private translate = inject(TranslateService);
 
   options = this.settings.getOptions();
 
@@ -51,7 +54,7 @@ export class AppSideRegisterComponent {
   submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.signupError = 'Veuillez remplir correctement tous les champs.';
+      this.signupError = this.translate.instant('AUTH.LOGIN.FORM_INVALID');
       this.signupSuccess = false;
       return;
     }
@@ -67,7 +70,10 @@ export class AppSideRegisterComponent {
       picture: null,
       given_name: null,
       family_name: null,
-      locale: null
+      locale: null,
+      education_level: null,
+      age: null,
+      ai_familiarity: null
     };
 
     this.authService.signup(userData)
@@ -75,15 +81,22 @@ export class AppSideRegisterComponent {
       .subscribe({
         next: (response) => {
           console.log('Signup successful', response);
-          this.signupSuccess = true;
+          // Rediriger vers l'onboarding au lieu d'afficher le message de succès
+          this.router.navigate(['/onboarding']);
         },
         error: (error) => {
           console.error('Signup failed:', error);
           this.signupSuccess = false;
-          if (error.message?.includes('400')) {
-             this.signupError = 'Cet email est déjà utilisé. Veuillez en choisir un autre ou vous connecter.';
+          
+          // Gérer les nouveaux codes d'erreur spécifiques du backend
+          if (error.message?.includes('EMAIL_ALREADY_LINKED_TO_OAUTH')) {
+            this.signupError = this.translate.instant('ERRORS.EMAIL_ALREADY_LINKED_TO_OAUTH');
+          } else if (error.message?.includes('EMAIL_ALREADY_EXISTS')) {
+            this.signupError = this.translate.instant('ERRORS.EMAIL_ALREADY_EXISTS');
+          } else if (error.message?.includes('400')) {
+            this.signupError = this.translate.instant('ERRORS.ACCESS_DENIED');
           } else {
-             this.signupError = error.message || 'Échec de l\'inscription. Veuillez réessayer.';
+            this.signupError = error.message || this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
           }
         }
       });
@@ -102,11 +115,13 @@ export class AppSideRegisterComponent {
       .subscribe({
         next: (googleAuthUrl) => {
           // Redirige vers l'URL d'autorisation Google (pas vers notre backend)
+          // Note: Après la connexion OAuth, l'utilisateur sera redirigé vers l'onboarding
+          // si nécessaire via le guard d'onboarding
           window.location.href = googleAuthUrl;
         },
         error: (error) => {
           console.error('Échec de récupération de l\'URL d\'autorisation Google:', error);
-          this.signupError = 'Impossible d\'initialiser la connexion avec Google. Veuillez réessayer.';
+          this.signupError = this.translate.instant('ERRORS.AUTHENTICATION_FAILED');
         }
       });
   }

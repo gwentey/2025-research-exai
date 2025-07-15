@@ -1,9 +1,11 @@
 import uuid
 import logging
-from fastapi import FastAPI, Depends, status, Request, Query
+import httpx
+from fastapi import FastAPI, Depends, status, Request, Query, HTTPException
 from fastapi.responses import Response, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Annotated
 from contextlib import asynccontextmanager
 
@@ -15,7 +17,7 @@ from httpx_oauth.clients.google import GoogleOAuth2
 
 from .core.config import settings
 from .db import get_async_session
-from .schemas.user import UserCreate, UserRead, UserUpdate
+from .schemas.user import UserCreate, UserRead, UserUpdate, UserProfileUpdate, PasswordUpdate, ProfilePictureUpdate, AccountDeletionRequest
 from .models.user import User as UserModel, OAuthAccount
 from .managers.user import UserManager
 
@@ -452,7 +454,300 @@ def read_users_me(current_user: UserModel = Depends(current_active_user)):
     Renvoie les informations de l'utilisateur actuellement authentifié.
     Nécessite seulement que l'utilisateur soit actif (pas de vérification).
     """
-    return current_user
+    return UserRead.from_orm_user(current_user)
+
+@app.get("/users/me/debug", tags=["users"])
+async def debug_user_info(
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Endpoint de débogage pour diagnostiquer les problèmes de session.
+    """
+    try:
+        logger.info(f"DEBUG: current_user type: {type(current_user)}")
+        logger.info(f"DEBUG: current_user id: {current_user.id}")
+        logger.info(f"DEBUG: current_user email: {current_user.email}")
+        
+        # Test de récupération dans notre session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.unique().scalar_one_or_none()
+        
+        logger.info(f"DEBUG: user_in_session found: {user_in_session is not None}")
+        if user_in_session:
+            logger.info(f"DEBUG: user_in_session type: {type(user_in_session)}")
+            logger.info(f"DEBUG: user_in_session id: {user_in_session.id}")
+        
+        return {
+            "status": "debug_success",
+            "current_user_id": str(current_user.id),
+            "current_user_email": current_user.email,
+            "user_found_in_session": user_in_session is not None,
+            "session_type": str(type(session))
+        }
+        
+    except Exception as e:
+        logger.error(f"DEBUG ERROR: {str(e)}")
+        logger.error(f"DEBUG ERROR type: {type(e)}")
+        import traceback
+        logger.error(f"DEBUG TRACEBACK: {traceback.format_exc()}")
+        return {
+            "status": "debug_error",
+            "error": str(e),
+            "error_type": str(type(e))
+        }
+
+@app.patch("/users/me", tags=["users"])
+async def update_user_profile(
+    profile_update: UserProfileUpdate,
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Met à jour les informations du profil de l'utilisateur actuellement authentifié.
+    """
+    try:
+        logger.info(f"Mise à jour du profil pour l'utilisateur {current_user.id}")
+        
+        # Récupérer l'utilisateur dans notre session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.unique().scalar_one_or_none()
+        
+        if not user_in_session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Utilisateur non trouvé"
+            )
+        
+        # Mise à jour des champs fournis
+        update_data = profile_update.model_dump(exclude_unset=True)
+        logger.info(f"DEBUG: update_data = {update_data}")
+        
+        for field, value in update_data.items():
+            if hasattr(user_in_session, field):
+                logger.info(f"DEBUG: Setting {field} = {value}")
+                setattr(user_in_session, field, value)
+            else:
+                logger.warning(f"DEBUG: Field {field} not found on user model")
+        
+        # Sauvegarder les modifications
+        logger.info("DEBUG: About to commit changes")
+        await session.commit()
+        logger.info("DEBUG: Commit successful")
+        
+        # Récupérer l'utilisateur mis à jour avec les relations chargées
+        stmt_updated = select(UserModel).where(UserModel.id == current_user.id)
+        result_updated = await session.execute(stmt_updated)
+        updated_user = result_updated.unique().scalar_one()
+        
+        logger.info(f"Profil mis à jour avec succès pour l'utilisateur {current_user.id}")
+        return UserRead.from_orm_user(updated_user)
+        
+    except HTTPException:
+        # Re-lever les HTTPException telles quelles
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour du profil: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la mise à jour du profil"
+        )
+
+@app.patch("/users/me/password", tags=["users"])
+async def update_user_password(
+    password_update: PasswordUpdate,
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    user_manager: UserManager = Depends(get_user_manager)
+):
+    """
+    Met à jour le mot de passe de l'utilisateur actuellement authentifié.
+    """
+    try:
+        logger.info(f"Changement de mot de passe pour l'utilisateur {current_user.id}")
+        
+        # Récupérer l'utilisateur dans notre session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.unique().scalar_one_or_none()
+        
+        if not user_in_session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Utilisateur non trouvé"
+            )
+        
+        # Vérifier l'ancien mot de passe
+        is_valid = user_manager.password_helper.verify_and_update(
+            password_update.current_password, 
+            user_in_session.hashed_password
+        )
+        
+        if not is_valid[0]:  # is_valid est un tuple (bool, updated_hash_or_none)
+            logger.warning(f"Tentative de changement de mot de passe avec un mot de passe actuel incorrect pour l'utilisateur {current_user.id}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mot de passe actuel incorrect"
+            )
+        
+        # Valider le nouveau mot de passe
+        try:
+            await user_manager.validate_password(password_update.new_password, user_in_session)
+        except Exception as password_error:
+            logger.error(f"Validation du nouveau mot de passe échouée: {str(password_error)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Le nouveau mot de passe ne répond pas aux exigences: {str(password_error)}"
+            )
+        
+        # Hasher le nouveau mot de passe
+        new_hashed_password = user_manager.password_helper.hash(password_update.new_password)
+        user_in_session.hashed_password = new_hashed_password
+        
+        # Sauvegarder les modifications
+        await session.commit()
+        
+        logger.info(f"Mot de passe mis à jour avec succès pour l'utilisateur {current_user.id}")
+        return {"message": "Mot de passe mis à jour avec succès"}
+        
+    except HTTPException:
+        # Re-lever les HTTPException telles quelles
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour du mot de passe: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la mise à jour du mot de passe"
+        )
+
+@app.patch("/users/me/picture", tags=["users"])
+async def update_user_picture(
+    picture_update: ProfilePictureUpdate,
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Met à jour l'image de profil de l'utilisateur actuellement authentifié.
+    """
+    try:
+        logger.info(f"Mise à jour de l'image de profil pour l'utilisateur {current_user.id}")
+        
+        # Validation de base de l'image (optionnel)
+        if picture_update.picture and len(picture_update.picture) > 10 * 1024 * 1024:  # 10MB max
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Image trop volumineuse (max 10MB)"
+            )
+        
+        # Récupérer l'utilisateur dans notre session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.unique().scalar_one_or_none()
+        
+        if not user_in_session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Utilisateur non trouvé"
+            )
+        
+        # Mettre à jour l'image de profil
+        user_in_session.picture = picture_update.picture
+        
+        # Sauvegarder les modifications
+        await session.commit()
+        await session.refresh(user_in_session)
+        
+        logger.info(f"Image de profil mise à jour avec succès pour l'utilisateur {current_user.id}")
+        return UserRead.from_orm_user(user_in_session)
+        
+    except HTTPException:
+        # Re-lever les HTTPException telles quelles
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour de l'image de profil: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la mise à jour de l'image de profil"
+        )
+
+@app.delete("/users/me", tags=["users"])
+async def delete_user_account(
+    deletion_request: AccountDeletionRequest,
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    user_manager: UserManager = Depends(get_user_manager)
+):
+    """
+    Supprime définitivement le compte de l'utilisateur actuel.
+    
+    Cette opération est irréversible et supprime toutes les données associées :
+    - Le profil utilisateur
+    - Tous les projets de l'utilisateur
+    - L'historique d'activité
+    - Les données d'onboarding
+    
+    L'utilisateur doit confirmer en saisissant son adresse email.
+    La vérification est insensible à la casse.
+    
+    Parameters:
+        deletion_request: Contient l'email de confirmation
+        current_user: Utilisateur authentifié (injecté par dépendance)
+        session: Session de base de données (injectée par dépendance)
+        user_manager: Gestionnaire d'utilisateurs (injecté par dépendance)
+    
+    Returns:
+        JSONResponse: Confirmation de la suppression
+    
+    Raises:
+        HTTPException: 
+            - 400 si l'email de confirmation est incorrect
+            - 500 si erreur lors de la suppression
+    """
+    try:
+        logger.info(f"User account deletion requested for user {current_user.id}")
+        
+        # 1. Vérifier l'email de confirmation (insensible à la casse)
+        if deletion_request.email_confirmation.lower() != current_user.email.lower():
+            logger.warning(f"Invalid email confirmation provided for account deletion by user {current_user.id}")
+            logger.warning(f"Expected: {current_user.email.lower()}, Got: {deletion_request.email_confirmation.lower()}")
+            raise HTTPException(
+                status_code=400,
+                detail="L'email de confirmation ne correspond pas à votre adresse email"
+            )
+        
+        # 2. Supprimer l'utilisateur (cela supprimera automatiquement les données liées grâce aux CASCADE)
+        await user_manager.delete(current_user)
+        
+        logger.info(f"User account {current_user.id} deleted successfully")
+        
+        # 3. Retourner une confirmation
+        return JSONResponse(
+            status_code=200,
+            content={
+                "message": "Compte supprimé avec succès",
+                "success": True
+            }
+        )
+    
+    except HTTPException:
+        # Re-raise HTTPException pour qu'elle soit gérée par FastAPI
+        raise
+    
+    except Exception as e:
+        logger.error(f"Error deleting user account {current_user.id}: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Erreur lors de la suppression du compte"
+        )
+    
+    finally:
+        await session.close()
 
 # Auth routes (login, logout)
 app.include_router(
@@ -486,12 +781,25 @@ async def register_user(
             count = result.scalar()
             
             if count > 0:
-                # Email déjà utilisé
-                logger.warning(f"Tentative d'inscription avec un email déjà utilisé: {user_create.email}")
-                return JSONResponse(
-                    status_code=400,
-                    content={"detail": "Cet email est déjà utilisé"}
-                )
+                # L'email existe déjà, vérifier s'il est associé à un compte OAuth
+                oauth_query = select(func.count()).select_from(OAuthAccount).where(OAuthAccount.account_email == user_create.email)
+                oauth_result = await session.execute(oauth_query)
+                oauth_count = oauth_result.scalar()
+                
+                if oauth_count > 0:
+                    # L'email est associé à un compte OAuth (Google)
+                    logger.warning(f"Tentative d'inscription avec un email déjà associé à un compte OAuth: {user_create.email}")
+                    return JSONResponse(
+                        status_code=400,
+                        content={"detail": "EMAIL_ALREADY_LINKED_TO_OAUTH", "error_code": "EMAIL_OAUTH_CONFLICT"}
+                    )
+                else:
+                    # L'email existe mais n'est pas OAuth (double inscription classique)
+                    logger.warning(f"Tentative d'inscription avec un email déjà utilisé: {user_create.email}")
+                    return JSONResponse(
+                        status_code=400,
+                        content={"detail": "EMAIL_ALREADY_EXISTS", "error_code": "EMAIL_DUPLICATE"}
+                    )
             
             # Créer l'utilisateur en utilisant le UserManager
             try:
@@ -512,7 +820,7 @@ async def register_user(
                     await session.commit()
                 
                 # Retourner les infos utilisateur sans le mot de passe
-                return UserRead.model_validate(created_user)
+                return UserRead.from_orm_user(created_user)
             except Exception as user_error:
                 # S'assurer que la session est annulée en cas d'erreur
                 try:
@@ -586,6 +894,124 @@ app.include_router(
     prefix="/auth/google",
     tags=["auth"],
 )
+
+# Fonction helper pour faire des requêtes vers les services backend
+async def proxy_request(
+    request: Request,
+    service_url: str,
+    path: str,
+    current_user: UserModel
+):
+    """
+    Fonction générique pour faire du reverse proxy vers les services backend.
+    Transmet les paramètres de query, le body et les headers nécessaires.
+    """
+    try:
+        # Construire l'URL complète vers le service backend
+        target_url = f"{service_url.rstrip('/')}/{path.lstrip('/')}"
+        
+        # Récupérer les paramètres de query
+        query_params = dict(request.query_params)
+        
+        # Préparer les headers à transmettre, incluant l'user_id pour l'authentification
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "API-Gateway-Proxy/1.0",
+            "X-User-ID": str(current_user.id),  # Transmettre l'ID de l'utilisateur connecté
+            "X-User-Email": current_user.email  # Optionnel : email pour debug
+        }
+        
+        # Récupérer le body si c'est une requête POST/PUT/PATCH
+        body = None
+        if request.method in ["POST", "PUT", "PATCH"]:
+            body = await request.body()
+        
+        # Faire la requête vers le service backend
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.request(
+                method=request.method,
+                url=target_url,
+                params=query_params,
+                headers=headers,
+                content=body
+            )
+            
+            # Retourner la réponse du service backend
+            return JSONResponse(
+                status_code=response.status_code,
+                content=response.json() if response.content else None
+            )
+            
+    except httpx.RequestError as e:
+        logger.error(f"Error proxying request to {service_url}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Service temporairement indisponible"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error in proxy_request: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur interne du serveur"
+        )
+
+# Routes pour les datasets (service-selection)
+@app.api_route("/datasets", methods=["GET", "POST"], tags=["datasets"])
+async def datasets_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour les opérations sur les datasets"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets", current_user)
+
+@app.api_route("/datasets/{dataset_id}", methods=["GET", "PUT", "DELETE"], tags=["datasets"])
+async def dataset_detail_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour les opérations sur un dataset spécifique"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}", current_user)
+
+@app.get("/datasets/domains", tags=["datasets"])
+async def datasets_domains_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les domaines d'application"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/domains", current_user)
+
+@app.get("/datasets/tasks", tags=["datasets"])
+async def datasets_tasks_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les tâches ML"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/tasks", current_user)
+
+@app.post("/datasets/score", tags=["datasets"])
+async def datasets_score_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour le scoring des datasets"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/score", current_user)
+
+# Nouvelles routes pour les détails étendus des datasets
+@app.get("/datasets/{dataset_id}/details", tags=["datasets"])
+async def dataset_details_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les détails complets d'un dataset"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}/details", current_user)
+
+@app.get("/datasets/{dataset_id}/preview", tags=["datasets"])
+async def dataset_preview_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer l'aperçu des données d'un dataset"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}/preview", current_user)
+
+@app.get("/datasets/{dataset_id}/similar", tags=["datasets"])
+async def dataset_similar_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les datasets similaires"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}/similar", current_user)
+
+# Routes pour les projets (service-selection)
+@app.api_route("/projects", methods=["GET", "POST"], tags=["projects"])
+async def projects_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour les opérations sur les projets"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "projects", current_user)
+
+@app.api_route("/projects/{project_id}", methods=["GET", "PUT", "DELETE"], tags=["projects"])
+async def project_detail_proxy(project_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour les opérations sur un projet spécifique"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"projects/{project_id}", current_user)
+
+@app.get("/projects/{project_id}/recommendations", tags=["projects"])
+async def project_recommendations_proxy(project_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour récupérer les recommandations d'un projet"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"projects/{project_id}/recommendations", current_user)
 
 # Route racine simple (optionnel)
 @app.get("/")

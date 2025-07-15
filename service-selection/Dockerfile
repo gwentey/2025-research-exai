@@ -32,6 +32,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # dans le répertoire de travail `/app` du conteneur.
 COPY ./app /app
 
+# Copie des scripts d'initialisation et de maintenance
+COPY ./scripts /app/scripts
+
 # Copie des fichiers Alembic nécessaires aux migrations de base de données
 COPY ./alembic /app/alembic
 COPY alembic.ini /app/

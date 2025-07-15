@@ -1,0 +1,562 @@
+.project-detail-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+// === HEADER ===
+
+.detail-header {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 2rem;
+  }
+  
+  .header-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex: 1;
+    
+    .back-button {
+      margin-top: 0.25rem;
+    }
+    
+    .project-title {
+      h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #333;
+      }
+      
+      .project-description {
+        margin: 0 0 1rem 0;
+        color: #666;
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+      
+      .project-meta {
+        display: flex;
+        gap: 1.5rem;
+        
+        span {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #888;
+          font-size: 0.9rem;
+          
+          .mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+    }
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
+
+// === CONTENU PRINCIPAL ===
+
+.detail-content {
+  flex: 1;
+  overflow: hidden;
+  
+  .detail-tabs {
+    height: 100%;
+    
+    ::ng-deep .mat-mdc-tab-body-wrapper {
+      height: 100%;
+      
+      .mat-mdc-tab-body-content {
+        height: 100%;
+        overflow-y: auto;
+      }
+    }
+  }
+  
+  .tab-content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+// === ONGLET RÉSUMÉ ===
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.config-card, .stats-card {
+  mat-card-header {
+    .mat-icon {
+      background: #f0f4ff;
+      color: #1976d2;
+    }
+  }
+}
+
+.config-card {
+  .config-section {
+    margin: 1rem 0;
+    
+    h4 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 0.5rem 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #555;
+      
+      .mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+    
+    .config-value {
+      margin: 0;
+      color: #666;
+      line-height: 1.4;
+      padding-left: 1.5rem;
+    }
+  }
+}
+
+.stats-card {
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    
+    .stat-item {
+      text-align: center;
+      
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1976d2;
+        margin-bottom: 0.25rem;
+      }
+      
+      .stat-label {
+        font-size: 0.85rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+}
+
+.top-recommendations-card {
+  .top-recommendations {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    
+    .top-recommendation {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      
+      .rank-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1976d2;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+      
+      .dataset-info {
+        flex: 1;
+        
+        h4 {
+          margin: 0 0 0.25rem 0;
+          font-size: 1.1rem;
+          font-weight: 600;
+        }
+        
+        p {
+          margin: 0 0 0.5rem 0;
+          color: #666;
+          font-size: 0.9rem;
+        }
+        
+        .dataset-stats {
+          display: flex;
+          gap: 1rem;
+          
+          span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            color: #888;
+            
+            .mat-icon {
+              font-size: 14px;
+              width: 14px;
+              height: 14px;
+            }
+          }
+        }
+      }
+      
+      .dataset-score {
+        .score-circle {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          font-size: 0.9rem;
+        }
+      }
+      
+      .dataset-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+      }
+    }
+  }
+}
+
+// === ONGLET RECOMMANDATIONS ===
+
+.view-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  
+  .results-count {
+    font-weight: 500;
+    color: #555;
+  }
+}
+
+// === HEATMAP ===
+
+.heatmap-view {
+  .heatmap-card {
+    .heatmap-container {
+      overflow-x: auto;
+      
+      .heatmap-table {
+        min-width: 800px;
+        display: flex;
+        flex-direction: column;
+        
+        .heatmap-header, .heatmap-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr repeat(auto-fit, minmax(120px, 1fr));
+          align-items: center;
+          gap: 1rem;
+          padding: 0.75rem 0;
+          border-bottom: 1px solid #e0e0e0;
+          
+          .dataset-name-col {
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          
+          .score-col, .criterion-col {
+            text-align: center;
+          }
+        }
+        
+        .heatmap-header {
+          background: #f8f9fa;
+          font-weight: 600;
+          color: #555;
+          border-bottom: 2px solid #1976d2;
+        }
+        
+        .heatmap-row {
+          &:hover {
+            background: #f8f9fa;
+          }
+          
+          .dataset-name {
+            font-weight: 500;
+          }
+          
+          .score-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+          }
+          
+          .criterion-score {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            font-size: 0.8rem;
+            min-width: 50px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// === VUE LISTE ===
+
+.list-view {
+  .recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    
+    .recommendation-card {
+      .recommendation-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        
+        .rank-badge {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: #1976d2;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 1.1rem;
+          flex-shrink: 0;
+        }
+        
+        .dataset-details {
+          flex: 1;
+          
+          h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+          }
+          
+          .dataset-objective {
+            margin: 0 0 0.75rem 0;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.3;
+          }
+          
+          .dataset-metadata {
+            mat-chip-set {
+              mat-chip {
+                font-size: 0.8rem;
+              }
+            }
+          }
+        }
+        
+        .score-section {
+          text-align: center;
+          
+          .main-score {
+            .score-circle {
+              width: 60px;
+              height: 60px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: 600;
+              font-size: 1rem;
+              margin: 0 auto 0.5rem;
+            }
+            
+            .score-label {
+              font-size: 0.8rem;
+              color: #666;
+            }
+          }
+        }
+        
+        .actions-section {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: stretch;
+        }
+      }
+    }
+  }
+}
+
+// === ÉTATS ===
+
+.loading-recommendations, .no-recommendations, .loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  
+  mat-spinner {
+    margin-bottom: 1rem;
+  }
+  
+  .mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+  }
+  
+  h3 {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+    color: #555;
+  }
+  
+  p {
+    margin: 0 0 1rem 0;
+    color: #666;
+    font-size: 1rem;
+  }
+}
+
+// === RESPONSIVE ===
+
+@media (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .heatmap-table {
+    .heatmap-header, .heatmap-row {
+      grid-template-columns: 2fr 1fr repeat(auto-fit, minmax(100px, 1fr));
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .detail-header {
+    padding: 1rem;
+    
+    .header-content {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .header-actions {
+      justify-content: space-around;
+      width: 100%;
+    }
+  }
+  
+  .tab-content {
+    padding: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+    
+    .stat-item {
+      .stat-value {
+        font-size: 1.5rem;
+      }
+    }
+  }
+  
+  .top-recommendation {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    text-align: center;
+    
+    .dataset-actions {
+      flex-direction: row !important;
+      justify-content: center;
+    }
+  }
+  
+  .recommendation-content {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    text-align: center;
+    gap: 1.5rem !important;
+    
+    .actions-section {
+      flex-direction: row !important;
+      justify-content: center;
+    }
+  }
+  
+  .view-controls {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .heatmap-container {
+    font-size: 0.8rem;
+  }
+  
+  .header-info {
+    .project-meta {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+} 

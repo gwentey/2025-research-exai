@@ -1,101 +1,163 @@
-= 📊 Sélectionner un Dataset pour votre Projet
+= Sélection de Datasets
+:description: Guide d'utilisation de l'interface de sélection des datasets dans EXAI
 
-L'une des étapes les plus cruciales en Machine Learning est de choisir le bon jeu de données (dataset). EXAI est conçu pour vous aider à trouver et évaluer des datasets en fonction de critères variés, allant des aspects techniques aux considérations éthiques et métier.
+== Vue d'ensemble
 
-Ce guide vous explique comment utiliser l'interface de sélection de datasets d'EXAI.
+L'interface de sélection des datasets d'EXAI offre une expérience moderne et intuitive pour explorer, filtrer et sélectionner des datasets pour vos projets d'explicabilité d'IA.
 
-== Accéder au Catalogue de Datasets
+== Interface utilisateur moderne
 
-Dans le menu principal de l'application EXAI (généralement sur la gauche), cliquez sur la section **"Datasets"** ou **"Catalogue de Datasets"**. Vous arriverez sur une vue présentant les datasets disponibles.
+=== Design fluide et cohérent
+L'interface utilise le design system Spike avec :
 
-== Explorer le Catalogue
+* **Ombres Material Design** : Effets visuels subtils avec `level1/2/3`
+* **Coins arrondis** : Border-radius cohérents (`corner-medium`, `corner-large`)
+* **Transitions fluides** : Animations de 0.2s sur toutes les interactions
+* **Effets de hover** : Translation légère (-1px, -2px) pour la profondeur
 
-Par défaut, vous verrez une liste ou une grille de datasets disponibles dans EXAI. Pour chaque dataset, vous aurez un aperçu rapide contenant généralement :
+=== Barre de recherche avancée
+* **Zone de recherche moderne** : 
+  - Design arrondi avec ombres Material
+  - Effets de focus progressifs (level1 → level2 → level3)
+  - Padding optimisé (14px vertical, 16px horizontal)
+* **Filtres dropdown** : Accès rapide aux critères de filtrage
+* **Tri intelligent** : Options de tri par pertinence, date, nom
 
-*   Le **Nom** du dataset.
-*   Une brève **Description**.
-*   Potentiellement un **Score de Pertinence** initial (si vous avez déjà défini des préférences de projet).
-*   Quelques **Tags** ou métadonnées clés (ex: type de tâche ML compatible, taille).
+== Cartes de datasets optimisées
 
-== Rechercher et Filtrer les Datasets
+=== Badges informatifs clairs
 
-Pour affiner votre recherche, utilisez les outils de filtrage situés généralement au-dessus ou à côté de la liste des datasets.
+==== Score éthique
+[cols="1,1,3", options="header"]
+|===
+|Score |Couleur |Signification
+|80-100% |Vert |Conformité RGPD excellente, anonymisation complète
+|60-79% |Orange |Conformité partielle, quelques points d'attention
+|0-59% |Rouge |Non-conformité, risques éthiques importants
+|===
 
-=== Barre de Recherche
-Utilisez la barre de recherche pour trouver des datasets par **mot-clé** présent dans leur nom ou description.
+==== Niveau de représentativité
+[cols="1,1,3", options="header"]
+|===
+|Niveau |Couleur |Signification
+|Élevée |Bleu |Dataset très représentatif de la population cible
+|Moyenne |Violet |Représentativité acceptable avec quelques biais
+|Faible |Gris |Représentativité limitée, utilisation avec précaution
+|===
 
-=== Filtres Détaillés
-Cliquez sur "Filtres" ou dépliez la section des filtres pour accéder à des critères plus précis, souvent organisés par catégories :
+=== Statistiques responsives
 
-1.  **Critères Techniques :**
-    *   *Tâche ML compatible :* Classification, Régression, Clustering...
-    *   *Format de fichier :* CSV, Parquet, JSON...
-    *   *Taille du dataset :* Nombre de lignes, nombre de colonnes, poids du fichier.
-    *   *Type de données :* Données tabulaires, images, texte...
-    *   *Présence de valeurs manquantes :* Faible, moyenne, élevée.
+Les statistiques des datasets s'adaptent automatiquement :
 
-2.  **Critères Éthiques & Conformité :**
-    *   *Indicateurs de biais connus :* Présence de biais documentés (genre, ethnie...). Recherche de datasets ayant fait l'objet d'audits.
-    *   *Anonymisation / PII :* Niveau d'anonymisation, présence potentielle d'informations personnelles identifiables (PII).
-    *   *Consentement / Licence :* Type de licence d'utilisation (open source, restrictive...), informations sur le consentement des données.
-    *   *Équité (Fairness) :* Disponibilité de métriques de fairness pré-calculées (si applicable).
+* **Desktop** : Affichage horizontal compact
+* **Tablette** : Retour à la ligne automatique si nécessaire
+* **Mobile** : Chaque statistique sur une ligne complète
 
-3.  **Critères Métier / Domaine :**
-    *   *Domaine d'application :* Santé, finance, marketing, transport...
-    *   *Source des données :* Origine des données (ex: capteurs IoT, enquêtes utilisateurs, logs web).
-    *   *Fraîcheur des données :* Date de création ou de dernière mise à jour.
+Les métriques affichées :
+* **Instances** : Nombre total d'échantillons
+* **Features** : Nombre de variables/colonnes
+* **Manquant** : Pourcentage de valeurs manquantes (si > 0%)
 
-Cochez les cases ou sélectionnez les valeurs souhaitées pour chaque filtre. La liste des datasets se mettra à jour automatiquement pour ne montrer que ceux qui correspondent à *tous* les filtres actifs.
+=== Actions utilisateur améliorées
 
-TIP: N'hésitez pas à commencer avec peu de filtres et à en ajouter progressivement pour affiner votre sélection.
+==== Boutons d'action
+* **Voir** : Style outline bleu, pour prévisualiser le dataset
+* **Sélectionner** : Style filled bleu, action principale bien visible
+* **Favoris** : Icône cœur pour sauvegarder les datasets préférés
 
-== Comprendre les Informations d'un Dataset
+Tous les boutons incluent :
+* Effets de hover avec élévation (-1px)
+* Ombres Material Design progressives
+* Transitions fluides pour une expérience premium
 
-Cliquez sur un dataset dans la liste pour accéder à sa **page de détails**. Vous y trouverez des informations plus complètes :
+== Filtrage et recherche
 
-*   **Description détaillée**.
-*   **Score de Pertinence :** Un score calculé par EXAI indiquant à quel point ce dataset correspond aux critères que vous avez sélectionnés (ou aux préférences globales de votre projet). Un score plus élevé signifie une meilleure adéquation théorique.
-    *   _(Conceptuellement, ce score agrège la correspondance du dataset avec chacun de vos filtres actifs, en donnant potentiellement plus de poids à certains critères)._
-*   **Métadonnées Techniques :** Nombre exact de lignes/colonnes, types de données détaillés par colonne, statistiques descriptives (moyenne, médiane, écart-type pour les colonnes numériques).
-*   **Métadonnées Éthiques/Métier :** Détails sur la licence, la source, les biais connus, etc.
-*   **Aperçu des Données :** Un échantillon des premières lignes du dataset.
-*   **Visualisations :** Des graphiques pour mieux comprendre le dataset (voir section suivante).
+=== Critères de filtrage
+* **Domaine** : éducation, santé, finance, etc.
+* **Tâche ML** : classification, régression, clustering
+* **Accès** : public vs privé
+* **Score éthique** : seuils minimum/maximum
+* **Représentativité** : niveau requis
 
-== Utiliser les Visualisations
+=== Recherche textuelle
+Recherche dans :
+* Nom du dataset
+* Description
+* Domaines d'application
+* Mots-clés
 
-Sur la page de détails d'un dataset, ou dans la vue de comparaison, vous aurez accès à plusieurs types de visualisations pour vous aider à l'évaluer :
+=== Filtres actifs
+* **Chips visuels** : Affichage compact des filtres appliqués
+* **Suppression rapide** : Clic sur X pour retirer un filtre
+* **Reset global** : Bouton pour vider tous les filtres
 
-*   **Histogrammes :**
-    *   *Utilité :* Montrent la distribution des valeurs pour une colonne spécifique (numérique ou catégorielle).
-    *   *Exemple :* Visualiser la répartition des âges dans un dataset client, ou la fréquence de chaque classe dans un problème de classification.
+== Modes d'affichage
 
-*   **Heatmap (Carte de Chaleur) :**
-    *   *Utilité :* Souvent utilisée pour visualiser la **matrice de corrélation** entre les colonnes numériques (quelles variables évoluent ensemble ?) ou pour montrer la **complétude des données** (visualiser les valeurs manquantes par colonne/ligne).
-    *   *Exemple :* Identifier rapidement si deux variables sont fortement liées, ou quelles colonnes ont beaucoup de données manquantes.
+=== Vue grille (par défaut)
+* **Cartes détaillées** : Informations complètes avec description
+* **Badges visuels** : Score éthique et représentativité
+* **Actions complètes** : Tous les boutons d'action disponibles
 
-*   **Radar Chart (Graphique en Radar) :**
-    *   *Utilité :* Compare un ou plusieurs datasets sur plusieurs **axes dimensionnels** simultanément (par exemple, taille, complétude, score éthique, pertinence métier, fraîcheur).
-    *   *Exemple :* Visualiser rapidement les forces et faiblesses relatives de plusieurs datasets pré-sélectionnés selon les critères importants pour vous.
+=== Vue liste (compacte)
+* **Affichage dense** : Plus de datasets visibles à l'écran
+* **Informations essentielles** : Métriques clés seulement
+* **Navigation rapide** : Parcours efficace de nombreux datasets
 
-Interagissez avec les visualisations : survolez les éléments pour plus de détails, utilisez les options de zoom ou de sélection si disponibles.
+== Responsive design
 
-== Comparer des Datasets
+L'interface s'adapte à tous les écrans :
 
-EXAI vous permet de comparer plusieurs datasets côte à côte.
+=== Mobile (< 768px)
+* **Statistiques empilées** : Une métrique par ligne
+* **Boutons adaptés** : Taille tactile optimisée
+* **Navigation simplifiée** : Priorité aux actions essentielles
 
-1.  Depuis la vue du catalogue, cochez les cases correspondantes aux datasets que vous souhaitez comparer (généralement 2 à 4 datasets pour une comparaison lisible).
-2.  Cliquez sur le bouton **"Comparer"** qui apparaît.
-3.  Vous accéderez à une vue de comparaison présentant :
-    *   Les **métadonnées clés** de chaque dataset affichées côte à côte.
-    *   Des **visualisations comparatives**, comme le Radar Chart mentionné ci-dessus, montrant les datasets sélectionnés sur les mêmes axes.
+=== Tablette (768px - 1024px)
+* **Grille adaptative** : 2 colonnes minimum
+* **Wrapping intelligent** : Réorganisation automatique du contenu
 
-Cette vue est très utile pour prendre une décision finale lorsque vous hésitez entre plusieurs options pertinentes.
+=== Desktop (> 1024px)
+* **Grille optimisée** : 3-4 colonnes selon la taille d'écran
+* **Effets de hover** : Interactions riches pour souris/trackpad
 
-== Sélectionner un Dataset pour le Pipeline ML
+== Accessibilité
 
-Une fois que vous avez identifié le dataset le plus adapté à votre besoin grâce à la recherche, aux filtres, aux détails et à la comparaison :
+=== Indicateurs visuels
+* **Tooltips explicatifs** : Information détaillée au survol
+* **Contrastes élevés** : Lisibilité optimale
+* **Icônes parlantes** : Symboles universels (sécurité, analytics, etc.)
 
-1.  Depuis la page de détails du dataset choisi ou la vue de comparaison, cliquez sur le bouton **"Utiliser ce dataset"** ou **"Sélectionner pour le Pipeline"**.
-2.  Ce dataset sera alors marqué comme actif pour la prochaine étape : la création de votre xref:user-guide/ml-pipeline.adoc[Pipeline ML Interactif].
+=== Navigation clavier
+* **Tabulation logique** : Parcours séquentiel des éléments
+* **Raccourcis clavier** : Accès rapide aux fonctions principales
+* **Focus visible** : Indication claire de l'élément actif
 
-Vous êtes maintenant prêt à explorer et choisir le meilleur point de départ pour vos expérimentations de Machine Learning avec EXAI ! 
+== Bonnes pratiques
+
+=== Sélection efficace
+1. **Commencer large** : Utiliser la recherche textuelle d'abord
+2. **Affiner progressivement** : Ajouter des filtres spécifiques
+3. **Vérifier l'éthique** : Prioriser les scores éthiques élevés
+4. **Valider la représentativité** : S'assurer de la pertinence du dataset
+
+=== Gestion des favoris
+* **Sauvegarder les candidats** : Marquer les datasets intéressants
+* **Comparer facilement** : Accès rapide aux datasets favoris
+* **Organiser le workflow** : Préparation de sélections multiples
+
+== Dépannage
+
+=== Problèmes courants
+
+==== Aucun résultat trouvé
+* **Vérifier les filtres** : Critères peut-être trop restrictifs
+* **Élargir la recherche** : Utiliser des termes plus généraux
+* **Reset complet** : Vider tous les filtres et recommencer
+
+==== Performance lente
+* **Optimisation automatique** : L'interface charge par lots
+* **Cache intelligent** : Les résultats sont mis en cache
+* **Pagination** : Navigation par pages pour de gros volumes
+
+=== Support technique
+Pour toute assistance, consulter l'équipe de développement ou la documentation technique complète. 
