@@ -1,5 +1,8 @@
 # migration-jobs-image-patch.yaml
-# Patch pour forcer le pull des images en production pour le job api-gateway-migration
+# Patch pour utiliser la bonne image ACR et forcer le pull en production
+- op: replace
+  path: /spec/template/spec/containers/0/image
+  value: exaiprodacr.azurecr.io/exai-api-gateway:latest
 - op: replace
   path: /spec/template/spec/containers/0/imagePullPolicy
   value: Always 
