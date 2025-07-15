@@ -14,11 +14,11 @@ metadata:
     app: service-selection
 # Spécification (spec) du Deployment : décrit l'état désiré.
 spec:
-  # Réduire le nombre de répliques à 1 pour éviter le problème Multi-Attach avec Azure Disk
+  # Nombre de répliques (peut être augmenté car nous n'utilisons plus de PVC RWO)
   replicas: 1
-  # Stratégie de mise à jour : Recreate pour éviter le conflit Multi-Attach sur PVC RWO
+  # Stratégie de mise à jour : RollingUpdate car nous n'avons plus de problème Multi-Attach avec PVC RWO
   strategy:
-    type: Recreate
+    type: RollingUpdate
   # Sélecteur utilisé par le Deployment pour identifier les Pods qu'il doit gérer.
   selector:
     # Les Pods gérés doivent avoir ce label.
@@ -89,5 +89,4 @@ spec:
       # Définition des volumes disponibles pour ce Pod.
       volumes:
         - name: dataset-storage
-          persistentVolumeClaim:
-            claimName: dataset-pvc
+          emptyDir: {}

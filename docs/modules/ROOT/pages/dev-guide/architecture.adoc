@@ -149,8 +149,7 @@ Voici la structure actualisée du code source, reflétant la centralisation des 
 │   │   ├── service-selection/ # Configurations K8s pour le Service Sélection
 │   │   │   ├── deployment.yaml
 │   │   │   ├── db-secrets.yaml
-│   │   │   ├── service.yaml
-│   │   │   └── dataset-pvc.yaml        # Si nécessaire
+│   │   │   └── service.yaml
 │   │   └── kustomization.yaml # Fichier déclarant toutes les ressources de base
 │   ├── overlays/             # Surcouches de configuration pour différents environnements
 │   │   └── azure/            # Configuration spécifique au déploiement sur Azure

@@ -14,7 +14,7 @@ resources:
   - ../../base/service-selection/deployment.yaml
   - ../../base/service-selection/db-secrets.yaml
   - ../../base/service-selection/service.yaml
-  - ../../base/service-selection/dataset-pvc.yaml
+  # - ../../base/service-selection/dataset-pvc.yaml # Supprimé car nous n'utilisons plus de PVC
   - ../../base/frontend/deployment.yaml
   - ../../base/frontend/service.yaml
   - ../../base/common/ingress.yaml
