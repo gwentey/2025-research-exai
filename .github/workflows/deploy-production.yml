@@ -13,6 +13,7 @@ env:
   API_GATEWAY_IMAGE_NAME: 'exai-api-gateway'
   SERVICE_SELECTION_IMAGE_NAME: 'service-selection'
   FRONTEND_IMAGE_NAME: 'frontend'
+  WITH_DATA: 'false'
 
 jobs:
   build_push_deploy:
@@ -136,23 +137,34 @@ jobs:
         run: kubectl wait pod --selector=app=postgresql --for=condition=Ready -n ${{ env.K8S_NAMESPACE }} --timeout=5m
 
       # --- Migration de la base de données (MAINTENANT APRÈS SKAFFOLD DEPLOY) ---
-      # Optionnel: Supprimer l'ancien job s'il existe pour éviter les conflits
-      - name: Delete Previous Migration Job (if exists)
-        run: kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+      # Optionnel: Supprimer les anciens jobs s'ils existent pour éviter les conflits
+      - name: Delete Previous Migration Jobs (if exist)
+        run: |
+          kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+          kubectl delete job service-selection-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
 
-      - name: Apply Database Migration Job
-        run: kubectl apply -f k8s/base/jobs/api-gateway-migration-job.yaml -n ${{ env.K8S_NAMESPACE }}
-
-      - name: Wait for Database Migration Job to Complete
-        run: kubectl wait --for=condition=complete job/api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --timeout=5m
+      - name: Wait for Database Migration Jobs to Complete
+        run: |
+          kubectl wait --for=condition=complete job/api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --timeout=5m
+          kubectl wait --for=condition=complete job/service-selection-migration-job -n ${{ env.K8S_NAMESPACE }} --timeout=5m
 
       # --- (Optionnel) Redémarrer les applications dépendant de la DB ---
       - name: Rollout restart API Gateway (ensure it uses migrated schema)
         run: kubectl rollout restart deployment api-gateway -n ${{ env.K8S_NAMESPACE }}
 
+      - name: Wait for Service Selection Pod to be Ready (for data init)
+        if: env.WITH_DATA == 'true'
+        run: kubectl wait --for=condition=ready pod -l app=service-selection -n ${{ env.K8S_NAMESPACE }} --timeout=5m
+
+      - name: Initialize sample data
+        if: env.WITH_DATA == 'true'
+        run: kubectl exec -n ${{ env.K8S_NAMESPACE }} deployment/service-selection -- python scripts/init_datasets.py all
+
       # (Ajouter ici d'autres 'rollout restart' pour service-selection, etc. si nécessaire)
 
       # --- Nettoyage (Optionnel) ---
-      - name: Delete Completed Migration Job (optional)
+      - name: Delete Completed Migration Jobs (optional)
         if: success() # Ne supprime que si le déploiement a réussi
-        run: kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+        run: |
+          kubectl delete job api-gateway-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+          kubectl delete job service-selection-migration-job -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true

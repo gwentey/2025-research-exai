@@ -1,5 +1,0 @@
-# migration-jobs-pullpolicy-patch.yaml
-# Patch pour forcer le pull des images en production
-- op: replace
-  path: /spec/template/spec/containers/0/imagePullPolicy
-  value: Always 

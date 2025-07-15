@@ -32,14 +32,10 @@ namespace: exai
 images:
   - name: exai-api-gateway
     newName: exaiprodacr.azurecr.io/exai-api-gateway
-  - name: api-gateway
-    newName: exaiprodacr.azurecr.io/exai-api-gateway
   - name: service-selection
     newName: exaiprodacr.azurecr.io/service-selection
   - name: frontend
     newName: exaiprodacr.azurecr.io/frontend
-  # - name: postgres
-  #   newName: exaiprodacr.azurecr.io/postgres
 
 # Patches pour les configurations spécifiques à Azure
 # Supprimer la référence au patch oauth-redirect-patch.yaml
@@ -59,11 +55,11 @@ images:
 
 # Patches spécifiques à Azure
 patches:
-  - path: migration-jobs-pullpolicy-patch.yaml
+  - path: migration-jobs-image-patch.yaml
     target:
       kind: Job
       name: api-gateway-migration-job
-  - path: migration-jobs-pullpolicy-patch.yaml
+  - path: service-selection-migration-job-patch.yaml
     target:
       kind: Job
       name: service-selection-migration-job
