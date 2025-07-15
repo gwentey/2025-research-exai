@@ -56,7 +56,7 @@ profiles:
         - k8s/base/postgres/postgresql-service.yaml
         # Service Selection
         - k8s/base/service-selection/deployment.yaml
-        - k8s/base/service-selection/dataset-pvc.yaml
+        # - k8s/base/service-selection/dataset-pvc.yaml # Supprimé car nous n'utilisons plus de PVC
         - k8s/base/service-selection/db-secrets.yaml
         - k8s/base/service-selection/service.yaml
     # Configuration explicite du Port Forwarding
