@@ -1,0 +1,5 @@
+# service-selection-migration-job-patch.yaml
+# Patch pour forcer le pull des images en production pour le job service-selection-migration
+- op: replace
+  path: /spec/template/spec/containers/0/imagePullPolicy
+  value: Always 
