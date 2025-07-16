@@ -249,6 +249,33 @@ graph LR
         *   **Documentation Technique** : Guide complet dans `docs/dev-guide/dataset-detail-visualization.adoc`
         *   **Évolutions Prévues** : Graphiques interactifs, export PDF, intégration ML Pipeline, comparaison de datasets
 
+    *   **Système d'Importation de Datasets en Batch (Innovation Majeure - Janvier 2025)** : Solution industrielle complète pour l'intégration massive de datasets réels
+        *   **Transformation Architecturale** : Évolution d'un processus manuel vers une automatisation intelligente
+        *   **Architecture Kaggle** : Suite d'outils pour import automatique depuis Kaggle API dans `datasets/kaggle-import/`
+            *   `kaggle_importer.py` : Import automatique depuis Kaggle avec cache intelligent
+            *   `kaggle_datasets_config.yaml` : Configuration centralisée des datasets
+            *   `Makefile` : 10+ commandes d'automatisation (import-all, import-dataset, test-auth, status, etc.)
+            *   `README.md` : Guide complet d'utilisation locale et production
+        *   **Fonctionnalités Avancées** :
+            *   **Cache Intelligent** : 7 jours, évite re-téléchargements inutiles
+            *   **API Kaggle** : Import direct depuis la source sans limitations GitHub
+            *   **Support Multi-fichiers** : Gestion automatique des datasets complexes
+            *   **Conversion Optimisée** : CSV → Parquet avec gains de performance 10-50x
+            *   **Job Kubernetes** : Import automatique en production via `kaggle-dataset-import-job.yaml`
+        *   **Datasets Configurés** : 7 datasets (education, social-media) prêts à importer
+        *   **Sécurité** : Credentials Kaggle en secrets K8s, nettoyage automatique
+        *   **Documentation** : Guide complet Antora (`batch-dataset-import-system.adoc`)
+        *   **Intégration Architecture** : Workflow temporaire → stockage objets → backend lecture exclusive via `common/storage_client.py`
+        *   **🚨 ÉVOLUTION MAJEURE → Système d'Import Kaggle (Janvier 2025)** : Remplacement du système local par import automatique depuis Kaggle API
+            *   **Problème Résolu** : Datasets trop volumineux pour GitHub (impossible de déployer en production)
+            *   **Nouvelle Architecture** : `Kaggle API → Téléchargement → Conversion Parquet → Upload Stockage → BDD`
+            *   **Scripts Développés** : `kaggle_importer.py`, configuration YAML, cache intelligent 7 jours
+            *   **Job Kubernetes** : `kaggle-dataset-import-job.yaml` pour import automatique en production
+            *   **Avantages** : Pas de limite de taille, cache intelligent, conversion automatique, job récurrent
+            *   **Configuration** : 7 datasets configurés (education, social-media) avec métadonnées complètes
+            *   **Sécurité** : Credentials Kaggle en secrets K8s, nettoyage automatique fichiers temporaires
+            *   **Makefile** : 10+ commandes d'automatisation (import-all, import-dataset, test-auth, status, etc.)
+
     *   **Correction Critique Filtrage Multi-Critères (2025-01-25)** : Résolution du problème de logique AND/OR dans les filtres
         *   **Problème** : Quand l'utilisateur sélectionnait 2 critères dans "Domaine d'application", le système retournait les datasets ayant l'un OU l'autre (logique OR)
         *   **Comportement Attendu** : L'utilisateur voulait que les datasets aient tous les critères sélectionnés (logique AND)

@@ -4,6 +4,8 @@ Cette section contient des informations techniques pour les développeurs travai
 
 * xref:dev-guide/architecture.adoc[Architecture] - Vue d'ensemble de l'architecture du système
 * xref:dev-guide/object-storage-implementation.adoc[Stockage d'Objets] - Implémentation complète du système de stockage MinIO/Azure avec format Parquet
+* xref:dev-guide/dataset-visualization.adoc[Visualisation des Datasets] - Fonctionnalité de visualisation des données réelles depuis MinIO avec aperçus tronqués
+* xref:dev-guide/batch-dataset-import-system.adoc[Système d'Importation en Batch] - Solution industrielle complète pour l'intégration massive de datasets réels avec extraction automatique de métadonnées, conversion Parquet, et validation multi-niveaux
 * xref:dev-guide/api-reference.adoc[Référence API] - Documentation de l'API REST
 * xref:dev-guide/secrets-management.adoc[Gestion des Secrets] - Comment gérer les secrets dans le projet
 * xref:dev-guide/frontend-authentication.adoc[Authentification Frontend] - Implémentation technique de l'authentification côté frontend

@@ -1,0 +1,16 @@
+# Dépendances pour l'importeur Kaggle
+kaggle>=1.5.12
+pandas>=1.5.0
+pyarrow>=10.0.0
+pyyaml>=6.0
+tqdm>=4.64.0
+
+# Déjà présent dans EXAI mais on les liste pour clarté
+fastapi>=0.95.0
+sqlalchemy>=2.0.0
+pydantic>=2.0.0
+asyncio-compat>=0.1.2
+
+# Pour le stockage d'objets (déjà dans common/)
+minio>=7.1.0
+azure-storage-blob>=12.0.0 

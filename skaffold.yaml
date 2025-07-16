@@ -54,10 +54,16 @@ profiles:
         - k8s/base/postgres/postgresql-statefulset.yaml
         - k8s/base/postgres/postgresql-headless-service.yaml
         - k8s/base/postgres/postgresql-service.yaml
+        # MinIO (Stockage d'objets pour développement)
+        - k8s/base/minio/minio-deployment.yaml
+        - k8s/base/minio/minio-service.yaml
+        - k8s/base/minio/minio-pvc.yaml
         # Service Selection
         - k8s/base/service-selection/deployment.yaml
         # - k8s/base/service-selection/dataset-pvc.yaml # Supprimé car nous n'utilisons plus de PVC
         - k8s/base/service-selection/db-secrets.yaml
+        - k8s/base/service-selection/storage-secrets.yaml
+        - k8s/base/service-selection/kaggle-secrets.yaml
         - k8s/base/service-selection/service.yaml
     # Configuration explicite du Port Forwarding
     portForward:
@@ -73,6 +79,16 @@ profiles:
         namespace: exai
         port: 80 # Port interne du service
         localPort: 9000 # Port sur votre machine locale
+      - resourceType: service
+        resourceName: minio-service
+        namespace: exai
+        port: 6700
+        localPort: 6700
+      - resourceType: service
+        resourceName: minio-service
+        namespace: exai
+        port: 6701
+        localPort: 6701
 
   - name: azure
     # Utiliser des patches pour modifier les noms d'images ET les buildArgs pour ce profil

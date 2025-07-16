@@ -11,3 +11,8 @@ minio>=7.0.0
 azure-storage-blob>=12.0.0
 pyarrow>=14.0.0
 pandas>=2.0.0
+
+# Dépendances pour l'importeur Kaggle
+kaggle>=1.5.12
+pyyaml>=6.0
+tqdm>=4.64.0

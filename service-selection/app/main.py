@@ -387,8 +387,45 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Vérification de la santé du service."""
+    """Endpoint de vérification de santé du service."""
     return {"status": "healthy", "service": "service-selection"}
+
+@app.get("/debug/datasets-count")
+async def debug_datasets_count():
+    """
+    ENDPOINT TEMPORAIRE - Retourne le nombre total de datasets
+    À SUPPRIMER en production !
+    """
+    try:
+        session = next(database.get_db())
+        datasets = session.query(models.Dataset).all()
+        
+        # Compter par nom unique pour détecter les doublons
+        unique_names = set()
+        dataset_details = []
+        
+        for dataset in datasets:
+            unique_names.add(dataset.dataset_name)
+            dataset_details.append({
+                "id": dataset.id,
+                "name": dataset.dataset_name,
+                "instances": dataset.instances_number,
+                "storage_path": dataset.storage_path
+            })
+        
+        return {
+            "total_datasets": len(datasets),
+            "unique_dataset_names": len(unique_names),
+            "status": "✅ OK" if len(datasets) <= 10 else f"⚠️  TROP DE DOUBLONS ({len(datasets)})",
+            "datasets": dataset_details
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors du debug datasets: {e}")
+        return {
+            "error": str(e),
+            "total_datasets": "unknown"
+        }
 
 @app.get("/datasets", response_model=schemas.DatasetListResponse)
 def list_datasets(
@@ -583,7 +620,7 @@ def get_dataset_details(dataset_id: str, db: Session = Depends(database.get_db))
     distribution_analysis = generate_distribution_analysis(dataset)
     
     # Générer les métadonnées des fichiers
-    files_metadata = generate_files_metadata(dataset)
+    files_metadata = generate_files_metadata(dataset, db)
     
     return schemas.DatasetDetailResponse(
         id=dataset.id,
@@ -625,8 +662,8 @@ def get_dataset_preview(dataset_id: str, db: Session = Depends(database.get_db))
     if dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
     
-    # Générer l'aperçu des données (simulation)
-    preview_data = generate_dataset_preview(dataset)
+    # Générer l'aperçu des données depuis MinIO
+    preview_data = generate_dataset_preview(dataset, db)
     
     return preview_data
 
@@ -1274,8 +1311,73 @@ def generate_distribution_analysis(dataset: models.Dataset) -> schemas.DataDistr
     )
 
 
-def generate_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFileMetadata]:
-    """Génère les métadonnées des fichiers pour un dataset."""
+def generate_files_metadata(dataset: models.Dataset, db: Session = None) -> List[schemas.DatasetFileMetadata]:
+    """
+    Génère les métadonnées des fichiers pour un dataset en lisant depuis la base de données.
+    
+    Args:
+        dataset: Instance du dataset
+        db: Session de base de données pour accéder aux fichiers et colonnes
+    
+    Returns:
+        List[DatasetFileMetadata]: Liste des métadonnées des fichiers
+    """
+    
+    # Si pas de session DB fournie, générer des données simulées (fallback)
+    if db is None:
+        return generate_fallback_files_metadata(dataset)
+    
+    # Récupérer les fichiers du dataset depuis la base de données
+    dataset_files = db.query(models.DatasetFile).filter(
+        models.DatasetFile.dataset_id == dataset.id
+    ).order_by(models.DatasetFile.created_at).all()
+    
+    # Si aucun fichier trouvé, retourner des métadonnées simulées
+    if not dataset_files:
+        logger.warning(f"Aucun fichier trouvé pour dataset {dataset.id}, génération de métadonnées simulées")
+        return generate_fallback_files_metadata(dataset)
+    
+    files_metadata = []
+    
+    for dataset_file in dataset_files:
+        # Récupérer les colonnes du fichier depuis la base de données
+        file_columns = db.query(models.FileColumn).filter(
+            models.FileColumn.dataset_file_id == dataset_file.id
+        ).order_by(models.FileColumn.position).all()
+        
+        # Convertir les colonnes en schémas ColumnMetadata
+        columns_metadata = []
+        for file_column in file_columns:
+            columns_metadata.append(schemas.ColumnMetadata(
+                column_name=file_column.column_name,
+                position=file_column.position,
+                data_type_original=file_column.data_type_original or "unknown",
+                data_type_interpreted=file_column.data_type_interpreted or file_column.data_type_original or "unknown",
+                is_nullable=file_column.is_nullable,
+                is_primary_key_component=file_column.is_primary_key_component,
+                is_pii=file_column.is_pii,
+                description=file_column.description,
+                example_values=file_column.example_values or []
+            ))
+        
+        # Créer les métadonnées du fichier
+        file_metadata = schemas.DatasetFileMetadata(
+            file_name_in_storage=dataset_file.file_name_in_storage,
+            format=dataset_file.format or "unknown",
+            size_bytes=dataset_file.size_bytes or 0,
+            row_count=dataset_file.row_count or 0,
+            description=dataset_file.description,
+            columns=columns_metadata
+        )
+        
+        files_metadata.append(file_metadata)
+        logger.info(f"Métadonnées chargées pour fichier {dataset_file.file_name_in_storage}: {len(columns_metadata)} colonnes")
+    
+    return files_metadata
+
+
+def generate_fallback_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFileMetadata]:
+    """Génère des métadonnées de fichiers simulées en cas d'erreur lors de la lecture des vraies données."""
     import random
     
     # Nombre de fichiers basé sur la taille du dataset
@@ -1347,8 +1449,8 @@ def generate_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFile
         file_size = file_instances * avg_bytes_per_row
         
         files.append(schemas.DatasetFileMetadata(
-            filename=filename,
-            file_format="csv",
+            file_name_in_storage=filename,
+            format="csv",
             size_bytes=file_size,
             row_count=file_instances,
             description=f"Fichier principal du dataset" if i == 0 else f"Fichier de {'test' if i == 1 else 'validation'}",
@@ -1358,8 +1460,167 @@ def generate_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFile
     return files
 
 
-def generate_dataset_preview(dataset: models.Dataset) -> schemas.DatasetPreviewResponse:
-    """Génère un aperçu des données pour un dataset."""
+def generate_dataset_preview(dataset: models.Dataset, db: Session = None) -> schemas.DatasetPreviewResponse:
+    """
+    Génère un aperçu des données réelles pour un dataset en lisant depuis MinIO.
+    
+    Args:
+        dataset: Instance du dataset
+        db: Session de base de données pour accéder aux fichiers
+    
+    Returns:
+        DatasetPreviewResponse: Aperçu avec vraies données tronquées
+    """
+    
+    # Si pas de session DB fournie, générer des données simulées (fallback)
+    if db is None:
+        return generate_fallback_preview(dataset)
+    
+    # Récupérer les fichiers du dataset depuis la base de données
+    dataset_files = db.query(models.DatasetFile).filter(
+        models.DatasetFile.dataset_id == dataset.id,
+        models.DatasetFile.format == 'parquet'  # Prioriser les fichiers Parquet
+    ).all()
+    
+    # Si aucun fichier Parquet, essayer avec tous les formats
+    if not dataset_files:
+        dataset_files = db.query(models.DatasetFile).filter(
+            models.DatasetFile.dataset_id == dataset.id
+        ).all()
+    
+    # Si toujours aucun fichier, retourner un aperçu simulé
+    if not dataset_files:
+        logger.warning(f"Aucun fichier trouvé pour dataset {dataset.id}, génération d'un aperçu simulé")
+        return generate_fallback_preview(dataset)
+    
+    # Prendre le premier fichier de données (généralement le fichier principal)
+    main_file = None
+    for file in dataset_files:
+        if file.logical_role in ['data_file', 'training_data', None]:
+            main_file = file
+            break
+    
+    if main_file is None:
+        main_file = dataset_files[0]  # Prendre le premier fichier disponible
+    
+    try:
+        # Télécharger le fichier depuis MinIO
+        storage_client = get_storage_client()
+        
+        # Construire le chemin complet vers le fichier
+        if dataset.storage_path:
+            object_path = f"{dataset.storage_path.rstrip('/')}/{main_file.file_name_in_storage}"
+        else:
+            object_path = f"exai-datasets/{dataset.id}/{main_file.file_name_in_storage}"
+        
+        logger.info(f"Téléchargement du fichier pour aperçu: {object_path}")
+        file_data = storage_client.download_file(object_path)
+        
+        # Lire le fichier Parquet avec pandas
+        parquet_buffer = io.BytesIO(file_data)
+        df = pd.read_parquet(parquet_buffer)
+        
+        logger.info(f"Données lues avec succès: {len(df)} lignes, {len(df.columns)} colonnes")
+        
+        # Limiter le nombre de lignes pour l'aperçu (performance)
+        sample_rows = min(100, len(df))  # Maximum 100 lignes pour l'aperçu
+        max_columns = min(20, len(df.columns))  # Maximum 20 colonnes pour l'affichage
+        
+        # Prendre un échantillon aléatoire des données
+        if len(df) > sample_rows:
+            df_sample = df.sample(n=sample_rows, random_state=42)
+        else:
+            df_sample = df.copy()
+        
+        # Limiter le nombre de colonnes si nécessaire
+        if len(df.columns) > max_columns:
+            df_sample = df_sample.iloc[:, :max_columns]
+            logger.info(f"Aperçu limité aux {max_columns} premières colonnes")
+        
+        # Générer les statistiques des colonnes
+        columns_info = []
+        for col in df_sample.columns:
+            col_data = df[col]  # Utiliser le dataset complet pour les statistiques
+            
+            # Déterminer le type de données
+            if pd.api.types.is_numeric_dtype(col_data):
+                col_type = 'numeric'
+                mean_val = float(col_data.mean()) if not col_data.mean() != col_data.mean() else None  # Vérifier NaN
+                std_val = float(col_data.std()) if not col_data.std() != col_data.std() else None
+                min_val = str(col_data.min()) if not pd.isna(col_data.min()) else None
+                max_val = str(col_data.max()) if not pd.isna(col_data.max()) else None
+            elif pd.api.types.is_bool_dtype(col_data):
+                col_type = 'boolean'
+                mean_val = None
+                std_val = None
+                min_val = str(col_data.min()) if not pd.isna(col_data.min()) else None
+                max_val = str(col_data.max()) if not pd.isna(col_data.max()) else None
+            elif pd.api.types.is_datetime64_any_dtype(col_data):
+                col_type = 'datetime'
+                mean_val = None
+                std_val = None
+                min_val = str(col_data.min()) if not pd.isna(col_data.min()) else None
+                max_val = str(col_data.max()) if not pd.isna(col_data.max()) else None
+            else:
+                col_type = 'categorical' if col_data.nunique() < len(col_data) * 0.5 else 'text'
+                mean_val = None
+                std_val = None
+                min_val = None
+                max_val = None
+            
+            # Calculer les valeurs les plus fréquentes pour les colonnes catégorielles
+            top_values = None
+            if col_type in ['categorical', 'text']:
+                value_counts = col_data.value_counts().head(3)
+                if len(value_counts) > 0:
+                    top_values = [str(val) for val in value_counts.index.tolist()]
+            
+            columns_info.append(schemas.ColumnStatistics(
+                name=col,
+                type=col_type,
+                non_null_count=int(col_data.notna().sum()),
+                unique_count=int(col_data.nunique()),
+                mean=mean_val,
+                std=std_val,
+                min_value=min_val,
+                max_value=max_val,
+                top_values=top_values
+            ))
+        
+        # Convertir les données en format dict pour l'API
+        sample_data = []
+        for _, row in df_sample.iterrows():
+            row_dict = {}
+            for col in df_sample.columns:
+                value = row[col]
+                # Convertir les valeurs pandas/numpy en types Python natifs
+                if pd.isna(value):
+                    row_dict[col] = None
+                elif isinstance(value, (pd.Timestamp, pd.Period)):
+                    row_dict[col] = str(value)
+                elif hasattr(value, 'item'):  # numpy types
+                    row_dict[col] = value.item()
+                else:
+                    row_dict[col] = value
+            sample_data.append(row_dict)
+        
+        return schemas.DatasetPreviewResponse(
+            file_name=main_file.file_name_in_storage,
+            total_rows=len(df),
+            sample_data=sample_data,
+            columns_info=columns_info
+        )
+        
+    except StorageClientError as e:
+        logger.error(f"Erreur de stockage lors de la génération d'aperçu pour {dataset.id}: {str(e)}")
+        return generate_fallback_preview(dataset)
+    except Exception as e:
+        logger.error(f"Erreur lors de la génération d'aperçu pour {dataset.id}: {str(e)}")
+        return generate_fallback_preview(dataset)
+
+
+def generate_fallback_preview(dataset: models.Dataset) -> schemas.DatasetPreviewResponse:
+    """Génère un aperçu simulé en cas d'erreur lors de la lecture des vraies données."""
     import random
     import string
     

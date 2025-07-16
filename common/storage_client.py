@@ -7,6 +7,7 @@ across different environments (development with MinIO, production with Azure).
 
 import os
 import logging
+from abc import ABC, abstractmethod
 from typing import Optional, Union, Any
 from io import BytesIO
 
@@ -18,7 +19,31 @@ class StorageClientError(Exception):
     pass
 
 
-class MinIOStorageClient:
+class StorageClient(ABC):
+    """Abstract base class for storage clients."""
+    
+    @abstractmethod
+    def upload_file(self, file_data: Union[bytes, BytesIO], object_path: str) -> str:
+        """Upload file to storage backend."""
+        pass
+    
+    @abstractmethod
+    def download_file(self, object_path: str) -> bytes:
+        """Download file from storage backend."""
+        pass
+    
+    @abstractmethod
+    def delete_file(self, object_path: str) -> bool:
+        """Delete file from storage backend."""
+        pass
+    
+    @abstractmethod
+    def list_files(self, prefix: str = "") -> list:
+        """List files in storage backend with optional prefix."""
+        pass
+
+
+class MinIOStorageClient(StorageClient):
     """MinIO storage client implementation."""
     
     def __init__(self, endpoint_url: str, access_key: str, secret_key: str, container_name: str):
@@ -118,7 +143,7 @@ class MinIOStorageClient:
             raise StorageClientError(f"List failed: {str(e)}")
 
 
-class AzureBlobStorageClient:
+class AzureBlobStorageClient(StorageClient):
     """Azure Blob Storage client implementation."""
     
     def __init__(self, endpoint_url: str, access_key: str, secret_key: str, container_name: str):
@@ -223,54 +248,36 @@ class AzureBlobStorageClient:
             raise StorageClientError(f"List failed: {str(e)}")
 
 
-def get_storage_client() -> Union[MinIOStorageClient, AzureBlobStorageClient]:
+def get_storage_client() -> StorageClient:
     """
-    Factory function to get the appropriate storage client based on environment variables.
-    
-    Required environment variables:
-    - STORAGE_BACKEND: 'minio' or 'azure'
-    - STORAGE_ENDPOINT_URL: Endpoint URL for the storage service
-    - STORAGE_ACCESS_KEY: Access key/account name
-    - STORAGE_SECRET_KEY: Secret key/account key
-    - STORAGE_CONTAINER_NAME: Container/bucket name (optional, defaults to 'exai-datasets')
+    Factory function to get the appropriate storage client based on environment configuration.
     
     Returns:
-        Storage client instance (MinIOStorageClient or AzureBlobStorageClient)
-        
-    Raises:
-        StorageClientError: If configuration is invalid or connection fails
+        StorageClient: Configured storage client (MinIO or Azure)
     """
+    storage_type = os.environ.get("STORAGE_TYPE", "minio").lower()
     
-    # Get required environment variables
-    backend = os.getenv('STORAGE_BACKEND')
-    endpoint_url = os.getenv('STORAGE_ENDPOINT_URL')
-    access_key = os.getenv('STORAGE_ACCESS_KEY')
-    secret_key = os.getenv('STORAGE_SECRET_KEY')
-    container_name = os.getenv('STORAGE_CONTAINER_NAME', 'exai-datasets')
+    if storage_type == "azure":
+        # Configuration Azure Blob Storage
+        account_name = os.environ.get("AZURE_STORAGE_ACCOUNT_NAME")
+        account_key = os.environ.get("AZURE_STORAGE_ACCOUNT_KEY")
+        
+        if not account_name or not account_key:
+            logger.warning("Azure storage credentials not found, falling back to MinIO")
+            storage_type = "minio"
+        else:
+            container_name = os.environ.get("STORAGE_BUCKET", "exai-datasets")
+            # Pour Azure, l'endpoint est construit à partir du nom du compte
+            endpoint = f"https://{account_name}.blob.core.windows.net"
+            return AzureBlobStorageClient(endpoint, account_name, account_key, container_name)
     
-    # Validate required configuration
-    if not backend:
-        raise StorageClientError("STORAGE_BACKEND environment variable is required (minio or azure)")
+    if storage_type == "minio":
+        # Configuration MinIO - utilise le port 6700 par défaut
+        endpoint = os.environ.get("MINIO_ENDPOINT", "http://minio-service.exai.svc.cluster.local:6700")
+        access_key = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
+        secret_key = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
+        
+        bucket_name = os.environ.get("STORAGE_BUCKET", "exai-datasets")
+        return MinIOStorageClient(endpoint, access_key, secret_key, bucket_name)
     
-    if not endpoint_url:
-        raise StorageClientError("STORAGE_ENDPOINT_URL environment variable is required")
-    
-    if not access_key:
-        raise StorageClientError("STORAGE_ACCESS_KEY environment variable is required")
-    
-    if not secret_key:
-        raise StorageClientError("STORAGE_SECRET_KEY environment variable is required")
-    
-    # Validate backend type
-    if backend not in ['minio', 'azure']:
-        raise StorageClientError(f"Invalid STORAGE_BACKEND: {backend}. Must be 'minio' or 'azure'")
-    
-    logger.info(f"Initializing {backend} storage client with endpoint: {endpoint_url}")
-    
-    # Return appropriate client
-    if backend == 'minio':
-        return MinIOStorageClient(endpoint_url, access_key, secret_key, container_name)
-    elif backend == 'azure':
-        return AzureBlobStorageClient(endpoint_url, access_key, secret_key, container_name)
-    else:
-        raise StorageClientError(f"Unsupported storage backend: {backend}") 
+    raise ValueError(f"Unsupported storage type: {storage_type}") 

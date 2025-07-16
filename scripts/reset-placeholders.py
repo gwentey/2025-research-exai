@@ -64,8 +64,14 @@ def main():
         "oauth-redirect-url": "REPLACE_WITH_OAUTH_REDIRECT_URL_PROD" # Clé commune, mais placeholder spécifique Azure
     }
     
+    kaggle_placeholders = {
+        "username": "REPLACE_WITH_KAGGLE_USERNAME",
+        "key": "REPLACE_WITH_KAGGLE_KEY"
+    }
+    
     base_secrets_file = None
     azure_patch_file = None
+    kaggle_secrets_file = None
     
     # Rechercher les fichiers cibles directement
     print("Recherche des fichiers de secrets et de patch...")
@@ -77,9 +83,12 @@ def main():
             elif file == "oauth-redirect-patch.yaml":
                 azure_patch_file = os.path.join(root, file)
                 print(f"  Trouvé fichier patch Azure: {azure_patch_file}")
+            elif file == "kaggle-secrets.yaml":
+                kaggle_secrets_file = os.path.join(root, file)
+                print(f"  Trouvé fichier secrets Kaggle: {kaggle_secrets_file}")
 
-    if not base_secrets_file and not azure_patch_file:
-        print("❌ ERREUR: Aucun fichier gateway-secrets.yaml ou oauth-redirect-patch.yaml trouvé dans k8s/.")
+    if not base_secrets_file and not azure_patch_file and not kaggle_secrets_file:
+        print("❌ ERREUR: Aucun fichier de secrets trouvé dans k8s/.")
         sys.exit(1)
         
     success1 = True
@@ -96,8 +105,15 @@ def main():
     else:
         print("⚠️ ATTENTION: Fichier oauth-redirect-patch.yaml non trouvé.")
     
+    success3 = True
+    if kaggle_secrets_file:
+        print(f"\nTraitement de {kaggle_secrets_file}...")
+        success3 = reset_placeholders(kaggle_secrets_file, kaggle_placeholders)
+    else:
+        print("⚠️ ATTENTION: Fichier kaggle-secrets.yaml non trouvé.")
+    
     print("-" * 30) # Séparateur
-    if success1 and success2:
+    if success1 and success2 and success3:
         print("✅ Tous les placeholders applicables ont été réinitialisés avec succès.")
         print("   Vous pouvez maintenant committer vos changements sans exposer de secrets.")
     else:

@@ -45,6 +45,9 @@ def main():
         "GOOGLE_CLIENT_ID": os.getenv("GOOGLE_CLIENT_ID"),
         "GOOGLE_CLIENT_SECRET": os.getenv("GOOGLE_CLIENT_SECRET"),
         "LOCAL_REDIRECT_URL": os.getenv("OAUTH_REDIRECT_URL") or os.getenv("LOCAL_REDIRECT_URL"),
+        # Credentials Kaggle pour l'auto-initialisation
+        "KAGGLE_USERNAME": os.getenv("KAGGLE_USERNAME"),
+        "KAGGLE_KEY": os.getenv("KAGGLE_KEY"),
     }
     
     # Vérifier si toutes les variables nécessaires sont définies
@@ -67,18 +70,31 @@ def main():
             if "secret" in file.lower():
                 found_files.append(os.path.join(root, file))
     
-    # Si nous trouvons gateway-secrets.yaml, c'est notre cible
-    target_files = [f for f in found_files if "gateway-secrets.yaml" in f]
-    if not target_files:
+    # Traiter les différents fichiers de secrets
+    gateway_files = [f for f in found_files if "gateway-secrets.yaml" in f]
+    kaggle_files = [f for f in found_files if "kaggle-secrets.yaml" in f]
+    
+    if not gateway_files:
         print(f"❌ ERREUR: Aucun fichier gateway-secrets.yaml trouvé.")
         print("Fichiers trouvés:", found_files)
         sys.exit(1)
     
-    base_secrets_path = target_files[0]
-    print(f"Fichier de secrets trouvé: {base_secrets_path}")
+    success = True
     
-    # Mettre à jour le fichier de secrets
-    success = update_secrets_file(base_secrets_path, env_mappings)
+    # Mettre à jour gateway-secrets.yaml
+    gateway_mappings = {k: v for k, v in env_mappings.items() if not k.startswith('KAGGLE_')}
+    base_secrets_path = gateway_files[0]
+    print(f"Fichier gateway-secrets trouvé: {base_secrets_path}")
+    success &= update_secrets_file(base_secrets_path, gateway_mappings)
+    
+    # Mettre à jour kaggle-secrets.yaml si présent
+    if kaggle_files:
+        kaggle_mappings = {k: v for k, v in env_mappings.items() if k.startswith('KAGGLE_')}
+        kaggle_secrets_path = kaggle_files[0]
+        print(f"Fichier kaggle-secrets trouvé: {kaggle_secrets_path}")
+        success &= update_secrets_file(kaggle_secrets_path, kaggle_mappings)
+    else:
+        print("⚠️ ATTENTION: Aucun fichier kaggle-secrets.yaml trouvé. Les credentials Kaggle ne seront pas mis à jour.")
     
     # Mettre à jour le fichier de patch pour Azure si nécessaire
     azure_patch_path = Path("k8s/overlays/azure/oauth-redirect-patch.yaml")

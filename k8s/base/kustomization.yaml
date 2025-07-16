@@ -33,6 +33,7 @@ resources:
   - service-selection/deployment.yaml
   - service-selection/db-secrets.yaml # Les valeurs seront surchargées si nécessaire
   - service-selection/storage-secrets.yaml
+  - service-selection/kaggle-secrets.yaml # Credentials sécurisés pour l'auto-initialisation Kaggle
   - service-selection/service.yaml
   # - service-selection/dataset-pvc.yaml # Supprimé car nous n'utilisons plus de PVC
   # Jobs de migration (optionnels - appliqués séparément en général)
@@ -40,3 +41,5 @@ resources:
   - jobs/service-selection-migration-job.yaml
   # Job d'initialisation des vrais datasets
   - jobs/service-selection-data-init-job.yaml 
+  # Job d'importation Kaggle (datasets externes)
+  - jobs/kaggle-dataset-import-job.yaml 

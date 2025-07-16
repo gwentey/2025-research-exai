@@ -31,7 +31,7 @@ COPY service-selection/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copie du code source de l'application (depuis le sous-dossier ./app)
-# dans le répertoire de travail `/app` du conteneur.
+# dans le répertoire de travail `/app` du conteneur.git 
 COPY service-selection/app /app
 
 # Copie des scripts d'initialisation et de maintenance
@@ -40,8 +40,8 @@ COPY service-selection/scripts /app/scripts
 # Copie du module commun de stockage d'objets (depuis la racine)
 COPY common /app/common
 
-# Copie des vrais datasets CSV
-COPY service-selection/datasets /app/datasets
+# Copie des scripts d'importation Kaggle
+COPY datasets/kaggle-import /app/kaggle-import
 
 # Copie des fichiers Alembic nécessaires aux migrations de base de données
 COPY service-selection/alembic /app/alembic

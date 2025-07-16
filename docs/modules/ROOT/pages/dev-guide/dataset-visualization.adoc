@@ -1,0 +1,261 @@
+= Visualisation des Datasets Réels depuis MinIO
+:page-description: Guide technique sur la fonctionnalité de visualisation des datasets avec données réelles
+:page-keywords: datasets, MinIO, Parquet, visualisation, aperçu
+:page-layout: default
+
+== Vue d'ensemble
+
+La plateforme EXAI offre une fonctionnalité complète de visualisation des datasets réels stockés dans MinIO. Cette fonctionnalité permet aux utilisateurs de consulter le contenu effectif des datasets sans avoir besoin de les télécharger entièrement.
+
+=== Fonctionnalités Principales
+
+* **Aperçu des données tronquées** : Affichage d'un échantillon limité pour de bonnes performances
+* **Métadonnées réelles** : Informations précises sur les fichiers et colonnes
+* **Statistiques calculées** : Métriques automatiques sur les types de données et distributions
+* **Support multi-format** : Lecture native des fichiers Parquet avec fallback pour d'autres formats
+
+== Architecture Technique
+
+=== Flux de Données
+
+[source,mermaid]
+----
+graph TD
+    A[Interface Utilisateur] --> B[API Gateway]
+    B --> C[Service Selection]
+    C --> D[Base de Données PostgreSQL]
+    C --> E[Stockage MinIO]
+    E --> F[Fichiers Parquet]
+    D --> G[Métadonnées Fichiers]
+    F --> H[Données Réelles]
+    G --> I[Aperçu Combiné]
+    H --> I
+    I --> A
+----
+
+=== Composants Backend
+
+==== Fonction `generate_dataset_preview`
+
+Cette fonction centrale lit les vraies données depuis MinIO :
+
+[source,python]
+----
+def generate_dataset_preview(dataset: models.Dataset, db: Session = None) -> schemas.DatasetPreviewResponse:
+    """
+    Génère un aperçu des données réelles pour un dataset en lisant depuis MinIO.
+    
+    Fonctionnalités :
+    - Téléchargement sélectif des fichiers Parquet
+    - Échantillonnage intelligent (max 100 lignes)
+    - Limitation des colonnes (max 20 colonnes)
+    - Statistiques automatiques par colonne
+    - Gestion robuste des erreurs avec fallback
+    """
+----
+
+==== Optimisations de Performance
+
+* **Échantillonnage aléatoire** : Maximum 100 lignes pour l'aperçu
+* **Limitation des colonnes** : Maximum 20 colonnes affichées
+* **Cache de métadonnées** : Informations stockées en base de données
+* **Format Parquet** : Lecture colonnaire optimisée
+
+=== Composants Frontend
+
+==== Interface Utilisateur
+
+L'interface offre trois onglets principaux :
+
+1. **Vue d'ensemble** : Informations générales et métriques de qualité
+2. **Fichiers et Structure** : Liste des fichiers avec métadonnées détaillées
+3. **Aperçu des Données** : Tableau interactif avec échantillon de données
+
+==== Fonctionnalités d'Affichage
+
+* **Formatage intelligent** : Nombres, tailles de fichiers, pourcentages
+* **Gestion des types** : Détection automatique des types de données (numérique, catégoriel, texte, booléen, datetime)
+* **Responsive design** : Adaptation automatique sur mobile et desktop
+* **Indicateurs visuels** : Codes couleur pour la qualité des données
+
+== Types de Données Supportés
+
+=== Détection Automatique
+
+Le système détecte automatiquement les types de données :
+
+[cols="1,2,2"]
+|===
+|Type |Détection |Statistiques Calculées
+
+|Numérique
+|`pd.api.types.is_numeric_dtype()`
+|Moyenne, écart-type, min, max, valeurs uniques
+
+|Booléen
+|`pd.api.types.is_bool_dtype()`
+|Min, max, valeurs uniques
+
+|Datetime
+|`pd.api.types.is_datetime64_any_dtype()`
+|Min, max (plages temporelles)
+
+|Catégoriel
+|Moins de 50% de valeurs uniques
+|Top 3 des valeurs les plus fréquentes
+
+|Texte
+|Plus de 50% de valeurs uniques
+|Top 3 des valeurs les plus fréquentes
+|===
+
+=== Gestion des Valeurs Manquantes
+
+* **Comptage automatique** : Nombre de valeurs non-null par colonne
+* **Conversion sûre** : Gestion des NaN pandas vers null JSON
+* **Affichage visuel** : Remplacement par "—" dans l'interface
+
+== Métriques de Qualité
+
+=== Calcul Automatique
+
+Le système calcule automatiquement :
+
+* **Score global** : Combinaison de tous les critères
+* **Complétude** : Pourcentage de données non-manquantes
+* **Consistance** : Cohérence des types de données
+* **Conformité éthique** : Respect des critères RGPD
+
+=== Alertes Intelligentes
+
+Génération automatique d'alertes basées sur :
+
+* Pourcentage élevé de valeurs manquantes (> 20%)
+* Valeurs aberrantes détectées (> 5%)
+* Risque d'exposition de données personnelles (> 30%)
+
+== Configuration et Déploiement
+
+=== Variables d'Environnement
+
+[source,bash]
+----
+# Configuration MinIO
+STORAGE_BACKEND=minio
+STORAGE_ENDPOINT_URL=http://minio-service.exai.svc.cluster.local:9000
+STORAGE_CONTAINER_NAME=exai-datasets
+STORAGE_ACCESS_KEY=minioadmin
+STORAGE_SECRET_KEY=minioadmin
+----
+
+=== Ressources Kubernetes
+
+Configuration recommandée pour le service :
+
+[source,yaml]
+----
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+----
+
+== Gestion des Erreurs
+
+=== Stratégie de Fallback
+
+En cas d'erreur lors de la lecture depuis MinIO :
+
+1. **Log de l'erreur** avec détails techniques
+2. **Génération de données simulées** pour maintenir l'UX
+3. **Notification transparente** à l'utilisateur
+4. **Retry automatique** pour les erreurs temporaires
+
+=== Types d'Erreurs Couvertes
+
+* **StorageClientError** : Problèmes de connexion MinIO
+* **Fichiers manquants** : Dataset sans fichiers associés
+* **Corruption de données** : Fichiers Parquet invalides
+* **Timeout de réseau** : Dépassement de délai
+
+== Sécurité
+
+=== Contrôle d'Accès
+
+* **Validation des ID** : Vérification de l'existence des datasets
+* **Limitation des données** : Aperçu tronqué pour éviter l'exposition massive
+* **Anonymisation** : Masquage automatique des champs PII détectés
+
+=== Audit et Logs
+
+Tous les accès aux données sont loggés :
+
+[source,python]
+----
+logger.info(f"Téléchargement du fichier pour aperçu: {object_path}")
+logger.info(f"Données lues avec succès: {len(df)} lignes, {len(df.columns)} colonnes")
+----
+
+== Guide de Dépannage
+
+=== Problèmes Fréquents
+
+[cols="2,2,3"]
+|===
+|Problème |Symptôme |Solution
+
+|Pas d'aperçu
+|Affichage de données simulées
+|Vérifier la connectivité MinIO et l'existence des fichiers
+
+|Performance lente
+|Délai de chargement élevé
+|Augmenter les limites de lignes/colonnes dans le code
+
+|Erreurs de formatage
+|Valeurs mal affichées
+|Vérifier la conversion des types pandas vers JSON
+|===
+
+=== Commands de Debug
+
+[source,bash]
+----
+# Vérifier la connectivité MinIO
+kubectl exec -it service-selection-pod -- curl http://minio-service:9000/minio/health/live
+
+# Lister les fichiers d'un dataset
+kubectl logs service-selection-deployment | grep "object_path"
+
+# Vérifier les métadonnées en base
+kubectl exec -it postgres-pod -- psql -d exaidb -c "SELECT * FROM dataset_files WHERE dataset_id = 'uuid';"
+----
+
+== Roadmap et Améliorations
+
+=== Fonctionnalités Futures
+
+* **Pagination avancée** : Navigation dans de gros datasets
+* **Filtres temps réel** : Recherche et tri dynamiques
+* **Visualisations graphiques** : Histogrammes et graphiques de distribution
+* **Export sélectif** : Téléchargement de sous-ensembles de données
+* **Cache intelligent** : Mise en cache des aperçus fréquemment consultés
+
+=== Optimisations Prévues
+
+* **Lecture streaming** : Éviter le chargement complet en mémoire
+* **Compression adaptative** : Optimisation du transfert réseau
+* **Indexation MinIO** : Accès plus rapide aux métadonnées
+* **CDN integration** : Cache distribué pour les aperçus
+
+== Support et Maintenance
+
+Pour toute question technique ou problème :
+
+1. Consulter les logs Kubernetes du service-selection
+2. Vérifier l'état du stockage MinIO
+3. Tester la connectivité réseau entre les services
+4. Contacter l'équipe développement avec les logs d'erreur complets 

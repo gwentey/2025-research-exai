@@ -311,8 +311,8 @@ class ColumnMetadata(BaseModel):
 
 class DatasetFileMetadata(BaseModel):
     """Schéma pour les métadonnées d'un fichier de dataset"""
-    filename: str = Field(..., description="Nom du fichier")
-    file_format: str = Field(..., description="Format du fichier (csv, json, etc.)")
+    file_name_in_storage: str = Field(..., description="Nom du fichier dans le stockage")
+    format: str = Field(..., description="Format du fichier (csv, json, parquet, etc.)")
     size_bytes: int = Field(..., description="Taille du fichier en bytes")
     row_count: int = Field(..., description="Nombre de lignes")
     description: Optional[str] = Field(None, description="Description du fichier")

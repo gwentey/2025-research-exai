@@ -34,6 +34,8 @@
 ** xref:dev-guide/secrets-management.adoc[Gestion des Secrets]
 ** xref:dev-guide/auto-dataset-initialization.adoc[🚀 Auto-Initialisation des Datasets]
 ** xref:dev-guide/storage-setup-guide.adoc[💾 Configuration du Stockage]
+** xref:dev-guide/dataset-visualization.adoc[👁️ Visualisation des Datasets Réels]
+** xref:dev-guide/batch-dataset-import-system.adoc[📦 Système d'Importation de Datasets en Batch]
 
 * Déploiement
 ** xref:development/database-migrations.adoc[Migrations Base de Données]

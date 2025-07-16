@@ -1,0 +1,435 @@
+= Système d'Importation de Datasets en Batch
+
+== Vue d'ensemble
+
+Le système d'importation de datasets en batch d'EXAI permet d'intégrer facilement de multiples datasets réels dans la plateforme. Il gère automatiquement :
+
+* La conversion CSV vers Parquet (gains de performance 10-50x)
+* L'extraction automatique de métadonnées
+* L'upload vers le stockage d'objets (MinIO/Azure)
+* L'insertion en base de données
+* La validation multi-niveaux
+* Le monitoring et reporting
+
+== Architecture du Système
+
+=== Structure des Dossiers
+
+[source]
+----
+datasets/
+└── kaggle-import/              # Scripts d'importation Kaggle
+    ├── kaggle_importer.py      # Script principal d'import depuis Kaggle
+    ├── kaggle_datasets_config.yaml # Configuration des datasets
+    ├── requirements.txt        # Dépendances Python
+    ├── Makefile               # Commandes d'automatisation
+    └── README.md              # Guide d'utilisation
+    └── {domain}/               # Ex: education, healthcare, finance
+        └── {dataset-name}/     # Nom unique du dataset
+            ├── metadata.yaml   # Métadonnées du dataset
+            ├── data.csv        # Fichier principal (optionnel)
+            ├── train.csv       # Split d'entraînement (optionnel)
+            ├── test.csv        # Split de test (optionnel)
+            └── validation.csv  # Split de validation (optionnel)
+----
+
+=== Flux de Traitement
+
+1. **Configuration** : Définition des datasets Kaggle dans `kaggle_datasets_config.yaml`
+2. **Téléchargement** : Import automatique via API Kaggle
+3. **Conversion** : CSV → Parquet pour optimisation performances
+4. **Upload** : Stockage vers MinIO (local) ou Azure Blob (production)
+5. **Base de données** : Insertion des métadonnées et chemins de stockage
+6. **Cache** : Système de cache intelligent (7 jours)
+7. **Nettoyage** : Suppression automatique des fichiers temporaires
+
+== Utilisation Pratique
+
+=== Configuration des Datasets
+
+==== 1. Fichier de Configuration
+
+Le fichier `kaggle_datasets_config.yaml` définit tous les datasets à importer :
+
+[source,yaml]
+----
+datasets:
+  student_performance:
+    kaggle_ref: "spscientist/students-performance-in-exams"
+    domain: "education"
+    description: "Student performance analysis"
+    ml_task: "classification"
+    target_column: "math_score"
+----
+
+==== 2. Credentials Kaggle
+
+Configuration des credentials API Kaggle :
+
+[source,bash]
+----
+# Créer le fichier de configuration
+mkdir -p ~/.kaggle
+echo '{"username":"YOUR_USERNAME","key":"YOUR_API_KEY"}' > ~/.kaggle/kaggle.json
+chmod 600 ~/.kaggle/kaggle.json
+----
+
+=== Métadonnées Automatiques
+
+Le système génère automatiquement les métadonnées via analyse intelligente :
+
+[source,yaml]
+----
+# Exemple de metadata.yaml généré automatiquement
+name: "Student Performance Analysis"
+domain: "education"
+description: "Analysis of student academic performance factors"
+ml_task: "classification"
+target_column: "grade_category"
+features_count: 15
+samples_count: 1002
+data_types:
+  numeric: ["age", "study_hours", "grade"]
+  categorical: ["gender", "school_type", "subject"]
+  boolean: ["has_scholarship", "extracurricular"]
+pii_detected: false
+file_info:
+  - filename: "student_data.csv"
+    rows: 1002
+    size_mb: 0.08
+    columns: 15
+----
+
+=== Scripts d'Importation
+
+==== Script Principal (kaggle_importer.py)
+
+**Fonctionnalités** :
+* Import automatique depuis API Kaggle
+* Cache intelligent (7 jours)
+* Conversion CSV→Parquet automatique
+* Upload parallèle vers stockage d'objets
+* Gestion d'erreurs robuste
+* Reporting détaillé
+
+**Usage** :
+[source,bash]
+----
+# Import de tous les datasets
+python kaggle_importer.py
+
+# Import d'un dataset spécifique
+python kaggle_importer.py --dataset student_performance
+
+# Forcer le re-téléchargement
+python kaggle_importer.py --force-refresh
+----
+
+=== Cache et Performance
+
+==== Cache Intelligent
+
+* **Durée** : 7 jours par défaut (configurable)
+* **Évite re-téléchargements** : Datasets déjà importés
+* **Stockage** : Fichiers JSON dans `cache/`
+* **Invalidation** : Automatique ou forcée via `--force-refresh`
+
+==== Optimisations
+
+* **Conversion Parquet** : Gains de performance 10-50x
+* **Upload parallèle** : 4 threads simultanés
+* **Retry logic** : 3 tentatives avec backoff exponentiel
+* **Nettoyage automatique** : Suppression fichiers temporaires
+
+=== Commandes Make Disponibles
+
+==== Installation et Configuration
+
+[source,bash]
+----
+# Installation des dépendances
+make install
+
+# Test authentification Kaggle
+make test-auth
+
+# Vérification configuration
+make check-config
+----
+
+==== Opérations d'Import
+
+[source,bash]
+----
+# Import de tous les datasets
+make import-all
+
+# Import des petits datasets seulement
+make import-small
+
+# Import d'un dataset spécifique
+make import-dataset DATASET=student_performance
+
+# Forcer le re-téléchargement
+make force-refresh
+----
+
+==== Monitoring et Maintenance
+
+[source,bash]
+----
+# Afficher l'état des imports
+make status
+
+# Lister les datasets configurés
+make list-datasets
+
+# Test de connexion aux services
+make test-services
+
+# Nettoyage des fichiers temporaires
+make clean
+----
+
+== Système de Validation
+
+=== Niveaux de Validation
+
+==== Niveau 1 : Métadonnées
+* Structure YAML valide
+* Champs obligatoires présents
+* Types de données cohérents
+
+==== Niveau 2 : Fichiers
+* Existence des fichiers CSV
+* Intégrité des données
+* Cohérence avec métadonnées
+
+==== Niveau 3 : Base de Données
+* Insertion réussie
+* Contraintes respectées
+* Relations valides
+
+==== Niveau 4 : Stockage
+* Upload réussi vers MinIO/Azure
+* Accessibilité des fichiers
+* Checksums validés
+
+=== Rapports de Validation
+
+Le système génère des rapports détaillés :
+
+[source,json]
+----
+{
+  "validation_summary": {
+    "total_datasets": 7,
+    "passed": 7,
+    "failed": 0,
+    "warnings": 2
+  },
+  "details": [
+    {
+      "dataset": "student-performance",
+      "status": "passed",
+      "checks": {
+        "metadata": "✓",
+        "files": "✓", 
+        "database": "✓",
+        "storage": "✓"
+      }
+    }
+  ]
+}
+----
+
+== Exemples Concrets
+
+=== Exemple 1 : Import Simple
+
+[source,bash]
+----
+# 1. Aller dans le dossier Kaggle
+cd datasets/kaggle-import
+
+# 2. Tester la configuration
+make test-auth
+make check-config
+
+# 3. Importer un dataset spécifique
+make import-dataset DATASET=student_performance
+
+# 4. Vérifier le statut
+make status
+----
+
+=== Exemple 2 : Import Multiple
+
+[source,bash]
+----
+# Import de tous les petits datasets
+make import-small
+
+# Ou import de tous les datasets
+make import-all
+
+# Suivre les logs
+tail -f kaggle_import.log
+----
+
+=== Exemple 3 : Ajouter un Nouveau Dataset
+
+[source,yaml]
+----
+# 1. Ajouter dans kaggle_datasets_config.yaml
+nouveau_dataset:
+  kaggle_ref: "username/dataset-name"
+  domain: "education"
+  description: "Description du dataset"
+  ml_task: "classification"
+  target_column: "target"
+
+# 2. Importer
+make import-dataset DATASET=nouveau_dataset
+----
+
+== Configuration Avancée
+
+=== Variables d'Environnement
+
+[source,bash]
+----
+# Configuration MinIO (développement)
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=exai-datasets
+
+# Configuration Azure (production)
+AZURE_STORAGE_CONNECTION_STRING=...
+AZURE_CONTAINER_NAME=datasets
+
+# Configuration base de données
+DATABASE_URL=postgresql://user:pass@localhost:5432/exaidb
+----
+
+=== Optimisations Performance
+
+==== Conversion Parquet
+
+* **Compression** : Snappy par défaut (bon ratio vitesse/taille)
+* **Partitioning** : Par domaine pour accès optimisé
+* **Schema Evolution** : Support des changements de structure
+
+==== Upload Parallèle
+
+* **Threads** : 4 uploads simultanés par défaut
+* **Retry Logic** : 3 tentatives avec backoff exponentiel
+* **Checksum** : Validation MD5 automatique
+
+=== Gestion des Erreurs
+
+==== Types d'Erreurs Communes
+
+1. **Fichiers corrompus** : Validation CSV échoue
+2. **Métadonnées invalides** : Structure YAML incorrecte
+3. **Connexion stockage** : MinIO/Azure inaccessible
+4. **Contraintes DB** : Violation des règles métier
+
+==== Stratégies de Récupération
+
+* **Rollback automatique** : Annulation en cas d'échec partiel
+* **Mode dégradé** : Import sans upload si stockage indisponible
+* **Logs détaillés** : Traçabilité complète des opérations
+
+== Bonnes Pratiques
+
+=== Organisation des Datasets
+
+1. **Nommage cohérent** : `snake_case` pour fichiers et dossiers
+2. **Structure uniforme** : Même organisation pour tous les domaines
+3. **Documentation** : README.md dans chaque dossier de domaine
+
+=== Métadonnées de Qualité
+
+1. **Descriptions claires** : Explications compréhensibles
+2. **Tags pertinents** : Facilitent la recherche
+3. **Sources citées** : Traçabilité des données
+
+=== Monitoring et Maintenance
+
+1. **Validation régulière** : `make validate-all` hebdomadaire
+2. **Backup métadonnées** : Sauvegarde avant gros changements
+3. **Monitoring espace** : Surveillance stockage objets
+
+== Intégration avec EXAI
+
+=== Backend Integration
+
+Le backend lit exclusivement depuis le stockage d'objets :
+
+[source,python]
+----
+# common/storage_client.py
+async def get_dataset(dataset_id: str):
+    # Lecture depuis MinIO/Azure uniquement
+    return await storage_client.download_parquet(dataset_id)
+----
+
+=== Frontend Integration
+
+Interface utilisateur pour parcourir les datasets importés :
+
+* **Catalogue** : Liste tous les datasets disponibles
+* **Filtrage** : Par domaine, tâche ML, taille
+* **Prévisualisation** : Échantillon des données
+* **Statistiques** : Métriques automatiques
+
+== Dépannage
+
+=== Problèmes Courants
+
+==== Import Échoue
+[source,bash]
+----
+# Vérifier les logs
+tail -f kaggle_import.log
+
+# Tester l'authentification Kaggle
+make test-auth
+
+# Tester la connexion stockage
+make test-services
+----
+
+==== Dataset Introuvable
+[source,bash]
+----
+# Vérifier la référence Kaggle
+kaggle datasets list -s "nom_dataset"
+
+# Lister les datasets configurés
+make list-datasets
+----
+
+==== Cache Problématique
+[source,bash]
+----
+# Nettoyer le cache
+make clean
+
+# Forcer le re-téléchargement
+make force-refresh
+----
+
+=== Support et Maintenance
+
+* **Logs centralisés** : `kaggle_import.log`
+* **Configuration** : `kaggle_datasets_config.yaml`
+* **Documentation** : README.md complet dans `datasets/kaggle-import/`
+
+== Conclusion
+
+Le système d'importation de datasets en batch d'EXAI offre une solution industrielle complète pour intégrer facilement de multiples datasets réels. Avec ses fonctionnalités d'extraction automatique de métadonnées, de conversion optimisée, et de validation multi-niveaux, il garantit la qualité et la performance du système EXAI.
+
+Pour toute question ou problème, consultez les logs détaillés et utilisez les commandes de validation pour diagnostiquer les issues. 

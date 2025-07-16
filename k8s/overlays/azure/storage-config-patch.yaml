@@ -3,16 +3,24 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: service-selection
+  namespace: exai
 spec:
-  selector:
-    matchLabels:
-      app: service-selection
   template:
     spec:
       containers:
       - name: service-selection
         env:
-        - name: STORAGE_BACKEND
+        - name: STORAGE_TYPE
           value: "azure"
-        - name: STORAGE_ENDPOINT_URL
-          value: "https://your-storage-account.blob.core.windows.net" 
+        - name: AZURE_STORAGE_ACCOUNT_NAME
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: azure-account-name
+        - name: AZURE_STORAGE_ACCOUNT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: azure-account-key
+        - name: STORAGE_BUCKET
+          value: "exai-datasets" 
