@@ -13,7 +13,7 @@ env:
   API_GATEWAY_IMAGE_NAME: 'exai-api-gateway'
   SERVICE_SELECTION_IMAGE_NAME: 'service-selection'
   FRONTEND_IMAGE_NAME: 'frontend'
-  WITH_DATA: 'false'
+  WITH_DATA: 'true'
 
 jobs:
   build_push_deploy:
