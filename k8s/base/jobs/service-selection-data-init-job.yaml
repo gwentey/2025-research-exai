@@ -1,0 +1,44 @@
+# service-selection-data-init-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: service-selection-data-init-job
+  namespace: exai
+spec:
+  # Supprime automatiquement le job après 5 minutes
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 2 # Nombre de tentatives avant d'échouer
+  template:
+    spec:
+      containers:
+      - name: service-selection-data-init
+        # Image par défaut pour développement local (sera surchargée par overlays)
+        image: service-selection:latest
+        imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
+        command: ["python", "scripts/init_datasets.py", "social"]
+        workingDir: /app # Répertoire de travail de l'application
+        env:
+        # Configuration base de données
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets # Nom du Secret spécifique au service-selection
+              key: database-url # Nom de la clé dans le Secret
+        # Configuration stockage d'objets (même variables que service-selection)
+        - name: STORAGE_BACKEND
+          value: "minio"
+        - name: STORAGE_ENDPOINT_URL
+          value: "http://minio-service.exai.svc.cluster.local:9000"
+        - name: STORAGE_CONTAINER_NAME
+          value: "exai-datasets"
+        - name: STORAGE_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: access-key
+        - name: STORAGE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: secret-key
+      restartPolicy: Never # Ne redémarre pas le pod en cas d'échec 

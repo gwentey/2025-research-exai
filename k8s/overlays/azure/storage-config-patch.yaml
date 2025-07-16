@@ -1,0 +1,18 @@
+# Kustomize patch pour la configuration Azure Blob Storage en environnement Azure
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection
+spec:
+  selector:
+    matchLabels:
+      app: service-selection
+  template:
+    spec:
+      containers:
+      - name: service-selection
+        env:
+        - name: STORAGE_BACKEND
+          value: "azure"
+        - name: STORAGE_ENDPOINT_URL
+          value: "https://your-storage-account.blob.core.windows.net" 

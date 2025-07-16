@@ -3,6 +3,7 @@
 Cette section contient des informations techniques pour les développeurs travaillant sur le projet EXAI.
 
 * xref:dev-guide/architecture.adoc[Architecture] - Vue d'ensemble de l'architecture du système
+* xref:dev-guide/object-storage-implementation.adoc[Stockage d'Objets] - Implémentation complète du système de stockage MinIO/Azure avec format Parquet
 * xref:dev-guide/api-reference.adoc[Référence API] - Documentation de l'API REST
 * xref:dev-guide/secrets-management.adoc[Gestion des Secrets] - Comment gérer les secrets dans le projet
 * xref:dev-guide/frontend-authentication.adoc[Authentification Frontend] - Implémentation technique de l'authentification côté frontend

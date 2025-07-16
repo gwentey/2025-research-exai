@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Query, Header
+from fastapi import FastAPI, Depends, HTTPException, Query, Header, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_
 from typing import List, Optional
@@ -6,6 +6,8 @@ from datetime import datetime
 import math
 import logging
 import uuid
+import pandas as pd
+import io
 from pydantic import UUID4
 
 # Configuration du logging
@@ -21,11 +23,19 @@ try:
     from . import models
     from . import database
     from . import schemas
+    from . import auto_init
 except ImportError:
     # Imports absolus pour le conteneur Docker
     import models
     import database
     import schemas
+    import auto_init
+
+# Import du client de stockage commun
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from common.storage_client import get_storage_client, StorageClientError
 from fastapi.middleware.cors import CORSMiddleware
 
 # --- Configuration de l'application FastAPI ---
@@ -44,6 +54,119 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Event handler pour l'auto-initialisation au démarrage
+@app.on_event("startup")
+async def startup_event():
+    """
+    Event handler de démarrage - lance l'auto-initialisation des vrais datasets
+    si la variable d'environnement AUTO_INIT_DATA=true.
+    """
+    logger.info("Démarrage de l'application Service Selection")
+    await auto_init.auto_init_startup()
+
+# --- Fonctions utilitaires pour le stockage ---
+
+def convert_to_parquet(file_content: bytes, filename: str) -> bytes:
+    """
+    Convertit un fichier CSV en format Parquet.
+    
+    Args:
+        file_content: Contenu du fichier CSV en bytes
+        filename: Nom original du fichier
+        
+    Returns:
+        Contenu du fichier Parquet en bytes
+    """
+    try:
+        # Lire le CSV depuis les bytes
+        csv_data = pd.read_csv(io.BytesIO(file_content))
+        
+        # Convertir en Parquet
+        parquet_buffer = io.BytesIO()
+        csv_data.to_parquet(parquet_buffer, index=False)
+        parquet_buffer.seek(0)
+        
+        return parquet_buffer.read()
+    except Exception as e:
+        logger.error(f"Erreur lors de la conversion CSV->Parquet pour {filename}: {str(e)}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Impossible de convertir le fichier {filename} en Parquet: {str(e)}"
+        )
+
+def upload_dataset_files(dataset_id: str, files: List[UploadFile]) -> str:
+    """
+    Upload les fichiers d'un dataset vers le stockage d'objets.
+    
+    Args:
+        dataset_id: UUID du dataset
+        files: Liste des fichiers à uploader
+        
+    Returns:
+        storage_path: Préfixe du dossier de stockage (ex: 'exai-datasets/uuid/')
+    """
+    try:
+        storage_client = get_storage_client()
+        storage_path_prefix = f"exai-datasets/{dataset_id}/"
+        
+        for file in files:
+            # Lire le contenu du fichier
+            file_content = file.file.read()
+            file.file.seek(0)  # Reset pour usage ultérieur si nécessaire
+            
+            # Convertir en Parquet si c'est un CSV
+            if file.filename.lower().endswith('.csv'):
+                parquet_content = convert_to_parquet(file_content, file.filename)
+                parquet_filename = file.filename.rsplit('.', 1)[0] + '.parquet'
+                object_path = f"{storage_path_prefix}{parquet_filename}"
+                storage_client.upload_file(parquet_content, object_path)
+                logger.info(f"Fichier uploadé et converti: {file.filename} -> {parquet_filename}")
+            else:
+                # Upload direct pour les autres formats
+                object_path = f"{storage_path_prefix}{file.filename}"
+                storage_client.upload_file(file_content, object_path)
+                logger.info(f"Fichier uploadé: {file.filename}")
+        
+        return storage_path_prefix
+        
+    except StorageClientError as e:
+        logger.error(f"Erreur de stockage pour dataset {dataset_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erreur lors de l'upload des fichiers: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors de l'upload pour dataset {dataset_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erreur inattendue lors de l'upload: {str(e)}"
+        )
+
+def cleanup_dataset_storage(storage_path: str):
+    """
+    Nettoie les fichiers de stockage d'un dataset.
+    
+    Args:
+        storage_path: Préfixe du dossier de stockage à nettoyer
+    """
+    try:
+        storage_client = get_storage_client()
+        
+        # Lister et supprimer tous les fichiers dans le préfixe
+        files = storage_client.list_files(prefix=storage_path)
+        for file_path in files:
+            success = storage_client.delete_file(file_path)
+            if success:
+                logger.info(f"Fichier de stockage supprimé: {file_path}")
+            else:
+                logger.warning(f"Échec de suppression du fichier: {file_path}")
+                
+    except StorageClientError as e:
+        logger.error(f"Erreur lors du nettoyage du stockage {storage_path}: {str(e)}")
+        # Ne pas lever d'exception ici car la suppression en BDD est prioritaire
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors du nettoyage {storage_path}: {str(e)}")
 
 # --- Authentification via headers ---
 
@@ -549,17 +672,178 @@ def get_similar_datasets(dataset_id: str, limit: int = 5, db: Session = Depends(
     )
 
 @app.post("/datasets", response_model=schemas.DatasetRead, status_code=201)
-def create_dataset(dataset: schemas.DatasetCreate, db: Session = Depends(database.get_db)):
-    """Crée un nouvel enregistrement de dataset dans la base de données."""
-    # Créer une instance du modèle SQLAlchemy
-    db_dataset = models.Dataset(**dataset.dict())
-    
-    # Ajouter à la session et sauvegarder
-    db.add(db_dataset)
-    db.commit()
-    db.refresh(db_dataset)
-    
-    return db_dataset
+def create_dataset(
+    dataset_name: str = Form(...),
+    year: Optional[int] = Form(None),
+    objective: Optional[str] = Form(None),
+    access: Optional[str] = Form(None),
+    availability: Optional[str] = Form(None),
+    num_citations: Optional[int] = Form(0),
+    citation_link: Optional[str] = Form(None),
+    sources: Optional[str] = Form(None),
+    storage_uri: Optional[str] = Form(None),
+    instances_number: Optional[int] = Form(None),
+    features_description: Optional[str] = Form(None),
+    features_number: Optional[int] = Form(None),
+    domain: Optional[str] = Form(None),  # JSON string pour les arrays
+    representativity_description: Optional[str] = Form(None),
+    representativity_level: Optional[str] = Form(None),
+    sample_balance_description: Optional[str] = Form(None),
+    sample_balance_level: Optional[str] = Form(None),
+    split: Optional[bool] = Form(False),
+    missing_values_description: Optional[str] = Form(None),
+    has_missing_values: Optional[bool] = Form(False),
+    global_missing_percentage: Optional[float] = Form(None),
+    missing_values_handling_method: Optional[str] = Form(None),
+    temporal_factors: Optional[bool] = Form(False),
+    metadata_provided_with_dataset: Optional[bool] = Form(False),
+    external_documentation_available: Optional[bool] = Form(False),
+    documentation_link: Optional[str] = Form(None),
+    task: Optional[str] = Form(None),  # JSON string pour les arrays
+    # Critères éthiques
+    informed_consent: Optional[bool] = Form(False),
+    transparency: Optional[bool] = Form(False),
+    user_control: Optional[bool] = Form(False),
+    equity_non_discrimination: Optional[bool] = Form(False),
+    security_measures_in_place: Optional[bool] = Form(False),
+    data_quality_documented: Optional[bool] = Form(False),
+    data_errors_description: Optional[str] = Form(None),
+    anonymization_applied: Optional[bool] = Form(False),
+    record_keeping_policy_exists: Optional[bool] = Form(False),
+    purpose_limitation_respected: Optional[bool] = Form(False),
+    accountability_defined: Optional[bool] = Form(False),
+    # Fichiers
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(database.get_db)
+):
+    """
+    Crée un nouvel enregistrement de dataset avec upload de fichiers.
+    Supporte le format multipart/form-data avec métadonnées et fichiers.
+    """
+    try:
+        # Générer un UUID pour le dataset
+        dataset_id = str(uuid.uuid4())
+        
+        # Upload des fichiers vers le stockage d'objets
+        storage_path = upload_dataset_files(dataset_id, files)
+        
+        # Parser les arrays JSON si nécessaires
+        domain_list = None
+        if domain:
+            try:
+                import json
+                domain_list = json.loads(domain)
+            except:
+                domain_list = [domain]  # Fallback si c'est une string simple
+        
+        task_list = None
+        if task:
+            try:
+                import json
+                task_list = json.loads(task)
+            except:
+                task_list = [task]  # Fallback si c'est une string simple
+        
+        # Créer l'instance du modèle SQLAlchemy avec l'UUID fixe et storage_path
+        db_dataset = models.Dataset(
+            id=dataset_id,
+            dataset_name=dataset_name,
+            year=year,
+            objective=objective,
+            access=access,
+            availability=availability,
+            num_citations=num_citations,
+            citation_link=citation_link,
+            sources=sources,
+            storage_uri=storage_uri,
+            storage_path=storage_path,
+            instances_number=instances_number,
+            features_description=features_description,
+            features_number=features_number,
+            domain=domain_list,
+            representativity_description=representativity_description,
+            representativity_level=representativity_level,
+            sample_balance_description=sample_balance_description,
+            sample_balance_level=sample_balance_level,
+            split=split,
+            missing_values_description=missing_values_description,
+            has_missing_values=has_missing_values,
+            global_missing_percentage=global_missing_percentage,
+            missing_values_handling_method=missing_values_handling_method,
+            temporal_factors=temporal_factors,
+            metadata_provided_with_dataset=metadata_provided_with_dataset,
+            external_documentation_available=external_documentation_available,
+            documentation_link=documentation_link,
+            task=task_list,
+            informed_consent=informed_consent,
+            transparency=transparency,
+            user_control=user_control,
+            equity_non_discrimination=equity_non_discrimination,
+            security_measures_in_place=security_measures_in_place,
+            data_quality_documented=data_quality_documented,
+            data_errors_description=data_errors_description,
+            anonymization_applied=anonymization_applied,
+            record_keeping_policy_exists=record_keeping_policy_exists,
+            purpose_limitation_respected=purpose_limitation_respected,
+            accountability_defined=accountability_defined
+        )
+        
+        # Ajouter à la session et sauvegarder
+        db.add(db_dataset)
+        db.commit()
+        db.refresh(db_dataset)
+        
+        # Créer les enregistrements DatasetFile
+        for file in files:
+            # Déterminer le format final (converti en Parquet si CSV)
+            if file.filename.lower().endswith('.csv'):
+                final_filename = file.filename.rsplit('.', 1)[0] + '.parquet'
+                file_format = 'parquet'
+                mime_type = 'application/octet-stream'
+            else:
+                final_filename = file.filename
+                file_format = file.filename.split('.')[-1].lower() if '.' in file.filename else 'unknown'
+                mime_type = file.content_type or 'application/octet-stream'
+            
+            # Calculer la taille (approximative pour les fichiers convertis)
+            file.file.seek(0, 2)  # Aller à la fin
+            file_size = file.file.tell()
+            file.file.seek(0)  # Revenir au début
+            
+            db_file = models.DatasetFile(
+                dataset_id=db_dataset.id,
+                file_name_in_storage=final_filename,
+                logical_role="data_file",  # Rôle par défaut
+                format=file_format,
+                mime_type=mime_type,
+                size_bytes=file_size
+            )
+            db.add(db_file)
+        
+        db.commit()
+        
+        logger.info(f"Dataset créé avec succès: {dataset_id} avec {len(files)} fichiers")
+        return db_dataset
+        
+    except HTTPException:
+        # Re-lever les HTTPException (erreurs de validation/upload)
+        raise
+    except Exception as e:
+        # Rollback en cas d'erreur
+        db.rollback()
+        
+        # Essayer de nettoyer le stockage si le dataset a été partiellement créé
+        try:
+            if 'storage_path' in locals():
+                cleanup_dataset_storage(storage_path)
+        except:
+            pass  # Ignorer les erreurs de nettoyage
+        
+        logger.error(f"Erreur lors de la création du dataset: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la création du dataset: {str(e)}"
+        )
 
 @app.put("/datasets/{dataset_id}", response_model=schemas.DatasetRead)
 def update_dataset(
@@ -584,15 +868,107 @@ def update_dataset(
 
 @app.delete("/datasets/{dataset_id}", status_code=200)
 def delete_dataset(dataset_id: str, db: Session = Depends(database.get_db)):
-    """Supprime un dataset de la base de données par son ID."""
+    """Supprime un dataset de la base de données et du stockage d'objets."""
     db_dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
     if db_dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
     
+    # Nettoyer le stockage d'objets si un storage_path existe
+    if db_dataset.storage_path:
+        cleanup_dataset_storage(db_dataset.storage_path)
+        logger.info(f"Stockage nettoyé pour dataset {dataset_id}: {db_dataset.storage_path}")
+    
+    # Supprimer de la base de données (cascade supprime automatiquement les fichiers associés)
     db.delete(db_dataset)
     db.commit()
     
-    return {"message": f"Dataset avec l'ID {dataset_id} supprimé avec succès"}
+    return {"message": f"Dataset avec l'ID {dataset_id} supprimé avec succès du stockage et de la base de données"}
+
+@app.get("/datasets/{dataset_id}/download/{filename}")
+def download_dataset_file(
+    dataset_id: str, 
+    filename: str, 
+    db: Session = Depends(database.get_db)
+):
+    """
+    Télécharge un fichier spécifique d'un dataset depuis le stockage d'objets.
+    """
+    # Vérifier que le dataset existe
+    db_dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if db_dataset is None:
+        raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
+    
+    if not db_dataset.storage_path:
+        raise HTTPException(status_code=404, detail="Aucun fichier de stockage associé à ce dataset")
+    
+    # Vérifier que le fichier existe dans les métadonnées
+    db_file = db.query(models.DatasetFile).filter(
+        models.DatasetFile.dataset_id == dataset_id,
+        models.DatasetFile.file_name_in_storage == filename
+    ).first()
+    
+    if db_file is None:
+        raise HTTPException(status_code=404, detail=f"Fichier {filename} non trouvé pour ce dataset")
+    
+    try:
+        # Télécharger depuis le stockage d'objets
+        storage_client = get_storage_client()
+        object_path = f"{db_dataset.storage_path}{filename}"
+        
+        file_data = storage_client.download_file(object_path)
+        
+        # Retourner le fichier avec les headers appropriés
+        from fastapi.responses import Response
+        
+        return Response(
+            content=file_data,
+            media_type=db_file.mime_type or 'application/octet-stream',
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Length": str(len(file_data))
+            }
+        )
+        
+    except StorageClientError as e:
+        logger.error(f"Erreur de téléchargement pour {dataset_id}/{filename}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors du téléchargement du fichier: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors du téléchargement {dataset_id}/{filename}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur inattendue lors du téléchargement: {str(e)}"
+        )
+
+@app.get("/datasets/{dataset_id}/files")
+def list_dataset_files(dataset_id: str, db: Session = Depends(database.get_db)):
+    """Liste les fichiers disponibles pour un dataset."""
+    # Vérifier que le dataset existe
+    db_dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if db_dataset is None:
+        raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
+    
+    # Récupérer tous les fichiers du dataset
+    files = db.query(models.DatasetFile).filter(models.DatasetFile.dataset_id == dataset_id).all()
+    
+    file_list = []
+    for file in files:
+        file_list.append({
+            "filename": file.file_name_in_storage,
+            "format": file.format,
+            "size_bytes": file.size_bytes,
+            "logical_role": file.logical_role,
+            "mime_type": file.mime_type,
+            "download_url": f"/datasets/{dataset_id}/download/{file.file_name_in_storage}"
+        })
+    
+    return {
+        "dataset_id": dataset_id,
+        "files": file_list,
+        "total_files": len(file_list)
+    }
 
 
 # --- FONCTIONS UTILITAIRES POUR LE SCORING ---

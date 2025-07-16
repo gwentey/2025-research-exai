@@ -1,0 +1,14 @@
+# Patch pour activer l'auto-initialisation des vrais datasets en production
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection-deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: service-selection
+        env:
+        # Active l'auto-initialisation des vrais datasets au démarrage
+        - name: AUTO_INIT_DATA
+          value: "true" 

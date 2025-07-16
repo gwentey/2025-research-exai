@@ -575,6 +575,12 @@
       "DATASET_UPLOADED": "Dataset uploaded"
     }
   },
+  "STARTER": {
+    "WELCOME": "Welcome to EXAI",
+    "SUBTITLE": "Simple home page",
+    "VIEW_DATASETS": "View datasets",
+    "VIEW_PROJECTS": "View projects"
+  },
   "CARDS": {
     "PROJECT": {
       "VIEW": "View Project",

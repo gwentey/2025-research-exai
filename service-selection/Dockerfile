@@ -11,17 +11,19 @@ WORKDIR /app
 # Installation des dépendances système nécessaires.
 # - `postgresql-client` est nécessaire si notre application doit interagir directement
 #   avec la base de données via des commandes `psql` (par exemple, pour des migrations).
+# - `build-essential` fournit les outils de compilation (gcc, g++, make) requis pour pyarrow.
 # - `apt-get update` met à jour la liste des packages disponibles.
 # - `apt-get install -y` installe les packages sans demander de confirmation.
 # - `&& rm -rf /var/lib/apt/lists/*` nettoie le cache apt pour réduire la taille de l'image.
 RUN apt-get update && apt-get install -y \
     postgresql-client \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Copie du fichier des dépendances Python dans le conteneur.
 # On copie `requirements.txt` d'abord pour profiter du cache Docker :
 # Si ce fichier ne change pas, les couches suivantes n'auront pas besoin d'être reconstruites souvent.
-COPY requirements.txt .
+COPY service-selection/requirements.txt .
 
 # Installation des dépendances Python listées dans requirements.txt.
 # `--no-cache-dir` désactive le cache pip pour réduire la taille de l'image.
@@ -30,14 +32,20 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copie du code source de l'application (depuis le sous-dossier ./app)
 # dans le répertoire de travail `/app` du conteneur.
-COPY ./app /app
+COPY service-selection/app /app
 
 # Copie des scripts d'initialisation et de maintenance
-COPY ./scripts /app/scripts
+COPY service-selection/scripts /app/scripts
+
+# Copie du module commun de stockage d'objets (depuis la racine)
+COPY common /app/common
+
+# Copie des vrais datasets CSV
+COPY service-selection/datasets /app/datasets
 
 # Copie des fichiers Alembic nécessaires aux migrations de base de données
-COPY ./alembic /app/alembic
-COPY alembic.ini /app/
+COPY service-selection/alembic /app/alembic
+COPY service-selection/alembic.ini /app/
 
 # --- Phase 2: Configuration de l'environnement d'exécution --- #
 

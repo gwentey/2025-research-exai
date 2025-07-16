@@ -69,6 +69,8 @@ wait-services: ## Attend que tous les services soient prêts
 	@echo "$(BLUE)Attente de la disponibilite des services...$(NC)"
 	@echo "$(YELLOW)Attente PostgreSQL...$(NC)"
 	@kubectl wait --for=condition=ready pod -l app=postgresql -n $(NAMESPACE) --timeout=$(TIMEOUT) || { echo "$(RED)Timeout PostgreSQL$(NC)"; exit 1; }
+	@echo "$(YELLOW)Attente MinIO...$(NC)"
+	@kubectl wait --for=condition=ready pod -l app=minio -n $(NAMESPACE) --timeout=$(TIMEOUT) || { echo "$(RED)Timeout MinIO$(NC)"; exit 1; }
 	@echo "$(YELLOW)Attente API Gateway...$(NC)"
 	@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=$(TIMEOUT) || { echo "$(RED)Timeout API Gateway$(NC)"; exit 1; }
 	@echo "$(YELLOW)Attente Service Selection...$(NC)"
@@ -90,15 +92,24 @@ migrate-jobs: ## Lance les migrations via les jobs Kubernetes
 
 migrate: wait-services migrate-jobs ## Lance les migrations (attend les services puis lance les jobs)
 
-init-data: ## Initialise les données de test dans la base de données
-	@echo "$(BLUE)Initialisation des donnees de test...$(NC)"
-	@echo "$(YELLOW)Execution du script d'initialisation des datasets...$(NC)"
-	@kubectl exec -n $(NAMESPACE) deployment/service-selection -- python scripts/init_datasets.py all
-	@echo "$(GREEN)Donnees de test initialisees avec succes$(NC)"
+init-data: ## Initialise les vrais datasets dans la base de données (via exec)
+	@echo "$(BLUE)Initialisation des vrais datasets...$(NC)"
+	@echo "$(YELLOW)Execution du script d'initialisation avec vrais datasets...$(NC)"
+	@kubectl exec -n $(NAMESPACE) deployment/service-selection -- python scripts/init_datasets.py social
+	@echo "$(GREEN)Vrais datasets initialises avec succes$(NC)"
+
+init-data-job: ## Lance l'initialisation des datasets via un job Kubernetes (pour production)
+	@echo "$(BLUE)Lancement du job d'initialisation des vrais datasets...$(NC)"
+	@echo "$(YELLOW)Suppression de l'ancien job...$(NC)"
+	@kubectl delete job service-selection-data-init-job -n $(NAMESPACE) 2>/dev/null || true
+	@echo "$(YELLOW)Lancement du job d'initialisation...$(NC)"
+	@kubectl apply -f k8s/base/jobs/service-selection-data-init-job.yaml -n $(NAMESPACE)
+	@kubectl wait --for=condition=complete job/service-selection-data-init-job -n $(NAMESPACE) --timeout=$(TIMEOUT) || { echo "$(RED)Echec initialisation datasets$(NC)"; kubectl logs job/service-selection-data-init-job -n $(NAMESPACE); exit 1; }
+	@echo "$(GREEN)Vrais datasets initialises avec succes via job$(NC)"
 
 dev: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy migrate logs ## Installation complète et démarrage en mode développement
 
-dev-with-data: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy migrate init-data logs ## Installation complète avec données de test
+dev-with-data: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy migrate init-data logs ## Installation complète avec vrais datasets automatiques
 
 quick-dev: update-secrets deploy migrate ## Déploiement rapide (si Minikube déjà démarré)
 

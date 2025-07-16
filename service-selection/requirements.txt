@@ -4,5 +4,10 @@ sqlalchemy
 psycopg2-binary
 pydantic
 python-dotenv
+python-multipart
 alembic
 asyncpg
+minio>=7.0.0
+azure-storage-blob>=12.0.0
+pyarrow>=14.0.0
+pandas>=2.0.0

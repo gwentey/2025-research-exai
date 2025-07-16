@@ -884,5 +884,11 @@
       "RETRY": "Réessayer",
       "BACK": "Retour"
     }
+  },
+  "STARTER": {
+    "WELCOME": "Bienvenue sur EXAI",
+    "SUBTITLE": "Page d'accueil simple",
+    "VIEW_DATASETS": "Voir les datasets",
+    "VIEW_PROJECTS": "Voir les projets"
   }
 }

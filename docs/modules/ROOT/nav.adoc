@@ -32,6 +32,8 @@
 ** xref:dev-guide/projects-weight-normalization.adoc[⚖️ Normalisation des Poids (Bug Fix)]
 ** xref:dev-guide/project-security.adoc[🔒 Sécurité des Projets Utilisateur]
 ** xref:dev-guide/secrets-management.adoc[Gestion des Secrets]
+** xref:dev-guide/auto-dataset-initialization.adoc[🚀 Auto-Initialisation des Datasets]
+** xref:dev-guide/storage-setup-guide.adoc[💾 Configuration du Stockage]
 
 * Déploiement
 ** xref:development/database-migrations.adoc[Migrations Base de Données]

@@ -18,6 +18,10 @@ class Dataset(Base):
     - Caractéristiques Techniques  
     - Critères Éthiques
     - Timestamps
+    
+    Note sur les champs de stockage:
+    - storage_uri: URL externe pour accéder au dataset (ex: Kaggle, GitHub)
+    - storage_path: Préfixe/dossier dans le stockage d'objets (ex: 'exai-datasets/uuid/')
     """
     __tablename__ = "datasets"
 
@@ -34,6 +38,7 @@ class Dataset(Base):
     citation_link = Column(Text, nullable=True)
     sources = Column(Text, nullable=True)
     storage_uri = Column(String(500), nullable=True)
+    storage_path = Column(String(500), nullable=True)
     
     # === CARACTÉRISTIQUES TECHNIQUES ===
     instances_number = Column(Integer, nullable=True)

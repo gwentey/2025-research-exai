@@ -21,9 +21,9 @@ build:
         noCache: false
         pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
     - image: service-selection
-      context: service-selection
+      context: .  # Utilise le répertoire racine comme contexte pour accéder à common/
       docker: 
-        dockerfile: Dockerfile
+        dockerfile: service-selection/Dockerfile
         noCache: false
         pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
     - image: frontend

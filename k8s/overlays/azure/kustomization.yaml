@@ -13,6 +13,7 @@ resources:
   - ../../base/postgres/postgresql-service.yaml
   - ../../base/service-selection/deployment.yaml
   - ../../base/service-selection/db-secrets.yaml
+  - ../../base/service-selection/storage-secrets.yaml
   - ../../base/service-selection/service.yaml
   # - ../../base/service-selection/dataset-pvc.yaml # Supprimé car nous n'utilisons plus de PVC
   - ../../base/frontend/deployment.yaml
@@ -38,23 +39,8 @@ images:
     newName: exaiprodacr.azurecr.io/frontend
 
 # Patches pour les configurations spécifiques à Azure
-# Supprimer la référence au patch oauth-redirect-patch.yaml
-# patches:
-#   - path: oauth-redirect-patch.yaml
-#     target:
-#       kind: Secret
-#       name: gateway-secrets
-
-# Suppression du patch ciblant l'ancien Deployment
-# Patches pour les configurations spécifiques à Azure
-# patches:
-#   - path: postgresql-deployment-patch.yaml
-#     target:
-#       kind: Deployment
-#       name: postgresql-deployment
-
-# Patches spécifiques à Azure
 patches:
+  # Jobs de migration
   - path: migration-jobs-image-patch.yaml
     target:
       kind: Job
@@ -63,6 +49,16 @@ patches:
     target:
       kind: Job
       name: service-selection-migration-job
+  # Configuration stockage
+  - path: storage-config-patch.yaml
+    target:
+      kind: Deployment
+      name: service-selection
+  # Auto-initialisation des vrais datasets en production
+  - path: service-selection-auto-init-patch.yaml
+    target:
+      kind: Deployment
+      name: service-selection-deployment
 
 # Supprimer le patch pour le StatefulSet PostgreSQL puisque nous utilisons notre propre StatefulSet
 # patches:

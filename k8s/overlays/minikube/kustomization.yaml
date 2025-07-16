@@ -8,6 +8,8 @@ resources:
 # Applique les patches spécifiques à Minikube
 patchesStrategicMerge:
   - postgresql-statefulset-patch.yaml
+  - storage-config-patch.yaml
+  - minio-pvc-patch.yaml
   # Ajoutez ici d'autres patches spécifiques à Minikube si nécessaire
 
 # (Optionnel) Vous pouvez aussi ajouter des préfixes/suffixes aux noms,

@@ -51,6 +51,22 @@ spec:
                 secretKeyRef:
                   name: db-secrets
                   key: database-url
+            - name: STORAGE_BACKEND
+              value: "minio"
+            - name: STORAGE_ENDPOINT_URL
+              value: "http://minio-service.exai.svc.cluster.local:9000"
+            - name: STORAGE_CONTAINER_NAME
+              value: "exai-datasets"
+            - name: STORAGE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: storage-secrets
+                  key: access-key
+            - name: STORAGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: storage-secrets
+                  key: secret-key
           # Définition des ressources (CPU, mémoire) requises et limitées pour le conteneur.
           resources:
             # Ressources minimales garanties pour le conteneur.
@@ -82,11 +98,3 @@ spec:
               port: 8081
             initialDelaySeconds: 20 # Attend un peu plus longtemps avant de vérifier la vitalité
             periodSeconds: 20
-          # Montage de volumes dans le conteneur.
-          volumeMounts:
-            - name: dataset-storage
-              mountPath: /datasets
-      # Définition des volumes disponibles pour ce Pod.
-      volumes:
-        - name: dataset-storage
-          emptyDir: {}

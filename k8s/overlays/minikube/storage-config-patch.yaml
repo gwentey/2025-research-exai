@@ -1,0 +1,18 @@
+# Kustomize patch pour la configuration MinIO en environnement minikube
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection
+spec:
+  selector:
+    matchLabels:
+      app: service-selection
+  template:
+    spec:
+      containers:
+      - name: service-selection
+        env:
+        - name: STORAGE_BACKEND
+          value: "minio"
+        - name: STORAGE_ENDPOINT_URL
+          value: "http://minio-service.exai.svc.cluster.local:9000" 
