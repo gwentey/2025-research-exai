@@ -1,0 +1,725 @@
+= Guide Complet : Déploiement Azure et Développement EXAI
+:description: Guide complet pour déployer EXAI sur Azure avec Terraform et développer en local
+:keywords: azure, terraform, kubernetes, développement, déploiement, infrastructure
+:page-layout: docs
+
+[.lead]
+Ce guide vous explique comment déployer automatiquement EXAI sur Azure avec Terraform, puis développer en continu avec les outils locaux.
+
+== 🎯 Vue d'ensemble du workflow
+
+EXAI utilise un workflow en **2 niveaux distincts** :
+
+[cols="1,1", options="header"]
+|===
+|Infrastructure Cloud (Azure) |Développement Local
+
+|🏗️ **Une fois** ou lors de recréation
+|👨‍💻 **Quotidien** pour développer
+
+|Terraform automatise tout
+|Make + Minikube comme d'habitude
+
+|15 minutes d'installation
+|2-3 minutes de démarrage
+
+|Production-ready avec SSL/monitoring
+|Hot reload et développement rapide
+|===
+
+== 🚀 Étape 1 : Déploiement Infrastructure Azure
+
+=== Prérequis système
+
+Avant de commencer, installez les outils requis :
+
+[tabs]
+====
+Windows (WSL recommandé)::
++
+--
+[source,bash]
+----
+# Installer WSL2 si pas encore fait
+wsl --install
+
+# Dans WSL, installer les outils
+# Azure CLI
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+# Terraform
+wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+unzip terraform_1.6.0_linux_amd64.zip
+sudo mv terraform /usr/local/bin/
+
+# kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+
+# Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+
+# jq
+sudo apt-get install jq
+----
+--
+
+Linux/Ubuntu::
++
+--
+[source,bash]
+----
+# Azure CLI
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+# Terraform
+wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+unzip terraform_1.6.0_linux_amd64.zip
+sudo mv terraform /usr/local/bin/
+
+# kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+
+# Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+
+# jq
+sudo apt-get install jq
+----
+--
+
+macOS::
++
+--
+[source,bash]
+----
+# Homebrew (si pas installé)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Tous les outils
+brew install azure-cli terraform kubectl docker jq
+----
+--
+====
+
+=== Compte Azure requis
+
+Vous devez avoir :
+
+* ✅ **Subscription Azure active** (essai gratuit suffisant)
+* ✅ **Permissions Contributor/Owner** sur la subscription  
+* ✅ **Quota suffisant** (minimum 2 vCPUs)
+
+[TIP]
+====
+.Vérifier les quotas
+[source,bash]
+----
+# Se connecter à Azure
+az login
+
+# Vérifier les quotas dans votre région
+az vm list-usage --location "East US" --query "[?currentValue>=limit]"
+----
+====
+
+=== Configuration Terraform
+
+. **Copiez le template de configuration** :
++
+[source,bash]
+----
+cd terraform/azure-infrastructure
+cp terraform.tfvars.example terraform.tfvars
+----
+
+. **Modifiez selon vos besoins** :
++
+[source,bash]
+----
+# Éditeur de votre choix
+nano terraform.tfvars
+# ou
+code terraform.tfvars
+----
+
+. **Configurations recommandées** :
++
+[tabs]
+====
+Développement/Test::
++
+--
+[source,hcl]
+----
+# Configuration économique
+project_name = "exai"
+environment = "dev"
+location = "East US"
+
+# Stockage minimal
+storage_replication_type = "LRS"
+soft_delete_retention_days = 1
+
+# Kubernetes minimal
+aks_node_count = 1
+aks_node_vm_size = "Standard_B2s"
+acr_sku = "Basic"
+----
+--
+
+Production::
++
+--
+[source,hcl]
+----
+# Configuration production
+project_name = "exai"
+environment = "prod"
+location = "East US"
+
+# Stockage redondant
+storage_replication_type = "GRS"
+soft_delete_retention_days = 30
+
+# Kubernetes haute disponibilité
+aks_node_count = 3
+aks_node_vm_size = "Standard_D2s_v3"
+enable_auto_scaling = true
+max_node_count = 10
+acr_sku = "Premium"
+----
+--
+
+Économique::
++
+--
+[source,hcl]
+----
+# Optimisation maximale des coûts
+project_name = "exai"
+environment = "staging"
+location = "East US"
+
+# Instances spot (-60% de coût)
+spot_instances_enabled = true
+aks_node_vm_size = "Standard_B2s"
+log_analytics_retention_days = 7
+----
+--
+====
+
+=== Déploiement automatisé
+
+Une seule commande déploie TOUT :
+
+[source,bash]
+----
+# Rendre le script exécutable (Linux/Mac)
+chmod +x scripts/deploy-to-azure.sh
+
+# Lancer le déploiement automatique
+./scripts/deploy-to-azure.sh
+----
+
+[NOTE]
+====
+**Ce que fait le script automatiquement :**
+
+1. ✅ Vérifie tous les prérequis
+2. ✅ Vous connecte à Azure (si nécessaire)
+3. ✅ Initialise et configure Terraform
+4. ✅ Crée toute l'infrastructure Azure
+5. ✅ Configure kubectl pour AKS
+6. ✅ Build et push les images Docker vers ACR
+7. ✅ Déploie l'application sur Kubernetes
+8. ✅ Lance les migrations de base de données
+9. ✅ Affiche l'URL finale et les informations importantes
+====
+
+=== Infrastructure créée
+
+Terraform crée automatiquement :
+
+[cols="2,3,2", options="header"]
+|===
+|Ressource |Description |Utilité
+
+|**Groupe de ressources**
+|Container logique pour toutes les ressources
+|Organisation et gestion
+
+|**Cluster AKS**
+|Azure Kubernetes Service managé
+|Orchestration des conteneurs
+
+|**Azure Container Registry**
+|Registry Docker privé
+|Stockage des images applicatives
+
+|**Compte de stockage**
+|Stockage blob avec 3 containers
+|Datasets, modèles ML, rapports
+
+|**Réseau virtuel**
+|VNet avec sous-réseaux sécurisés
+|Isolation réseau
+
+|**IP publique**
+|Adresse IP statique pour l'accès externe
+|Point d'entrée HTTPS
+
+|**Log Analytics**
+|Workspace de monitoring
+|Logs centralisés
+
+|**Application Insights**
+|Monitoring des applications
+|Métriques et diagnostics
+
+|**Rôles RBAC**
+|Permissions automatiques
+|Sécurité et accès
+|===
+
+=== Vérification du déploiement
+
+Après le déploiement, vérifiez que tout fonctionne :
+
+[source,bash]
+----
+# Voir l'état de l'infrastructure
+cd terraform/azure-infrastructure
+terraform output
+
+# Vérifier les pods Kubernetes
+kubectl get pods -n exai
+
+# Vérifier les services
+kubectl get services -n exai
+
+# Tester l'accès à l'application
+curl -I http://$(terraform output -raw public_ip_address)
+----
+
+== 👨‍💻 Étape 2 : Développement Local Continu
+
+Une fois l'infrastructure Azure créée, vous développez **localement** avec Minikube comme d'habitude.
+
+=== Prérequis développement
+
+[source,bash]
+----
+# Minikube
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Skaffold
+curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+sudo install skaffold /usr/local/bin/
+
+# Python + dépendances
+python3 -m pip install python-dotenv
+----
+
+=== Commandes de développement
+
+[cols="2,3,2", options="header"]
+|===
+|Commande |Description |Utilisation
+
+|`make dev`
+|Installation complète locale
+|Première fois ou reset complet
+
+|`make dev-with-data`
+|Comme `dev` + vrais datasets
+|Quand vous voulez les données réelles
+
+|`make quick-dev`
+|Déploiement rapide (Minikube déjà prêt)
+|Redéploiement après modifications
+
+|`make logs`
+|Logs temps réel + hot reload
+|Développement actif
+
+|`make stop`
+|Arrêt de l'application locale
+|Pause développement
+
+|`make clean`
+|Nettoyage complet local
+|Reset de l'environnement local
+|===
+
+=== Workflow développement typique
+
+[source,bash]
+----
+# 1. Démarrer l'environnement local
+make dev
+
+# 2. Développer - les logs s'affichent en temps réel
+# Modifier le code... → Hot reload automatique
+
+# 3. Tester l'application
+# Frontend: http://localhost:8080
+# API: http://localhost:9000
+# API Docs: http://localhost:9000/docs
+
+# 4. Arrêter quand terminé
+make stop
+----
+
+=== Hot reload et développement
+
+Quand vous lancez `make logs`, Skaffold surveille vos fichiers et redéploie automatiquement :
+
+[source,bash]
+----
+# Lancer le mode développement avec hot reload
+make logs
+
+# Dans un autre terminal, modifier le code
+# Skaffold détecte les changements et rebuild automatiquement
+----
+
+[NOTE]
+====
+**Avantages du développement local :**
+
+* 🚀 **Rapide** : 2-3 minutes pour démarrer
+* 🔄 **Hot reload** : Changements visibles instantanément  
+* 💰 **Gratuit** : Pas de coûts Azure pendant le dev
+* 🔧 **Flexible** : Tests et expérimentations faciles
+* 📊 **Logs temps réel** : Debug et monitoring immédiats
+====
+
+== 🔄 Workflow Complet : Cloud + Local
+
+=== Scénario 1 : Premier déploiement
+
+[source,bash]
+----
+# 1. Infrastructure Azure (une fois)
+./scripts/deploy-to-azure.sh
+# ⏰ ~15 minutes
+
+# 2. Développement local (quotidien)
+make dev
+# ⏰ ~3 minutes
+
+# 3. Développer...
+# Code, test, debug en local
+
+# 4. Pousser vers Azure (quand prêt)
+# Le pipeline CI/CD peut automatiser cela
+----
+
+=== Scénario 2 : Développement quotidien
+
+[source,bash]
+----
+# Matin : Démarrer l'env local
+make dev
+
+# Journée : Développer avec hot reload
+make logs
+# Modifier code → Changements automatiques
+
+# Soir : Arrêter
+make stop
+----
+
+=== Scénario 3 : Test avec vraies données
+
+[source,bash]
+----
+# Démarrer avec les datasets complets
+make dev-with-data
+
+# Tester avec vraies données
+# Frontend: http://localhost:8080
+----
+
+=== Scénario 4 : Reset complet
+
+[source,bash]
+----
+# Reset local uniquement
+make clean
+make dev
+
+# Reset infrastructure Azure complète (DANGER)
+./scripts/destroy-azure-infrastructure.sh
+./scripts/deploy-to-azure.sh
+----
+
+== 🛠️ Gestion et Maintenance
+
+=== Mise à jour de l'application Azure
+
+[source,bash]
+----
+# 1. Récupérer les infos de l'infrastructure
+cd terraform/azure-infrastructure
+ACR_NAME=$(terraform output -raw acr_name)
+
+# 2. Construire et pousser les nouvelles images
+az acr login --name $ACR_NAME
+docker build -t $ACR_NAME.azurecr.io/exai-api-gateway:latest api-gateway/
+docker push $ACR_NAME.azurecr.io/exai-api-gateway:latest
+
+# 3. Redémarrer les pods pour utiliser la nouvelle image
+kubectl rollout restart deployment/api-gateway -n exai
+----
+
+=== Surveillance et monitoring
+
+[source,bash]
+----
+# Voir l'état des applications Azure
+kubectl get pods -n exai
+kubectl get services -n exai
+
+# Logs des applications Azure
+kubectl logs -f deployment/api-gateway -n exai
+kubectl logs -f deployment/service-selection -n exai
+
+# Accès aux métriques Azure
+az monitor metrics list --resource $AKS_CLUSTER_NAME
+----
+
+=== Optimisation des coûts
+
+[NOTE]
+====
+**Coûts estimés par configuration :**
+
+* **Dev/Test** : ~50€/mois (1 nœud, Basic SKU)
+* **Production** : ~200€/mois (3 nœuds, Premium SKU)  
+* **Optimisé** : ~30€/mois (spot instances, rétention courte)
+
+**Pour réduire les coûts :**
+
+1. Utilisez `spot_instances_enabled = true`
+2. Réduisez `log_analytics_retention_days`
+3. Utilisez `Standard_B2s` pour les VMs
+4. Arrêtez le cluster hors heures de travail
+====
+
+[source,bash]
+----
+# Arrêter le cluster AKS pour économiser
+az aks stop --resource-group $RESOURCE_GROUP --name $AKS_NAME
+
+# Redémarrer quand nécessaire
+az aks start --resource-group $RESOURCE_GROUP --name $AKS_NAME
+----
+
+== 🗑️ Suppression et Nettoyage
+
+=== Suppression complète Azure
+
+[WARNING]
+====
+**ATTENTION** : Cette opération supprime DÉFINITIVEMENT toute l'infrastructure et les données !
+====
+
+[source,bash]
+----
+# Script sécurisé avec triple confirmation
+./scripts/destroy-azure-infrastructure.sh
+
+# Le script :
+# 1. Demande 3 confirmations
+# 2. Nettoie les applications K8s
+# 3. Vide les comptes de stockage  
+# 4. Supprime les images Docker
+# 5. Détruit l'infrastructure Azure
+# 6. Restaure les fichiers locaux
+----
+
+=== Suppression locale uniquement
+
+[source,bash]
+----
+# Nettoyer seulement l'environnement local
+make clean
+
+# Arrêter Minikube
+minikube stop
+minikube delete
+----
+
+== 🔧 Dépannage
+
+=== Problèmes Infrastructure Azure
+
+[cols="2,3,2", options="header"]
+|===
+|Problème |Cause probable |Solution
+
+|**Quota dépassé**
+|Pas assez de vCPUs disponibles
+|Changer de région ou demander augmentation
+
+|**Nom déjà pris**
+|Storage/ACR avec nom existant
+|Modifier `project_name` dans terraform.tfvars
+
+|**Permissions insuffisantes**
+|Pas de droits Contributor
+|Demander les permissions ou changer de subscription
+
+|**Terraform bloqué**
+|State lock actif
+|`terraform force-unlock <LOCK_ID>`
+|===
+
+[source,bash]
+----
+# Diagnostic infrastructure
+terraform show
+terraform state list
+
+# Vérifier les quotas
+az vm list-usage --location "East US"
+
+# Re-authentification Azure
+az logout && az login
+----
+
+=== Problèmes Développement Local
+
+[cols="2,3,2", options="header"]
+|===
+|Problème |Cause probable |Solution
+
+|**Minikube ne démarre pas**
+|Ressources insuffisantes
+|Augmenter RAM/CPU allouées
+
+|**Images non trouvées**
+|Docker env mal configuré
+|`eval $(minikube docker-env)`
+
+|**Services non accessibles**
+|Ingress non configuré
+|`minikube addons enable ingress`
+
+|**Hot reload ne fonctionne pas**
+|Skaffold non configuré
+|Relancer `make logs`
+|===
+
+[source,bash]
+----
+# Diagnostic développement local
+minikube status
+kubectl get pods -n exai
+skaffold version
+
+# Reset Minikube
+minikube delete
+minikube start --memory 4096 --cpus 2
+----
+
+=== Logs de diagnostic
+
+[source,bash]
+----
+# Logs détaillés Terraform
+export TF_LOG=DEBUG
+terraform apply
+
+# Logs Kubernetes détaillés
+kubectl describe pod <pod-name> -n exai
+kubectl logs <pod-name> -n exai --previous
+
+# Logs Skaffold
+skaffold diagnose
+----
+
+== 📊 Référence Rapide
+
+=== Commandes Infrastructure
+
+[source,bash]
+----
+# Déployer infrastructure complète
+./scripts/deploy-to-azure.sh
+
+# Voir l'état
+terraform output
+
+# Mise à jour infrastructure
+terraform plan && terraform apply
+
+# Suppression complète
+./scripts/destroy-azure-infrastructure.sh
+----
+
+=== Commandes Développement
+
+[source,bash]
+----
+# Environnement complet
+make dev
+
+# Développement avec données
+make dev-with-data
+
+# Rapide (si Minikube prêt)
+make quick-dev
+
+# Hot reload
+make logs
+
+# Arrêt
+make stop
+
+# Nettoyage
+make clean
+----
+
+=== URLs importantes
+
+[cols="2,3", options="header"]
+|===
+|Service |URL
+
+|**Application Azure**
+|`http://<PUBLIC_IP>` (depuis terraform output)
+
+|**Frontend Local**
+|http://localhost:8080
+
+|**API Gateway Local**
+|http://localhost:9000
+
+|**API Documentation**
+|http://localhost:9000/docs
+
+|**Portail Azure**
+|https://portal.azure.com
+|===
+
+== 🎉 Félicitations !
+
+Vous maîtrisez maintenant le workflow complet EXAI :
+
+* ✅ **Infrastructure Azure** automatisée avec Terraform
+* ✅ **Développement local** fluide avec Make/Minikube  
+* ✅ **Hot reload** pour un développement rapide
+* ✅ **Monitoring** et **logs** intégrés
+* ✅ **Optimisation des coûts** Azure
+* ✅ **Suppression sécurisée** des ressources
+
+**Plus jamais de configuration manuelle ! 🚀** 

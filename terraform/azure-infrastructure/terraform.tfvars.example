@@ -1,0 +1,108 @@
+# Fichier d'exemple de configuration pour l'infrastructure Azure EXAI
+# Copiez ce fichier vers terraform.tfvars et modifiez les valeurs selon vos besoins
+
+# Configuration de base
+project_name = "exai"
+environment  = "prod"
+location     = "East US"
+
+# Configuration du stockage
+storage_replication_type     = "LRS"
+storage_tier                = "Standard"
+enable_versioning           = true
+soft_delete_retention_days  = 7
+
+# Configuration AKS
+kubernetes_version    = "1.28"
+aks_node_count       = 2
+aks_node_vm_size     = "Standard_D2s_v3"
+aks_node_disk_size   = 100
+enable_auto_scaling  = false
+
+# Si auto-scaling activé
+min_node_count = 1
+max_node_count = 5
+
+# Configuration ACR
+acr_sku           = "Basic"
+acr_admin_enabled = true
+
+# Configuration réseau
+vnet_address_space         = ["10.0.0.0/8"]
+aks_subnet_address_prefix  = "10.240.0.0/16"
+aks_dns_service_ip        = "10.1.0.10"
+aks_service_cidr          = "10.1.0.0/16"
+
+# Configuration monitoring
+log_analytics_retention_days = 30
+enable_application_insights  = true
+
+# Configuration sécurité
+enable_private_cluster = false
+authorized_ip_ranges   = []  # Laisser vide pour autoriser toutes les IPs
+enable_rbac           = true
+
+# Optimisation des coûts
+spot_instances_enabled        = false
+storage_lifecycle_management = true
+
+# Tags personnalisés (optionnel)
+additional_tags = {
+  CostCenter = "IT"
+  Owner      = "DevOps Team"
+  Purpose    = "ML Platform"
+}
+
+# Configuration avancée (optionnel)
+custom_dns_prefix                  = ""
+enable_azure_policy               = false
+enable_secrets_store_csi_driver   = false
+
+# Containers de stockage supplémentaires (optionnel)
+additional_storage_containers = [
+  # "backups",
+  # "logs"
+]
+
+# Configuration backup (optionnel)
+enable_backup         = false
+backup_retention_days = 30
+
+# ========================================
+# EXEMPLES POUR DIFFÉRENTS ENVIRONNEMENTS
+# ========================================
+
+# Pour un environnement de développement :
+# project_name = "exai"
+# environment  = "dev"
+# location     = "East US"
+# aks_node_count = 1
+# aks_node_vm_size = "Standard_B2s"
+# acr_sku = "Basic"
+# enable_versioning = false
+# soft_delete_retention_days = 1
+
+# Pour un environnement de production haute disponibilité :
+# project_name = "exai"
+# environment  = "prod"
+# location     = "East US"
+# storage_replication_type = "GRS"
+# aks_node_count = 3
+# aks_node_vm_size = "Standard_D4s_v3"
+# enable_auto_scaling = true
+# min_node_count = 2
+# max_node_count = 10
+# acr_sku = "Premium"
+# enable_private_cluster = true
+# enable_backup = true
+
+# Pour un environnement économique :
+# project_name = "exai"
+# environment  = "staging"
+# location     = "East US"
+# aks_node_count = 1
+# aks_node_vm_size = "Standard_B2s"
+# spot_instances_enabled = true
+# acr_sku = "Basic"
+# log_analytics_retention_days = 30
+# soft_delete_retention_days = 1 

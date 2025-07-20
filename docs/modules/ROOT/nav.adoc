@@ -1,49 +1,55 @@
 // Navigation sidebar for EXAI documentation
 
-* xref:index.adoc[Accueil]
-* xref:getting-started.adoc[Guide de démarrage]
+* xref:index.adoc[Accueil EXAI]
+* xref:getting-started.adoc[Guide de Démarrage Rapide]
 
-.Guide Utilisateur
-* xref:user-guide/account-management.adoc[Gestion du compte]
-* xref:user-guide/account-deletion.adoc[Suppression du compte]
-* xref:user-guide/dataset-selection.adoc[Sélection de datasets]
-* xref:user-guide/dataset-detailed-view.adoc[Vue détaillée des datasets]
-* xref:user-guide/project-creation.adoc[Création de projets]
-* xref:user-guide/project-management.adoc[Gestion des projets]
-* xref:user-guide/model-training.adoc[Entraînement de modèles]
-* xref:user-guide/xai-analysis.adoc[Analyse XAI]
-* xref:user-guide/report-generation.adoc[Génération de rapports]
-* xref:user-guide/results-interpretation.adoc[Interprétation des résultats]
+* Guides d'Installation et Déploiement
+** xref:deployment/azure-terraform-guide.adoc[🚀 Guide Complet Azure + Terraform]
+** xref:development/azure-deployment.adoc[Déploiement Azure Manuel]
 
-.Guide Développeur
-* xref:dev-guide/index.adoc[Introduction]
-* xref:dev-guide/architecture.adoc[Architecture]
-* xref:dev-guide/api-reference.adoc[Référence API]
-* xref:dev-guide/authentication-error-messages.adoc[Messages d'erreur d'authentification]
-* xref:dev-guide/code-style-guide.adoc[Guide de style de code]
-* xref:dev-guide/component-library.adoc[Bibliothèque de composants]
-* xref:dev-guide/deployment-checklist.adoc[Checklist de déploiement]
-* xref:dev-guide/docker-compose-setup.adoc[Configuration Docker Compose]
-* xref:dev-guide/environment-variables.adoc[Variables d'environnement]
-* xref:dev-guide/error-handling.adoc[Gestion des erreurs]
-* xref:dev-guide/frontend-architecture.adoc[Architecture Frontend]
-* xref:dev-guide/i18n-guide.adoc[Guide d'internationalisation]
-* xref:dev-guide/local-development.adoc[Développement local]
-* xref:dev-guide/logging-guide.adoc[Guide de journalisation]
-* xref:dev-guide/ml-pipeline-integration.adoc[Intégration ML Pipeline]
-* xref:dev-guide/performance-optimization.adoc[Optimisation des performances]
-* xref:dev-guide/security-guidelines.adoc[Directives de sécurité]
-* xref:dev-guide/testing-strategy.adoc[Stratégie de test]
-* xref:dev-guide/troubleshooting.adoc[Dépannage]
-* xref:dev-guide/user-authentication.adoc[Authentification utilisateur]
-* xref:dev-guide/xai-engine-integration.adoc[Intégration XAI Engine]
+* Guides Utilisateur
+** xref:user-guide/dataset-selection.adoc[Sélection des Datasets]
+** xref:user-guide/dataset-detailed-view.adoc[Vue Détaillée des Datasets]
+** xref:user-guide/project-creation.adoc[Création de Projets ML]
+** xref:user-guide/project-configuration.adoc[Configuration des Projets]
+** xref:user-guide/pipeline-execution.adoc[Exécution des Pipelines]
+** xref:user-guide/results-interpretation.adoc[Interprétation des Résultats]
+** xref:user-guide/explainability-reports.adoc[Rapports d'Explicabilité]
+** xref:user-guide/data-export.adoc[Export des Données]
+** xref:user-guide/collaboration.adoc[Collaboration en Équipe]
+** xref:user-guide/profile-settings.adoc[Paramètres de Profil]
+** xref:user-guide/account-deletion.adoc[Suppression de Compte]
 
-.Guides de Données
-* xref:dev-guide/dataset-management-guide.adoc[Guide de Gestion des Datasets]
-* xref:dev-guide/auto-dataset-initialization.adoc[Auto-Initialisation des Datasets]
-* xref:dev-guide/object-storage-implementation.adoc[Implémentation du Stockage d'Objets]
-* xref:dev-guide/storage-setup-guide.adoc[Guide de Configuration du Stockage]
+* Guides de Développement
+** xref:dev-guide/architecture.adoc[Architecture Système]
+** xref:dev-guide/api-reference.adoc[Référence API]
+** xref:dev-guide/authentication-error-messages.adoc[Messages d'Erreur d'Authentification]
+** xref:dev-guide/database-schema.adoc[Schéma de Base de Données]
+** xref:dev-guide/database-migrations.adoc[Migrations de Base de Données]
+** xref:dev-guide/environment-setup.adoc[Configuration de l'Environnement]
+** xref:dev-guide/frontend-development.adoc[Développement Frontend]
+** xref:dev-guide/backend-api-development.adoc[Développement API Backend]
+** xref:dev-guide/ml-pipeline-integration.adoc[Intégration Pipeline ML]
+** xref:dev-guide/xai-engine-development.adoc[Développement Moteur XAI]
+** xref:dev-guide/testing-guide.adoc[Guide de Tests]
+** xref:dev-guide/monitoring-logging.adoc[Monitoring et Logging]
+** xref:dev-guide/security-guidelines.adoc[Directives de Sécurité]
+** xref:dev-guide/performance-optimization.adoc[Optimisation des Performances]
+** xref:dev-guide/ci-cd-pipeline.adoc[Pipeline CI/CD]
+** xref:dev-guide/troubleshooting.adoc[Dépannage]
+** xref:dev-guide/contributing.adoc[Guide de Contribution]
 
-.Guides de Déploiement
-* xref:development/azure-deployment.adoc[Déploiement Azure]
-* xref:development/database-migrations.adoc[Migrations de base de données] 
+* Guides de Données
+** xref:dev-guide/dataset-management-guide.adoc[Gestion des Datasets]
+** xref:dev-guide/auto-dataset-initialization.adoc[Auto-initialisation des Datasets]
+** xref:dev-guide/object-storage-implementation.adoc[Implémentation Stockage d'Objets]
+** xref:dev-guide/storage-setup-guide.adoc[Configuration du Stockage]
+
+* Guides Avancés
+** xref:dev-guide/scalability-patterns.adoc[Patterns de Scalabilité]
+** xref:dev-guide/microservices-communication.adoc[Communication entre Microservices]
+** xref:dev-guide/data-privacy-compliance.adoc[Conformité Confidentialité des Données]
+** xref:dev-guide/disaster-recovery.adoc[Plan de Reprise d'Activité]
+
+* Administration
+** xref:development/database-migrations.adoc[Migrations de Base de Données] 
