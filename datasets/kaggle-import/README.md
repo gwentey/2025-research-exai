@@ -1,8 +1,8 @@
-# 🚀 Système d'Import Kaggle EXAI
+# 🚀 Système d'Import Kaggle IBIS-X
 
 ## Vue d'ensemble
 
-Le système d'import Kaggle permet d'importer automatiquement des datasets depuis Kaggle vers la plateforme EXAI, résolvant le problème des datasets trop volumineux pour GitHub.
+Le système d'import Kaggle permet d'importer automatiquement des datasets depuis Kaggle vers la plateforme IBIS-X, résolvant le problème des datasets trop volumineux pour GitHub.
 
 ## Architecture
 
@@ -43,14 +43,14 @@ export KAGGLE_KEY="votre_api_key"
 
 ```bash
 # Base de données
-export DATABASE_URL="postgresql://user:pass@localhost:5432/exaidb"
+export DATABASE_URL="postgresql://user:pass@localhost:5432/IBIS-Xdb"
 
 # Stockage d'objets
 export STORAGE_BACKEND="minio"  # ou "azure"
 export MINIO_ENDPOINT="localhost:9000"
 export MINIO_ACCESS_KEY="minioadmin"
 export MINIO_SECRET_KEY="minioadmin"
-export MINIO_BUCKET="exai-datasets"
+export MINIO_BUCKET="IBIS-X-datasets"
 ```
 
 ## Utilisation Locale
@@ -114,7 +114,7 @@ echo -n "votre_username" | base64
 echo -n "votre_api_key" | base64
 
 # Éditer le secret Kaggle
-kubectl edit secret kaggle-secrets -n exai
+kubectl edit secret kaggle-secrets -n IBIS-X
 ```
 
 ```yaml
@@ -122,7 +122,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: kaggle-secrets
-  namespace: exai
+  namespace: IBIS-X
 data:
   username: <KAGGLE_USERNAME_BASE64>
   key: <KAGGLE_API_KEY_BASE64>
@@ -135,11 +135,11 @@ data:
 kubectl apply -f k8s/base/jobs/kaggle-dataset-import-job.yaml
 
 # Suivre les logs
-kubectl logs -f job/kaggle-dataset-import-job -n exai
+kubectl logs -f job/kaggle-dataset-import-job -n IBIS-X
 
 # Vérifier le statut
-kubectl get jobs -n exai
-kubectl describe job kaggle-dataset-import-job -n exai
+kubectl get jobs -n IBIS-X
+kubectl describe job kaggle-dataset-import-job -n IBIS-X
 ```
 
 ### 3. Job Récurrent (Optionnel)
@@ -267,7 +267,7 @@ make check-config
 tail -f kaggle_import.log
 
 # Logs Kubernetes
-kubectl logs -f job/kaggle-dataset-import-job -n exai
+kubectl logs -f job/kaggle-dataset-import-job -n IBIS-X
 ```
 
 ### Nettoyage en Cas de Problème
@@ -277,7 +277,7 @@ kubectl logs -f job/kaggle-dataset-import-job -n exai
 make clean
 
 # Kubernetes
-kubectl delete job kaggle-dataset-import-job -n exai
+kubectl delete job kaggle-dataset-import-job -n IBIS-X
 ```
 
 ## Monitoring et Métriques
@@ -289,8 +289,8 @@ kubectl delete job kaggle-dataset-import-job -n exai
 make status
 
 # Kubernetes
-kubectl get jobs -n exai
-kubectl describe job kaggle-dataset-import-job -n exai
+kubectl get jobs -n IBIS-X
+kubectl describe job kaggle-dataset-import-job -n IBIS-X
 ```
 
 ### Métriques Importantes
@@ -352,4 +352,4 @@ make check-config
 
 ---
 
-**🎉 Le système d'import Kaggle EXAI permet maintenant d'importer facilement des datasets de toute taille sans limitations GitHub !** 
+**🎉 Le système d'import Kaggle IBIS-X permet maintenant d'importer facilement des datasets de toute taille sans limitations GitHub !** 

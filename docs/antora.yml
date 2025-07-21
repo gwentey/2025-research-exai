@@ -1,5 +1,5 @@
-name: EXAI
-version: '1.0' # Ou la version actuelle de votre projet
-title: Documentation Principale
+name: IBIS-X
+title: IBIS-X
+version: ~
 nav:
-  - modules/ROOT/nav.adoc # Chemin vers le fichier de navigation principal 
+- modules/ROOT/nav.adoc 

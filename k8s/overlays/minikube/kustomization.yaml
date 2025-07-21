@@ -14,5 +14,5 @@ patchesStrategicMerge:
 
 # (Optionnel) Vous pouvez aussi ajouter des préfixes/suffixes aux noms,
 # définir des namespaces, etc.
-# namespace: exai-minikube
+# namespace: ibis-x-minikube
 # namePrefix: minikube- 

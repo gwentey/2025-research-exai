@@ -37,7 +37,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from tqdm import tqdm
 
-# Import modules EXAI
+# Import modules IBIS-X
 # Dans le conteneur : /app/kaggle-import/kaggle_importer.py -> ajouter /app/ au PYTHONPATH
 sys.path.append(str(Path(__file__).parent.parent))
 from common.storage_client import get_storage_client

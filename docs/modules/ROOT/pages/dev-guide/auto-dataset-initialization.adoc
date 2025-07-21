@@ -1,10 +1,10 @@
 = Auto-Initialisation des Vrais Datasets
-:description: Guide complet pour l'initialisation automatique des vrais datasets dans EXAI
-:keywords: EXAI, datasets, initialisation, automation, production, CSV, Parquet
+:description: Guide complet pour l'initialisation automatique des vrais datasets dans IBIS-X
+:keywords: IBIS-X, datasets, initialisation, automation, production, CSV, Parquet
 
 == Vue d'Ensemble
 
-Le système EXAI propose maintenant une **auto-initialisation automatisée** des vrais datasets, éliminant le besoin de commandes manuelles pour intégrer de vraies données dans l'application.
+Le système IBIS-X propose maintenant une **auto-initialisation automatisée** des vrais datasets, éliminant le besoin de commandes manuelles pour intégrer de vraies données dans l'application.
 
 Cette fonctionnalité permet :
 
@@ -82,7 +82,7 @@ Cette commande :
 1. ✅ Vérifie les prérequis (Docker, Minikube, kubectl, Skaffold)
 2. ✅ Met à jour les secrets Kubernetes
 3. ✅ Démarre Minikube avec configuration optimale
-4. ✅ Crée le namespace `exai`
+4. ✅ Crée le namespace `IBIS-X`
 5. ✅ Configure l'environnement Docker pour Minikube
 6. ✅ Déploie l'application avec Skaffold
 7. ✅ Lance les migrations de base de données
@@ -130,7 +130,7 @@ make init-data
 make init-data-job
 
 # Directement avec le script
-kubectl exec -n exai deployment/service-selection -- python scripts/init_datasets.py social
+kubectl exec -n IBIS-X deployment/service-selection -- python scripts/init_datasets.py social
 ----
 
 == Configuration
@@ -240,14 +240,14 @@ En production Azure, surveillez :
 [source,bash]
 ----
 # Logs du service-selection
-kubectl logs -f deployment/service-selection -n exai
+kubectl logs -f deployment/service-selection -n IBIS-X
 
 # Statut du job d'initialisation (si utilisé)
-kubectl get jobs -n exai
-kubectl describe job service-selection-data-init-job -n exai
+kubectl get jobs -n IBIS-X
+kubectl describe job service-selection-data-init-job -n IBIS-X
 
 # Vérification des datasets créés
-kubectl exec -n exai deployment/service-selection -- python -c "
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
 import sys; sys.path.append('/app')
 from app.database import SessionLocal
 from app.models import Dataset
@@ -290,10 +290,10 @@ with SessionLocal() as db:
 [source,bash]
 ----
 # Vérifier les variables d'environnement
-kubectl exec -n exai deployment/service-selection -- env | grep -E "(AUTO_INIT|DATABASE|MINIO|AZURE)"
+kubectl exec -n IBIS-X deployment/service-selection -- env | grep -E "(AUTO_INIT|DATABASE|MINIO|AZURE)"
 
 # Tester la connectivité base de données
-kubectl exec -n exai deployment/service-selection -- python -c "
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
 from app.database import SessionLocal
 try:
     with SessionLocal() as db:
@@ -304,10 +304,10 @@ except Exception as e:
 "
 
 # Vérifier l'existence du fichier CSV source
-kubectl exec -n exai deployment/service-selection -- ls -la datasets/
+kubectl exec -n IBIS-X deployment/service-selection -- ls -la datasets/
 
 # Tester l'initialisation manuellement
-kubectl exec -n exai deployment/service-selection -- python scripts/init_datasets.py social
+kubectl exec -n IBIS-X deployment/service-selection -- python scripts/init_datasets.py social
 ----
 
 == Bonnes Pratiques

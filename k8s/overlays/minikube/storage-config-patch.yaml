@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: service-selection
-  namespace: exai
+  namespace: ibis-x
 spec:
   template:
     spec:
@@ -13,10 +13,10 @@ spec:
         - name: STORAGE_TYPE
           value: "minio"
         - name: MINIO_ENDPOINT
-          value: "http://minio-service.exai.svc.cluster.local:6700"
+          value: "http://minio-service.ibis-x.svc.cluster.local:6700"
         - name: MINIO_ACCESS_KEY
           value: "minioadmin"
         - name: MINIO_SECRET_KEY
           value: "minioadmin"
         - name: STORAGE_BUCKET
-          value: "exai-datasets" 
+          value: "ibis-x-datasets" 

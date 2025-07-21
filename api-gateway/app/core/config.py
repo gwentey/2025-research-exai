@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "EXAI API Gateway")
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "IBIS-X API Gateway")
     API_V1_STR: str = "/api/v1"
     # ATTENTION: Clé secrète pour JWT. DOIT être gardée secrète et idéalement chargée depuis l'environnement.
     # Pour le développement, une clé fixe est utilisée ici, mais elle devra être remplacée.
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     OAUTH_REDIRECT_URL: str = os.getenv("OAUTH_REDIRECT_URL", "http://localhost:8080/authentication/callback")
     
     # Domaines de production pour détection automatique
-    PRODUCTION_DOMAINS: list[str] = os.getenv("PRODUCTION_DOMAINS", "exai-pipeline.fr,api.exai-pipeline.fr").split(",")
+    PRODUCTION_DOMAINS: list[str] = os.getenv("PRODUCTION_DOMAINS", "ibis-x.fr,api.ibis-x.fr").split(",")
     
     # CORS Origins (Optionnel, si vous voulez le configurer via env)
     # Séparez les origines par des virgules si plusieurs.
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # Pas de "*" autorisé si allow_credentials=True dans main.py.
     BACKEND_CORS_ORIGINS: str = os.getenv(
         "BACKEND_CORS_ORIGINS",
-        "http://localhost:8080,https://exai-pipeline.fr,https://www.exai-pipeline.fr" # Local et production
+        "http://localhost:8080,https://ibis-x.fr,https://www.ibis-x.fr" # Local et production
     )
 
     # URLs des services backend pour le reverse proxy

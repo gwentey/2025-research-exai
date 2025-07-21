@@ -1,13 +1,13 @@
-# EXAI : Document de Spécifications Détaillé (Preuve de Concept - PoC v2)
+# IBIS-X : Document de Spécifications Détaillé (Preuve de Concept - PoC v2)
 
 **Version :** 0.2
 **Date :** 26 avril 2025
 **Auteur :** Gemini (basé sur les informations fournies par Anthony Rodrigues)
-**Objectif :** Fournir des spécifications techniques et fonctionnelles précises et non ambiguës pour le développement de la Preuve de Concept (PoC) d'EXAI, exploitables par un outil de développement assisté par IA (ex: Cursor AI).
+**Objectif :** Fournir des spécifications techniques et fonctionnelles précises et non ambiguës pour le développement de la Preuve de Concept (PoC) d'IBIS-X, exploitables par un outil de développement assisté par IA (ex: Cursor AI).
 
 ## 1. Introduction et Objectifs (Rappel)
 
-* **Vue d'ensemble :** EXAI est un pipeline intégré (Sélection Données -> Analyse ML Guidée -> Explication XAI) pour utilisateurs non-experts.
+* **Vue d'ensemble :** IBIS-X est un pipeline intégré (Sélection Données -> Analyse ML Guidée -> Explication XAI) pour utilisateurs non-experts.
 * **Objectif PoC :** Démontrer la **faisabilité technique** de ce pipeline intégré via un prototype fonctionnel déployable localement (Minikube).
 * **Public Cible :** Utilisateurs non-spécialistes en science des données.
 
@@ -29,7 +29,7 @@
 
 **3.1.1. Modèle de Données (PostgreSQL - Table `datasets`)**
 
-* Utiliser **strictement** le schéma SQL détaillé fourni précédemment (dans `reponses_techniques_exai`), incluant tous les champs (identification, techniques, éthiques, internes), les types précis (`TEXT`, `VARCHAR` avec `CHECK`, `BOOLEAN`, `INTEGER`, `TEXT[]`, `TIMESTAMPTZ`), les contraintes (`NOT NULL`, `UNIQUE`), les valeurs par défaut, les index et le trigger `update_updated_at`.
+* Utiliser **strictement** le schéma SQL détaillé fourni précédemment (dans `reponses_techniques_ibis_x`), incluant tous les champs (identification, techniques, éthiques, internes), les types précis (`TEXT`, `VARCHAR` avec `CHECK`, `BOOLEAN`, `INTEGER`, `TEXT[]`, `TIMESTAMPTZ`), les contraintes (`NOT NULL`, `UNIQUE`), les valeurs par défaut, les index et le trigger `update_updated_at`.
 * **Migration :** Intégrer et utiliser **Alembic** pour toute création ou modification de ce schéma.
 
 **3.1.2. Modèles Pydantic (pour validation API et sérialisation)**
@@ -62,7 +62,7 @@
         3.  Récupérer la liste des datasets correspondants (objets SQLAlchemy).
         4.  Calculer `max_possible_score` à partir de `request.weights`.
         5.  Pour chaque dataset récupéré :
-            * Appeler la fonction `calculate_relevance_score(dataset, request.weights)` (détaillée dans `reponses_techniques_exai`).
+            * Appeler la fonction `calculate_relevance_score(dataset, request.weights)` (détaillée dans `reponses_techniques_ibis_x`).
             * Calculer le score normalisé si `max_possible_score > 0`.
         6.  Trier les datasets par score décroissant.
         7.  Sérialiser les résultats en utilisant `DatasetScoredRead`.
@@ -90,7 +90,7 @@
         1.  Récupérer le dataset par `id`.
         2.  Vérifier si un `preview_reference` existe (champ à ajouter au schéma si cette approche est choisie).
         3.  Si oui, lire le contenu de la prévisualisation depuis cet emplacement (fichier sur PV/Blob ou colonne BDD).
-        4.  Si non (ou si l'approche dynamique est choisie pour la PoC), tenter de lire les N premières lignes depuis `file_reference` (voir `reponses_techniques_exai` pour les détails et limites).
+        4.  Si non (ou si l'approche dynamique est choisie pour la PoC), tenter de lire les N premières lignes depuis `file_reference` (voir `reponses_techniques_ibis_x` pour les détails et limites).
         5.  Retourner les données lues (ex: en JSON).
     * **Output :** Structure JSON représentant les premières lignes/colonnes.
 
@@ -217,7 +217,7 @@
 ## 5. Exigences de Données
 
 * **Source Initiale :** Le fichier `datasets final table .xlsx - Sheet1.csv` sera parsé pour le peuplement initial de la table `datasets`.
-* **Schéma BDD :** Le schéma PostgreSQL défini dans le document `reponses_techniques_exai` (incluant la table `datasets` et potentiellement `ml_models`, `explanation_results`, `users`) sera implémenté et géré via Alembic.
+* **Schéma BDD :** Le schéma PostgreSQL défini dans le document `reponses_techniques_ibis_x` (incluant la table `datasets` et potentiellement `ml_models`, `explanation_results`, `users`) sera implémenté et géré via Alembic.
 * **Stockage Fichiers :** Un Volume Persistant K8s sera utilisé pour stocker les fichiers référencés (modèles, résultats XAI, datasets uploadés si l'approche locale est choisie pour la prévisualisation/accès worker).
 
 ## 6. Critères de Succès de la PoC

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script de déploiement automatisé pour EXAI sur Azure
+# Script de déploiement automatisé pour IBIS-X sur Azure
 # Ce script utilise Terraform pour créer l'infrastructure et déploie l'application
 
 set -e  # Arrêter le script en cas d'erreur
@@ -63,7 +63,93 @@ check_prerequisites() {
         exit 1
     fi
     
+    # Vérifier/Installer Helm
+    if ! command -v helm &> /dev/null; then
+        log_warning "Helm n'est pas installé. Installation automatique..."
+        install_helm
+    else
+        log_success "Helm est déjà installé"
+    fi
+    
     log_success "Tous les prérequis sont installés"
+}
+
+# Nouvelle fonction pour installer Helm
+install_helm() {
+    log_info "Installation de Helm..."
+    
+    # Télécharger et installer Helm
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    chmod 700 get_helm.sh
+    ./get_helm.sh
+    rm get_helm.sh
+    
+    # Vérifier l'installation
+    if command -v helm &> /dev/null; then
+        log_success "Helm installé avec succès: $(helm version --short)"
+    else
+        log_error "Échec de l'installation de Helm"
+        exit 1
+    fi
+}
+
+# Nouvelle fonction pour installer NGINX Ingress Controller
+install_nginx_ingress() {
+    log_info "Installation de NGINX Ingress Controller..."
+    
+    # Ajouter le repository Helm NGINX
+    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+    helm repo update
+    
+    # Installer ou mettre à jour NGINX Ingress avec les valeurs personnalisées
+    helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+        --namespace ingress-nginx \
+        --create-namespace \
+        --values "$K8S_DIR/helm-values/nginx-ingress-values.yaml" \
+        --set controller.service.loadBalancerIP="$PUBLIC_IP" \
+        --wait
+    
+    log_success "NGINX Ingress Controller installé"
+}
+
+# Nouvelle fonction pour installer Cert-Manager
+install_cert_manager() {
+    log_info "Installation de Cert-Manager..."
+    
+    # Ajouter le repository Helm Cert-Manager
+    helm repo add jetstack https://charts.jetstack.io
+    helm repo update
+    
+    # Installer Cert-Manager
+    helm upgrade --install cert-manager jetstack/cert-manager \
+        --namespace cert-manager \
+        --create-namespace \
+        --version v1.13.0 \
+        --set installCRDs=true \
+        --wait
+    
+    log_success "Cert-Manager installé"
+}
+
+# Nouvelle fonction pour mettre à jour les noms de projet IBIS-X → IBIS-X
+update_project_names() {
+    log_info "Mise à jour des noms de projet IBIS-X → IBIS-X..."
+    
+    # Sauvegarder les fichiers avant modification
+    find "$K8S_DIR" -name "*.yaml" -exec cp {} {}.backup \;
+    
+    # Remplacer IBIS-X par IBIS-X dans tous les fichiers YAML Kubernetes
+    find "$K8S_DIR" -name "*.yaml" -type f -exec sed -i.tmp \
+        -e 's/IBIS-X/ibis-x/g' \
+        -e 's/IBIS-X/IBIS-X/g' \
+        -e 's/api\.IBIS-X-pipeline\.fr/api.ibisx.fr/g' \
+        -e 's/IBIS-X-pipeline\.fr/ibisx.fr/g' \
+        {} \;
+    
+    # Nettoyer les fichiers temporaires
+    find "$K8S_DIR" -name "*.tmp" -delete
+    
+    log_success "Noms de projet mis à jour vers IBIS-X"
 }
 
 # Fonction pour vérifier la connexion Azure
@@ -188,7 +274,7 @@ update_k8s_secrets() {
     log_info "Mise à jour des secrets Kubernetes..."
     
     # Créer le namespace s'il n'existe pas
-    kubectl create namespace exai --dry-run=client -o yaml | kubectl apply -f -
+    kubectl create namespace IBIS-X --dry-run=client -o yaml | kubectl apply -f -
     
     # Mettre à jour le fichier de secrets avec les vraies valeurs
     SECRETS_FILE="$K8S_DIR/base/service-selection/storage-secrets.yaml"
@@ -218,28 +304,48 @@ build_and_push_images() {
     cd "$PROJECT_ROOT"
     
     # Construire et pousser l'image API Gateway
-    log_info "Construction de l'image api-gateway..."
-    docker build -t "$ACR_NAME.azurecr.io/exai-api-gateway:latest" -f api-gateway/Dockerfile api-gateway/
-    docker push "$ACR_NAME.azurecr.io/exai-api-gateway:latest"
+    log_info "Construction de l'image ibis-x-api-gateway..."
+    docker build -t "$ACR_NAME.azurecr.io/ibis-x-api-gateway:latest" -f api-gateway/Dockerfile api-gateway/
+    docker push "$ACR_NAME.azurecr.io/ibis-x-api-gateway:latest"
     
     # Construire et pousser l'image Service Selection
-    log_info "Construction de l'image service-selection..."
-    docker build -t "$ACR_NAME.azurecr.io/service-selection:latest" -f service-selection/Dockerfile service-selection/
-    docker push "$ACR_NAME.azurecr.io/service-selection:latest"
+    log_info "Construction de l'image ibis-x-service-selection..."
+    docker build -t "$ACR_NAME.azurecr.io/ibis-x-service-selection:latest" -f service-selection/Dockerfile service-selection/
+    docker push "$ACR_NAME.azurecr.io/ibis-x-service-selection:latest"
     
     # Construire et pousser l'image Frontend
-    log_info "Construction de l'image frontend..."
-    docker build -t "$ACR_NAME.azurecr.io/frontend:latest" -f frontend/Dockerfile frontend/
-    docker push "$ACR_NAME.azurecr.io/frontend:latest"
+    log_info "Construction de l'image ibis-x-frontend..."
+    docker build -t "$ACR_NAME.azurecr.io/ibis-x-frontend:latest" -f frontend/Dockerfile frontend/
+    docker push "$ACR_NAME.azurecr.io/ibis-x-frontend:latest"
     
     log_success "Toutes les images Docker ont été pushées vers ACR"
 }
 
 # Fonction pour déployer l'application sur Kubernetes
 deploy_application() {
-    log_info "Déploiement de l'application EXAI sur AKS..."
+    log_info "Déploiement de l'application IBIS-X sur AKS..."
     
     cd "$PROJECT_ROOT"
+    
+    # Mettre à jour les noms de projet
+    update_project_names
+    
+    # Installer les composants Kubernetes nécessaires
+    install_nginx_ingress
+    install_cert_manager
+    
+    # Attendre que les contrôleurs soient prêts
+    log_info "Attente que NGINX Ingress soit prêt..."
+    kubectl wait --namespace ingress-nginx \
+        --for=condition=ready pod \
+        --selector=app.kubernetes.io/component=controller \
+        --timeout=300s
+    
+    log_info "Attente que Cert-Manager soit prêt..."
+    kubectl wait --namespace cert-manager \
+        --for=condition=ready pod \
+        --selector=app.kubernetes.io/name=cert-manager \
+        --timeout=300s
     
     # Mettre à jour les références d'images dans kustomization.yaml
     KUSTOMIZATION_FILE="$K8S_DIR/overlays/azure/kustomization.yaml"
@@ -249,9 +355,12 @@ deploy_application() {
     
     # Mettre à jour les noms d'images avec le vrai ACR
     sed -i.tmp \
-        -e "s|newName: .*azurecr.io/exai-api-gateway|newName: $ACR_NAME.azurecr.io/exai-api-gateway|" \
-        -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/service-selection|" \
-        -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/frontend|" \
+        -e "s|newName: .*azurecr.io/IBIS-X-api-gateway|newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway|" \
+        -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/ibis-x-service-selection|" \
+        -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/ibis-x-frontend|" \
+        -e "s|name: IBIS-X-api-gateway|name: ibis-x-api-gateway|" \
+        -e "s|name: service-selection|name: ibis-x-service-selection|" \
+        -e "s|name: frontend|name: ibis-x-frontend|" \
         "$KUSTOMIZATION_FILE"
     
     # Nettoyer le fichier temporaire
@@ -262,11 +371,11 @@ deploy_application() {
     
     # Attendre que les pods soient prêts
     log_info "Attente du démarrage des pods..."
-    kubectl wait --for=condition=ready pod -l app=api-gateway -n exai --timeout=300s
-    kubectl wait --for=condition=ready pod -l app=service-selection -n exai --timeout=300s
-    kubectl wait --for=condition=ready pod -l app=frontend -n exai --timeout=300s
+    kubectl wait --for=condition=ready pod -l app=api-gateway -n ibis-x --timeout=300s
+    kubectl wait --for=condition=ready pod -l app=service-selection -n ibis-x --timeout=300s
+    kubectl wait --for=condition=ready pod -l app=frontend -n ibis-x --timeout=300s
     
-    log_success "Application EXAI déployée sur AKS"
+    log_success "Application IBIS-X déployée sur AKS"
 }
 
 # Fonction pour exécuter les migrations de base de données
@@ -278,19 +387,21 @@ run_migrations() {
     kubectl apply -f "$K8S_DIR/base/jobs/service-selection-migration-job.yaml"
     
     # Attendre que les jobs se terminent
-    kubectl wait --for=condition=complete job/api-gateway-migration-job -n exai --timeout=300s
-    kubectl wait --for=condition=complete job/service-selection-migration-job -n exai --timeout=300s
+    kubectl wait --for=condition=complete job/api-gateway-migration-job -n ibis-x --timeout=300s
+    kubectl wait --for=condition=complete job/service-selection-migration-job -n ibis-x --timeout=300s
     
     log_success "Migrations de base de données terminées"
 }
 
 # Fonction pour afficher les informations de l'application
 show_application_info() {
-    log_success "🎉 Déploiement EXAI terminé avec succès !"
+    log_success "🎉 Déploiement IBIS-X terminé avec succès !"
     echo
     echo "📋 Informations de l'application :"
     echo "=================================="
-    echo "🌐 URL de l'application: http://$PUBLIC_IP"
+    echo "🌐 URL de l'application: https://ibisx.fr"
+    echo "🌐 URL de l'API: https://api.ibisx.fr"
+    echo "🌐 URL HTTP (temporaire): http://$PUBLIC_IP"
     echo "🗄️  Storage Account: $STORAGE_ACCOUNT"
     echo "🐳 Container Registry: $ACR_NAME.azurecr.io"
     echo "☸️  Cluster AKS: $AKS_NAME"
@@ -299,21 +410,33 @@ show_application_info() {
     echo "🔧 Commandes utiles :"
     echo "===================="
     echo "# Voir les pods:"
-    echo "kubectl get pods -n exai"
+    echo "kubectl get pods -n ibis-x"
     echo
     echo "# Voir les services:"
-    echo "kubectl get services -n exai"
+    echo "kubectl get services -n ibis-x"
+    echo
+    echo "# Voir l'état de l'ingress:"
+    echo "kubectl get ingress -n ibis-x"
+    echo
+    echo "# Voir les certificats SSL:"
+    echo "kubectl get certificates -n ibis-x"
     echo
     echo "# Voir les logs d'un service:"
-    echo "kubectl logs -f deployment/api-gateway -n exai"
-    echo "kubectl logs -f deployment/service-selection -n exai"
-    echo "kubectl logs -f deployment/frontend -n exai"
+    echo "kubectl logs -f deployment/api-gateway -n ibis-x"
+    echo "kubectl logs -f deployment/service-selection -n ibis-x"
+    echo "kubectl logs -f deployment/frontend -n ibis-x"
     echo
     echo "# Se connecter à ACR:"
     echo "az acr login --name $ACR_NAME"
     echo
     echo "# Accéder à l'interface web Azure:"
     echo "az resource show --resource-group $RESOURCE_GROUP --name $STORAGE_ACCOUNT --resource-type Microsoft.Storage/storageAccounts --query id --output tsv | xargs -I {} az portal --resource {}"
+    echo
+    echo "⚠️  IMPORTANT:"
+    echo "=============="
+    echo "1. Configurez vos DNS pour pointer vers l'IP: $PUBLIC_IP"
+    echo "2. Les certificats SSL se génèreront automatiquement une fois les DNS configurés"
+    echo "3. Vérifiez que les pods NGINX Ingress et Cert-Manager sont bien démarrés"
 }
 
 # Fonction pour nettoyer en cas d'erreur
@@ -331,6 +454,10 @@ cleanup_on_error() {
         log_info "Fichier kustomization.yaml restauré"
     fi
     
+    # Restaurer les fichiers YAML modifiés pour le changement de nom
+    find "$K8S_DIR" -name "*.yaml.backup" -exec bash -c 'mv "$1" "${1%.backup}"' _ {} \;
+    log_info "Fichiers YAML restaurés"
+    
     echo
     log_warning "Pour nettoyer les ressources Azure créées, exécutez :"
     echo "cd $TERRAFORM_DIR && terraform destroy"
@@ -338,7 +465,7 @@ cleanup_on_error() {
 
 # Fonction principale
 main() {
-    log_info "🚀 Démarrage du déploiement EXAI sur Azure"
+    log_info "🚀 Démarrage du déploiement IBIS-X sur Azure"
     echo
     
     # Configurer le gestionnaire d'erreur

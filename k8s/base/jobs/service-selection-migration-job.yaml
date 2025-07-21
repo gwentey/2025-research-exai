@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: service-selection-migration-job
-  namespace: exai
+  namespace: ibis-x
 spec:
   # Supprime automatiquement le job après 5 minutes
   ttlSecondsAfterFinished: 300

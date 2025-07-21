@@ -6,11 +6,11 @@ on:
       - production
 
 env:
-  AZURE_CONTAINER_REGISTRY: 'exaiprodacr'
-  AZURE_RESOURCE_GROUP: 'exai-perso-rg'
-  AKS_CLUSTER_NAME: 'exai-prod-aks'
-  K8S_NAMESPACE: 'exai'
-  API_GATEWAY_IMAGE_NAME: 'exai-api-gateway'
+  AZURE_CONTAINER_REGISTRY: 'ibisprodacr'
+  AZURE_RESOURCE_GROUP: 'ibis-x-perso-rg'
+  AKS_CLUSTER_NAME: 'ibis-x-prod-aks'
+  K8S_NAMESPACE: 'ibis-x'
+  API_GATEWAY_IMAGE_NAME: 'ibis-x-api-gateway'
   SERVICE_SELECTION_IMAGE_NAME: 'service-selection'
   FRONTEND_IMAGE_NAME: 'frontend'
   WITH_DATA: 'true'

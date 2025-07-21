@@ -2,7 +2,7 @@
 :toc:
 :toclevels: 3
 
-Ce guide explique comment l'internationalisation est implémentée dans l'application ExAI et comment ajouter de nouvelles traductions.
+Ce guide explique comment l'internationalisation est implémentée dans l'application IBIS-X et comment ajouter de nouvelles traductions.
 
 == Vue d'ensemble
 

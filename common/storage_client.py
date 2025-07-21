@@ -266,18 +266,18 @@ def get_storage_client() -> StorageClient:
             logger.warning("Azure storage credentials not found, falling back to MinIO")
             storage_type = "minio"
         else:
-            container_name = os.environ.get("STORAGE_BUCKET", "exai-datasets")
+            container_name = os.environ.get("STORAGE_BUCKET", "ibis-x-datasets")
             # Pour Azure, l'endpoint est construit à partir du nom du compte
             endpoint = f"https://{account_name}.blob.core.windows.net"
             return AzureBlobStorageClient(endpoint, account_name, account_key, container_name)
     
     if storage_type == "minio":
         # Configuration MinIO - utilise le port 6700 par défaut
-        endpoint = os.environ.get("MINIO_ENDPOINT", "http://minio-service.exai.svc.cluster.local:6700")
+        endpoint = os.environ.get("MINIO_ENDPOINT", "http://minio-service.ibis-x.svc.cluster.local:6700")
         access_key = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
         secret_key = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
         
-        bucket_name = os.environ.get("STORAGE_BUCKET", "exai-datasets")
+        bucket_name = os.environ.get("STORAGE_BUCKET", "ibis-x-datasets")
         return MinIOStorageClient(endpoint, access_key, secret_key, bucket_name)
     
     raise ValueError(f"Unsupported storage type: {storage_type}") 

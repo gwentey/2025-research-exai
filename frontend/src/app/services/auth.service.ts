@@ -7,8 +7,8 @@ import { environment } from '../../environments/environment'; // Importer l'envi
 // Importer les nouvelles interfaces
 import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData, AccountDeletionRequest, AccountDeletionResponse } from '../models/auth.models';
 
-// Définir la clé du token comme constante
-const AUTH_TOKEN_KEY = 'exai_access_token';
+// Utiliser une constante comme constante
+const AUTH_TOKEN_KEY = 'ibis_x_access_token';
 
 @Injectable({
   providedIn: 'root',

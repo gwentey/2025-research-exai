@@ -1,12 +1,12 @@
 = Système de Recommandation Avancé - Documentation Technique
-:description: Documentation technique complète du système de scoring intelligent avec visualisation Apache ECharts dans EXAI
+:description: Documentation technique complète du système de scoring intelligent avec visualisation Apache ECharts dans IBIS-X
 :keywords: scoring, algorithme, ECharts, recommandation, Angular, CDN, heatmap
 
 == Architecture du Système
 
 === Vue d'ensemble de la Stack
 
-Le nouveau système de recommandation d'EXAI combine :
+Le nouveau système de recommandation d'IBIS-X combine :
 - **Backend** : FastAPI avec algorithme de scoring optimisé
 - **Frontend** : Angular 17+ avec Apache ECharts
 - **Visualisation** : ECharts CDN pour performance et compatibilité

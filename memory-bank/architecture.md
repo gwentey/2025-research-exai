@@ -1,11 +1,11 @@
-# Architecture du Projet EXAI (PoC)
+# Architecture du Projet IBIS-X (PoC)
 
 **Version :** (Basée sur l'analyse du code au 2024-MM-JJ - *remplacez MM-JJ*)
-**Basé sur :** `prd_exai_poc_v2.md`, `tech_stack_exai_v2.md`, `implementation_plan_exai_poc_adjusted.md`, analyse du code existant.
+**Basé sur :** `prd_ibis_x_poc_v2.md`, `tech_stack_ibis_x_v2.md`, `implementation_plan_ibis_x_poc_adjusted.md`, analyse du code existant.
 
 ## 1. Vue d'ensemble
 
-Le projet EXAI suit une architecture microservices conçue pour être déployée sur Kubernetes (Minikube pour la PoC). L'objectif est de créer un pipeline intégré : Sélection de Données -> Pipeline ML Guidé -> Explication XAI.
+Le projet IBIS-X suit une architecture microservices conçue pour être déployée sur Kubernetes (Minikube pour la PoC). L'objectif est de créer un pipeline intégré : Sélection de Données -> Pipeline ML Guidé -> Exp
 
 ```mermaid
 graph LR
@@ -22,7 +22,7 @@ graph LR
     F --> H;
     I --> G;
     J --> G;
-    subgraph Kubernetes Cluster (Namespace: exai)
+    subgraph Kubernetes Cluster (Namespace: ibis-x)
         B; C; D; E; F; G; H; I; J;
     end
 ```
@@ -152,8 +152,8 @@ graph LR
         *   [✅] **Fonctionnalités avancées** : Filtrage multi-critères, recherche textuelle, interface responsive.
         *   [✅] **Visualisation Heatmap (2025-01-21)** : Analyse visuelle des scores de recommandation par critère.
         *   [✅] **Recommandations Temps Réel** : Preview automatique des datasets recommandés lors de la configuration.
-        *   [✅] **Menu de navigation optimisé (2025-01-07)** : Menu de gauche nettoyé pour ne conserver que les fonctionnalités EXAI essentielles (Tableau de bord, Datasets, Pipeline ML, Explications XAI). Suppression des éléments de démonstration du thème Spike.
-        *   [✅] **Header optimisé pour EXAI (2025-01-07)** : Suppression du menu Apps inutile, des liens Chat/Calendar/Email. Recherche élargie pour datasets/modèles. Notifications et raccourcis adaptés au contexte EXAI. Profil utilisateur conservé avec traduction française.
+        *   [✅] **Menu de navigation optimisé (2025-01-07)** : Menu de gauche nettoyé pour ne conserver que les fonctionnalités IBIS-X essentielles (Tableau de bord, Datasets, Pipeline ML, Explications XAI). Suppression des éléments de démonstration du thème Spike.
+        *   [✅] **Header optimisé pour IBIS-X (2025-01-07)** : Suppression du menu Apps inutile, des liens Chat/Calendar/Email. Recherche élargie pour datasets/modèles. Notifications et raccourcis adaptés au contexte IBIS-X. Profil utilisateur conservé avec traduction française.
         *   [✅] **Interface Sidebar Collapsible Moderne (2025-07-07)** : Architecture révolutionnaire pour la sélection des datasets.
         *   [✅] **Gestion Profil Utilisateur Complète (2025-01-24)** : Interface Angular Material pour modification du profil avec upload d'image.
         *   [⬜] Services API dédiés (`PipelineService`, `XAIService`) **non implémentés**.
@@ -323,7 +323,7 @@ graph LR
 
 ## 3. Système de Stockage d'Objets (Innovation Majeure - Janvier 2025)
 
-**Transformation Architecturale :** Le projet EXAI a évolué d'un système gérant uniquement des métadonnées vers un système de stockage d'objets haute performance, permettant le stockage et la gestion réels des datasets.
+**Transformation Architecturale :** Le projet IBIS-X a évolué d'un système gérant uniquement des métadonnées vers un système de stockage d'objets haute performance, permettant le stockage et la gestion réels des datasets.
 
 ### 3.1 Architecture Hybride Multi-Cloud
 
@@ -347,12 +347,12 @@ graph TB
     
     subgraph "Development Environment"
         CFG --> |STORAGE_BACKEND=minio|MINIO[MinIO Server]
-        MINIO --> BUCKET[exai-datasets bucket]
+        MINIO --> BUCKET[ibis-x-datasets bucket]
     end
     
     subgraph "Production Environment"
         CFG --> |STORAGE_BACKEND=azure|AZURE[Azure Blob Storage]
-        AZURE --> CONTAINER[exai-datasets container]
+        AZURE --> CONTAINER[ibis-x-datasets container]
     end
     
     subgraph "Data Layer"
@@ -396,7 +396,7 @@ Dataset EdNet (131M lignes, 10 colonnes) :
 *   **Migration Alembic** : `add_storage_path_to_datasets.py`
 *   **Distinction Sémantique** :
     *   `storage_uri` : URLs externes (Kaggle, GitHub)
-    *   `storage_path` : Préfixe stockage objets (ex: `exai-datasets/uuid/`)
+    *   `storage_path` : Préfixe stockage objets (ex: `ibis-x-datasets/uuid/`)
 
 #### Configuration Kubernetes
 *   **Secrets** : `storage-credentials` avec clés d'accès
@@ -456,7 +456,7 @@ Le script `init_datasets.py` a été complètement repensé :
 *   Scalabilité : Support datasets illimités vs metadata-only
 
 **Innovation Technique :**
-*   Premier système EXAI avec stockage réel
+*   Premier système IBIS-X avec stockage réel
 *   Architecture hybride multi-cloud
 *   Conversion automatique haute performance
 *   Factory pattern extensible
@@ -479,7 +479,7 @@ Le script `init_datasets.py` a été complètement repensé :
     *   [⬜] Workers Celery non déployés.
     *   [✅] Ingress Controller (NGINX via Helm) déployé sur AKS.
     *   [✅] Cert-Manager déployé via Helm sur AKS pour gestion TLS Let's Encrypt.
-    *   [✅] Ingress K8s (`exai-ingress`) configuré pour router `exai-pipeline.fr` vers `frontend` et `api.exai-pipeline.fr` vers `api-gateway`, avec TLS activé via cert-manager.
+    *   [✅] Ingress K8s (`ibis-x-ingress`) configuré pour router `ibisx.fr` vers `frontend` et `api.ibisx.fr` vers `api-gateway`, avec TLS activé via cert-manager.
     *   **Note Infrastructure Azure (AKS) :
         *   Le service Nginx Ingress (type LoadBalancer) crée un Load Balancer public Azure.
         *   Des règles NSG sont configurées pour autoriser le trafic sur les ports 80 et 443 vers l'IP publique du Load Balancer.
@@ -517,7 +517,7 @@ Le script `init_datasets.py` a été complètement repensé :
 
 ### Résolution du Problème des Migrations
 
-**Contexte :** L'installation d'EXAI nécessitait de nombreuses commandes manuelles complexes et les migrations échouaient en développement local à cause d'un problème d'images Docker.
+**Contexte :** L'installation d'IBIS-X nécessitait de nombreuses commandes manuelles complexes et les migrations échouaient en développement local à cause d'un problème d'images Docker.
 
 **Problèmes résolus :**
 1. **Complexité d'installation** : 15+ commandes manuelles pour démarrer l'application
@@ -577,7 +577,7 @@ Les migrations de base de données sont maintenant gérées via des **Jobs Kuber
 #### Problème Résolu : Images Docker Multi-Environnements
 
 **Problème initial :**
-- Les jobs utilisaient des images ACR (`exaiprodacr.azurecr.io/...`) même en local
+- Les jobs utilisaient des images ACR (`ibisprodacr.azurecr.io/...`) même en local
 - Skaffold construit les images localement avec des noms différents (`api-gateway:latest`)
 - Échec des migrations en développement local
 
@@ -600,9 +600,9 @@ imagePullPolicy: IfNotPresent
 # Transformation automatique des images
 images:
   - name: api-gateway
-    newName: exaiprodacr.azurecr.io/exai-api-gateway
+    newName: ibisprodacr.azurecr.io/exai-api-gateway
   - name: service-selection
-    newName: exaiprodacr.azurecr.io/service-selection
+    newName: ibisprodacr.azurecr.io/service-selection
 
 # Patch pour forcer le pull en production
 patches:
@@ -656,7 +656,7 @@ Il est crucial qu'aucun autre service (comme un serveur XAMPP/Apache local) n'ut
         *   **Frontend :** Utilisation de `frontend/src/environments/environment.prod.ts` (qui contient l'URL de l'API de production) activé par la configuration de build Angular et le Dockerfile.
         *   **Backend :** Les configurations sont injectées via les Secrets K8s, peuplés par le workflow GitHub Actions (voir étape 4 ci-dessus).
         *   **Kubernetes :** L'overlay `k8s/overlays/azure` contient les manifestes/patches spécifiques à Azure (ex: nom d'images, Ingress) mais **ne gère plus** le patch spécifique pour l'URL de redirection OAuth.
-        *   **Migrations :** Les images des jobs sont automatiquement transformées par Kustomize (`api-gateway:latest` → `exaiprodacr.azurecr.io/exai-api-gateway:latest`) avec `imagePullPolicy: Always`.
+        *   **Migrations :** Les images des jobs sont automatiquement transformées par Kustomize (`api-gateway:latest` → `ibisprodacr.azurecr.io/exai-api-gateway:latest`) avec `imagePullPolicy: Always`.
     *   **Secrets Requis (GitHub Actions) :** `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_CREDENTIALS`, `JWT_SECRET_KEY`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OAUTH_REDIRECT_URL` (contenant l'URL de production **frontend**).
     *   **Certificats TLS :** Gérés automatiquement par `cert-manager` via `ClusterIssuer` Let's Encrypt (requiert configuration Ingress correcte et accessibilité externe sur port 80 pour challenge HTTP-01).
     *   **Note Infrastructure Azure (AKS) :**

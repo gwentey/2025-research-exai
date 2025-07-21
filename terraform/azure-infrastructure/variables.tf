@@ -1,13 +1,13 @@
-# Variables de configuration pour l'infrastructure Azure EXAI
+# Variables de configuration pour l'infrastructure Azure ibis-x
 
 variable "project_name" {
   description = "Nom du projet (utilisé pour préfixer les ressources)"
   type        = string
-  default     = "exai"
+  default     = "ibis-x"
   
   validation {
-    condition     = can(regex("^[a-z0-9]{2,10}$", var.project_name))
-    error_message = "Le nom du projet doit contenir uniquement des lettres minuscules et des chiffres, entre 2 et 10 caractères."
+    condition     = can(regex("^[a-z0-9-]{2,10}$", var.project_name))
+    error_message = "Le nom du projet doit contenir uniquement des lettres minuscules, des chiffres et des tirets, entre 2 et 10 caractères."
   }
 }
 

@@ -1,6 +1,6 @@
-# 🚀 Infrastructure Azure EXAI avec Terraform
+# 🚀 Infrastructure Azure IBIS-X avec Terraform
 
-Ce dossier contient l'Infrastructure as Code (IaC) pour déployer automatiquement la plateforme EXAI sur Azure en utilisant Terraform.
+Ce dossier contient l'Infrastructure as Code (IaC) pour déployer automatiquement la plateforme IBIS-X sur Azure en utilisant Terraform.
 
 ## 📋 Table des matières
 
@@ -73,8 +73,8 @@ sudo apt-get install jq
 
 ```bash
 # Cloner le projet
-git clone <votre-repo-exai>
-cd exai
+git clone <votre-repo-IBIS-X>
+cd IBIS-X
 
 # Rendre le script exécutable
 chmod +x scripts/deploy-to-azure.sh
@@ -119,7 +119,7 @@ Le fichier `terraform.tfvars` permet de personnaliser le déploiement :
 
 ```hcl
 # Configuration de base
-project_name = "exai"
+project_name = "IBIS-X"
 environment  = "prod"
 location     = "East US"
 
@@ -196,7 +196,7 @@ terraform output
 # 5. Configurer kubectl
 az aks get-credentials --resource-group $(terraform output -raw resource_group_name) --name $(terraform output -raw aks_cluster_name)
 
-# 6. Déployer l'application EXAI
+# 6. Déployer l'application IBIS-X
 kubectl apply -k ../../k8s/overlays/azure/
 ```
 
@@ -230,18 +230,18 @@ terraform plan
 terraform apply
 
 # Import d'une ressource existante
-terraform import azurerm_resource_group.main /subscriptions/.../resourceGroups/exai-prod-rg
+terraform import azurerm_resource_group.main /subscriptions/.../resourceGroups/IBIS-X-prod-rg
 ```
 
 ### Monitoring et logs
 
 ```bash
 # Logs des applications
-kubectl logs -f deployment/api-gateway -n exai
-kubectl logs -f deployment/service-selection -n exai
+kubectl logs -f deployment/api-gateway -n IBIS-X
+kubectl logs -f deployment/service-selection -n IBIS-X
 
 # État des pods
-kubectl get pods -n exai
+kubectl get pods -n IBIS-X
 
 # Métriques Azure
 az monitor metrics list --resource $(terraform output -raw aks_cluster_name)
@@ -251,11 +251,11 @@ az monitor metrics list --resource $(terraform output -raw aks_cluster_name)
 
 ```bash
 # Reconstruire et redéployer
-docker build -t $(terraform output -raw acr_login_server)/exai-api-gateway:latest api-gateway/
-docker push $(terraform output -raw acr_login_server)/exai-api-gateway:latest
+docker build -t $(terraform output -raw acr_login_server)/IBIS-X-api-gateway:latest api-gateway/
+docker push $(terraform output -raw acr_login_server)/IBIS-X-api-gateway:latest
 
 # Redémarrer les pods
-kubectl rollout restart deployment/api-gateway -n exai
+kubectl rollout restart deployment/api-gateway -n IBIS-X
 ```
 
 ## 🗑️ Suppression
@@ -286,7 +286,7 @@ cd terraform/azure-infrastructure
 terraform destroy
 
 # Supprimer un groupe de ressources spécifique
-az group delete --name exai-prod-rg --yes --no-wait
+az group delete --name IBIS-X-prod-rg --yes --no-wait
 ```
 
 ## 🔧 Dépannage
@@ -320,7 +320,7 @@ terraform force-unlock <LOCK_ID>
 #### ❌ Nom de ressource déjà pris
 ```bash
 # Modifier le nom dans terraform.tfvars
-project_name = "exai-uniquename"
+project_name = "IBIS-X-uniquename"
 ```
 
 ### Logs de débogage
@@ -339,7 +339,7 @@ az config set logging.enable_log_file=true
 
 ```bash
 # Si Terraform ne répond plus, suppression manuelle
-az group list --query "[?starts_with(name, 'exai-')]" --output table
+az group list --query "[?starts_with(name, 'IBIS-X-')]" --output table
 az group delete --name <resource-group-name> --yes --no-wait
 ```
 
@@ -371,7 +371,7 @@ az group delete --name <resource-group-name> --yes --no-wait
 
 # État détaillé des ressources
 terraform show | grep -A 20 "resource_group"
-kubectl get all -n exai
+kubectl get all -n IBIS-X
 az resource list --resource-group $(terraform output -raw resource_group_name) --output table
 ```
 
@@ -379,7 +379,7 @@ az resource list --resource-group $(terraform output -raw resource_group_name) -
 
 ## 🎉 Félicitations !
 
-Votre infrastructure Azure EXAI est maintenant déployée automatiquement ! 
+Votre infrastructure Azure IBIS-X est maintenant déployée automatiquement ! 
 
 **Prochaines étapes :**
 1. Accédez à votre application via l'IP publique

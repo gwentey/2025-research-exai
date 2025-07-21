@@ -52,7 +52,7 @@ Voici les étapes pour générer et appliquer des migrations lorsque vous dével
 
 [source,bash]
 ----
-kubectl port-forward service/postgresql-service -n exai 5432:5432
+kubectl port-forward service/postgresql-service -n IBIS-X 5432:5432
 ----
 
 Cela redirige le port `5432` de votre `localhost` vers le service PostgreSQL dans Minikube.
@@ -67,14 +67,14 @@ Pour qu'Alembic (et votre application en local) sache comment se connecter à la
 [source,dotenv]
 .Exemple de contenu pour `.env`
 ----
-DATABASE_URL="postgresql+asyncpg://exai_user:password@localhost:5432/exai_db"
+DATABASE_URL="postgresql+asyncpg://IBIS-X_user:password@localhost:5432/IBIS-X_db"
 SECRET_KEY="votre_cle_secrete_pour_api_gateway" # Uniquement pour api-gateway/.env
 ----
 
 *   `postgresql+asyncpg://` : Indique l'utilisation du pilote asynchrone `asyncpg`.
-*   `exai_user:password` : Remplacez par l'utilisateur et le mot de passe réels de votre base `exai_db`.
+*   `IBIS-X_user:password` : Remplacez par l'utilisateur et le mot de passe réels de votre base `IBIS-X_db`.
 *   `localhost:5432` : Pointe vers le tunnel créé par `kubectl port-forward`.
-*   `exai_db` : Le nom de votre base de données.
+*   `IBIS-X_db` : Le nom de votre base de données.
 *   `SECRET_KEY` : Nécessaire pour `api-gateway`, utilisez une clé secrète forte (voir configuration JWT).
 
 [WARNING]

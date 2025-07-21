@@ -3,11 +3,11 @@
 :keywords: datasets, filtrage, scoring, API, backend, frontend
 
 [abstract]
-Guide technique détaillé du système de filtrage et de scoring des datasets dans EXAI, incluant les optimisations de performance et l'architecture backend-first.
+Guide technique détaillé du système de filtrage et de scoring des datasets dans IBIS-X, incluant les optimisations de performance et l'architecture backend-first.
 
 == Vue d'ensemble
 
-Le système de filtrage et de scoring des datasets d'EXAI a été entièrement optimisé pour déplacer toute la logique côté backend, éliminant les problèmes de performance et de cohérence de l'ancienne approche hybride.
+Le système de filtrage et de scoring des datasets d'IBIS-X a été entièrement optimisé pour déplacer toute la logique côté backend, éliminant les problèmes de performance et de cohérence de l'ancienne approche hybride.
 
 === Problèmes de l'Ancienne Architecture
 

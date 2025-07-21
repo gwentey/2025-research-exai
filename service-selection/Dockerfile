@@ -64,7 +64,7 @@ USER appuser
 ENV PYTHONUNBUFFERED=1
 # `DATABASE_URL` : Définit l'URL de connexion par défaut à la base de données.
 # Cette valeur sera utilisée si elle n'est pas surchargée (par exemple par Docker Compose ou Kubernetes).
-ENV DATABASE_URL=postgresql://user:password@db:5432/exaidb
+ENV DATABASE_URL=postgresql://user:password@db:5432/ibisxdb
 
 # --- Phase 3: Commande de démarrage --- #
 

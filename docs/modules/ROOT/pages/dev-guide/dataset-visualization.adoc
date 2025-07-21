@@ -5,7 +5,7 @@
 
 == Vue d'ensemble
 
-La plateforme EXAI offre une fonctionnalité complète de visualisation des datasets réels stockés dans MinIO. Cette fonctionnalité permet aux utilisateurs de consulter le contenu effectif des datasets sans avoir besoin de les télécharger entièrement.
+La plateforme IBIS-X offre une fonctionnalité complète de visualisation des datasets réels stockés dans MinIO. Cette fonctionnalité permet aux utilisateurs de consulter le contenu effectif des datasets sans avoir besoin de les télécharger entièrement.
 
 === Fonctionnalités Principales
 
@@ -142,8 +142,8 @@ Génération automatique d'alertes basées sur :
 ----
 # Configuration MinIO
 STORAGE_BACKEND=minio
-STORAGE_ENDPOINT_URL=http://minio-service.exai.svc.cluster.local:9000
-STORAGE_CONTAINER_NAME=exai-datasets
+STORAGE_ENDPOINT_URL=http://minio-service.IBIS-X.svc.cluster.local:9000
+STORAGE_CONTAINER_NAME=IBIS-X-datasets
 STORAGE_ACCESS_KEY=minioadmin
 STORAGE_SECRET_KEY=minioadmin
 ----
@@ -231,7 +231,7 @@ kubectl exec -it service-selection-pod -- curl http://minio-service:9000/minio/h
 kubectl logs service-selection-deployment | grep "object_path"
 
 # Vérifier les métadonnées en base
-kubectl exec -it postgres-pod -- psql -d exaidb -c "SELECT * FROM dataset_files WHERE dataset_id = 'uuid';"
+kubectl exec -it postgres-pod -- psql -d IBIS-Xdb -c "SELECT * FROM dataset_files WHERE dataset_id = 'uuid';"
 ----
 
 == Roadmap et Améliorations

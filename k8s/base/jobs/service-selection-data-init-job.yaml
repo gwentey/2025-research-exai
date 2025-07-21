@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: service-selection-data-init-job
-  namespace: exai
+  namespace: ibis-x
 spec:
   # Supprime automatiquement le job après 5 minutes
   ttlSecondsAfterFinished: 300
@@ -28,9 +28,9 @@ spec:
         - name: STORAGE_BACKEND
           value: "minio"
         - name: STORAGE_ENDPOINT_URL
-          value: "http://minio-service.exai.svc.cluster.local:9000"
+          value: "http://minio-service.ibis-x.svc.cluster.local:9000"
         - name: STORAGE_CONTAINER_NAME
-          value: "exai-datasets"
+          value: "ibis-x-datasets"
         - name: STORAGE_ACCESS_KEY
           valueFrom:
             secretKeyRef:

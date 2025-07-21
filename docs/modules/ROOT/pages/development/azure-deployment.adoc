@@ -1,140 +1,246 @@
-= Configuration Initiale de l'Infrastructure Azure (Compte Personnel)
+= Déploiement Automatisé de l'Infrastructure Azure IBIS-X
 
-Ce guide décrit les étapes pour mettre en place l'environnement Microsoft Azure en utilisant un compte personnel (Pay-As-You-Go) afin d'accueillir l'application EXAI. Cette approche est recommandée pour éviter les limitations potentielles des comptes étudiants sur Azure AD / Entra ID.
+Ce guide décrit le processus de déploiement automatisé complet de l'application IBIS-X sur Microsoft Azure en utilisant les scripts Terraform optimisés et les outils d'orchestration Kubernetes.
+
+== 🚀 Nouvelle Approche : Déploiement 100% Automatisé
+
+Nous avons développé un script de déploiement entièrement automatisé qui gère :
+
+- ✅ **Installation automatique de Helm** si non présent
+- ✅ **Création de l'infrastructure Azure** via Terraform
+- ✅ **Installation de NGINX Ingress Controller** via Helm
+- ✅ **Installation de Cert-Manager** pour les certificats SSL/TLS automatiques
+- ✅ **Configuration des règles de sécurité réseau** (ports 80, 443, 22)
+- ✅ **Déploiement des applications** avec Kustomize
+- ✅ **Exécution des migrations de base de données**
+- ✅ **Changement de nom du projet** : IBIS-X → IBIS-X
 
 == Objectif
 
-Mettre en place les fondations nécessaires sur Azure (Groupe de Ressources, Registre de Conteneurs, Cluster Kubernetes) et configurer l'authentification pour les déploiements automatisés via GitHub Actions.
+Déployer rapidement et de manière reproductible l'ensemble de l'infrastructure et des applications IBIS-X sur Azure avec une seule commande.
 
 == Prérequis
 
-*   Un compte Microsoft personnel (non-étudiant) avec un abonnement Azure actif de type "Paiement à l'utilisation" (Pay-As-You-Go).
-*   L'outil en ligne de commande Azure CLI installé sur votre machine.
+* Un compte Microsoft Azure avec un abonnement Pay-As-You-Go actif
+* Azure CLI installé et configuré
+* Docker installé et en cours d'exécution
+* Accès en écriture au repository Git du projet
 
-== Étapes de Configuration
+== 🔧 Préparation du Déploiement
 
-=== 1. Connexion et Sélection de l'Abonnement
+=== 1. Nettoyage de l'Infrastructure Existante (si nécessaire)
 
-Assurez-vous d'être connecté à Azure CLI avec votre compte personnel et que votre abonnement Pay-As-You-Go est sélectionné.
+Si vous avez déjà déployé manuellement des ressources IBIS-X, commencez par les nettoyer :
 
 [source,bash]
 ----
-az login
-az account show # Vérifiez l'abonnement actif
-# Si nécessaire, sélectionnez le bon abonnement :
-# az account set --subscription "<NOM_OU_ID_ABONNEMENT_PAYG>"
+# Nettoyer l'infrastructure existante
+./scripts/destroy-azure-infrastructure.sh
 ----
 
-=== 2. Création du Groupe de Ressources (Resource Group)
+⚠️ **ATTENTION**: Cette commande supprime DÉFINITIVEMENT toutes les ressources Azure existantes. Sauvegardez vos données importantes avant de continuer.
 
-*   **Rôle :** Conteneur logique pour toutes les ressources Azure du projet.
-*   **Commande :**
+=== 2. Configuration des Variables Terraform
+
+Le script va automatiquement créer le fichier `terraform.tfvars` s'il n'existe pas, mais vous pouvez le préparer :
+
 [source,bash]
 ----
-az group create --name exai-perso-rg --location francecentral
+cd terraform/azure-infrastructure/
+cp terraform.tfvars.example terraform.tfvars
 ----
 
-=== 3. Création du Registre de Conteneurs Azure (ACR)
+Éditez le fichier selon vos besoins. Les valeurs par défaut sont optimisées pour IBIS-X :
 
-*   **Rôle :** Stockage privé et sécurisé pour les images Docker des microservices.
-*   **Commande :** (Choisissez un nom globalement unique pour `<VOTRE_ACR_NAME>`. Ex: `exaipersoacr`)
+[source,terraform]
+----
+project_name = "ibis-x"
+environment  = "prod"
+location     = "East US"
+aks_node_count = 2
+aks_node_vm_size = "Standard_D2s_v3"
+----
+
+== 🚀 Déploiement Automatique
+
+=== Lancement du Déploiement Complet
+
+Une seule commande pour tout déployer :
+
 [source,bash]
 ----
-az acr create --resource-group exai-perso-rg --name <VOTRE_ACR_NAME> --sku Standard --location francecentral
+./scripts/deploy-to-azure.sh
 ----
-*   Notez le nom du serveur de connexion : `<VOTRE_ACR_NAME>.azurecr.io`.
 
-=== 4. Création du Cluster Kubernetes Azure (AKS)
+== 📋 Processus de Déploiement Détaillé
 
-*   **Rôle :** Orchestrateur pour l'exécution des microservices conteneurisés.
-*   **Commande :** (Assurez-vous de remplacer `<VOTRE_ACR_NAME>` par le nom choisi à l'étape précédente)
+Le script automatisé exécute les étapes suivantes :
+
+=== 1. **Vérification des Prérequis**
+- Vérifie la présence d'Azure CLI, Terraform, kubectl, Docker
+- Installe automatiquement Helm si nécessaire
+
+=== 2. **Configuration Azure**
+- Vérifie la connexion à Azure
+- Affiche l'abonnement actuel
+
+=== 3. **Infrastructure Terraform**
+- Initialise Terraform
+- Génère et affiche le plan de déploiement
+- Crée toutes les ressources Azure :
+  * Groupe de ressources
+  * Cluster AKS avec réseau virtuel
+  * Azure Container Registry
+  * Compte de stockage Azure
+  * IP publique
+  * Règles de sécurité réseau (ports 80, 443, 22)
+  * Log Analytics et Application Insights
+
+=== 4. **Configuration Kubernetes**
+- Configure kubectl pour le cluster AKS
+- Installe NGINX Ingress Controller via Helm
+- Installe Cert-Manager via Helm pour les certificats SSL automatiques
+
+=== 5. **Construction et Push des Images**
+- Construit les images Docker pour :
+  * `ibis-x-api-gateway`
+  * `ibis-x-service-selection`
+  * `ibis-x-frontend`
+- Les pousse vers Azure Container Registry
+
+=== 6. **Déploiement des Applications**
+- Met à jour automatiquement tous les noms de projet (IBIS-X → IBIS-X)
+- Déploie les applications via Kustomize
+- Attend que tous les pods soient prêts
+
+=== 7. **Migrations de Base de Données**
+- Exécute les jobs de migration Alembic
+- Vérifie la complétion des migrations
+
+== 📊 Informations Post-Déploiement
+
+À la fin du déploiement, le script affiche :
+
+[source,text]
+----
+🎉 Déploiement IBIS-X terminé avec succès !
+
+📋 Informations de l'application :
+==================================
+🌐 URL de l'application: https://ibisx.fr
+🌐 URL de l'API: https://api.ibisx.fr
+🌐 URL HTTP (temporaire): http://<IP_PUBLIQUE>
+🗄️  Storage Account: <nom_compte>
+🐳 Container Registry: <nom_acr>.azurecr.io
+☸️  Cluster AKS: <nom_cluster>
+📦 Resource Group: <nom_groupe_ressources>
+----
+
+== 🔍 Vérification du Déploiement
+
+=== Vérifier les Pods
 [source,bash]
 ----
-az aks create --resource-group exai-perso-rg --name exai-perso-aks --node-count 1 --node-vm-size Standard_B2s --location francecentral --attach-acr <VOTRE_ACR_NAME> --enable-managed-identity --enable-addons monitoring --generate-ssh-keys
+kubectl get pods -n ibis-x
 ----
 
-=== 5. Création du Service Principal pour GitHub Actions
-
-*   **Rôle :** Permettre à GitHub Actions de s'authentifier sur Azure pour déployer.
-*   **Commande :** (Remplacez `<ID_DE_VOTRE_ABONNEMENT_PAYG>` par l'ID de votre abonnement personnel)
+=== Vérifier l'Ingress et les Certificats SSL
 [source,bash]
 ----
-az ad sp create-for-rbac --name "exai-perso-github-sp" --role "Contributor" --scopes "/subscriptions/<ID_DE_VOTRE_ABONNEMENT_PAYG>"
+kubectl get ingress -n ibis-x
+kubectl get certificates -n ibis-x
 ----
-*   **Action Cruciale :** Copiez **intégralement** le bloc JSON affiché en sortie. Vous en aurez besoin à l'étape suivante.
 
-=== 6. Configuration du Secret GitHub `AZURE_CREDENTIALS`
-
-*   Allez dans les paramètres de votre dépôt GitHub > Secrets and variables > Actions.
-*   Créez ou mettez à jour un secret nommé `AZURE_CREDENTIALS`.
-*   Collez le **JSON complet** obtenu à l'étape 5 comme valeur pour ce secret.
-
-=== 7. Configuration de `kubectl` Localement
-
-*   **Rôle :** Permettre à votre outil `kubectl` local de communiquer avec le nouveau cluster AKS.
-*   **Commande :**
+=== Vérifier les Services
 [source,bash]
 ----
-az aks get-credentials --resource-group exai-perso-rg --name exai-perso-aks --overwrite-existing
+kubectl get services -n ibis-x
+kubectl get services -n ingress-nginx
 ----
 
-== Déploiement Automatisé avec GitHub Actions
+== 🌐 Configuration DNS
 
-Avec l'infrastructure et l'authentification en place, le déploiement est géré par le workflow défini dans `.github/workflows/deploy-production.yml`.
+Pour activer les certificats SSL automatiques, configurez vos enregistrements DNS :
 
-Ce workflow utilise une combinaison d'outils :
+[source,text]
+----
+A    ibisx.fr        -> <IP_PUBLIQUE>
+A    api.ibisx.fr    -> <IP_PUBLIQUE>
+----
 
-1.  *GitHub Actions* (`.github/workflows/deploy-production.yml`): Orchestre le processus global (build, push, déploiement K8s, migration BDD).
-2.  *Docker/Buildx*: Construit les images Docker pour les différents services.
-3.  *Azure CLI & Docker Login*: Authentifie le workflow auprès d'Azure et de l'ACR.
-4.  *Skaffold* (`skaffold.yaml`): Gère le déploiement sur Kubernetes en utilisant Kustomize. Le profil `azure` est spécifiquement utilisé.
-5.  *Kustomize* (`k8s/overlays/azure/`): Applique les configurations spécifiques à l'environnement Azure par-dessus les manifestes de base (`k8s/base/`).
-6.  *Kubectl*: Applique le Job de migration et gère les redémarrages post-migration.
-7.  *Alembic*: Exécuté via un Job Kubernetes pour appliquer les migrations de base de données après le déploiement des applications.
+Les certificats Let's Encrypt se génèreront automatiquement une fois les DNS configurés.
 
-=== Flux Détaillé du Workflow (`deploy-production.yml`)
+== 🔧 Maintenance et Debugging
 
-1.  *Checkout*: Récupération du code source de la branche `production`.
-2.  *Login Azure/ACR*: Connexion sécurisée à Azure et à l'ACR spécifié (ex: `exaiprodacr`).
-3.  *Build & Push Images*:
-    *   Construction des images Docker pour `api-gateway`, `service-selection`, et `frontend`.
-    *   Les images sont taguées avec le SHA court du commit (ex: `:612ccb3`) ET avec `:latest`.
-    *   **Important**: Le tag `:latest` est crucial pour l'image `exai-api-gateway` car il est utilisé par le Job de migration Alembic.
-    *   Les images taguées sont poussées vers l'ACR.
-4.  *Set AKS Context*: Configuration de `kubectl` pour cibler le cluster AKS défini dans les variables d'env du workflow (ex: `exai-prod-aks`).
-5.  *Create Namespace*: Création du namespace `exai` s'il n'existe pas.
-6.  *Skaffold Deploy*:
-    *   Exécution de `skaffold deploy --profile=azure --tag=<commit_sha> -n exai`.
-    *   Skaffold utilise Kustomize pour builder les manifestes depuis l'overlay `k8s/overlays/azure/`.
-    *   L'overlay Azure (`kustomization.yaml`) référence les ressources de base (`k8s/base/...`) et applique les modifications nécessaires (ex: remplacement des noms d'images pour pointer vers l'ACR).
-    *   **Configuration Kustomize Clé**: L'argument `--load-restrictor=LoadRestrictionsNone` est passé à `kustomize build` via `skaffold.yaml` pour permettre à Kustomize de lire les fichiers de base situés en dehors du répertoire de l'overlay.
-7.  *Wait for PostgreSQL*: Attente que le pod du StatefulSet PostgreSQL soit prêt.
-8.  *Database Migration*:
-    *   Suppression de l'ancien Job de migration s'il existe (`kubectl delete job...`).
-    *   Application du fichier `k8s/base/jobs/api-gateway-migration-job.yaml`. Ce Job utilise l'image `exai-api-gateway:latest` et exécute `alembic upgrade head`.
-    *   Attente de la complétion du Job (`kubectl wait --for=condition=complete...`).
-9.  *Rollout Restart (Optionnel)*: Redémarrage des déploiements (ex: `api-gateway`) pour s'assurer qu'ils utilisent le schéma de base de données migré (`kubectl rollout restart deployment...`).
-10. *Cleanup (Optionnel)*: Suppression du Job de migration une fois terminé avec succès (`kubectl delete job...`).
+=== Voir les Logs
+[source,bash]
+----
+# Logs des applications
+kubectl logs -f deployment/api-gateway -n ibis-x
+kubectl logs -f deployment/service-selection -n ibis-x
+kubectl logs -f deployment/frontend -n ibis-x
 
-=== Configurations Kubernetes Clés (Base & Overlay)
+# Logs de l'Ingress Controller
+kubectl logs -f deployment/ingress-nginx-controller -n ingress-nginx
 
-Le succès du déploiement dépend de la bonne configuration des manifestes Kubernetes de base et de leur surcharge via Kustomize pour l'environnement Azure.
+# Logs de Cert-Manager
+kubectl logs -f deployment/cert-manager -n cert-manager
+----
 
-*   **Structure Kustomize**: Les manifestes génériques sont dans `k8s/base/` (organisés par service ou fonction, ex: `api-gateway/`, `postgres/`, `common/`). L'overlay `k8s/overlays/azure/kustomization.yaml` référence ces bases et applique des patches ou des remplacements (ex: noms d'images ACR).
-*   **StatefulSet pour PostgreSQL**: La base de données est gérée par un `StatefulSet` (`k8s/base/postgres/postgresql-statefulset.yaml`) pour assurer une identité réseau stable et une gestion correcte des volumes persistants.
-*   **Ressources Communes**: Les ressources partagées comme l'Ingress et le ClusterIssuer Cert-Manager sont placées dans `k8s/base/common/` (`ingress.yaml`, `letsencrypt-prod-issuer.yaml`). L'overlay Azure référence ces fichiers depuis `common/`.
-*   **Secrets (`gateway-secrets.yaml`, `db-secrets.yaml`, etc.)**:
-    *   Les secrets contiennent des informations sensibles comme les URL de base de données et les clés secrètes JWT, encodées en Base64.
-    *   **Cohérence Cruciale**: Les noms des clés DANS le secret YAML (ex: `database-url`, `secret-key` - souvent avec tiret par convention YAML) doivent correspondre EXACTEMENT aux clés (`key: ...`) référencées dans les définitions des variables d'environnement (`env.valueFrom.secretKeyRef.key`) des déploiements (`deployment.yaml`) ET des jobs (`api-gateway-migration-job.yaml`) qui les utilisent. Une incohérence (ex: tiret vs underscore) cause une erreur `CreateContainerConfigError` lors du démarrage du pod.
-*   **Ingress (`ingress.yaml`)**:
-    *   Définit les règles de routage HTTP(S) basées sur les noms d'hôtes (ex: `api.exai-pipeline.fr`) vers les services Kubernetes correspondants (`api-gateway-service`, `frontend`).
-    *   Utilise les annotations `kubernetes.io/ingress.class: nginx` et `cert-manager.io/cluster-issuer: letsencrypt-prod` pour indiquer au contrôleur Nginx Ingress et à Cert-Manager comment gérer les requêtes et les certificats TLS.
-    *   **Dépendance Forte**: L'Ingress ne fonctionne que si un contrôleur d'Ingress (comme Nginx Ingress) est correctement installé et en cours d'exécution dans le cluster, et expose un service de type `LoadBalancer` avec une adresse IP externe publique.
+=== Redémarrer les Services
+[source,bash]
+----
+kubectl rollout restart deployment/api-gateway -n ibis-x
+kubectl rollout restart deployment/service-selection -n ibis-x
+kubectl rollout restart deployment/frontend -n ibis-x
+----
+
+== 🗑️ Nettoyage et Reconstruction
+
+Pour nettoyer complètement l'infrastructure et redéployer :
+
+[source,bash]
+----
+# 1. Supprimer toute l'infrastructure
+./scripts/destroy-azure-infrastructure.sh
+
+# 2. Redéployer
+./scripts/deploy-to-azure.sh
+----
+
+== ⚠️ Résolution des Problèmes Courants
+
+=== Problème : Certificats SSL non générés
+**Solution** : Vérifiez que vos enregistrements DNS pointent vers la bonne IP publique
+
+=== Problème : Pods en état "Pending"
+**Solution** : Vérifiez les ressources du cluster AKS
+[source,bash]
+----
+kubectl describe nodes
+kubectl get events -n ibis-x
+----
+
+=== Problème : Images Docker non trouvées
+**Solution** : Vérifiez que les images ont été correctement poussées vers ACR
+[source,bash]
+----
+az acr repository list --name <nom_acr>
+----
+
+== 🎯 Avantages du Nouveau Processus
+
+1. **Reproductibilité** : Déploiement identique à chaque fois
+2. **Rapidité** : Déploiement complet en ~15-20 minutes
+3. **Sécurité** : Certificats SSL automatiques
+4. **Maintenance** : Scripts de nettoyage automatisés
+5. **Monitoring** : Intégration complète avec Azure Monitor
 
 == Prochaines Étapes
 
-L'infrastructure de base et le pipeline de déploiement étant fonctionnels, les prochaines étapes peuvent inclure :
+Une fois le déploiement terminé, vous pouvez :
 
-*   Configuration avancée du réseau (Ingress Controller, règles de pare-feu).
-*   Mise en place de stratégies de monitoring et d'alerting plus détaillées.
-*   Optimisation des coûts et des ressources. 
+1. Configurer le monitoring avancé avec Azure Application Insights
+2. Mettre en place des stratégies de sauvegarde automatisées
+3. Optimiser les performances selon vos besoins spécifiques
+4. Configurer des environnements de staging supplémentaires 

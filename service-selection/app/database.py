@@ -13,7 +13,7 @@ load_dotenv()
 # qui est généralement adaptée pour une configuration Docker Compose.
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://user:password@db:5432/exaidb"
+    "postgresql://user:password@db:5432/ibisxdb"
 )
 
 # On crée le "moteur" SQLAlchemy.

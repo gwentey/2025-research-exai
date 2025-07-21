@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgresql
-  namespace: exai
+  namespace: ibis-x
   labels:
     app: postgresql
 spec:
@@ -38,9 +38,9 @@ spec:
           name: tcp-postgresql
         env:
         - name: POSTGRES_DB
-          value: exai_db
+          value: ibis_x_db
         - name: POSTGRES_USER
-          value: exai_user
+          value: ibis_x_user
         - name: POSTGRES_PASSWORD
           value: password # RAPPEL: Mieux vaut utiliser un Secret ici !
         # Pas de définition de resources au niveau de base

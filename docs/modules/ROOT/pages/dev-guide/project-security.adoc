@@ -5,7 +5,7 @@
 
 == Vue d'ensemble
 
-Cette page documente la mise en place de la sécurisation des projets utilisateur dans l'architecture EXAI, garantissant que chaque utilisateur ne peut accéder qu'à ses propres projets.
+Cette page documente la mise en place de la sécurisation des projets utilisateur dans l'architecture IBIS-X, garantissant que chaque utilisateur ne peut accéder qu'à ses propres projets.
 
 IMPORTANT: Cette fonctionnalité corrige un **trou de sécurité critique** où tous les projets étaient accessibles à tous les utilisateurs.
 

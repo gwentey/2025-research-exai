@@ -1,10 +1,10 @@
-= Documentation EXAI (Explainable AI Platform)
-:description: Documentation complète de la plateforme EXAI pour l'intelligence artificielle explicable
+= Documentation IBIS-X (Explainable AI Platform)
+:description: Documentation complète de la plateforme IBIS-X pour l'intelligence artificielle explicable
 :keywords: explicabilité, intelligence artificielle, machine learning, transparence
-:page-layout: docs
+:page-layout: default
+:!sectids:
 
-[.lead]
-Bienvenue dans la documentation de la plateforme EXAI, votre solution complète pour développer, déployer et expliquer des modèles d'intelligence artificielle.
+Bienvenue dans la documentation de la plateforme IBIS-X, votre solution complète pour développer, déployer et expliquer des modèles d'intelligence artificielle.
 
 == 🚀 Démarrage Rapide
 
@@ -161,7 +161,7 @@ xref:development/azure-deployment.adoc[Déploiement Manuel →]
 
 === Intelligence Artificielle Explicable
 
-EXAI transforme vos modèles ML complexes en insights compréhensibles :
+IBIS-X transforme vos modèles ML complexes en insights compréhensibles :
 
 * **📊 Analyse de Features** : Importance et impact des variables
 * **🔍 Explication Locale** : Pourquoi une prédiction spécifique
@@ -214,7 +214,7 @@ xref:deployment/azure-terraform-guide.adoc[Découvrir le nouveau workflow →]
 
 == 🛠️ Technologies
 
-EXAI est construit avec des technologies modernes et éprouvées :
+IBIS-X est construit avec des technologies modernes et éprouvées :
 
 [cols="3*", frame=none, grid=rows]
 |===
@@ -283,7 +283,7 @@ Prometheus
 
 [.cta-section]
 ****
-**Prêt à déployer EXAI ?**
+**Prêt à déployer IBIS-X ?**
 
 [.button-group]
 * xref:deployment/azure-terraform-guide.adoc[🚀 **Déploiement Automatique Azure**] _(Recommandé)_
@@ -293,11 +293,11 @@ Prometheus
 **Besoin d'aide ?**
 
 * xref:dev-guide/troubleshooting.adoc[🔧 Guide de Dépannage]
-* https://github.com/votre-org/exai/discussions[💬 Discussions GitHub]
-* mailto:support@exai.com[📧 Support Technique]
+* https://github.com/votre-org/ibis-x/discussions[💬 Discussions GitHub]
+* mailto:support@ibis-x.com[📧 Support Technique]
 ****
 
 ---
 
 [.footer-note]
-_EXAI est un projet open-source dédié à démocratiser l'intelligence artificielle explicable. Contribuez sur https://github.com/votre-org/exai[GitHub] !_ 
+_IBIS-X est un projet open-source dédié à démocratiser l'intelligence artificielle explicable. Contribuez sur https://github.com/votre-org/ibis-x[GitHub] !_ 

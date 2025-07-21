@@ -1,13 +1,13 @@
-= Référence de l'API EXAI
+= Référence de l'API IBIS-X
 
-Ce document fournit une vue d'ensemble structurée de l'API REST de la plateforme EXAI. L'accès principal aux fonctionnalités se fait via l'**API Gateway**.
+Ce document fournit une vue d'ensemble structurée de l'API REST de la plateforme IBIS-X. L'accès principal aux fonctionnalités se fait via l'**API Gateway**.
 
 [IMPORTANT]
 ====
 La ressource **principale et la plus à jour** pour explorer les API est la **documentation interactive (Swagger UI)** générée automatiquement par chaque service FastAPI.
 
-*   **API Gateway :** Accédez à `<URL_API_GATEWAY>/docs` (obtenez l'URL via `minikube service api-gateway --url -n exai`).
-*   **Autres Services (pour debug) :** Accédez à `<URL_SERVICE_X>/docs` (obtenez l'URL via `minikube service <nom-service> --url -n exai`).
+*   **API Gateway :** Accédez à `<URL_API_GATEWAY>/docs` (obtenez l'URL via `minikube service api-gateway --url -n IBIS-X`).
+*   **Autres Services (pour debug) :** Accédez à `<URL_SERVICE_X>/docs` (obtenez l'URL via `minikube service <nom-service> --url -n IBIS-X`).
 
 Cette page vise à compléter cette documentation interactive en fournissant :
 *   Une vue d'ensemble des endpoints clés.

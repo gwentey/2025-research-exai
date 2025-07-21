@@ -8,7 +8,7 @@ metadata:
   # Nom unique du Deployment dans le namespace.
   name: service-selection
   # Namespace Kubernetes dans lequel ce Deployment sera créé.
-  namespace: exai
+  namespace: ibis-x
   # Labels associées au Deployment.
   labels:
     app: service-selection
@@ -68,9 +68,9 @@ spec:
             - name: STORAGE_BACKEND
               value: "minio"
             - name: STORAGE_ENDPOINT_URL
-              value: "http://minio-service.exai.svc.cluster.local:9000"
+              value: "http://minio-service.ibis-x.svc.cluster.local:9000"
             - name: STORAGE_CONTAINER_NAME
-              value: "exai-datasets"
+              value: "ibis-x-datasets"
             - name: STORAGE_ACCESS_KEY
               valueFrom:
                 secretKeyRef:

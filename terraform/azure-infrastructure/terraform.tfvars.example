@@ -1,8 +1,8 @@
-# Fichier d'exemple de configuration pour l'infrastructure Azure EXAI
+# Fichier d'exemple de configuration pour l'infrastructure Azure IBIS-X
 # Copiez ce fichier vers terraform.tfvars et modifiez les valeurs selon vos besoins
 
 # Configuration de base
-project_name = "exai"
+project_name = "ibis-x"
 environment  = "prod"
 location     = "East US"
 
@@ -73,7 +73,7 @@ backup_retention_days = 30
 # ========================================
 
 # Pour un environnement de développement :
-# project_name = "exai"
+# project_name = "ibis-x"
 # environment  = "dev"
 # location     = "East US"
 # aks_node_count = 1
@@ -83,7 +83,7 @@ backup_retention_days = 30
 # soft_delete_retention_days = 1
 
 # Pour un environnement de production haute disponibilité :
-# project_name = "exai"
+# project_name = "ibis-x"
 # environment  = "prod"
 # location     = "East US"
 # storage_replication_type = "GRS"
@@ -97,7 +97,7 @@ backup_retention_days = 30
 # enable_backup = true
 
 # Pour un environnement économique :
-# project_name = "exai"
+# project_name = "ibis-x"
 # environment  = "staging"
 # location     = "East US"
 # aks_node_count = 1

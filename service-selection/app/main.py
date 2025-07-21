@@ -41,7 +41,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # --- Configuration de l'application FastAPI ---
 
 app = FastAPI(
-    title="Service de Sélection de Datasets EXAI",
+    title="Service de Sélection de Datasets IBIS-X",
     description="API pour la gestion des datasets avec métadonnées techniques et éthiques.",
     version="2.0.0"
 )
@@ -104,11 +104,11 @@ def upload_dataset_files(dataset_id: str, files: List[UploadFile]) -> str:
         files: Liste des fichiers à uploader
         
     Returns:
-        storage_path: Préfixe du dossier de stockage (ex: 'exai-datasets/uuid/')
+        storage_path: Préfixe du dossier de stockage (ex: 'ibis-x-datasets/uuid/')
     """
     try:
         storage_client = get_storage_client()
-        storage_path_prefix = f"exai-datasets/{dataset_id}/"
+        storage_path_prefix = f"ibis-x-datasets/{dataset_id}/"
         
         for file in files:
             # Lire le contenu du fichier
@@ -380,7 +380,7 @@ def apply_sorting(query, sort_by: str, sort_order: str):
 async def root():
     """Route racine simple pour vérifier que l'API est en ligne."""
     return {
-        "message": "Bienvenue sur l'API du Service de Sélection de Datasets EXAI",
+        "message": "Bienvenue sur l'API du Service de Sélection de Datasets IBIS-X",
         "version": app.version,
         "documentation": ["/docs", "/redoc"]
     }
@@ -1511,7 +1511,7 @@ def generate_dataset_preview(dataset: models.Dataset, db: Session = None) -> sch
         if dataset.storage_path:
             object_path = f"{dataset.storage_path.rstrip('/')}/{main_file.file_name_in_storage}"
         else:
-            object_path = f"exai-datasets/{dataset.id}/{main_file.file_name_in_storage}"
+            object_path = f"ibis-x-datasets/{dataset.id}/{main_file.file_name_in_storage}"
         
         logger.info(f"Téléchargement du fichier pour aperçu: {object_path}")
         file_data = storage_client.download_file(object_path)

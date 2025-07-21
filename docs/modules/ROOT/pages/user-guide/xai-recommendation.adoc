@@ -1,6 +1,6 @@
 = 💡 Recommandations XAI
 
-EXAI vous aide à comprendre vos modèles avec des explications adaptées à vos besoins.
+IBIS-X vous aide à comprendre vos modèles avec des explications adaptées à vos besoins.
 
 == Méthodes XAI Disponibles
 
@@ -21,7 +21,7 @@ EXAI vous aide à comprendre vos modèles avec des explications adaptées à vos
 
 == Sélection Automatique
 
-EXAI recommande la méthode XAI la plus adaptée selon:
+IBIS-X recommande la méthode XAI la plus adaptée selon:
 * Type de modèle (boîte noire/blanche)
 * Nature des données (tabular/image/texte)
 * Niveau d'expertise de l'utilisateur

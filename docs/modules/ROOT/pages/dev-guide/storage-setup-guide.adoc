@@ -4,11 +4,11 @@
 
 == Vue d'Ensemble
 
-Pour que l'**auto-initialisation des vrais datasets** fonctionne, le système EXAI nécessite un stockage d'objets configuré. Cette page explique comment tout est automatiquement configuré pour vous.
+Pour que l'**auto-initialisation des vrais datasets** fonctionne, le système IBIS-X nécessite un stockage d'objets configuré. Cette page explique comment tout est automatiquement configuré pour vous.
 
 == ✅ Configuration Automatique Incluse
 
-**Bonne nouvelle !** Toute l'infrastructure de stockage est maintenant **automatiquement déployée** avec votre environnement EXAI :
+**Bonne nouvelle !** Toute l'infrastructure de stockage est maintenant **automatiquement déployée** avec votre environnement IBIS-X :
 
 === Composants Automatiquement Déployés
 
@@ -42,8 +42,8 @@ Pour que l'**auto-initialisation des vrais datasets** fonctionne, le système EX
 Lorsque vous démarrez avec `make dev-with-data`, voici ce qui se passe automatiquement :
 
 1. **MinIO déployé** : Server MinIO démarré avec stockage persistant
-2. **Service exposé** : MinIO accessible via `minio-service.exai.svc.cluster.local:9000`
-3. **Bucket créé** : Bucket `exai-datasets` créé automatiquement
+2. **Service exposé** : MinIO accessible via `minio-service.IBIS-X.svc.cluster.local:9000`
+3. **Bucket créé** : Bucket `IBIS-X-datasets` créé automatiquement
 4. **Service-selection configuré** : Variables d'environnement injectées automatiquement
 5. **Auto-init activée** : Initialisation des vrais datasets au démarrage
 
@@ -57,9 +57,9 @@ env:
   - name: STORAGE_BACKEND
     value: "minio"
   - name: STORAGE_ENDPOINT_URL
-    value: "http://minio-service.exai.svc.cluster.local:9000"
+    value: "http://minio-service.IBIS-X.svc.cluster.local:9000"
   - name: STORAGE_CONTAINER_NAME
-    value: "exai-datasets"
+    value: "IBIS-X-datasets"
   - name: STORAGE_ACCESS_KEY
     valueFrom:
       secretKeyRef:
@@ -79,8 +79,8 @@ env:
 # Credentials MinIO (pré-configurés)
 Username: minioadmin
 Password: minioadmin
-Endpoint: http://minio-service.exai.svc.cluster.local:9000
-Bucket: exai-datasets
+Endpoint: http://minio-service.IBIS-X.svc.cluster.local:9000
+Bucket: IBIS-X-datasets
 ----
 
 == 🚀 Démarrage Immédiat
@@ -95,7 +95,7 @@ make dev-with-data
 **Ce qui se passe automatiquement :**
 
 1. ✅ **Minikube démarré** avec configuration optimale
-2. ✅ **Namespace `exai` créé**
+2. ✅ **Namespace `IBIS-X` créé**
 3. ✅ **PostgreSQL déployé** avec stockage persistant
 4. ✅ **MinIO déployé** avec stockage persistant (NOUVEAU !)
 5. ✅ **Services applicatifs déployés** avec variables d'environnement
@@ -110,13 +110,13 @@ make dev-with-data
 [source,bash]
 ----
 # Vérifier que MinIO est démarré
-kubectl get pods -n exai -l app=minio
+kubectl get pods -n IBIS-X -l app=minio
 
 # Vérifier le service MinIO
-kubectl get service minio-service -n exai
+kubectl get service minio-service -n IBIS-X
 
 # Vérifier les logs MinIO
-kubectl logs -f deployment/minio -n exai
+kubectl logs -f deployment/minio -n IBIS-X
 ----
 
 === Vérifier les Datasets Uploadés
@@ -124,7 +124,7 @@ kubectl logs -f deployment/minio -n exai
 [source,bash]
 ----
 # Vérifier que les datasets sont dans la base
-kubectl exec -n exai deployment/service-selection -- python -c "
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
 import sys; sys.path.append('/app')
 from app.database import SessionLocal
 from app.models import Dataset
@@ -135,7 +135,7 @@ with SessionLocal() as db:
 "
 
 # Tester l'accès au stockage depuis le service
-kubectl exec -n exai deployment/service-selection -- python -c "
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
 import sys; sys.path.append('/app/..')
 from common.storage_client import get_storage_client
 try:
@@ -153,7 +153,7 @@ Si vous souhaitez accéder à l'interface web de MinIO pour débugger :
 [source,bash]
 ----
 # Créer un port-forward vers MinIO Console
-kubectl port-forward -n exai service/minio-service 9001:9001
+kubectl port-forward -n IBIS-X service/minio-service 9001:9001
 
 # Accéder à l'interface via : http://localhost:9001
 # Credentials : minioadmin / minioadmin
@@ -166,10 +166,10 @@ kubectl port-forward -n exai service/minio-service 9001:9001
 [source,bash]
 ----
 # Vérifier l'utilisation du PVC MinIO
-kubectl get pvc minio-data-pvc -n exai
+kubectl get pvc minio-data-pvc -n IBIS-X
 
 # Vérifier les détails du volume
-kubectl describe pvc minio-data-pvc -n exai
+kubectl describe pvc minio-data-pvc -n IBIS-X
 ----
 
 === Surveiller les Uploads
@@ -177,7 +177,7 @@ kubectl describe pvc minio-data-pvc -n exai
 [source,bash]
 ----
 # Surveiller les logs d'upload en temps réel
-kubectl logs -f deployment/service-selection -n exai | grep -i "upload\|storage\|parquet"
+kubectl logs -f deployment/service-selection -n IBIS-X | grep -i "upload\|storage\|parquet"
 ----
 
 == 🔧 Dépannage
@@ -190,7 +190,7 @@ kubectl logs -f deployment/service-selection -n exai | grep -i "upload\|storage\
 
 |MinIO ne démarre pas
 |Pod en `CrashLoopBackOff`
-|Vérifier les logs : `kubectl logs deployment/minio -n exai`
+|Vérifier les logs : `kubectl logs deployment/minio -n IBIS-X`
 
 |PVC pas attaché
 |Pod en `Pending`
@@ -198,11 +198,11 @@ kubectl logs -f deployment/service-selection -n exai | grep -i "upload\|storage\
 
 |Connexion refusée
 |Erreur "connection refused"
-|Vérifier le service : `kubectl get svc minio-service -n exai`
+|Vérifier le service : `kubectl get svc minio-service -n IBIS-X`
 
 |Upload échoue
 |Erreur lors de l'auto-init
-|Vérifier les credentials dans les secrets : `kubectl get secret storage-secrets -n exai -o yaml`
+|Vérifier les credentials dans les secrets : `kubectl get secret storage-secrets -n IBIS-X -o yaml`
 
 |Variables d'env manquantes
 |Service ne trouve pas le stockage
@@ -215,19 +215,19 @@ kubectl logs -f deployment/service-selection -n exai | grep -i "upload\|storage\
 ----
 # Diagnostic complet du stockage
 echo "=== État MinIO ==="
-kubectl get all -n exai -l app=minio
+kubectl get all -n IBIS-X -l app=minio
 
 echo "=== État PVC ==="
-kubectl get pvc -n exai
+kubectl get pvc -n IBIS-X
 
 echo "=== Secrets Stockage ==="
-kubectl get secret storage-secrets -n exai
+kubectl get secret storage-secrets -n IBIS-X
 
 echo "=== Variables Env Service-Selection ==="
-kubectl exec -n exai deployment/service-selection -- env | grep STORAGE
+kubectl exec -n IBIS-X deployment/service-selection -- env | grep STORAGE
 
 echo "=== Test Connexion ==="
-kubectl exec -n exai deployment/service-selection -- python -c "
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
 import sys; sys.path.append('/app/..')
 from common.storage_client import get_storage_client
 try:
@@ -268,4 +268,4 @@ env:
 ✅ **Variables** : Injection automatique  
 ✅ **Auto-init** : Vrais datasets uploadés automatiquement
 
-Lancez simplement `make dev-with-data` et profitez de votre système EXAI avec vrais datasets automatiquement initialisés ! 🎉 
+Lancez simplement `make dev-with-data` et profitez de votre système IBIS-X avec vrais datasets automatiquement initialisés ! 🎉 

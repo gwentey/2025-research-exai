@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgresql-headless # Nom du service utilisé par le StatefulSet
-  namespace: exai
+  namespace: ibis-x
   labels:
     app: postgresql # Mêmes labels que les pods pour la découverte
 spec:

@@ -2,7 +2,7 @@
 
 # Afficher l'aide
 help:
-	@echo "🚀 Système d'Import Kaggle EXAI"
+	@echo "🚀 Système d'Import Kaggle IBIS-X"
 	@echo "================================="
 	@echo ""
 	@echo "Commandes disponibles :"

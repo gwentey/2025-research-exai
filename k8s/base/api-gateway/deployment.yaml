@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway
-  namespace: exai
+  namespace: ibis-x
   labels:
     app: api-gateway
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: exai-api-gateway
+          image: ibis-x-api-gateway
           imagePullPolicy: IfNotPresent
           env:
           - name: DATABASE_URL

@@ -1,7 +1,7 @@
 .PHONY: help dev quick-dev update-secrets start-minikube create-namespace docker-env deploy wait-services migrate migrate-jobs init-data dev-with-data clean clean-migrations logs stop reset check-prerequisites
 
 # Configuration
-NAMESPACE ?= exai
+NAMESPACE ?= ibis-x
 TIMEOUT ?= 300s
 
 # Couleurs pour l'affichage (désactivées sur Windows)
@@ -20,7 +20,7 @@ else
 endif
 
 help: ## Affiche cette aide
-	@echo "$(BLUE)EXAI - Commandes Make disponibles$(NC)"
+	@echo "$(BLUE)IBIS-X - Commandes Make disponibles$(NC)"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 

@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: service-selection
-  namespace: exai
+  namespace: ibis-x
 spec:
   template:
     spec:
@@ -23,4 +23,4 @@ spec:
               name: storage-secrets
               key: azure-account-key
         - name: STORAGE_BUCKET
-          value: "exai-datasets" 
+          value: "ibis-x-datasets" 

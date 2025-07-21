@@ -1,14 +1,14 @@
-= Guide Complet : Déploiement Azure et Développement EXAI
-:description: Guide complet pour déployer EXAI sur Azure avec Terraform et développer en local
+= Guide Complet : Déploiement Azure et Développement IBIS-X
+:description: Guide complet pour déployer IBIS-X sur Azure avec Terraform et développer en local
 :keywords: azure, terraform, kubernetes, développement, déploiement, infrastructure
 :page-layout: docs
 
 [.lead]
-Ce guide vous explique comment déployer automatiquement EXAI sur Azure avec Terraform, puis développer en continu avec les outils locaux.
+Ce guide vous explique comment déployer automatiquement IBIS-X sur Azure avec Terraform, puis développer en continu avec les outils locaux.
 
 == 🎯 Vue d'ensemble du workflow
 
-EXAI utilise un workflow en **2 niveaux distincts** :
+IBIS-X utilise un workflow en **2 niveaux distincts** :
 
 [cols="1,1", options="header"]
 |===
@@ -158,7 +158,7 @@ Développement/Test::
 [source,hcl]
 ----
 # Configuration économique
-project_name = "exai"
+project_name = "IBIS-X"
 environment = "dev"
 location = "East US"
 
@@ -179,7 +179,7 @@ Production::
 [source,hcl]
 ----
 # Configuration production
-project_name = "exai"
+project_name = "IBIS-X"
 environment = "prod"
 location = "East US"
 
@@ -202,7 +202,7 @@ acr_sku = "Premium"
 [source,hcl]
 ----
 # Optimisation maximale des coûts
-project_name = "exai"
+project_name = "IBIS-X"
 environment = "staging"
 location = "East US"
 
@@ -298,10 +298,10 @@ cd terraform/azure-infrastructure
 terraform output
 
 # Vérifier les pods Kubernetes
-kubectl get pods -n exai
+kubectl get pods -n IBIS-X
 
 # Vérifier les services
-kubectl get services -n exai
+kubectl get services -n IBIS-X
 
 # Tester l'accès à l'application
 curl -I http://$(terraform output -raw public_ip_address)
@@ -473,11 +473,11 @@ ACR_NAME=$(terraform output -raw acr_name)
 
 # 2. Construire et pousser les nouvelles images
 az acr login --name $ACR_NAME
-docker build -t $ACR_NAME.azurecr.io/exai-api-gateway:latest api-gateway/
-docker push $ACR_NAME.azurecr.io/exai-api-gateway:latest
+docker build -t $ACR_NAME.azurecr.io/IBIS-X-api-gateway:latest api-gateway/
+docker push $ACR_NAME.azurecr.io/IBIS-X-api-gateway:latest
 
 # 3. Redémarrer les pods pour utiliser la nouvelle image
-kubectl rollout restart deployment/api-gateway -n exai
+kubectl rollout restart deployment/api-gateway -n IBIS-X
 ----
 
 === Surveillance et monitoring
@@ -485,12 +485,12 @@ kubectl rollout restart deployment/api-gateway -n exai
 [source,bash]
 ----
 # Voir l'état des applications Azure
-kubectl get pods -n exai
-kubectl get services -n exai
+kubectl get pods -n IBIS-X
+kubectl get services -n IBIS-X
 
 # Logs des applications Azure
-kubectl logs -f deployment/api-gateway -n exai
-kubectl logs -f deployment/service-selection -n exai
+kubectl logs -f deployment/api-gateway -n IBIS-X
+kubectl logs -f deployment/service-selection -n IBIS-X
 
 # Accès aux métriques Azure
 az monitor metrics list --resource $AKS_CLUSTER_NAME
@@ -623,7 +623,7 @@ az logout && az login
 ----
 # Diagnostic développement local
 minikube status
-kubectl get pods -n exai
+kubectl get pods -n IBIS-X
 skaffold version
 
 # Reset Minikube
@@ -640,8 +640,8 @@ export TF_LOG=DEBUG
 terraform apply
 
 # Logs Kubernetes détaillés
-kubectl describe pod <pod-name> -n exai
-kubectl logs <pod-name> -n exai --previous
+kubectl describe pod <pod-name> -n IBIS-X
+kubectl logs <pod-name> -n IBIS-X --previous
 
 # Logs Skaffold
 skaffold diagnose
@@ -713,7 +713,7 @@ make clean
 
 == 🎉 Félicitations !
 
-Vous maîtrisez maintenant le workflow complet EXAI :
+Vous maîtrisez maintenant le workflow complet IBIS-X :
 
 * ✅ **Infrastructure Azure** automatisée avec Terraform
 * ✅ **Développement local** fluide avec Make/Minikube  

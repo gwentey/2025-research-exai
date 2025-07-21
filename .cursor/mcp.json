@@ -7,7 +7,7 @@
           "-i",
           "--rm",
           "mcp/postgres",
-          "postgresql://exai_user:password@host.docker.internal:5432/exai_db"
+          "postgresql://ibis_x_user:password@host.docker.internal:5432/ibis_x_db"
         ]
       }
     }

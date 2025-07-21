@@ -6,7 +6,7 @@
 
 == Vue d'ensemble
 
-La plateforme EXAI offre la possibilité de supprimer définitivement votre compte utilisateur. Cette fonctionnalité est disponible dans les paramètres de sécurité de votre profil utilisateur.
+La plateforme IBIS-X offre la possibilité de supprimer définitivement votre compte utilisateur. Cette fonctionnalité est disponible dans les paramètres de sécurité de votre profil utilisateur.
 
 [WARNING]
 ====
@@ -28,7 +28,7 @@ Lors de la suppression de votre compte, les éléments suivants sont supprimés 
 
 === Étape 1 : Accéder aux paramètres de sécurité
 
-. Connectez-vous à votre compte EXAI
+. Connectez-vous à votre compte IBIS-X
 . Cliquez sur votre profil en haut à droite
 . Sélectionnez "Profil" dans le menu déroulant
 . Descendez jusqu'à la section "Zone Dangereuse" dans les paramètres de sécurité
@@ -72,7 +72,7 @@ Avant de supprimer votre compte, considérez ces alternatives :
 
 Si vous avez des questions ou des préoccupations concernant la suppression de votre compte, contactez notre équipe de support :
 
-* Email : support@exai-platform.com
+* Email : support@IBIS-X-platform.com
 * Documentation : xref:user-guide/index.adoc[Guide utilisateur]
 * FAQ : xref:user-guide/faq.adoc[Foire aux questions]
 

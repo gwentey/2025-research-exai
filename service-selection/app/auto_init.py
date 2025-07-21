@@ -156,7 +156,7 @@ async def auto_init_startup():
     # Vérifier qu'on n'est pas déjà en train d'importer (protection contre double exécution)
     import tempfile
     import os
-    lock_file = os.path.join(tempfile.gettempdir(), "exai_auto_init.lock")
+    lock_file = os.path.join(tempfile.gettempdir(), "ibis_x_auto_init.lock")
     
     if os.path.exists(lock_file):
         logger.warning("🔒 Auto-initialisation déjà en cours (fichier lock détecté)")

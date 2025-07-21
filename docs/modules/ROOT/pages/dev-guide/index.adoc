@@ -1,6 +1,6 @@
 = Guide du Développeur
 
-Cette section contient des informations techniques pour les développeurs travaillant sur le projet EXAI.
+Cette section contient des informations techniques pour les développeurs travaillant sur le projet IBIS-X.
 
 * xref:dev-guide/architecture.adoc[Architecture] - Vue d'ensemble de l'architecture du système
 * xref:dev-guide/object-storage-implementation.adoc[Stockage d'Objets] - Implémentation complète du système de stockage MinIO/Azure avec format Parquet

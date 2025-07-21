@@ -5,11 +5,11 @@ alwaysApply: true
 ---
 - Rule: Lire PRD pour Exigences
   Trigger: Always
-  Description: Toujours lire memory-bank/prd_exai_poc_v2.md avant d'écrire ou de modifier du code lié aux fonctionnalités ou aux exigences pour assurer l'alignement avec les spécifications. Consulter la section spécifique pertinente pour la tâche en cours si possible.
+  Description: Toujours lire memory-bank/prd_ibis_x_poc_v2.md avant d'écrire ou de modifier du code lié aux fonctionnalités ou aux exigences pour assurer l'alignement avec les spécifications. Consulter la section spécifique pertinente pour la tâche en cours si possible.
 
 - Rule: Lire Tech Stack pour Choix Techniques
   Trigger: Always
-  Description: Toujours lire memory-bank/tech_stack_exai_v2.md avant de faire des choix concernant les bibliothèques (ex: Angular Material vs autres), frameworks, composants d'infrastructure (ex: NGINX Ingress vs AGIC), ou détails d'implémentation spécifiques (ex: stratégie de stockage, configuration Celery). Adhérer strictement aux technologies choisies.
+  Description: Toujours lire memory-bank/tech_stack_ibis_x_v2 avant de faire des choix concernant les bibliothèques (ex: Angular Material vs autres), frameworks, composants d'infrastructure (ex: NGINX Ingress vs AGIC), ou détails d'implémentation spécifiques (ex: stratégie de stockage, configuration Celery). Adhérer strictement aux technologies choisies.
 
 - Rule: Lire Document Architecture
   Trigger: Always
@@ -21,7 +21,7 @@ alwaysApply: true
 
 -  Rule: Utiliser les Templates Existants Angular
   Trigger: Before creating or modifying any Angular component, page or layout
-  Description: Toujours commencer par examiner les exemples de templates existants dans .cursor/templates/src/app/ avant toute création ou modification sur le frontend Angular Observer toutes les pages disponibles pour comprendre comment sont conçus : les boutons (style, structure, icônes, comportements), les boîtes de contenu, cartes, panels, etc. la structure générale des pages (layout, responsive design, navigation). Réutiliser et adapter les composants ou structures existants autant que possible avant d’en créer de nouveaux. L’objectif est d’assurer cohérence visuelle, réutilisabilité, et maintenabilité dans toute l’application Angular.
+  Description: Toujours commencer par examiner les exemples de templates existants dans .cursor/templates/src/app/ avant toute création ou modification sur le frontend Angular Observer toutes les pages disponibles pour comprendre comment sont conçus : les boutons (style, structure, icônes, comportements), les boîtes de contenu, cartes, panels, etc. la structure générale des pages (layout, responsive design, navigation). Réutiliser et adapter les composants ou structures existants autant que possible avant d'en créer de nouveaux. L'objectif est d'assurer cohérence visuelle, réutilisabilité, et maintenabilité dans toute l'application Angular.
 
 
 -  Rule: Faire une version anglais et version francais avec  @ngx-translate/core et @ngx-translate/http-loader 
@@ -110,21 +110,21 @@ alwaysApply: true
 
 - Rule: Utilisation Kustomize
   Trigger: Before generating or modifying K8s YAML manifests
-  Description: Adhérer strictement à la structure Kustomize (`k8s/base/`, `k8s/overlays/minikube/`). Placer les manifestes génériques dans `base/`. Utiliser `k8s/overlays/minikube/kustomization.yaml` et des fichiers de patch dans l'overlay pour spécifier les configurations spécifiques à l'environnement (tags d'image, replicas, limites de ressources, références ConfigMap/Secret).
+  Description: Adhérer strictement à la structure Kustomize (`k8s/base/`, `k8s/overlays/minikube/`, `k8s/overlays/azure/`). Placer les manifestes génériques dans `base/`. Utiliser les overlays appropriés pour spécifier les configurations spécifiques à l'environnement (tags d'image, replicas, limites de ressources, références ConfigMap/Secret) : `minikube` pour développement local, `azure` pour production.
 
-- Rule: Nommage Ressources K8s
+- Rule: Nommage Ressources K8s IBIS-X
   Trigger: Before generating K8s YAML manifests
-  Description: Utiliser des noms cohérents, en minuscules, séparés par des tirets pour les ressources K8s (ex: `service-selection-deployment`, `postgres-service`, `redis-pvc`). Inclure le nom du service dans le nom de la ressource.
+  Description: Utiliser des noms cohérents, en minuscules, séparés par des tirets pour les ressources K8s (ex: `service-selection-deployment`, `postgres-service`, `redis-pvc`). Utiliser le namespace `ibis-x` pour toutes les ressources de l'application. Préfixer les noms de ressources avec le nom du service pour éviter les conflits.
 
 - Rule: Injection Configuration K8s
   Trigger: Before generating K8s Deployments requiring configuration.
-  Description: Injecter la configuration dans les Pods exclusivement via des variables d'environnement peuplées depuis des ConfigMaps K8s (pour données non sensibles) et des Secrets K8s (pour données sensibles comme mots de passe, clés API, secret JWT). Définir les sections `envFrom` ou `env` dans le manifeste du Deployment.
+  Description: Injecter la configuration dans les Pods exclusivement via des variables d'environnement peuplées depuis des ConfigMaps K8s (pour données non sensibles) et des Secrets K8s (pour données sensibles comme mots de passe, clés API, secret JWT). Définir les sections `envFrom` ou `env` dans le manifeste du Deployment. Utiliser le namespace `ibis-x` pour tous les secrets et configmaps.
 
 - Rule: Bonnes Pratiques Dockerfile
   Trigger: Before generating or modifying Dockerfiles.
-  Description: Utiliser des builds multi-étapes si approprié (ex: étape build pour frontend Angular). Utiliser des images de base spécifiques et légères (ex: `python:3.11-slim`). Minimiser les couches. Utiliser des utilisateurs non-root. Copier uniquement les fichiers nécessaires dans l'image. Spécifier `CMD` ou `ENTRYPOINT`.
+  Description: Utiliser des builds multi-étapes si approprié (ex: étape build pour frontend Angular). Utiliser des images de base spécifiques et légères (ex: `python:3.11-slim`). Minimiser les couches. Utiliser des utilisateurs non-root. Copier uniquement les fichiers nécessaires dans l'image. Spécifier `CMD` ou `ENTRYPOINT`. Nommer les images avec le préfixe `ibis-x-` (ex: `ibis-x-api-gateway`, `ibis-x-frontend`).
 
 - Rule: Configuration Skaffold
   Trigger: When adding new services or modifying build/deploy logic.
-  Description: Assurer que `skaffold.yaml` liste correctement tous les artefacts à builder (mappant Dockerfiles aux noms d'images) et utilise Kustomize pour le déploiement ciblant l'overlay `k8s/overlays/minikube/`.
+  Description: Assurer que `skaffold.yaml` liste correctement tous les artefacts à builder (mappant Dockerfiles aux noms d'images avec préfixe `ibis-x-`) et utilise Kustomize pour le déploiement ciblant l'overlay approprié : `k8s/overlays/minikube/` pour développement local, `k8s/overlays/azure/` pour production.
 

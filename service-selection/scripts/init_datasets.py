@@ -93,7 +93,7 @@ def upload_real_dataset_file(dataset_id: str, csv_file_path: str, filename_base:
     """
     try:
         storage_client = get_storage_client()
-        storage_path_prefix = f"exai-datasets/{dataset_id}/"
+        storage_path_prefix = f"ibis-x-datasets/{dataset_id}/"
         
         # Vérifier que le fichier CSV existe
         if not os.path.exists(csv_file_path):
@@ -131,12 +131,12 @@ def upload_real_dataset_file(dataset_id: str, csv_file_path: str, filename_base:
         # Retourner des valeurs par défaut basées sur un simple parsing CSV
         try:
             df = pd.read_csv(csv_file_path)
-            return f"exai-datasets/{dataset_id}/", len(df), 50000  # Taille estimée
+            return f"ibis-x-datasets/{dataset_id}/", len(df), 50000  # Taille estimée
         except:
-            return f"exai-datasets/{dataset_id}/", 705, 50000  # Valeurs par défaut
+            return f"ibis-x-datasets/{dataset_id}/", 705, 50000  # Valeurs par défaut
     except Exception as e:
         print(f"⚠️  Erreur lors du traitement du fichier {csv_file_path}: {str(e)}")
-        return f"exai-datasets/{dataset_id}/", 705, 50000  # Valeurs par défaut
+        return f"ibis-x-datasets/{dataset_id}/", 705, 50000  # Valeurs par défaut
 
 def upload_sample_dataset(dataset_id: str, sample_data_dict: dict, filename_base: str = "sample_data") -> str:
     """
@@ -148,11 +148,11 @@ def upload_sample_dataset(dataset_id: str, sample_data_dict: dict, filename_base
         filename_base: Nom de base pour le fichier (sans extension)
         
     Returns:
-        storage_path: Préfixe du dossier de stockage (ex: 'exai-datasets/uuid/')
+        storage_path: Préfixe du dossier de stockage (ex: 'ibis-x-datasets/uuid/')
     """
     try:
         storage_client = get_storage_client()
-        storage_path_prefix = f"exai-datasets/{dataset_id}/"
+        storage_path_prefix = f"ibis-x-datasets/{dataset_id}/"
         
         # Créer un DataFrame échantillon basé sur les métadonnées
         if isinstance(sample_data_dict, dict) and 'columns' in sample_data_dict:
@@ -199,10 +199,10 @@ def upload_sample_dataset(dataset_id: str, sample_data_dict: dict, filename_base
     except StorageClientError as e:
         print(f"❌ Erreur de stockage pour dataset {dataset_id}: {str(e)}")
         # Ne pas échouer le script entier pour des erreurs de stockage
-        return f"exai-datasets/{dataset_id}/"  # Retourner le path attendu
+        return f"ibis-x-datasets/{dataset_id}/"  # Retourner le path attendu
     except Exception as e:
         print(f"⚠️  Erreur lors de la création des données échantillons pour {dataset_id}: {str(e)}")
-        return f"exai-datasets/{dataset_id}/"  # Retourner le path attendu
+        return f"ibis-x-datasets/{dataset_id}/"  # Retourner le path attendu
 
 
 def upload_multiple_sample_files(dataset_id: str, files_data: list) -> str:
@@ -215,11 +215,11 @@ def upload_multiple_sample_files(dataset_id: str, files_data: list) -> str:
                    [{'filename': 'file1.csv', 'columns': [...]}, {'filename': 'file2.csv', 'columns': [...]}]
         
     Returns:
-        storage_path: Préfixe du dossier de stockage (ex: 'exai-datasets/uuid/')
+        storage_path: Préfixe du dossier de stockage (ex: 'ibis-x-datasets/uuid/')
     """
     try:
         storage_client = get_storage_client()
-        storage_path_prefix = f"exai-datasets/{dataset_id}/"
+        storage_path_prefix = f"ibis-x-datasets/{dataset_id}/"
         
         for file_info in files_data:
             filename = file_info['filename']
@@ -261,10 +261,10 @@ def upload_multiple_sample_files(dataset_id: str, files_data: list) -> str:
         
     except StorageClientError as e:
         print(f"❌ Erreur de stockage pour dataset {dataset_id}: {str(e)}")
-        return f"exai-datasets/{dataset_id}/"  # Retourner le path attendu
+        return f"ibis-x-datasets/{dataset_id}/"  # Retourner le path attendu
     except Exception as e:
         print(f"⚠️  Erreur lors de l'upload de multiples fichiers pour {dataset_id}: {str(e)}")
-        return f"exai-datasets/{dataset_id}/"  # Retourner le path attendu
+        return f"ibis-x-datasets/{dataset_id}/"  # Retourner le path attendu
 
 
 def init_ednet_dataset():

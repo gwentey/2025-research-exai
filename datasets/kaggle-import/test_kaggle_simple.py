@@ -80,7 +80,7 @@ def list_configured_datasets():
         print(f"❌ Erreur: {e}")
 
 if __name__ == "__main__":
-    print("🚀 Test du Système d'Import Kaggle EXAI")
+    print("🚀 Test du Système d'Import Kaggle IBIS-X")
     print("=" * 50)
     
     # Lister les datasets
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     if success:
         print("🎉 SUCCÈS: Le système Kaggle fonctionne parfaitement !")
         print("💡 Prochaines étapes:")
-        print("   1. Démarrer EXAI avec MinIO: make dev")
+        print("   1. Démarrer IBIS-X avec MinIO: make dev")
         print("   2. Lancer l'import complet en production")
     else:
         print("❌ ÉCHEC: Vérifiez la configuration") 

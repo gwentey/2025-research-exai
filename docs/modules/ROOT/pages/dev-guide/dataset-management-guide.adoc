@@ -1,14 +1,14 @@
-= Guide de Gestion des Datasets EXAI
-:description: Documentation complète sur la gestion des datasets dans EXAI - initialisation, ajout de nouveaux datasets, scripts disponibles
-:keywords: EXAI, datasets, gestion, initialisation, CSV, Parquet, MinIO, stockage d'objets
+= Guide de Gestion des Datasets IBIS-X
+:description: Documentation complète sur la gestion des datasets dans IBIS-X - initialisation, ajout de nouveaux datasets, scripts disponibles
+:keywords: IBIS-X, datasets, gestion, initialisation, CSV, Parquet, MinIO, stockage d'objets
 
 == Introduction
 
-Ce guide détaille le système complet de gestion des datasets dans la plateforme EXAI. Il couvre l'architecture du système, les processus d'initialisation automatique et manuelle, ainsi que les procédures pour ajouter de nouveaux datasets.
+Ce guide détaille le système complet de gestion des datasets dans la plateforme IBIS-X. Il couvre l'architecture du système, les processus d'initialisation automatique et manuelle, ainsi que les procédures pour ajouter de nouveaux datasets.
 
 [NOTE]
 ====
-La plateforme EXAI utilise un système hybride de stockage d'objets (MinIO/Azure) avec conversion automatique CSV → Parquet pour des performances optimales.
+La plateforme IBIS-X utilise un système hybride de stockage d'objets (MinIO/Azure) avec conversion automatique CSV → Parquet pour des performances optimales.
 ====
 
 == Architecture du Système de Gestion des Datasets
@@ -62,7 +62,7 @@ La gestion des datasets repose sur trois entités principales :
 
 == Initialisation des Datasets
 
-EXAI propose deux méthodes d'initialisation des datasets :
+IBIS-X propose deux méthodes d'initialisation des datasets :
 
 === 1. Initialisation Automatique (Auto-Init)
 
@@ -114,7 +114,7 @@ python scripts/init_datasets.py all
 
 == Datasets Disponibles
 
-EXAI inclut actuellement 7 datasets prêts à l'emploi :
+IBIS-X inclut actuellement 7 datasets prêts à l'emploi :
 
 [cols="1,1,2,1,1"]
 |===
@@ -165,7 +165,7 @@ EXAI inclut actuellement 7 datasets prêts à l'emploi :
 
 == Ajout d'un Nouveau Dataset
 
-Pour ajouter un nouveau dataset à EXAI, suivez ces étapes :
+Pour ajouter un nouveau dataset à IBIS-X, suivez ces étapes :
 
 === 1. Préparation du Dataset
 
@@ -428,7 +428,7 @@ def upload_multiple_sample_files(dataset_id: str, files_data: list) -> str:
 [source,bash]
 ----
 # Vérifier les datasets en base de données
-kubectl exec -n exai deployment/service-selection -- python -c "
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
 from app.database import SessionLocal
 from app.models import Dataset
 with SessionLocal() as db:
@@ -438,10 +438,10 @@ with SessionLocal() as db:
 "
 
 # Vérifier les fichiers dans MinIO
-kubectl exec -n exai deployment/minio -- mc ls minio/exai-datasets/
+kubectl exec -n IBIS-X deployment/minio -- mc ls minio/IBIS-X-datasets/
 
 # Réinitialiser un dataset spécifique
-kubectl exec -n exai deployment/service-selection -- python scripts/init_datasets.py social
+kubectl exec -n IBIS-X deployment/service-selection -- python scripts/init_datasets.py social
 ----
 
 == Bonnes Pratiques
@@ -473,4 +473,4 @@ kubectl exec -n exai deployment/service-selection -- python scripts/init_dataset
 
 == Conclusion
 
-Le système de gestion des datasets d'EXAI offre une solution robuste et performante pour initialiser, stocker et accéder aux datasets d'analyse. La combinaison du stockage d'objets et de la base de données relationnelle permet une gestion efficace des métadonnées et des fichiers volumineux, tandis que la conversion automatique CSV → Parquet optimise les performances d'accès aux données. 
+Le système de gestion des datasets d'IBIS-X offre une solution robuste et performante pour initialiser, stocker et accéder aux datasets d'analyse. La combinaison du stockage d'objets et de la base de données relationnelle permet une gestion efficace des métadonnées et des fichiers volumineux, tandis que la conversion automatique CSV → Parquet optimise les performances d'accès aux données. 

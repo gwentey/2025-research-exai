@@ -1,4 +1,4 @@
-# Configuration Terraform pour l'infrastructure Azure EXAI
+# Configuration Terraform pour l'infrastructure Azure ibis-x
 terraform {
   required_version = ">= 1.0"
   required_providers {
@@ -29,7 +29,7 @@ provider "azurerm" {
 variable "project_name" {
   description = "Nom du projet"
   type        = string
-  default     = "exai"
+  default     = "ibis-x"
 }
 
 variable "environment" {
@@ -81,7 +81,7 @@ resource "azurerm_resource_group" "main" {
 }
 
 # Compte de stockage Azure pour les datasets
-resource "azurerm_storage_account" "exai_storage" {
+resource "azurerm_storage_account" "ibis-x_storage" {
   name                     = local.storage_name
   resource_group_name      = azurerm_resource_group.main.name
   location                = azurerm_resource_group.main.location
@@ -117,29 +117,29 @@ resource "azurerm_storage_account" "exai_storage" {
   }
 }
 
-# Container pour les datasets EXAI
-resource "azurerm_storage_container" "exai_datasets" {
-  name                  = "exai-datasets"
-  storage_account_name  = azurerm_storage_account.exai_storage.name
+# Container pour les datasets ibis-x
+resource "azurerm_storage_container" "ibis-x_datasets" {
+  name                  = "ibis-x-datasets"
+  storage_account_name  = azurerm_storage_account.ibis-x_storage.name
   container_access_type = "private"
 }
 
 # Container pour les modèles ML
-resource "azurerm_storage_container" "exai_models" {
-  name                  = "exai-models"
-  storage_account_name  = azurerm_storage_account.exai_storage.name
+resource "azurerm_storage_container" "ibis-x_models" {
+  name                  = "ibis-x-models"
+  storage_account_name  = azurerm_storage_account.ibis-x_storage.name
   container_access_type = "private"
 }
 
 # Container pour les rapports et résultats
-resource "azurerm_storage_container" "exai_reports" {
-  name                  = "exai-reports"
-  storage_account_name  = azurerm_storage_account.exai_storage.name
+resource "azurerm_storage_container" "ibis-x_reports" {
+  name                  = "ibis-x-reports"
+  storage_account_name  = azurerm_storage_account.ibis-x_storage.name
   container_access_type = "private"
 }
 
 # Azure Container Registry pour les images Docker
-resource "azurerm_container_registry" "exai_acr" {
+resource "azurerm_container_registry" "ibis-x_acr" {
   name                = local.acr_name
   resource_group_name = azurerm_resource_group.main.name
   location           = azurerm_resource_group.main.location
@@ -155,7 +155,7 @@ resource "azurerm_container_registry" "exai_acr" {
 }
 
 # Azure Kubernetes Service (AKS)
-resource "azurerm_kubernetes_cluster" "exai_aks" {
+resource "azurerm_kubernetes_cluster" "ibis-x_aks" {
   name                = "${local.resource_prefix}-aks"
   location           = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
@@ -192,7 +192,7 @@ resource "azurerm_kubernetes_cluster" "exai_aks" {
 
   # Configuration de monitoring
   oms_agent {
-    log_analytics_workspace_id = azurerm_log_analytics_workspace.exai_logs.id
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.ibis-x_logs.id
   }
 
   tags = {
@@ -203,7 +203,7 @@ resource "azurerm_kubernetes_cluster" "exai_aks" {
 }
 
 # Réseau virtuel pour AKS
-resource "azurerm_virtual_network" "exai_vnet" {
+resource "azurerm_virtual_network" "ibis-x_vnet" {
   name                = "${local.resource_prefix}-vnet"
   address_space       = ["10.0.0.0/8"]
   location           = azurerm_resource_group.main.location
@@ -220,12 +220,71 @@ resource "azurerm_virtual_network" "exai_vnet" {
 resource "azurerm_subnet" "aks_subnet" {
   name                 = "aks-subnet"
   resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.exai_vnet.name
+  virtual_network_name = azurerm_virtual_network.ibis-x_vnet.name
   address_prefixes     = ["10.240.0.0/16"]
 }
 
+# Groupe de sécurité réseau pour AKS
+resource "azurerm_network_security_group" "aks_nsg" {
+  name                = "${local.resource_prefix}-aks-nsg"
+  location           = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  # Autoriser le trafic HTTP entrant
+  security_rule {
+    name                       = "AllowHTTP"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Autoriser le trafic HTTPS entrant
+  security_rule {
+    name                       = "AllowHTTPS"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Autoriser le trafic SSH pour la gestion (optionnel)
+  security_rule {
+    name                       = "AllowSSH"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+    Purpose     = "NetworkSecurity"
+    ManagedBy   = "Terraform"
+  }
+}
+
+# Association du NSG au sous-réseau AKS
+resource "azurerm_subnet_network_security_group_association" "aks_subnet_nsg" {
+  subnet_id                 = azurerm_subnet.aks_subnet.id
+  network_security_group_id = azurerm_network_security_group.aks_nsg.id
+}
+
 # Workspace Log Analytics pour monitoring
-resource "azurerm_log_analytics_workspace" "exai_logs" {
+resource "azurerm_log_analytics_workspace" "ibis-x_logs" {
   name                = "${local.resource_prefix}-logs"
   location           = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
@@ -242,24 +301,24 @@ resource "azurerm_log_analytics_workspace" "exai_logs" {
 
 # Attribution des rôles pour AKS et ACR
 resource "azurerm_role_assignment" "aks_acr_pull" {
-  scope                = azurerm_container_registry.exai_acr.id
+  scope                = azurerm_container_registry.ibis-x_acr.id
   role_definition_name = "AcrPull"
-  principal_id         = azurerm_kubernetes_cluster.exai_aks.kubelet_identity[0].object_id
+  principal_id         = azurerm_kubernetes_cluster.ibis-x_aks.kubelet_identity[0].object_id
 }
 
 # Attribution des rôles pour AKS et Storage
 resource "azurerm_role_assignment" "aks_storage_contributor" {
-  scope                = azurerm_storage_account.exai_storage.id
+  scope                = azurerm_storage_account.ibis-x_storage.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_kubernetes_cluster.exai_aks.identity[0].principal_id
+  principal_id         = azurerm_kubernetes_cluster.ibis-x_aks.identity[0].principal_id
 }
 
 # Application Insights pour le monitoring des applications
-resource "azurerm_application_insights" "exai_insights" {
+resource "azurerm_application_insights" "ibis-x_insights" {
   name                = "${local.resource_prefix}-insights"
   location           = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  workspace_id       = azurerm_log_analytics_workspace.exai_logs.id
+  workspace_id       = azurerm_log_analytics_workspace.ibis-x_logs.id
   application_type   = "web"
 
   tags = {
@@ -271,9 +330,9 @@ resource "azurerm_application_insights" "exai_insights" {
 }
 
 # IP publique pour l'ingress controller
-resource "azurerm_public_ip" "exai_ingress_ip" {
+resource "azurerm_public_ip" "ibis-x_ingress_ip" {
   name                = "${local.resource_prefix}-ingress-ip"
-  resource_group_name = azurerm_kubernetes_cluster.exai_aks.node_resource_group
+  resource_group_name = azurerm_kubernetes_cluster.ibis-x_aks.node_resource_group
   location           = azurerm_resource_group.main.location
   allocation_method   = "Static"
   sku                = "Standard"

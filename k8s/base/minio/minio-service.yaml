@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: minio-service
-  namespace: exai
+  namespace: ibis-x
   labels:
     app: minio
 spec:

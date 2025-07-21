@@ -1,63 +1,62 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: exai-ingress
-  namespace: exai # Assurez-vous que ce namespace est correct ou retirez-le si vous utilisez 'default'
+  name: ibis-x-ingress
+  namespace: ibis-x # Assurez-vous que ce namespace est correct ou retirez-le si vous utilisez 'default'
   annotations:
-    # Spécifie explicitement la classe d'ingress à utiliser (important si plusieurs contrôleurs)
-    kubernetes.io/ingress.class: nginx
-    # --- Changement pour utiliser l'issuer de PRODUCTION --- 
-    cert-manager.io/cluster-issuer: letsencrypt-prod # Utilise notre issuer PRODUCTION
-    # --- Fin Changement --- 
-    # cert-manager.io/cluster-issuer: letsencrypt-staging # Staging utilisé pour les tests
-    # nginx.ingress.kubernetes.io/backend-protocol: "HTTP" # ou HTTPS si votre service écoute en HTTPS
-    
-    # --- Configuration CORS simplifiée pour l'Ingress Controller ---
-    nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "*"
-    nginx.ingress.kubernetes.io/cors-allow-headers: "*"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://exai-pipeline.fr,https://www.exai-pipeline.fr,http://localhost:8080,http://localhost:9000"
-    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    # Configuration avancée pour cert-manager HTTP-01 solver
-    cert-manager.io/acme-http01-edit-in-place: "true"
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    cert-manager.io/acme-http01-ingress-class: "nginx"
-    # Utilisation de regex pour les chemins ACME challenge
+    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/use-regex: "true"
-    # --- Fin configuration CORS ---
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # CORS Configuration
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE, PATCH"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-max-age: "86400"
+    # Configuration spéciale : Permettre CORS seulement depuis les domaines de production et locaux
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://ibis-x.fr,https://www.ibis-x.fr,http://localhost:8080,http://localhost:9000"
+    # Certificats Let's Encrypt (Cert-Manager)
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Redirection www -> sans www
+    nginx.ingress.kubernetes.io/server-snippet: |
+      if ($host = 'www.ibis-x.fr') {
+        return 301 https://ibis-x.fr$request_uri;
+      }
 spec:
-  ingressClassName: nginx # Utilise le contrôleur Nginx installé
-  rules:
-  - host: api.exai-pipeline.fr # Votre nom d'hôte
-    http:
-      paths:
-      - path: / # Route tout le trafic pour cet hôte
-        pathType: Prefix
-        backend:
-          service:
-            # IMPORTANT: Le nom doit correspondre EXACTEMENT au nom du Service K8s
-            name: api-gateway-service 
-            port:
-              # Le port exposé par le Service K8s (pas le targetPort du    conteneur)
-              number: 80 
-  # ---- NOUVELLE RÈGLE POUR LE FRONTEND ----
-  - host: exai-pipeline.fr # Votre domaine racine
-    http:
-      paths:
-      - path: / # Route tout le trafic pour ce domaine racine vers le frontend
-        pathType: Prefix
-        backend:
-          service:
-            name: frontend # Nom du service K8s du frontend
-            port:
-              number: 80 # Port du service K8s du frontend
-  # ---- FIN NOUVELLE RÈGLE ----
-  # Décommentez et configurez ceci pour HTTPS une fois que vous avez cert-manager
   tls:
   - hosts:
-    - api.exai-pipeline.fr # Host pour l'API
-    - exai-pipeline.fr   # Host pour le Frontend
-    # Nom du Secret K8s où le certificat TLS sera stocké par cert-manager
-    secretName: exai-pipeline-tls # <-- Décommenté et Nommé
+    - api.ibis-x.fr # Votre nom d'hôte
+    - ibis-x.fr   # Votre domaine racine
+    - www.ibis-x.fr  # Redirection www
+    secretName: ibis-x-tls  # Secret pour les certificats TLS
+  rules:
+  # API Backend
+  - host: api.ibis-x.fr # Votre nom d'hôte
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-service
+            port:
+              number: 80
+  # Frontend
+  - host: ibis-x.fr # Votre domaine racine
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 80
+  # Configuration TLS pour certificats HTTPS via cert-manager
+  # Les certificats TLS sont automatiquement fournis par Let's Encrypt
+  # grâce aux annotations cert-manager définies plus haut
+  - hosts:
+    - api.ibis-x.fr # Host pour l'API
+    - ibis-x.fr   # Host pour le Frontend
+    - www.ibis-x.fr  # Host pour la redirection www
+    secretName: ibis-x-tls # <-- Décommenté et Nommé

@@ -1,10 +1,10 @@
 = Gestion du Profil Utilisateur
-:description: Guide complet pour gérer votre profil utilisateur dans EXAI
-:keywords: profil, utilisateur, paramètres, photo, mot de passe, EXAI
+:description: Guide complet pour gérer votre profil utilisateur dans IBIS-X
+:keywords: profil, utilisateur, paramètres, photo, mot de passe, IBIS-X
 
 == Vue d'ensemble
 
-La gestion du profil utilisateur vous permet de personnaliser votre expérience EXAI en modifiant vos informations personnelles, votre photo de profil et vos paramètres de sécurité.
+La gestion du profil utilisateur vous permet de personnaliser votre expérience IBIS-X en modifiant vos informations personnelles, votre photo de profil et vos paramètres de sécurité.
 
 == Accès au profil
 

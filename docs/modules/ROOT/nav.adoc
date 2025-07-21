@@ -1,6 +1,6 @@
-// Navigation sidebar for EXAI documentation
+// Navigation sidebar for IBIS-X documentation
 
-* xref:index.adoc[Accueil EXAI]
+* xref:index.adoc[Accueil IBIS-X]
 * xref:getting-started.adoc[Guide de Démarrage Rapide]
 
 * Guides d'Installation et Déploiement

@@ -7,11 +7,11 @@
 
 == Vue d'Ensemble de l'Innovation
 
-L'implémentation du système de stockage d'objets représente une évolution majeure de l'architecture EXAI, transformant une approche metadata-only vers un système de stockage réel haute performance. Cette innovation apporte des gains substantiels en termes de performance, scalabilité et économie de ressources.
+L'implémentation du système de stockage d'objets représente une évolution majeure de l'architecture IBIS-X, transformant une approche metadata-only vers un système de stockage réel haute performance. Cette innovation apporte des gains substantiels en termes de performance, scalabilité et économie de ressources.
 
 === Contexte et Motivation
 
-Avant cette implémentation, le système EXAI gérait uniquement des métadonnées de datasets sans stockage réel des fichiers. Les limitations identifiées étaient :
+Avant cette implémentation, le système IBIS-X gérait uniquement des métadonnées de datasets sans stockage réel des fichiers. Les limitations identifiées étaient :
 
 * **Absence de fichiers réels** : Impossible de télécharger ou analyser les données
 * **Scalabilité limitée** : Storage local via volumes Kubernetes non scalable
@@ -60,12 +60,12 @@ graph TB
     
     subgraph "Development Environment"
         CFG --> |"STORAGE_BACKEND=minio"|MINIO[MinIO Server]
-        MINIO --> BUCKET[exai-datasets bucket]
+        MINIO --> BUCKET[IBIS-X-datasets bucket]
     end
     
     subgraph "Production Environment"
         CFG --> |"STORAGE_BACKEND=azure"|AZURE[Azure Blob Storage]
-        AZURE --> CONTAINER[exai-datasets container]
+        AZURE --> CONTAINER[IBIS-X-datasets container]
     end
     
     subgraph "Data Layer"
@@ -167,7 +167,7 @@ class AzureBlobStorageClient:
 
 === Pourquoi Parquet ?
 
-Le choix du format Parquet représente une innovation majeure pour les performances du système EXAI.
+Le choix du format Parquet représente une innovation majeure pour les performances du système IBIS-X.
 
 ==== Comparaison Technique CSV vs Parquet
 
@@ -232,7 +232,7 @@ Après conversion Parquet:
 ----
 def convert_to_parquet(file_content: bytes, filename: str) -> bytes:
     """
-    Conversion CSV → Parquet avec optimisations spécifiques EXAI.
+    Conversion CSV → Parquet avec optimisations spécifiques IBIS-X.
     """
     try:
         # 1. Lecture CSV avec inférence de types automatique
@@ -297,7 +297,7 @@ spec:
         - name: STORAGE_ENDPOINT_URL
           value: "http://minio-service.default.svc.cluster.local:9000"
         - name: STORAGE_CONTAINER_NAME
-          value: "exai-datasets"
+          value: "IBIS-X-datasets"
         - name: STORAGE_ACCESS_KEY
           valueFrom:
             secretKeyRef:
@@ -327,7 +327,7 @@ export STORAGE_BACKEND=minio
 export STORAGE_ENDPOINT_URL=http://localhost:9000
 export STORAGE_ACCESS_KEY=minioadmin
 export STORAGE_SECRET_KEY=minioadmin
-export STORAGE_CONTAINER_NAME=exai-datasets
+export STORAGE_CONTAINER_NAME=IBIS-X-datasets
 
 # Démarrage MinIO local
 docker run -p 9000:9000 -p 9001:9001 \
@@ -356,7 +356,7 @@ spec:
         - name: STORAGE_BACKEND
           value: "azure"
         - name: STORAGE_ENDPOINT_URL
-          value: "https://exaiprodacr.blob.core.windows.net"
+          value: "https://IBIS-Xprodacr.blob.core.windows.net"
         - name: STORAGE_ACCESS_KEY
           valueFrom:
             secretKeyRef:
@@ -384,10 +384,10 @@ spec:
 ----
 # Variables Azure (gérées par Azure Key Vault en production)
 export STORAGE_BACKEND=azure
-export STORAGE_ENDPOINT_URL=https://exaistorageaccount.blob.core.windows.net
-export STORAGE_ACCESS_KEY=exaistorageaccount
+export STORAGE_ENDPOINT_URL=https://IBIS-Xstorageaccount.blob.core.windows.net
+export STORAGE_ACCESS_KEY=IBIS-Xstorageaccount
 export STORAGE_SECRET_KEY=<azure-storage-account-key>
-export STORAGE_CONTAINER_NAME=exai-datasets
+export STORAGE_CONTAINER_NAME=IBIS-X-datasets
 ----
 
 == Workflow d'Upload et Processing
@@ -489,7 +489,7 @@ def upload_dataset_files(dataset_id: str, files: List[UploadFile]) -> str:
     """
     try:
         storage_client = get_storage_client()
-        storage_path_prefix = f"exai-datasets/{dataset_id}/"
+        storage_path_prefix = f"IBIS-X-datasets/{dataset_id}/"
         
         # Traitement parallèle des fichiers (si multiple)
         for file in files:
@@ -623,7 +623,7 @@ def upload_sample_dataset(dataset_id: str, sample_data_dict: dict, filename_base
     """
     try:
         storage_client = get_storage_client()
-        storage_path_prefix = f"exai-datasets/{dataset_id}/"
+        storage_path_prefix = f"IBIS-X-datasets/{dataset_id}/"
         
         # 1. Génération intelligente basée sur le schéma
         if isinstance(sample_data_dict, dict) and 'columns' in sample_data_dict:
@@ -679,7 +679,7 @@ def upload_sample_dataset(dataset_id: str, sample_data_dict: dict, filename_base
         
     except Exception as e:
         logger.error(f"Erreur génération données pour {dataset_id}: {str(e)}")
-        return f"exai-datasets/{dataset_id}/"  # Fallback gracieux
+        return f"IBIS-X-datasets/{dataset_id}/"  # Fallback gracieux
 ----
 
 === Génération de Données Réalistes
@@ -876,7 +876,7 @@ def read_dataset_optimized(storage_path: str, filters: list = None, columns: lis
 # Lit seulement les lignes où age > 25 et les colonnes ['name', 'score']
 # Économie massive de bande passante et mémoire
 data = read_dataset_optimized(
-    storage_path="exai-datasets/uuid/data.parquet",
+    storage_path="IBIS-X-datasets/uuid/data.parquet",
     filters=[('age', '>', 25)],
     columns=['name', 'score']
 )
@@ -1005,7 +1005,7 @@ def get_dataset_preview(
 
 == Conclusion
 
-L'implémentation du système de stockage d'objets représente une **innovation architecturale majeure** pour EXAI, transformant une plateforme de métadonnées en un **système de gestion de données haute performance**.
+L'implémentation du système de stockage d'objets représente une **innovation architecturale majeure** pour IBIS-X, transformant une plateforme de métadonnées en un **système de gestion de données haute performance**.
 
 === Innovations Clés Apportées
 
@@ -1017,7 +1017,7 @@ L'implémentation du système de stockage d'objets représente une **innovation 
 
 === Impact Transformationnel
 
-Cette implémentation **redéfinit les standards** du projet EXAI en apportant :
+Cette implémentation **redéfinit les standards** du projet IBIS-X en apportant :
 
 * **Scalabilité illimitée** : Support de datasets de toute taille
 * **Performance exceptionnelle** : Lecture ultra-rapide avec Parquet
@@ -1025,7 +1025,7 @@ Cette implémentation **redéfinit les standards** du projet EXAI en apportant :
 * **Simplicité opérationnelle** : Configuration uniforme dev/production
 * **Innovation technique** : Référence pour futurs microservices
 
-L'architecture mise en place constitue une **fondation robuste** pour les évolutions futures du système EXAI, démontrant l'engagement vers l'**excellence technique** et l'**innovation continue**.
+L'architecture mise en place constitue une **fondation robuste** pour les évolutions futures du système IBIS-X, démontrant l'engagement vers l'**excellence technique** et l'**innovation continue**.
 
 Cette documentation technique servira de **référence permanente** pour :
 - La maintenance et évolution du système

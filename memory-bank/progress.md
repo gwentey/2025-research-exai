@@ -1,4 +1,4 @@
-# Suivi de Progression - Projet EXAI PoC
+# Suivi de Progression - Projet IBIS-X PoC
 
 **Version :** (Basée sur l'analyse du code au 2024-MM-JJ - *remplacez MM-JJ*)
 **Basé sur :** `implementation_plan_exai_poc_adjusted.md` et analyse du code existant.

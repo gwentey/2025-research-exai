@@ -41,7 +41,7 @@ interface profiledd {
   color: string;
 }
 
-// Interfaces apps et quicklinks supprimées - non nécessaires pour EXAI
+// Interfaces apps et quicklinks supprimées - non nécessaires pour IBIS-X
 
 @Component({
   selector: 'app-header',
@@ -86,7 +86,7 @@ export class VerticalHeaderComponent implements OnInit {
   notifications: notifications[] = [];
   profiledd: profiledd[] = [];
 
-  // Apps array supprimé - non nécessaire pour EXAI
+  // Apps array supprimé - non nécessaire pour IBIS-X
 
   // Injections
   private settings = inject(CoreService);
@@ -171,7 +171,7 @@ export class VerticalHeaderComponent implements OnInit {
         img: 'settings',
         color: 'success',
         title: this.translate.instant('HEADER.PROFILE_MENU.PREFERENCES'),
-        subtitle: this.translate.instant('HEADER.PROFILE_MENU.EXAI_CONFIGURATION'),
+        subtitle: this.translate.instant('HEADER.PROFILE_MENU.IBIS_X_CONFIGURATION'),
         link: '/settings',
       },
       {

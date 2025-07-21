@@ -21,7 +21,7 @@ class Dataset(Base):
     
     Note sur les champs de stockage:
     - storage_uri: URL externe pour accéder au dataset (ex: Kaggle, GitHub)
-    - storage_path: Préfixe/dossier dans le stockage d'objets (ex: 'exai-datasets/uuid/')
+    - storage_path: Préfixe/dossier dans le stockage d'objets (ex: 'ibis-x-datasets/uuid/')
     """
     __tablename__ = "datasets"
 

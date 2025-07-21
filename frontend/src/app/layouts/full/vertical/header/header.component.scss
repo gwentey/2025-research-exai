@@ -69,22 +69,15 @@
   }
 }
 
-// EXAI specific styling
-.exai-notifications {
-  .notification-item {
-    &:hover {
-      background-color: #f8f9ff;
-    }
+// IBIS-X specific styling
+.ibis-x-notifications {
+  // Styles spécifiques pour les notifications
+  .mat-icon {
+    color: var(--mat-primary-color);
   }
 }
 
-.exai-shortcuts {
-  .shortcut-item {
-    transition: all 0.2s ease;
-    
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-  }
+.ibis-x-shortcuts {
+  // Styles pour les raccourcis rapides
+  gap: 0.5rem;
 } 

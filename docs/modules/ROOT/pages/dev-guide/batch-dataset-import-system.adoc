@@ -2,7 +2,7 @@
 
 == Vue d'ensemble
 
-Le système d'importation de datasets en batch d'EXAI permet d'intégrer facilement de multiples datasets réels dans la plateforme. Il gère automatiquement :
+Le système d'importation de datasets en batch d'IBIS-X permet d'intégrer facilement de multiples datasets réels dans la plateforme. Il gère automatiquement :
 
 * La conversion CSV vers Parquet (gains de performance 10-50x)
 * L'extraction automatique de métadonnées
@@ -303,14 +303,14 @@ make import-dataset DATASET=nouveau_dataset
 MINIO_ENDPOINT=localhost:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
-MINIO_BUCKET=exai-datasets
+MINIO_BUCKET=IBIS-X-datasets
 
 # Configuration Azure (production)
 AZURE_STORAGE_CONNECTION_STRING=...
 AZURE_CONTAINER_NAME=datasets
 
 # Configuration base de données
-DATABASE_URL=postgresql://user:pass@localhost:5432/exaidb
+DATABASE_URL=postgresql://user:pass@localhost:5432/IBIS-Xdb
 ----
 
 === Optimisations Performance
@@ -362,7 +362,7 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/exaidb
 2. **Backup métadonnées** : Sauvegarde avant gros changements
 3. **Monitoring espace** : Surveillance stockage objets
 
-== Intégration avec EXAI
+== Intégration avec IBIS-X
 
 === Backend Integration
 
@@ -430,6 +430,6 @@ make force-refresh
 
 == Conclusion
 
-Le système d'importation de datasets en batch d'EXAI offre une solution industrielle complète pour intégrer facilement de multiples datasets réels. Avec ses fonctionnalités d'extraction automatique de métadonnées, de conversion optimisée, et de validation multi-niveaux, il garantit la qualité et la performance du système EXAI.
+Le système d'importation de datasets en batch d'IBIS-X offre une solution industrielle complète pour intégrer facilement de multiples datasets réels. Avec ses fonctionnalités d'extraction automatique de métadonnées, de conversion optimisée, et de validation multi-niveaux, il garantit la qualité et la performance du système IBIS-X.
 
 Pour toute question ou problème, consultez les logs détaillés et utilisez les commandes de validation pour diagnostiquer les issues. 

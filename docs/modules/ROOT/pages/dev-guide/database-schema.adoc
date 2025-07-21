@@ -6,7 +6,7 @@
 
 == Vue d'ensemble
 
-La structure de base de données d'EXAI a été entièrement refondée pour supporter une approche normalisée de la gestion des datasets. Cette nouvelle architecture remplace l'ancienne table unique `datasets` par 5 tables relationnelles interconnectées qui offrent une granularité et une flexibilité bien supérieures.
+La structure de base de données d'IBIS-X a été entièrement refondée pour supporter une approche normalisée de la gestion des datasets. Cette nouvelle architecture remplace l'ancienne table unique `datasets` par 5 tables relationnelles interconnectées qui offrent une granularité et une flexibilité bien supérieures.
 
 === Objectifs de la Refonte
 
@@ -15,7 +15,7 @@ La structure de base de données d'EXAI a été entièrement refondée pour supp
 * **Métadonnées éthiques** : Support étendu pour les critères éthiques de l'IA explicable
 * **Multi-fichiers** : Support natif des datasets composés de plusieurs fichiers
 * **Relations** : Traçabilité des relations entre fichiers et colonnes
-* **Évolutivité** : Structure adaptée aux besoins futurs d'EXAI
+* **Évolutivité** : Structure adaptée aux besoins futurs d'IBIS-X
 
 == Structure des Tables
 
@@ -147,7 +147,7 @@ La table principale contient toutes les métadonnées d'un dataset, organisées 
 * `documentation_link` : Lien vers la documentation
 * `task` : Types de tâches ML supportées (array)
 
-==== Critères Éthiques (Spécifiques à EXAI)
+==== Critères Éthiques (Spécifiques à IBIS-X)
 * `informed_consent` : Consentement éclairé obtenu
 * `transparency` : Transparence des données
 * `user_control` : Contrôle utilisateur
@@ -393,4 +393,4 @@ Cette structure normalisée prépare le terrain pour :
 * **Audit avancé** : Logs détaillés des accès et modifications
 * **Fédération** : Support de datasets distribués
 
-TIP: Cette architecture respecte les principes de normalisation de base de données tout en étant optimisée pour les besoins spécifiques d'EXAI en matière d'explicabilité et d'éthique de l'IA. 
+TIP: Cette architecture respecte les principes de normalisation de base de données tout en étant optimisée pour les besoins spécifiques d'IBIS-X en matière d'explicabilité et d'éthique de l'IA. 

@@ -5,7 +5,7 @@ pyarrow>=10.0.0
 pyyaml>=6.0
 tqdm>=4.64.0
 
-# Déjà présent dans EXAI mais on les liste pour clarté
+# Déjà présent dans IBIS-X mais on les liste pour clarté
 fastapi>=0.95.0
 sqlalchemy>=2.0.0
 pydantic>=2.0.0

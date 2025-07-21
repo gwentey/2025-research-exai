@@ -1,10 +1,10 @@
 = Gestion des Projets
 
-La gestion des projets dans EXAI vous permet de créer, configurer et analyser vos projets d'apprentissage automatique de manière structurée. Chaque projet peut être personnalisé avec des critères spécifiques et des poids de scoring pour obtenir des recommandations de datasets optimales.
+La gestion des projets dans IBIS-X vous permet de créer, configurer et analyser vos projets d'apprentissage automatique de manière structurée. Chaque projet peut être personnalisé avec des critères spécifiques et des poids de scoring pour obtenir des recommandations de datasets optimales.
 
 == Vue d'ensemble
 
-Un projet EXAI est une entité qui regroupe :
+Un projet IBIS-X est une entité qui regroupe :
 
 * **Configuration personnalisée** : Critères de sélection spécifiques à votre cas d'usage
 * **Poids de scoring** : Pondération des différents critères selon vos priorités  
@@ -13,7 +13,7 @@ Un projet EXAI est une entité qui regroupe :
 
 == Accéder aux Projets
 
-. Connectez-vous à l'interface EXAI
+. Connectez-vous à l'interface IBIS-X
 . Dans le menu de navigation de gauche, cliquez sur *Projets* 📁
 . Vous accédez à la liste de vos projets existants
 
