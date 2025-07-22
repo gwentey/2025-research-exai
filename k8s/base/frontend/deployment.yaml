@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend # Nom du déploiement
-  namespace: exai # Assurez-vous que ce namespace existe ou adaptez-le
+  namespace: ibis-x # Assurez-vous que ce namespace existe ou adaptez-le
   labels:
     app: frontend # Label pour identifier les pods de ce déploiement
 spec:

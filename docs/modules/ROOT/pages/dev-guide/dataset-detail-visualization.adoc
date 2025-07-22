@@ -1,5 +1,5 @@
 = Visualisation Détaillée des Datasets
-:description: Documentation technique de la fonctionnalité de visualisation détaillée des datasets dans ExAI
+:description: Documentation technique de la fonctionnalité de visualisation détaillée des datasets dans IBIS-X
 :keywords: datasets, visualisation, interface, Kaggle, détails
 
 == Vue d'ensemble
@@ -405,4 +405,4 @@ Tests à implémenter pour :
 - Synchronisation des aperçus de données
 - Invalidation automatique
 
-Cette fonctionnalité represent un élément clé de l'expérience utilisateur ExAI, offrant une exploration riche et intuitive des datasets disponibles avec un design moderne et des informations actionables. 
+Cette fonctionnalité represent un élément clé de l'expérience utilisateur IBIS-X, offrant une exploration riche et intuitive des datasets disponibles avec un design moderne et des informations actionables. 

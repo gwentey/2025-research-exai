@@ -1,4 +1,4 @@
-= 🚀 Installation et Démarrage d'EXAI
+= 🚀 Installation et Démarrage d'IBIS-X
 
 == Prérequis
 
@@ -51,7 +51,7 @@ pip install python-dotenv
 
 == Configuration des Secrets
 
-Pour le développement local et les déploiements, EXAI utilise un fichier `.env` à la racine et des scripts Python pour gérer les secrets Kubernetes.
+Pour le développement local et les déploiements, IBIS-X utilise un fichier `.env` à la racine et des scripts Python pour gérer les secrets Kubernetes.
 
 === 1. Créer un fichier `.env`
 
@@ -63,7 +63,7 @@ Créez un fichier `.env` à la racine du projet avec les variables suivantes :
 JWT_SECRET_KEY=09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
 
 # URL Base de données (généralement pointant vers le service K8s)
-DATABASE_URL=postgresql+asyncpg://exai_user:password@postgresql-service.exai.svc.cluster.local:5432/exai_db
+DATABASE_URL=postgresql+asyncpg://IBIS-X_user:password@postgresql-service.IBIS-X.svc.cluster.local:5432/IBIS-X_db
 
 # Identifiants Google OAuth
 GOOGLE_CLIENT_ID=votre-client-id-google
@@ -80,19 +80,19 @@ OAUTH_REDIRECT_URL=http://localhost:8080/authentication/callback
 
 # Service de sélection des datasets
 # Développement local (Minikube) - valeur par défaut
-SERVICE_SELECTION_URL=http://service-selection-service.exai.svc.cluster.local
+SERVICE_SELECTION_URL=http://service-selection-service.IBIS-X.svc.cluster.local
 # Développement local (services en local)
 # SERVICE_SELECTION_URL=http://localhost:8001
 
 # Pipeline ML
 # Développement local (Minikube) - valeur par défaut
-ML_PIPELINE_URL=http://ml-pipeline-service.exai.svc.cluster.local
+ML_PIPELINE_URL=http://ml-pipeline-service.IBIS-X.svc.cluster.local
 # Développement local (services en local)
 # ML_PIPELINE_URL=http://localhost:8002
 
 # Moteur XAI
 # Développement local (Minikube) - valeur par défaut
-XAI_ENGINE_URL=http://xai-engine-service.exai.svc.cluster.local
+XAI_ENGINE_URL=http://xai-engine-service.IBIS-X.svc.cluster.local
 # Développement local (services en local)
 # XAI_ENGINE_URL=http://localhost:8003
 
@@ -176,7 +176,7 @@ minikube addons enable storage-provisioner
 [source,powershell]
 ----
 # Créer le namespace
-kubectl create namespace exai
+kubectl create namespace IBIS-X
 
 # Mettre à jour les secrets
 python -m scripts.update-local-secrets
@@ -189,42 +189,42 @@ python -m scripts.update-local-secrets
 [source,powershell]
 ----
 # Déployer l'application
-skaffold run --profile=local --namespace=exai
+skaffold run --profile=local --namespace=IBIS-X
 ----
 
 === 5. Attendre que les services soient prêts
 [source,powershell]
 ----
 # Attendre PostgreSQL
-kubectl wait --for=condition=ready pod -l app=postgresql -n exai --timeout=300s
+kubectl wait --for=condition=ready pod -l app=postgresql -n IBIS-X --timeout=300s
 
 # Attendre API Gateway
-kubectl wait --for=condition=ready pod -l app=api-gateway -n exai --timeout=300s
+kubectl wait --for=condition=ready pod -l app=api-gateway -n IBIS-X --timeout=300s
 
 # Attendre Service Selection
-kubectl wait --for=condition=ready pod -l app=service-selection -n exai --timeout=300s
+kubectl wait --for=condition=ready pod -l app=service-selection -n IBIS-X --timeout=300s
 ----
 
 === 6. Migrations
 [source,powershell]
 ----
 # Supprimer les anciens jobs
-kubectl delete job api-gateway-migration-job -n exai --ignore-not-found=true
-kubectl delete job service-selection-migration-job -n exai --ignore-not-found=true
+kubectl delete job api-gateway-migration-job -n IBIS-X --ignore-not-found=true
+kubectl delete job service-selection-migration-job -n IBIS-X --ignore-not-found=true
 
 # Lancer les migrations
-kubectl apply -f k8s/base/jobs/api-gateway-migration-job.yaml -n exai
-kubectl wait --for=condition=complete job/api-gateway-migration-job -n exai --timeout=300s
+kubectl apply -f k8s/base/jobs/api-gateway-migration-job.yaml -n IBIS-X
+kubectl wait --for=condition=complete job/api-gateway-migration-job -n IBIS-X --timeout=300s
 
-kubectl apply -f k8s/base/jobs/service-selection-migration-job.yaml -n exai
-kubectl wait --for=condition=complete job/service-selection-migration-job -n exai --timeout=300s
+kubectl apply -f k8s/base/jobs/service-selection-migration-job.yaml -n IBIS-X
+kubectl wait --for=condition=complete job/service-selection-migration-job -n IBIS-X --timeout=300s
 ----
 
 === 7. Accès aux services
 [source,powershell]
 ----
 # Démarrer les logs et redirections de port
-skaffold dev --profile=local --namespace=exai
+skaffold dev --profile=local --namespace=IBIS-X
 ----
 
 **Accès aux services :**
@@ -238,8 +238,8 @@ skaffold dev --profile=local --namespace=exai
 +
 [source,bash]
 ----
-git clone <URL_DU_DEPOT_GIT_EXAI>
-cd <NOM_DU_DOSSIER_PROJET_EXAI>
+git clone <URL_DU_DEPOT_GIT_IBIS-X>
+cd <NOM_DU_DOSSIER_PROJET_IBIS-X>
 ----
 
 2.  **Démarrer Minikube**:
@@ -259,7 +259,7 @@ Assurez-vous que l'addon `ingress` est activé si vous comptez tester le déploi
 +
 [source,bash]
 ----
-kubectl create namespace exai
+kubectl create namespace IBIS-X
 # Ignorez l'erreur si le namespace existe déjà.
 ----
 
@@ -298,7 +298,7 @@ Skaffold va :
 --
 * Détecter le contexte Minikube et utiliser son environnement Docker.
 * Construire les images Docker nécessaires (si le code a changé).
-* Déployer les manifestes Kubernetes définis dans `skaffold.yaml` pour le profil `local` (Base de données, API Gateway, Service Selection, Frontend) dans le namespace `exai`.
+* Déployer les manifestes Kubernetes définis dans `skaffold.yaml` pour le profil `local` (Base de données, API Gateway, Service Selection, Frontend) dans le namespace `IBIS-X`.
 * Mettre en place des redirections de port automatiques (voir section Accès).
 * Surveiller les changements de code et redéployer automatiquement.
 * Afficher les logs des conteneurs en temps réel dans la console.
@@ -306,12 +306,12 @@ Skaffold va :
 +
 [IMPORTANT]
 ====
-Le premier déploiement peut prendre plusieurs minutes. Attendez que Skaffold indique `Deployments stabilized` ou que tous les pods principaux (`postgresql`, `api-gateway`, `service-selection`, `frontend`) passent à l'état `Running` (vous pouvez vérifier avec `kubectl get pods -n exai`).
+Le premier déploiement peut prendre plusieurs minutes. Attendez que Skaffold indique `Deployments stabilized` ou que tous les pods principaux (`postgresql`, `api-gateway`, `service-selection`, `frontend`) passent à l'état `Running` (vous pouvez vérifier avec `kubectl get pods -n IBIS-X`).
 ====
 
 === Initialisation de la Base de Données
 
-L'architecture EXAI utilise une base de données PostgreSQL partagée par tous les microservices, chaque service gérant ses migrations spécifiques.
+L'architecture IBIS-X utilise une base de données PostgreSQL partagée par tous les microservices, chaque service gérant ses migrations spécifiques.
 
 Exécutez les migrations depuis les pods Kubernetes :
 
@@ -319,18 +319,18 @@ Exécutez les migrations depuis les pods Kubernetes :
 [source,bash]
 ----
 # 1. Identifier le pod
-kubectl get pods -n exai -l app=service-selection
+kubectl get pods -n IBIS-X -l app=service-selection
 
 # 2. Exécuter la migration (remplacer <pod-name>)
-kubectl exec -it <pod-name> -n exai -- bash -c "cd /app && DATABASE_URL='postgresql+asyncpg://exai_user:password@postgresql-service:5432/exai_db' alembic upgrade head"
+kubectl exec -it <pod-name> -n IBIS-X -- bash -c "cd /app && DATABASE_URL='postgresql+asyncpg://IBIS-X_user:password@postgresql-service:5432/IBIS-X_db' alembic upgrade head"
 ----
 
 ==== API Gateway
 [source,bash]
 ----
 # Identifier le pod et exécuter la migration
-kubectl get pods -n exai -l app=api-gateway
-kubectl exec -it <pod-name> -n exai -- bash -c "cd /app && DATABASE_URL='postgresql+asyncpg://exai_user:password@postgresql-service:5432/exai_db' alembic upgrade head"
+kubectl get pods -n IBIS-X -l app=api-gateway
+kubectl exec -it <pod-name> -n IBIS-X -- bash -c "cd /app && DATABASE_URL='postgresql+asyncpg://IBIS-X_user:password@postgresql-service:5432/IBIS-X_db' alembic upgrade head"
 ----
 
 [NOTE]
@@ -399,17 +399,17 @@ Pour un workflow plus fluide, utilisez des outils comme **Lens**, **k9s** ou le 
 === Problèmes Courants
 * *Minikube ne démarre pas* : Vérifiez Docker Desktop, essayez `minikube delete` puis `minikube start`
 * *Pod bloqué en `Pending`* : Augmentez les ressources (`minikube stop && minikube config set memory 4096 && minikube start`)
-* *Pod en `CrashLoopBackOff`* : Vérifiez les logs avec `kubectl logs -n exai <pod-name>`
-* *Services inaccessibles* : Vérifiez que `skaffold dev --profile=local` est en cours d'exécution et qu'aucun autre programme n'utilise les ports locaux `8080` ou `9000`. Vérifiez les logs Skaffold pour des erreurs de port-forwarding. Assurez-vous que les pods sont `Running` (`kubectl get pods -n exai`).
-* *Pod PostgreSQL bloqué en `Pending`* : Vérifiez les PVC (`kubectl get pvc -n exai`) et la StorageClass (`kubectl get sc`). Assurez-vous que la configuration du volume dans `k8s/base/postgres/postgresql-statefulset.yaml` utilise la bonne `storageClassName` (`standard` pour Minikube par défaut).
+* *Pod en `CrashLoopBackOff`* : Vérifiez les logs avec `kubectl logs -n IBIS-X <pod-name>`
+* *Services inaccessibles* : Vérifiez que `skaffold dev --profile=local` est en cours d'exécution et qu'aucun autre programme n'utilise les ports locaux `8080` ou `9000`. Vérifiez les logs Skaffold pour des erreurs de port-forwarding. Assurez-vous que les pods sont `Running` (`kubectl get pods -n IBIS-X`).
+* *Pod PostgreSQL bloqué en `Pending`* : Vérifiez les PVC (`kubectl get pvc -n IBIS-X`) et la StorageClass (`kubectl get sc`). Assurez-vous que la configuration du volume dans `k8s/base/postgres/postgresql-statefulset.yaml` utilise la bonne `storageClassName` (`standard` pour Minikube par défaut).
 * *Erreurs "MIME type" sur le frontend* : Assurez-vous que la configuration Nginx (`frontend/nginx.conf`), le Dockerfile (`frontend/Dockerfile`), et le `baseHref` dans `angular.json` sont cohérents pour un service à la racine (`/`).
 * *Secrets incorrects* : Si vous rencontrez des erreurs d'authentification, vérifiez que vous avez bien exécuté `python -m scripts.update-local-secrets` après avoir mis à jour votre fichier `.env`.
 
 === Étapes de Diagnostic
 1. Logs Skaffold
-2. État des pods : `kubectl get pods -n exai`
-3. Détails d'un pod : `kubectl describe pod <pod-name> -n exai`
-4. Logs d'un pod : `kubectl logs -n exai <pod-name>`
+2. État des pods : `kubectl get pods -n IBIS-X`
+3. Détails d'un pod : `kubectl describe pod <pod-name> -n IBIS-X`
+4. Logs d'un pod : `kubectl logs -n IBIS-X <pod-name>`
 5. Logs Minikube : `minikube logs`
 
 == Arrêter l'environnement

@@ -6,14 +6,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "EXAI API Gateway")
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "IBIS-X API Gateway")
     API_V1_STR: str = "/api/v1"
     # ATTENTION: Clé secrète pour JWT. DOIT être gardée secrète et idéalement chargée depuis l'environnement.
     # Pour le développement, une clé fixe est utilisée ici, mais elle devra être remplacée.
     # Générer une clé robuste avec: openssl rand -hex 32
     SECRET_KEY: str = os.getenv("SECRET_KEY", "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30  # Durée de validité du token en minutes
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 480  # 8 heures au lieu de 30 minutes
 
     # Configuration Base de données (sera utilisée par fastapi-users)
     # Exemple: DATABASE_URL="postgresql+asyncpg://user:password@host:port/db"
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     OAUTH_REDIRECT_URL: str = os.getenv("OAUTH_REDIRECT_URL", "http://localhost:8080/authentication/callback")
     
     # Domaines de production pour détection automatique
-    PRODUCTION_DOMAINS: list[str] = os.getenv("PRODUCTION_DOMAINS", "exai-pipeline.fr,api.exai-pipeline.fr").split(",")
+    PRODUCTION_DOMAINS: list[str] = os.getenv("PRODUCTION_DOMAINS", "ibis-x.fr,api.ibis-x.fr").split(",")
     
     # CORS Origins (Optionnel, si vous voulez le configurer via env)
     # Séparez les origines par des virgules si plusieurs.
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # Pas de "*" autorisé si allow_credentials=True dans main.py.
     BACKEND_CORS_ORIGINS: str = os.getenv(
         "BACKEND_CORS_ORIGINS",
-        "http://localhost:8080,https://exai-pipeline.fr,https://www.exai-pipeline.fr" # Local et production
+        "http://localhost:8080,https://ibis-x.fr,https://www.ibis-x.fr" # Local et production
     )
 
     # URLs des services backend pour le reverse proxy

@@ -1,0 +1,73 @@
+datasets:
+  # Education Domain
+  student_performance:
+    kaggle_ref: "spscientist/students-performance-in-exams"
+    domain: "education"
+    description: "Student performance analysis with various factors"
+    ml_task: "classification"
+    target_column: "math_score"
+    
+  student_stress:
+    kaggle_ref: "samyakb/student-stress-factors"
+    domain: "education" 
+    description: "Analysis of stress factors affecting students"
+    ml_task: "regression"
+    target_column: "stress_level"
+    
+  student_depression:
+    kaggle_ref: "adilshamim8/student-depression-dataset"
+    domain: "education"
+    description: "Mental health analysis of students"
+    ml_task: "classification"
+    target_column: "depression"
+    
+  social_media_addiction:
+    kaggle_ref: "adilshamim8/social-media-addiction-vs-relationships"
+    domain: "social-media"
+    description: "Social media usage and mental health correlation"
+    ml_task: "classification"
+    target_column: "addiction_level"
+    
+  riiid_answer_prediction:
+    kaggle_ref: "c/riiid-test-answer-prediction"
+    domain: "education"
+    description: "Large-scale educational data for answer prediction (EdNet)"
+    ml_task: "classification"
+    target_column: "answered_correctly"
+    large_dataset: true  # Indicate this is a large dataset
+    
+  oulad_dataset:
+    kaggle_ref: "vjcalling/ouladdata"
+    domain: "education"
+    description: "Open University Learning Analytics Dataset"
+    ml_task: "classification"
+    target_column: "final_result"
+    multi_file: true  # Indicate this has multiple CSV files
+    
+  academic_performance:
+    kaggle_ref: "nikhil7280/student-performance-multiple-linear-regression"
+    domain: "education"
+    description: "Academic performance prediction with multiple factors"
+    ml_task: "regression"
+    target_column: "cgpa"
+
+# Configuration globale
+config:
+  # Cache settings
+  cache_duration_days: 7  # Re-download after 7 days
+  
+  # Processing settings
+  convert_to_parquet: true
+  chunk_size: 10000  # For large datasets
+  
+  # Validation settings
+  validate_after_download: true
+  extract_metadata: true
+  
+  # Storage settings
+  upload_to_storage: true
+  cleanup_after_upload: true
+  
+  # Kaggle API settings
+  max_retries: 3
+  timeout_seconds: 300 

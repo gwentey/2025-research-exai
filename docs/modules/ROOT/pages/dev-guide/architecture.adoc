@@ -1,16 +1,16 @@
-= Architecture Technique du Projet EXAI
+= Architecture Technique du Projet IBIS-X
 
-Ce document détaille l'architecture logicielle de la plateforme EXAI. Pour les instructions d'installation et de déploiement, veuillez consulter le guide xref:getting-started.adoc[Installation & Démarrage Rapide].
+Ce document détaille l'architecture logicielle de la plateforme IBIS-X. Pour les instructions d'installation et de déploiement, veuillez consulter le guide xref:getting-started.adoc[Installation & Démarrage Rapide].
 
 == 1. Vision d'Ensemble et Objectifs
 
-Le projet EXAI vise à créer un **outil scientifique (PoC)** répondant à trois défis :
+Le projet IBIS-X vise à créer un **outil scientifique (PoC)** répondant à trois défis :
 
 1.  Aide à la **sélection de datasets** (critères techniques, éthiques, métier).
 2.  Guidage interactif pour les **pipelines de Machine Learning**.
 3.  Recommandation et application de techniques d'**IA Explicable (XAI)**.
 
-Pour atteindre ces objectifs avec **modularité**, **scalabilité** et **maintenabilité**, EXAI repose sur une architecture en **microservices conteneurisés** orchestrés par **Kubernetes**.
+Pour atteindre ces objectifs avec **modularité**, **scalabilité** et **maintenabilité**, IBIS-X repose sur une architecture en **microservices conteneurisés** orchestrés par **Kubernetes**.
 
 *   **Microservices :** Chaque grande fonctionnalité (sélection de données, entraînement ML, explicabilité XAI, interface utilisateur) est gérée par un service indépendant. Cela permet de développer, déployer et mettre à l'échelle chaque partie séparément.
 *   **Conteneurisation (Docker) :** Chaque microservice est packagé dans une image Docker avec toutes ses dépendances. Cela garantit la cohérence entre les environnements (développement, test, production).
@@ -28,7 +28,7 @@ Le moyen le plus simple est de créer le diagramme avec un outil externe (comme 
 
 [source,asciidoc]
 ----
-image::architecture-diagram.png[Diagramme d'architecture EXAI, L=auto]
+image::architecture-diagram.png[Diagramme d'architecture IBIS-X, L=auto]
 ----
 
 (Assurez-vous que le chemin d'accès à l'image est correct par rapport à l'emplacement de ce fichier `architecture.adoc`.)
@@ -37,7 +37,7 @@ image::architecture-diagram.png[Diagramme d'architecture EXAI, L=auto]
 == 3. Description Détaillée des Composants
 
 === 3.1 Frontend (`frontend/`)
-*   **Rôle :** Interface utilisateur web interactive pour la plateforme EXAI.
+*   **Rôle :** Interface utilisateur web interactive pour la plateforme IBIS-X.
 *   **Responsabilités :** Permettre à l'utilisateur de naviguer dans les fonctionnalités (sélection datasets, configuration pipeline ML, visualisation XAI), afficher les informations et résultats.
 *   **Technologies :** Angular, Tailwind CSS.
 *   **Interactions :** Communique exclusivement avec l'API Gateway via des requêtes HTTP REST/JSON.
@@ -170,7 +170,7 @@ Cette nouvelle structure reflète l'organisation actualisée où tous les fichie
 :sectnums:
 :toc:
 
-Ce document explique comment l'API Gateway EXAI fait du reverse proxy vers les services backend et comment cette configuration fonctionne automatiquement en développement et en production.
+Ce document explique comment l'API Gateway IBIS-X fait du reverse proxy vers les services backend et comment cette configuration fonctionne automatiquement en développement et en production.
 
 == Vue d'ensemble
 
@@ -185,9 +185,9 @@ Les URLs des services backend sont configurées automatiquement pour fonctionner
 [source,python]
 ----
 # api-gateway/app/core/config.py
-SERVICE_SELECTION_URL: str = os.getenv("SERVICE_SELECTION_URL", "http://service-selection-service.exai.svc.cluster.local")
-ML_PIPELINE_URL: str = os.getenv("ML_PIPELINE_URL", "http://ml-pipeline-service.exai.svc.cluster.local")
-XAI_ENGINE_URL: str = os.getenv("XAI_ENGINE_URL", "http://xai-engine-service.exai.svc.cluster.local")
+SERVICE_SELECTION_URL: str = os.getenv("SERVICE_SELECTION_URL", "http://service-selection-service.IBIS-X.svc.cluster.local")
+ML_PIPELINE_URL: str = os.getenv("ML_PIPELINE_URL", "http://ml-pipeline-service.IBIS-X.svc.cluster.local")
+XAI_ENGINE_URL: str = os.getenv("XAI_ENGINE_URL", "http://xai-engine-service.IBIS-X.svc.cluster.local")
 ----
 
 Ces URLs utilisent le DNS interne de Kubernetes et fonctionnent automatiquement sans configuration supplémentaire.
@@ -199,9 +199,9 @@ L'API Gateway intercepte et redirige les requêtes selon le pattern suivant :
 [cols="2,3,3", options="header"]
 |===
 | Pattern | Service de Destination | Exemple
-| `/datasets/*` | SERVICE_SELECTION_URL | `/datasets` → `http://service-selection-service.exai.svc.cluster.local/datasets`
-| `/ml-pipeline/*` | ML_PIPELINE_URL | `/ml-pipeline/jobs` → `http://ml-pipeline-service.exai.svc.cluster.local/jobs`
-| `/xai/*` | XAI_ENGINE_URL | `/xai/explain` → `http://xai-engine-service.exai.svc.cluster.local/explain`
+| `/datasets/*` | SERVICE_SELECTION_URL | `/datasets` → `http://service-selection-service.IBIS-X.svc.cluster.local/datasets`
+| `/ml-pipeline/*` | ML_PIPELINE_URL | `/ml-pipeline/jobs` → `http://ml-pipeline-service.IBIS-X.svc.cluster.local/jobs`
+| `/xai/*` | XAI_ENGINE_URL | `/xai/explain` → `http://xai-engine-service.IBIS-X.svc.cluster.local/explain`
 |===
 
 == Implémentation Technique
@@ -263,9 +263,9 @@ async def datasets_domains_proxy(request: Request, current_user: UserModel = Dep
 === Développement Local (Minikube)
 
 Les services communiquent via le DNS interne de Kubernetes :
-- `service-selection-service.exai.svc.cluster.local`
-- `ml-pipeline-service.exai.svc.cluster.local`
-- `xai-engine-service.exai.svc.cluster.local`
+- `service-selection-service.IBIS-X.svc.cluster.local`
+- `ml-pipeline-service.IBIS-X.svc.cluster.local`
+- `xai-engine-service.IBIS-X.svc.cluster.local`
 
 Aucune configuration supplémentaire n'est nécessaire.
 

@@ -1,0 +1,204 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kaggle-dataset-import-job
+  namespace: ibis-x
+  labels:
+    app: kaggle-dataset-import
+    component: data-import
+spec:
+  template:
+    metadata:
+      labels:
+        app: kaggle-dataset-import
+        component: data-import
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: default
+      containers:
+      - name: kaggle-importer
+        image: service-selection:latest
+        imagePullPolicy: IfNotPresent
+        
+        # Commande pour exécuter l'importeur Kaggle
+        command: ["python"]
+        args: ["/app/kaggle-import/kaggle_importer.py"]
+        
+        # Variables d'environnement
+        env:
+        # Configuration base de données
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: database-url
+        
+        # Configuration stockage MinIO (local)
+        - name: STORAGE_BACKEND
+          value: "minio"
+        - name: MINIO_ENDPOINT
+          value: "minio-service:9000"
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: minio-access-key
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: minio-secret-key
+        - name: MINIO_BUCKET
+          value: "ibis-x-datasets"
+        - name: MINIO_SECURE
+          value: "false"
+        
+        # Configuration Azure Blob (production - surchargé par overlay)
+        - name: AZURE_STORAGE_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: azure-connection-string
+              optional: true
+        - name: AZURE_CONTAINER_NAME
+          value: "ibis-x-datasets"
+        
+        # Credentials Kaggle (obligatoire)
+        - name: KAGGLE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kaggle-secrets
+              key: username
+        - name: KAGGLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kaggle-secrets
+              key: key
+        
+        # Configuration job
+        - name: FORCE_REFRESH
+          value: "false"  # Respecte le cache par défaut
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        
+        # Répertoire de travail
+        workingDir: /app
+        
+        # Ressources allouées
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        
+        # Volumes pour les fichiers temporaires
+        volumeMounts:
+        - name: temp-storage
+          mountPath: /tmp
+        - name: kaggle-config
+          mountPath: /app/kaggle-import/kaggle_datasets_config.yaml
+          subPath: kaggle_datasets_config.yaml
+          readOnly: true
+      
+      # Volumes
+      volumes:
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: "5Gi"  # Espace temporaire pour téléchargements
+      - name: kaggle-config
+        configMap:
+          name: kaggle-datasets-config
+          items:
+          - key: config.yaml
+            path: kaggle_datasets_config.yaml
+      
+      # Politique de nettoyage
+      activeDeadlineSeconds: 3600  # 1 heure max
+      backoffLimit: 3              # 3 tentatives max
+
+---
+# ConfigMap pour la configuration des datasets
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kaggle-datasets-config
+  namespace: ibis-x
+  labels:
+    app: kaggle-dataset-import
+data:
+  config.yaml: |
+    datasets:
+      # Education Domain
+      student_performance:
+        kaggle_ref: "spscientist/students-performance-in-exams"
+        domain: "education"
+        description: "Student performance analysis with various factors"
+        ml_task: "classification"
+        target_column: "math_score"
+        
+      student_stress:
+        kaggle_ref: "samyakb/student-stress-factors"
+        domain: "education" 
+        description: "Analysis of stress factors affecting students"
+        ml_task: "regression"
+        target_column: "stress_level"
+        
+      student_depression:
+        kaggle_ref: "hopesb/student-depression-dataset"
+        domain: "education"
+        description: "Mental health analysis of students"
+        ml_task: "classification"
+        target_column: "depression"
+        
+      social_media_addiction:
+        kaggle_ref: "souvikahmed071/social-media-and-mental-health"
+        domain: "social-media"
+        description: "Social media usage and mental health correlation"
+        ml_task: "classification"
+        target_column: "addiction_level"
+        
+      academic_performance:
+        kaggle_ref: "nikhil7280/student-performance-multiple-linear-regression"
+        domain: "education"
+        description: "Academic performance prediction with multiple factors"
+        ml_task: "regression"
+        target_column: "cgpa"
+
+    # Configuration globale
+    config:
+      # Cache settings
+      cache_duration_days: 7  # Re-download after 7 days
+      
+      # Processing settings
+      convert_to_parquet: true
+      chunk_size: 10000  # For large datasets
+      
+      # Validation settings
+      validate_after_download: true
+      extract_metadata: true
+      
+      # Storage settings
+      upload_to_storage: true
+      cleanup_after_upload: true
+      
+      # Kaggle API settings
+      max_retries: 3
+      timeout_seconds: 300
+
+---
+# Secret template pour les credentials Kaggle
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kaggle-secrets
+  namespace: ibis-x
+  labels:
+    app: kaggle-dataset-import
+type: Opaque
+data:
+  # Placeholders - remplacés par le script update-local-secrets.py
+  # Les valeurs réelles viennent du fichier .env
+  username: REPLACE_WITH_KAGGLE_USERNAME
+  key: REPLACE_WITH_KAGGLE_API_KEY 

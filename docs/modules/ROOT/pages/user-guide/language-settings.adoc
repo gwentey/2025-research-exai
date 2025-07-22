@@ -2,11 +2,11 @@
 :toc:
 :toclevels: 2
 
-Ce guide explique comment changer la langue de l'interface et gérer vos préférences linguistiques dans l'application ExAI.
+Ce guide explique comment changer la langue de l'interface et gérer vos préférences linguistiques dans l'application IBIS-X.
 
 == Langues disponibles
 
-L'application ExAI est disponible dans les langues suivantes :
+L'application IBIS-X est disponible dans les langues suivantes :
 
 [cols="1,2,1"]
 |===

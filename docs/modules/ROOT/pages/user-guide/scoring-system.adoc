@@ -1,9 +1,9 @@
 = Comprendre le Système de Recommandation Avancé
-:description: Guide utilisateur complet pour maîtriser le système de recommandation intelligent d'EXAI avec visualisation Apache ECharts
+:description: Guide utilisateur complet pour maîtriser le système de recommandation intelligent d'IBIS-X avec visualisation Apache ECharts
 :keywords: scoring, recommandations, datasets, heatmap, ECharts, visualisation
 
 [.lead]
-EXAI utilise un **système de recommandation intelligent** avec visualisation interactive pour vous aider à choisir les meilleurs datasets pour vos projets d'IA éthique.
+IBIS-X utilise un **système de recommandation intelligent** avec visualisation interactive pour vous aider à choisir les meilleurs datasets pour vos projets d'IA éthique.
 
 == 🚀 Nouveautés du Système
 
@@ -36,7 +36,7 @@ Lors de la création d'un projet, définissez :
 
 === 2. Calcul Intelligent des Scores
 
-EXAI évalue **automatiquement tous les datasets** selon **3 dimensions** :
+IBIS-X évalue **automatiquement tous les datasets** selon **3 dimensions** :
 
 [cols="1,3,1,1"]
 |===

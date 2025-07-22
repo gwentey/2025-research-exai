@@ -6,7 +6,7 @@ metadata:
   # ou un nom fixe si géré par un pipeline qui supprime l'ancien job avant.
   # On utilise un nom fixe ici pour simplifier.
   name: api-gateway-migration-job
-  namespace: exai # Assure-toi que c'est le bon namespace
+  namespace: ibis-x # Assure-toi que c'est le bon namespace
 spec:
   # ttlSecondsAfterFinished: 300 # Optionnel: Supprime le Job automatiquement après sa fin
   backoffLimit: 4 # Nombre de tentatives avant d'échouer
@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: api-gateway-migration
-        # Image par défaut pour développement local (sera surchargée par overlays)
-        image: exai-api-gateway:latest
+        # Image ACR pour production Azure
+        image: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway:latest
         imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
         command: ["alembic", "upgrade", "head"]
         workingDir: /app # Répertoire où se trouve alembic.ini

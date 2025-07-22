@@ -2,15 +2,15 @@
 <div class="container-fluid p-24">
   <mat-card class="cardWithShadow">
     <mat-card-content class="p-48 text-center">
-      <h1 class="mat-h1 m-b-16">Bienvenue sur EXAI</h1>
-      <p class="mat-body-1 text-muted">Page d'accueil simple - Aucun problème de traduction ici !</p>
+      <h1 class="mat-h1 m-b-16">{{ 'STARTER.WELCOME' | translate }}</h1>
+      <p class="mat-body-1 text-muted">{{ 'STARTER.SUBTITLE' | translate }}</p>
       
       <div class="m-t-32">
         <button mat-flat-button color="primary" routerLink="/datasets">
-          Voir les datasets
+          {{ 'STARTER.VIEW_DATASETS' | translate }}
         </button>
         <button mat-stroked-button class="m-l-16" routerLink="/projects">
-          Voir les projets
+          {{ 'STARTER.VIEW_PROJECTS' | translate }}
         </button>
       </div>
     </mat-card-content>

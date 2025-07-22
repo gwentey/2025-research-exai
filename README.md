@@ -1,4 +1,4 @@
-# EXAI - Plateforme d'expérimentation Explainable AI (XAI) avec pipeline ML
+# IBIS-X - Plateforme d'expérimentation Explainable AI (XAI) avec pipeline ML
 
 [![Statut du Projet](https://img.shields.io/badge/statut-Proof%20of%20Concept%20(PoC)-blue)](https://github.com/votre-organisation/2025-research-exai) <!-- Optionnel: Mettez à jour le lien si public -->
 
@@ -59,4 +59,4 @@ make dev
 
 ## Auteurs
 
-- Projet EXAI - Master 2 MIAGE
+- Projet IBIS-X - Master 2 MIAGE

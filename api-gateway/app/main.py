@@ -39,13 +39,14 @@ app = FastAPI(
     lifespan=lifespan # Utilisez lifespan si défini
 )
 
-# Configuration CORS - Version ultra simple
+# Configuration CORS - Version simple qui fonctionnait
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Autoriser toutes les origines temporairement 
+    allow_origins=["http://localhost:8080"],  # Seulement l'origine nécessaire
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Toutes les méthodes
+    allow_headers=["*"],  # Tous les headers
+    expose_headers=["*"]  # Exposer tous les headers
 )
 
 # 1. Database Adapter
@@ -1032,3 +1033,21 @@ async def health_check(session: AsyncSession = Depends(get_async_session)):
         # sauf si la DB est absolument critique pour le démarrage même du service.
         # Pour une sonde readiness/liveness, un simple 200 est souvent suffisant.
         return {"status": "ok", "database": "error"}
+
+# Endpoint temporaire de debug SANS authentification
+@app.get("/debug/datasets", tags=["debug"], include_in_schema=True)
+async def debug_datasets_count():
+    """
+    ENDPOINT TEMPORAIRE - Récupère le nombre de datasets sans authentification
+    À SUPPRIMER en production !
+    """
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(f"{settings.SERVICE_SELECTION_URL}/debug/datasets-count")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {"error": f"Service unavailable: {response.status_code}"}
+    except Exception as e:
+        logger.error(f"Error getting datasets count: {e}")
+        return {"error": str(e)}

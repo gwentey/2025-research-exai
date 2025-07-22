@@ -1,9 +1,9 @@
 = Sélection de Datasets
-:description: Guide d'utilisation de l'interface de sélection des datasets dans EXAI
+:description: Guide d'utilisation de l'interface de sélection des datasets dans IBIS-X
 
 == Vue d'ensemble
 
-L'interface de sélection des datasets d'EXAI offre une expérience moderne et intuitive pour explorer, filtrer et sélectionner des datasets pour vos projets d'explicabilité d'IA.
+L'interface de sélection des datasets d'IBIS-X offre une expérience moderne et intuitive pour explorer, filtrer et sélectionner des datasets pour vos projets d'explicabilité d'IA.
 
 == Interface utilisateur moderne
 

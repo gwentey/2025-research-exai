@@ -28,7 +28,7 @@
     "MICROSOFT": "Microsoft",
     "LOGIN": {
       "TITLE": "Bon retour",
-      "SUBTITLE": "Connectez-vous pour accéder à votre espace ExAI",
+      "SUBTITLE": "Connectez-vous pour accéder à votre espace IBIS-X",
       "EMAIL_LABEL": "Adresse e-mail",
       "PASSWORD_LABEL": "Mot de passe",
       "SUBMIT": "Se connecter",
@@ -44,7 +44,7 @@
     },
     "REGISTER": {
       "TITLE": "Créer un compte",
-      "SUBTITLE": "Rejoignez la plateforme ExAI pour commencer",
+      "SUBTITLE": "Rejoignez la plateforme IBIS-X pour commencer",
       "EMAIL_LABEL": "Adresse e-mail",
       "PASSWORD_LABEL": "Mot de passe",
       "CONFIRM_PASSWORD_LABEL": "Confirmer le mot de passe",
@@ -63,7 +63,7 @@
     "LOADING": "Chargement..."
   },
   "DASHBOARD": {
-    "TITLE": "Tableau de Bord EXAI",
+    "TITLE": "Tableau de Bord IBIS-X",
     "SUBTITLE": "Vue d'ensemble de votre plateforme d'IA explicable",
     "REFRESH": "Actualiser",
     "NEW_PROJECT": "Nouveau Projet",
@@ -139,13 +139,13 @@
         },
         "VIEW_DOCUMENTATION": {
           "TITLE": "Voir la Documentation",
-          "DESCRIPTION": "Guides et tutoriels EXAI"
+          "DESCRIPTION": "Guides et tutoriels IBIS-X"
         }
       }
     },
     "SYSTEM_STATUS": {
       "TITLE": "État du Système",
-      "SUBTITLE": "Services EXAI",
+      "SUBTITLE": "Services IBIS-X",
       "API_GATEWAY": "API Gateway",
       "DATASET_SERVICE": "Service Datasets",
       "ML_PIPELINE": "Pipeline ML",
@@ -551,9 +551,9 @@
     }
   },
   "DASHBOARD": {
-    "TITLE": "Tableau de Bord ExAI",
+    "TITLE": "Tableau de Bord IBIS-X",
     "SUBTITLE": "Vue d'ensemble de vos projets d'apprentissage automatique et jeux de données",
-    "WELCOME": "Bienvenue sur la Plateforme ExAI",
+    "WELCOME": "Bienvenue sur la Plateforme IBIS-X",
     "METRICS": {
       "DATASETS_AVAILABLE": "Jeux de Données Disponibles",
       "ACTIVE_PROJECTS": "Projets Actifs",
@@ -680,7 +680,7 @@
       "MY_PROFILE": "Mon Profil",
       "ACCOUNT_SETTINGS": "Paramètres du Compte",
       "PREFERENCES": "Préférences",
-      "EXAI_CONFIGURATION": "Configuration EXAI",
+      "IBIS_X_CONFIGURATION": "Configuration IBIS-X",
       "HELP_SUPPORT": "Aide et Support",
       "DOCUMENTATION": "Documentation et FAQ"
     }
@@ -884,5 +884,11 @@
       "RETRY": "Réessayer",
       "BACK": "Retour"
     }
+  },
+  "STARTER": {
+    "WELCOME": "Bienvenue sur IBIS-X",
+    "SUBTITLE": "Page d'accueil simple",
+    "VIEW_DATASETS": "Voir les datasets",
+    "VIEW_PROJECTS": "Voir les projets"
   }
 }

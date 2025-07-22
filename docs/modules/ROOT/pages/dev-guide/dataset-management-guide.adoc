@@ -1,0 +1,476 @@
+= Guide de Gestion des Datasets IBIS-X
+:description: Documentation complète sur la gestion des datasets dans IBIS-X - initialisation, ajout de nouveaux datasets, scripts disponibles
+:keywords: IBIS-X, datasets, gestion, initialisation, CSV, Parquet, MinIO, stockage d'objets
+
+== Introduction
+
+Ce guide détaille le système complet de gestion des datasets dans la plateforme IBIS-X. Il couvre l'architecture du système, les processus d'initialisation automatique et manuelle, ainsi que les procédures pour ajouter de nouveaux datasets.
+
+[NOTE]
+====
+La plateforme IBIS-X utilise un système hybride de stockage d'objets (MinIO/Azure) avec conversion automatique CSV → Parquet pour des performances optimales.
+====
+
+== Architecture du Système de Gestion des Datasets
+
+=== Composants Principaux
+
+[source,mermaid]
+----
+flowchart TD
+    A[Scripts d'Initialisation] --> B[Base de Données PostgreSQL]
+    A --> C[Stockage d'Objets MinIO/Azure]
+    D[Auto-Initialisation] --> A
+    E[API FastAPI] --> B
+    E --> C
+    F[Frontend Angular] --> E
+    
+    subgraph "Métadonnées"
+        B
+    end
+    
+    subgraph "Fichiers de Données"
+        C
+    end
+    
+    subgraph "Initialisation"
+        A
+        D
+    end
+----
+
+=== Structure des Données
+
+La gestion des datasets repose sur trois entités principales :
+
+[cols="1,3,2"]
+|===
+|Entité |Description |Relation
+
+|`Dataset`
+|Informations générales sur un dataset (nom, objectif, domaine...)
+|Un dataset peut avoir plusieurs fichiers
+
+|`DatasetFile`
+|Métadonnées d'un fichier spécifique (format, taille, nombre de lignes...)
+|Un fichier appartient à un dataset et peut avoir plusieurs colonnes
+
+|`FileColumn`
+|Informations sur une colonne d'un fichier (nom, type, description...)
+|Une colonne appartient à un fichier
+|===
+
+== Initialisation des Datasets
+
+IBIS-X propose deux méthodes d'initialisation des datasets :
+
+=== 1. Initialisation Automatique (Auto-Init)
+
+L'auto-initialisation se déclenche au démarrage du service si la variable d'environnement `AUTO_INIT_DATA=true` est définie.
+
+[source,bash]
+----
+# Activer l'auto-initialisation
+export AUTO_INIT_DATA=true
+----
+
+Le processus d'auto-initialisation :
+
+1. Vérifie si `AUTO_INIT_DATA=true`
+2. Vérifie si la base de données est vide (aucun dataset existant)
+3. Exécute le script d'initialisation en arrière-plan
+4. Convertit les fichiers CSV en Parquet
+5. Uploade les fichiers vers le stockage d'objets
+6. Met à jour les métadonnées dans la base de données
+
+[source,python]
+----
+# Extrait de service-selection/app/auto_init.py
+async def auto_init_startup():
+    """Fonction de startup pour l'auto-initialisation."""
+    if not should_auto_init():
+        logger.info("AUTO_INIT_DATA non activé - pas d'auto-initialisation")
+        return
+    
+    if check_data_already_initialized():
+        logger.info("🛡️  Données déjà initialisées - skip auto-initialisation")
+        return
+        
+    # Lancement de l'initialisation...
+----
+
+=== 2. Initialisation Manuelle
+
+Pour initialiser manuellement les datasets :
+
+[source,bash]
+----
+# Initialiser un dataset spécifique
+python scripts/init_datasets.py [ednet|oulad|students|social|academic|depression|stress]
+
+# Initialiser tous les datasets
+python scripts/init_datasets.py all
+----
+
+== Datasets Disponibles
+
+IBIS-X inclut actuellement 7 datasets prêts à l'emploi :
+
+[cols="1,1,2,1,1"]
+|===
+|Nom |Année |Description |Lignes |Domaine
+
+|EdNet (Riiid Answer Correctness)
+|2020
+|Prédiction de réussite aux exercices éducatifs
+|131M
+|Éducation
+
+|OULAD
+|2014
+|Analyse de l'apprentissage en ligne universitaire
+|32,593
+|Éducation
+
+|Students Performance in Exams
+|2018
+|Impact des facteurs socio-éducatifs sur les scores
+|1,000
+|Éducation
+
+|Students' Social Media Addiction
+|2025
+|Usage des réseaux sociaux et impact académique
+|705
+|Éducation/Social
+
+|Student Academic Performance Dataset
+|2025
+|Analyse des performances avec facteurs démographiques
+|1,000
+|Éducation
+
+|Student Depression Dataset
+|2024
+|Tendances et prédicteurs de dépression chez les étudiants
+|28,000
+|Santé mentale
+
+|Student Stress Factors
+|2023
+|Facteurs de stress chez les étudiants en ingénierie
+|520
+|Santé mentale
+|===
+
+== Ajout d'un Nouveau Dataset
+
+Pour ajouter un nouveau dataset à IBIS-X, suivez ces étapes :
+
+=== 1. Préparation du Dataset
+
+1. Placez votre fichier CSV dans le répertoire `service-selection/datasets/`
+2. Assurez-vous que le fichier est correctement formaté :
+   * Encodage UTF-8
+   * Séparateur virgule (`,`)
+   * Première ligne = en-têtes de colonnes
+   * Pas de cellules vides si possible
+
+=== 2. Création de la Fonction d'Initialisation
+
+Ajoutez une nouvelle fonction dans `service-selection/scripts/init_datasets.py` :
+
+[source,python]
+----
+def init_my_new_dataset():
+    """
+    Initialise le dataset My New Dataset avec son fichier et colonnes.
+    """
+    
+    # Configuration de la base de données
+    try:
+        database_url = DATABASE_URL
+        print(f"🔌 Connexion à la base de données...")
+    except Exception as e:
+        print(f"❌ Erreur de configuration base de données: {e}")
+        sys.exit(1)
+    
+    # Créer l'engine et la session
+    engine = create_engine(database_url)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
+    with SessionLocal() as session:
+        try:
+            # === SUPPRESSION DES DONNÉES EXISTANTES ===
+            print("🗑️  Suppression des données existantes pour 'My New Dataset'...")
+            
+            existing_dataset = session.query(Dataset).filter(
+                Dataset.dataset_name == "My New Dataset"
+            ).first()
+            
+            if existing_dataset:
+                session.delete(existing_dataset)
+                session.commit()
+                print("✅ Données existantes supprimées")
+            
+            # === CRÉATION DU DATASET ===
+            print("📊 Création du dataset My New Dataset...")
+            
+            dataset_id = str(uuid.uuid4())
+            
+            # Générer et uploader le fichier
+            csv_file_path = "datasets/my_new_dataset.csv"
+            storage_path, row_count, file_size = upload_real_dataset_file(
+                dataset_id=dataset_id,
+                csv_file_path=csv_file_path,
+                filename_base="my_new_dataset"
+            )
+            
+            # Créer l'entrée Dataset
+            dataset = Dataset(
+                id=dataset_id,
+                dataset_name="My New Dataset",
+                year=2025,
+                objective="Description de l'objectif du dataset",
+                access="public",
+                availability="online_download",
+                domain=["domaine1", "domaine2"],
+                storage_path=storage_path,
+                instances_number=row_count,
+                features_number=10,  # Nombre de colonnes
+                # ... autres attributs ...
+            )
+            
+            session.add(dataset)
+            session.flush()
+            
+            # Créer l'entrée DatasetFile
+            dataset_file = DatasetFile(
+                dataset_id=dataset.id,
+                file_name_in_storage="my_new_dataset.parquet",
+                logical_role="main_data",
+                format="parquet",
+                mime_type="application/parquet",
+                size_bytes=file_size,
+                row_count=row_count,
+                description="Description du fichier"
+            )
+            
+            session.add(dataset_file)
+            session.flush()
+            
+            # Créer les entrées FileColumn
+            columns_data = [
+                {
+                    'name': 'colonne1', 'type_orig': 'string', 'type_interp': 'categorical', 
+                    'desc': 'Description de la colonne 1', 'pos': 1, 'is_pk': True, 'is_null': False, 
+                    'is_pii': False, 'examples': ['exemple1', 'exemple2', 'exemple3']
+                },
+                # ... autres colonnes ...
+            ]
+            
+            for col_info in columns_data:
+                file_column = FileColumn(
+                    dataset_file_id=dataset_file.id,
+                    column_name=col_info['name'],
+                    data_type_original=col_info['type_orig'],
+                    data_type_interpreted=col_info['type_interp'],
+                    description=col_info['desc'],
+                    is_primary_key_component=col_info['is_pk'],
+                    is_nullable=col_info['is_null'],
+                    is_pii=col_info['is_pii'],
+                    example_values=col_info['examples'],
+                    position=col_info['pos']
+                )
+                session.add(file_column)
+            
+            # Valider toutes les modifications
+            session.commit()
+            
+            print("\n🎉 Dataset 'My New Dataset' initialisé avec succès !")
+            
+        except Exception as e:
+            session.rollback()
+            print(f"❌ Erreur lors de l'initialisation: {e}")
+            raise
+----
+
+=== 3. Mise à Jour de la Fonction `main()`
+
+Ajoutez votre dataset à la fonction `main()` dans le même fichier :
+
+[source,python]
+----
+def main():
+    """Point d'entrée principal du script."""
+    
+    if len(sys.argv) > 1:
+        dataset_name = sys.argv[1].lower()
+        # ... code existant ...
+        elif dataset_name == "mynewdataset":
+            print("📊 Initialisation du dataset My New Dataset uniquement")
+            try:
+                init_my_new_dataset()
+                print("\n✅ Dataset My New Dataset initialisé avec succès !")
+            except Exception as e:
+                print(f"\n❌ Échec de l'initialisation My New Dataset: {e}")
+                sys.exit(1)
+        elif dataset_name == "all":
+            # ... code existant ...
+            init_my_new_dataset()
+            print("\n✅ Dataset My New Dataset initialisé avec succès !")
+            # ... code existant ...
+----
+
+=== 4. Test de l'Initialisation
+
+Testez votre nouveau dataset :
+
+[source,bash]
+----
+# Initialiser uniquement votre dataset
+python scripts/init_datasets.py mynewdataset
+
+# Vérifier qu'il est inclus dans l'initialisation complète
+python scripts/init_datasets.py all
+----
+
+== Fonctions Utilitaires pour les Datasets
+
+Le script `init_datasets.py` fournit plusieurs fonctions utilitaires pour faciliter la gestion des datasets :
+
+=== `upload_real_dataset_file`
+
+Convertit un fichier CSV en Parquet et l'uploade vers le stockage d'objets.
+
+[source,python]
+----
+def upload_real_dataset_file(dataset_id: str, csv_file_path: str, filename_base: str = "dataset") -> tuple:
+    """
+    Lit un vrai fichier CSV, le convertit en Parquet et l'uploade vers le stockage d'objets.
+    
+    Args:
+        dataset_id: UUID du dataset
+        csv_file_path: Chemin vers le fichier CSV source
+        filename_base: Nom de base pour le fichier (sans extension)
+        
+    Returns:
+        tuple: (storage_path_prefix, row_count, file_size_bytes)
+    """
+----
+
+=== `upload_sample_dataset`
+
+Génère et uploade des données échantillons basées sur une description de colonnes.
+
+[source,python]
+----
+def upload_sample_dataset(dataset_id: str, sample_data_dict: dict, filename_base: str = "sample_data") -> str:
+    """
+    Génère et upload des données échantillons vers le stockage d'objets.
+    
+    Args:
+        dataset_id: UUID du dataset
+        sample_data_dict: Dictionnaire contenant les données échantillons
+        filename_base: Nom de base pour le fichier (sans extension)
+        
+    Returns:
+        storage_path: Préfixe du dossier de stockage
+    """
+----
+
+=== `upload_multiple_sample_files`
+
+Génère et uploade plusieurs fichiers échantillons pour un même dataset.
+
+[source,python]
+----
+def upload_multiple_sample_files(dataset_id: str, files_data: list) -> str:
+    """
+    Génère et upload plusieurs fichiers échantillons vers le stockage d'objets.
+    
+    Args:
+        dataset_id: UUID du dataset
+        files_data: Liste des dictionnaires contenant les données pour chaque fichier
+        
+    Returns:
+        storage_path: Préfixe du dossier de stockage
+    """
+----
+
+== Dépannage
+
+=== Problèmes Courants
+
+[cols="1,2,2"]
+|===
+|Problème |Symptômes |Solution
+
+|Dataset non visible dans l'interface
+|Dataset créé mais non affiché dans l'UI
+|Vérifier que le storage_path est correctement défini et que les fichiers sont bien uploadés
+
+|Erreur d'upload
+|Message "❌ Erreur de stockage"
+|Vérifier les credentials MinIO/Azure et la connectivité au stockage d'objets
+
+|Colonnes manquantes
+|Dataset visible mais sans colonnes
+|Vérifier la création des entrées FileColumn dans la fonction d'initialisation
+
+|Doublons de datasets
+|Plusieurs entrées identiques dans la liste
+|Utiliser la vérification anti-doublons dans auto_init.py
+|===
+
+=== Commandes de Diagnostic
+
+[source,bash]
+----
+# Vérifier les datasets en base de données
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
+from app.database import SessionLocal
+from app.models import Dataset
+with SessionLocal() as db:
+    datasets = db.query(Dataset).all()
+    for ds in datasets:
+        print(f'{ds.id}: {ds.dataset_name} ({ds.storage_path})')
+"
+
+# Vérifier les fichiers dans MinIO
+kubectl exec -n IBIS-X deployment/minio -- mc ls minio/IBIS-X-datasets/
+
+# Réinitialiser un dataset spécifique
+kubectl exec -n IBIS-X deployment/service-selection -- python scripts/init_datasets.py social
+----
+
+== Bonnes Pratiques
+
+=== Qualité des Données
+
+* Nettoyez vos données avant de les ajouter (valeurs manquantes, doublons)
+* Documentez chaque colonne avec une description précise
+* Identifiez clairement les colonnes contenant des PII (Personally Identifiable Information)
+* Fournissez des exemples de valeurs pour chaque colonne
+
+=== Performance
+
+* Utilisez le format Parquet pour les gros fichiers (conversion automatique)
+* Divisez les très grands datasets en plusieurs fichiers si nécessaire
+* Utilisez la fonction `upload_multiple_sample_files` pour les datasets multi-fichiers
+
+=== Sécurité
+
+* Marquez correctement les colonnes contenant des données sensibles (`is_pii=True`)
+* Utilisez toujours les fonctions d'upload fournies qui gèrent l'authentification
+* Ne stockez pas de credentials dans le code source
+
+== Ressources Additionnelles
+
+* link:auto-dataset-initialization.adoc[Auto-Initialisation des Datasets]
+* link:object-storage-implementation.adoc[Implémentation du Stockage d'Objets]
+* link:storage-setup-guide.adoc[Guide de Configuration du Stockage]
+
+== Conclusion
+
+Le système de gestion des datasets d'IBIS-X offre une solution robuste et performante pour initialiser, stocker et accéder aux datasets d'analyse. La combinaison du stockage d'objets et de la base de données relationnelle permet une gestion efficace des métadonnées et des fichiers volumineux, tandis que la conversion automatique CSV → Parquet optimise les performances d'accès aux données. 

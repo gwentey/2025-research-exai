@@ -1,6 +1,6 @@
-= Guide Utilisateur EXAI
+= Guide Utilisateur IBIS-X
 
-Cette section présente les principales fonctionnalités d'EXAI.
+Cette section présente les principales fonctionnalités d'IBIS-X.
 
 == Modules Principaux
 

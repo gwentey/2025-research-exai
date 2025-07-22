@@ -1,0 +1,363 @@
+= Auto-Initialisation des Vrais Datasets
+:description: Guide complet pour l'initialisation automatique des vrais datasets dans IBIS-X
+:keywords: IBIS-X, datasets, initialisation, automation, production, CSV, Parquet
+
+== Vue d'Ensemble
+
+Le système IBIS-X propose maintenant une **auto-initialisation automatisée** des vrais datasets, éliminant le besoin de commandes manuelles pour intégrer de vraies données dans l'application.
+
+Cette fonctionnalité permet :
+
+* ✅ **Développement local** : Initialisation automatique avec `make dev-with-data`
+* ✅ **Production Azure** : Initialisation automatique au démarrage avec la variable `AUTO_INIT_DATA=true`
+* ✅ **Vrais datasets** : Utilisation de fichiers CSV réels convertis automatiquement en Parquet
+* ✅ **Performance optimisée** : Gains de 10-50x grâce au format Parquet
+* ✅ **Détection intelligente** : Évite la re-initialisation si les données existent déjà
+
+== Architecture de l'Auto-Initialisation
+
+=== Composants
+
+[source,mermaid]
+----
+graph TD
+    A[FastAPI Startup] --> B{AUTO_INIT_DATA=true?}
+    B -->|Non| C[Skip Auto-Init]
+    B -->|Oui| D[Vérifier Datasets Existants]
+    D -->|Existent| C
+    D -->|Vides| E[Lance Auto-Init en Background]
+    E --> F[Lecture CSV Source]
+    F --> G[Conversion Parquet]
+    G --> H[Upload Stockage Objets]
+    H --> I[MAJ Métadonnées BDD]
+    
+    J[make dev-with-data] --> K[kubectl exec init_datasets.py social]
+    K --> F
+----
+
+=== Fichiers Impliqués
+
+[cols="2,3,3"]
+|===
+|Fichier |Rôle |Description
+
+|`service-selection/app/auto_init.py`
+|Module d'auto-initialisation
+|Logique principale pour détecter et lancer l'initialisation
+
+|`service-selection/app/main.py`
+|Event handler FastAPI
+|Hook de startup qui déclenche l'auto-init
+
+|`service-selection/datasets/Students Social Media Addiction.csv`
+|Dataset source
+|Fichier CSV avec 705 lignes de vraies données
+
+|`service-selection/scripts/init_datasets.py`
+|Script d'initialisation
+|Fonctions `upload_real_dataset_file()` et `init_social_media_addiction_dataset()`
+
+|`k8s/overlays/azure/service-selection-auto-init-patch.yaml`
+|Configuration production
+|Active `AUTO_INIT_DATA=true` en production Azure
+
+|`Makefile`
+|Orchestration locale
+|Règles `dev-with-data`, `init-data`, et `init-data-job`
+|===
+
+== Utilisation
+
+=== Développement Local
+
+Pour un démarrage complet avec vrais datasets automatiques :
+
+[source,bash]
+----
+make dev-with-data
+----
+
+Cette commande :
+
+1. ✅ Vérifie les prérequis (Docker, Minikube, kubectl, Skaffold)
+2. ✅ Met à jour les secrets Kubernetes
+3. ✅ Démarre Minikube avec configuration optimale
+4. ✅ Crée le namespace `IBIS-X`
+5. ✅ Configure l'environnement Docker pour Minikube
+6. ✅ Déploie l'application avec Skaffold
+7. ✅ Lance les migrations de base de données
+8. ✅ **Initialise automatiquement les vrais datasets** (`social`)
+9. ✅ Affiche les logs en temps réel
+
+=== Production Azure
+
+En production, l'auto-initialisation se déclenche automatiquement grâce au patch Kustomize :
+
+[source,yaml]
+----
+# k8s/overlays/azure/service-selection-auto-init-patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection-deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: service-selection
+        env:
+        - name: AUTO_INIT_DATA
+          value: "true"
+----
+
+L'application détecte automatiquement au démarrage :
+
+1. ✅ Variable `AUTO_INIT_DATA=true` activée
+2. ✅ Base de données vide (aucun dataset existant)
+3. ✅ Lance l'initialisation en arrière-plan sans bloquer l'API
+4. ✅ Log du statut et des résultats
+
+=== Commandes Manuelles (Optionnelles)
+
+Si vous souhaitez déclencher manuellement :
+
+[source,bash]
+----
+# Via exec dans un pod existant (développement)
+make init-data
+
+# Via job Kubernetes (production)
+make init-data-job
+
+# Directement avec le script
+kubectl exec -n IBIS-X deployment/service-selection -- python scripts/init_datasets.py social
+----
+
+== Configuration
+
+=== Variables d'Environnement
+
+[cols="2,2,3,1"]
+|===
+|Variable |Valeurs |Description |Requis
+
+|`AUTO_INIT_DATA`
+|`true`, `false`, `1`, `0`, `yes`, `no`, `on`, `off`
+|Active l'auto-initialisation au démarrage
+|✅
+
+|`DATABASE_URL`
+|`postgresql://user:pass@host:port/db`
+|Connexion à PostgreSQL
+|✅
+
+|`MINIO_ENDPOINT`
+|URL du serveur MinIO
+|Stockage d'objets primaire
+|✅
+
+|`MINIO_ACCESS_KEY`
+|Clé d'accès MinIO
+|Authentification MinIO
+|✅
+
+|`MINIO_SECRET_KEY`
+|Clé secrète MinIO
+|Authentification MinIO
+|✅
+
+|`AZURE_STORAGE_ACCOUNT_NAME`
+|Nom du compte Azure Storage
+|Stockage de fallback
+|◯
+
+|`AZURE_STORAGE_ACCOUNT_KEY`
+|Clé du compte Azure Storage
+|Authentification Azure
+|◯
+|===
+
+=== Logique de Détection
+
+L'auto-initialisation ne se déclenche que si **toutes** ces conditions sont remplies :
+
+1. ✅ `AUTO_INIT_DATA=true` 
+2. ✅ Base de données accessible
+3. ✅ Aucun dataset existant (`SELECT COUNT(*) FROM datasets = 0`)
+4. ✅ Fichier CSV source disponible
+5. ✅ Configuration stockage d'objets valide
+
+== Datasets Supportés
+
+=== Students Social Media Addiction
+
+**Source** : `service-selection/datasets/Students Social Media Addiction.csv`
+
+**Caractéristiques** :
+* 📊 **705 lignes** de données réelles
+* 📋 **13 colonnes** : Student_ID, Age, Gender, Academic_Level, Country, Avg_Daily_Usage_Hours, Most_Used_Platform, Affects_Academic_Performance, Sleep_Hours_Per_Night, Mental_Health_Score, Relationship_Status, Conflicts_Over_Social_Media, Addicted_Score
+* 📈 **Domaine** : Impact des réseaux sociaux sur les étudiants
+* 🗃️ **Format final** : Parquet (conversion automatique)
+* ⚡ **Performance** : 10-50x plus rapide que CSV
+* 🏷️ **Type** : VRAI DATASET (marquage automatique)
+
+=== Format de Conversion
+
+[source,python]
+----
+# Conversion automatique CSV → Parquet
+def convert_to_parquet(file_content: bytes, filename: str) -> bytes:
+    """
+    Convertit un fichier CSV en format Parquet.
+    Gains de performance : 10-50x en lecture
+    Compression : ~60% de réduction de taille
+    """
+    df = pd.read_csv(io.BytesIO(file_content))
+    parquet_buffer = io.BytesIO()
+    df.to_parquet(parquet_buffer, index=False)
+    return parquet_buffer.getvalue()
+----
+
+== Surveillance et Logs
+
+=== Logs d'Initialisation
+
+L'auto-initialisation produit des logs détaillés :
+
+[source,logs]
+----
+2025-01-XX XX:XX:XX - auto_init - INFO - AUTO_INIT_DATA activé - analyse des conditions
+2025-01-XX XX:XX:XX - auto_init - INFO - Nombre de datasets existants: 0
+2025-01-XX XX:XX:XX - auto_init - INFO - Conditions remplies pour l'auto-initialisation des vrais datasets
+2025-01-XX XX:XX:XX - auto_init - INFO - Démarrage de l'auto-initialisation des vrais datasets...
+2025-01-XX XX:XX:XX - auto_init - INFO - Auto-initialisation des vrais datasets terminée avec succès
+----
+
+=== Monitoring de Production
+
+En production Azure, surveillez :
+
+[source,bash]
+----
+# Logs du service-selection
+kubectl logs -f deployment/service-selection -n IBIS-X
+
+# Statut du job d'initialisation (si utilisé)
+kubectl get jobs -n IBIS-X
+kubectl describe job service-selection-data-init-job -n IBIS-X
+
+# Vérification des datasets créés
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
+import sys; sys.path.append('/app')
+from app.database import SessionLocal
+from app.models import Dataset
+with SessionLocal() as db:
+    print(f'Datasets: {db.query(Dataset).count()}')
+"
+----
+
+== Dépannage
+
+=== Problèmes Courants
+
+[cols="2,3,3"]
+|===
+|Problème |Symptôme |Solution
+
+|Auto-init désactivée
+|Logs : "AUTO_INIT_DATA non activé"
+|Vérifier `AUTO_INIT_DATA=true` dans le déploiement
+
+|Données déjà présentes
+|Logs : "Données déjà initialisées - skip"
+|Normal - supprimez les datasets pour re-initialiser
+
+|Erreur de connexion BDD
+|Logs : "Impossible de vérifier l'état des datasets"
+|Vérifier `DATABASE_URL` et connectivité PostgreSQL
+
+|Erreur stockage objets
+|Logs : "Erreur lors de l'upload"
+|Vérifier les credentials MinIO/Azure et connectivity
+
+|Script d'init échoue
+|Exit code != 0
+|Vérifier les logs détaillés et les dépendances Python
+|===
+
+=== Commandes de Diagnostic
+
+[source,bash]
+----
+# Vérifier les variables d'environnement
+kubectl exec -n IBIS-X deployment/service-selection -- env | grep -E "(AUTO_INIT|DATABASE|MINIO|AZURE)"
+
+# Tester la connectivité base de données
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
+from app.database import SessionLocal
+try:
+    with SessionLocal() as db:
+        db.execute('SELECT 1')
+    print('✅ Connexion BDD OK')
+except Exception as e:
+    print(f'❌ Erreur BDD: {e}')
+"
+
+# Vérifier l'existence du fichier CSV source
+kubectl exec -n IBIS-X deployment/service-selection -- ls -la datasets/
+
+# Tester l'initialisation manuellement
+kubectl exec -n IBIS-X deployment/service-selection -- python scripts/init_datasets.py social
+----
+
+== Bonnes Pratiques
+
+=== Sécurité
+
+* 🔒 **Secrets** : Utilisez toujours des Kubernetes Secrets pour les credentials
+* 🔑 **Permissions** : Limitez les accès au stockage d'objets aux services nécessaires
+* 🛡️ **Réseau** : Sécurisez les communications inter-services
+
+=== Performance
+
+* ⚡ **Format Parquet** : Conversion automatique pour des performances optimales
+* 📊 **Monitoring** : Surveillez les métriques de performance post-initialisation
+* 💾 **Stockage** : Utilisez des classes de stockage optimisées en production
+
+=== Maintenance
+
+* 📝 **Logs** : Conservez les logs d'initialisation pour l'audit
+* 🔄 **Backup** : Sauvegardez les datasets sources avant déploiement
+* 🧪 **Test** : Testez l'auto-initialisation sur un environnement de staging
+
+== Évolution Future
+
+=== Fonctionnalités Prévues
+
+* 🔄 **Multi-datasets** : Support de plusieurs datasets réels simultanément
+* 📊 **Validation** : Validation automatique de la qualité des données
+* 🏷️ **Métadonnées** : Enrichissement automatique des métadonnées
+* 🔄 **Synchronisation** : Synchronisation automatique avec sources externes
+* 📈 **Analytics** : Métriques d'utilisation des datasets initialisés
+
+=== Architecture Extensible
+
+Le système est conçu pour être facilement extensible :
+
+[source,python]
+----
+# Ajouter un nouveau dataset
+def init_new_dataset():
+    """
+    Template pour ajouter un nouveau dataset réel.
+    1. Placer le CSV dans datasets/
+    2. Créer la fonction d'initialisation
+    3. Ajouter au script init_datasets.py
+    """
+    return upload_real_dataset_file(
+        csv_path="datasets/nouveau_dataset.csv",
+        dataset_name="Nouveau Dataset",
+        description="Description du nouveau dataset VRAI",
+        # ... autres métadonnées
+    )
+---- 

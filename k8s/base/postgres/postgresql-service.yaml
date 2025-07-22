@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgresql-service # Nom du service, utilisé par les autres pods pour se connecter
-  namespace: exai
+  namespace: ibis-x
 spec:
   selector:
     app: postgresql # Doit correspondre aux labels du Pod PostgreSQL

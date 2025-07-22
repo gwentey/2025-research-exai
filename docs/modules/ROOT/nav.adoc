@@ -1,38 +1,55 @@
-* xref:index.adoc[Accueil]
-* xref:getting-started.adoc[Démarrage Rapide]
+// Navigation sidebar for IBIS-X documentation
 
-* Guide Utilisateur
-** xref:user-guide/index.adoc[Vue d'ensemble]
-** xref:user-guide/project-management.adoc[Gestion des Projets]
-** xref:user-guide/dataset-selection.adoc[Sélection de Datasets] 
-** xref:user-guide/dataset-detailed-view.adoc[🔍 Exploration Détaillée des Datasets]
-** xref:user-guide/scoring-system.adoc[🚀 Système de Recommandation Avancé]
-** xref:user-guide/ml-pipeline.adoc[Pipeline Machine Learning]
-** xref:user-guide/xai-recommendation.adoc[Recommandations XAI]
-** xref:user-guide/user-profile-management.adoc[👤 Gestion du Profil]
-** xref:user-guide/account-deletion.adoc[🗑️ Suppression de Compte]
-** xref:user-guide/language-settings.adoc[🌐 Paramètres de Langue]
-** xref:user-guide/datasets-oulad.adoc[Datasets OULAD]
+* xref:index.adoc[Accueil IBIS-X]
+* xref:getting-started.adoc[Guide de Démarrage Rapide]
 
-* Guide Développeur  
-** xref:dev-guide/index.adoc[Architecture Générale]
-** xref:dev-guide/architecture.adoc[Documentation Architecture]
+* Guides d'Installation et Déploiement
+** xref:deployment/azure-terraform-guide.adoc[🚀 Guide Complet Azure + Terraform]
+** xref:development/azure-deployment.adoc[Déploiement Azure Manuel]
+
+* Guides Utilisateur
+** xref:user-guide/dataset-selection.adoc[Sélection des Datasets]
+** xref:user-guide/dataset-detailed-view.adoc[Vue Détaillée des Datasets]
+** xref:user-guide/project-creation.adoc[Création de Projets ML]
+** xref:user-guide/project-configuration.adoc[Configuration des Projets]
+** xref:user-guide/pipeline-execution.adoc[Exécution des Pipelines]
+** xref:user-guide/results-interpretation.adoc[Interprétation des Résultats]
+** xref:user-guide/explainability-reports.adoc[Rapports d'Explicabilité]
+** xref:user-guide/data-export.adoc[Export des Données]
+** xref:user-guide/collaboration.adoc[Collaboration en Équipe]
+** xref:user-guide/profile-settings.adoc[Paramètres de Profil]
+** xref:user-guide/account-deletion.adoc[Suppression de Compte]
+
+* Guides de Développement
+** xref:dev-guide/architecture.adoc[Architecture Système]
 ** xref:dev-guide/api-reference.adoc[Référence API]
-** xref:dev-guide/database-schema.adoc[Schéma Base de Données]
-** xref:dev-guide/datasets-filtering-scoring.adoc[Filtrage et Scoring]
-** xref:dev-guide/datasets-scoring-algorithm.adoc[🧠 Algorithme de Scoring Avancé]
-** xref:dev-guide/heatmap-visualization.adoc[📊 Visualisation ECharts]
-** xref:dev-guide/dataset-detail-visualization.adoc[🔍 Visualisation Détaillée des Datasets]
-** xref:dev-guide/frontend-authentication.adoc[Authentification Frontend] 
 ** xref:dev-guide/authentication-error-messages.adoc[Messages d'Erreur d'Authentification]
-** xref:dev-guide/sidebar-user-profile.adoc[Profil Utilisateur]
-** xref:dev-guide/user-profile-components.adoc[👤 Composants Profil Utilisateur]
-** xref:dev-guide/internationalization.adoc[🌐 Internationalisation (i18n)]
-** xref:dev-guide/frontend-bug-fixes.adoc[🐛 Correctifs de Bugs Frontend]
-** xref:dev-guide/projects-weight-normalization.adoc[⚖️ Normalisation des Poids (Bug Fix)]
-** xref:dev-guide/project-security.adoc[🔒 Sécurité des Projets Utilisateur]
-** xref:dev-guide/secrets-management.adoc[Gestion des Secrets]
+** xref:dev-guide/database-schema.adoc[Schéma de Base de Données]
+** xref:dev-guide/database-migrations.adoc[Migrations de Base de Données]
+** xref:dev-guide/environment-setup.adoc[Configuration de l'Environnement]
+** xref:dev-guide/frontend-development.adoc[Développement Frontend]
+** xref:dev-guide/backend-api-development.adoc[Développement API Backend]
+** xref:dev-guide/ml-pipeline-integration.adoc[Intégration Pipeline ML]
+** xref:dev-guide/xai-engine-development.adoc[Développement Moteur XAI]
+** xref:dev-guide/testing-guide.adoc[Guide de Tests]
+** xref:dev-guide/monitoring-logging.adoc[Monitoring et Logging]
+** xref:dev-guide/security-guidelines.adoc[Directives de Sécurité]
+** xref:dev-guide/performance-optimization.adoc[Optimisation des Performances]
+** xref:dev-guide/ci-cd-pipeline.adoc[Pipeline CI/CD]
+** xref:dev-guide/troubleshooting.adoc[Dépannage]
+** xref:dev-guide/contributing.adoc[Guide de Contribution]
 
-* Déploiement
-** xref:development/database-migrations.adoc[Migrations Base de Données]
-** xref:development/azure-deployment.adoc[Déploiement Azure] 
+* Guides de Données
+** xref:dev-guide/dataset-management-guide.adoc[Gestion des Datasets]
+** xref:dev-guide/auto-dataset-initialization.adoc[Auto-initialisation des Datasets]
+** xref:dev-guide/object-storage-implementation.adoc[Implémentation Stockage d'Objets]
+** xref:dev-guide/storage-setup-guide.adoc[Configuration du Stockage]
+
+* Guides Avancés
+** xref:dev-guide/scalability-patterns.adoc[Patterns de Scalabilité]
+** xref:dev-guide/microservices-communication.adoc[Communication entre Microservices]
+** xref:dev-guide/data-privacy-compliance.adoc[Conformité Confidentialité des Données]
+** xref:dev-guide/disaster-recovery.adoc[Plan de Reprise d'Activité]
+
+* Administration
+** xref:development/database-migrations.adoc[Migrations de Base de Données] 

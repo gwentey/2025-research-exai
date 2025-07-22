@@ -8,7 +8,7 @@ metadata:
   # Nom unique du Deployment dans le namespace.
   name: service-selection
   # Namespace Kubernetes dans lequel ce Deployment sera créé.
-  namespace: exai
+  namespace: ibis-x
   # Labels associées au Deployment.
   labels:
     app: service-selection
@@ -51,42 +51,76 @@ spec:
                 secretKeyRef:
                   name: db-secrets
                   key: database-url
-          # Définition des ressources (CPU, mémoire) requises et limitées pour le conteneur.
+            # Active l'auto-initialisation des datasets en développement local
+            - name: AUTO_INIT_DATA
+              value: "true"
+            # Credentials Kaggle pour l'import automatique des vrais datasets
+            - name: KAGGLE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: kaggle-secrets
+                  key: username
+            - name: KAGGLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kaggle-secrets
+                  key: key
+            - name: STORAGE_BACKEND
+              value: "minio"
+            - name: STORAGE_ENDPOINT_URL
+              value: "http://minio-service.ibis-x.svc.cluster.local:9000"
+            - name: STORAGE_CONTAINER_NAME
+              value: "ibis-x-datasets"
+            - name: STORAGE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: storage-secrets
+                  key: access-key
+            - name: STORAGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: storage-secrets
+                  key: secret-key
+          # Vérifications de l'état de santé du conteneur.
+          readinessProbe:
+            # Requête HTTP pour vérifier si le conteneur est prêt.
+            httpGet:
+              path: /health
+              port: 8081
+            # Délai initial avant la première vérification (en secondes).
+            initialDelaySeconds: 10
+            # Fréquence des vérifications (en secondes).
+            periodSeconds: 10
+          livenessProbe:
+            # Requête HTTP pour vérifier si le conteneur est en vie.
+            httpGet:
+              path: /health
+              port: 8081
+            # Délai initial avant la première vérification (en secondes).
+            initialDelaySeconds: 30
+            # Fréquence des vérifications (en secondes).
+            periodSeconds: 30
+          # Définition des limites de ressources pour le conteneur.
           resources:
-            # Ressources minimales garanties pour le conteneur.
+            # Ressources demandées par le conteneur.
             requests:
               memory: "256Mi"
-              cpu: "250m"
-            # Limites maximales de ressources que le conteneur peut consommer.
+              cpu: "200m"
+            # Limites maximales des ressources.
             limits:
               memory: "512Mi"
               cpu: "500m"
-          # Readiness Probe : Vérifie si le conteneur est prêt à accepter du trafic.
-          # Kubernetes n'enverra pas de trafic au Pod tant que cette sonde n'est pas réussie.
-          readinessProbe:
-            # Type de sonde : une requête HTTP GET.
-            httpGet:
-              # Chemin à vérifier.
-              path: / # La racine de notre API devrait retourner 200 OK.
-              # Port sur lequel envoyer la requête.
-              port: 8081
-            # Délai initial avant la première sonde.
-            initialDelaySeconds: 10 # Attend 10s que le conteneur démarre
-            # Période entre les sondes.
-            periodSeconds: 10
-          # Liveness Probe : Vérifie si le conteneur est toujours en cours d'exécution et fonctionnel.
-          # Si cette sonde échoue plusieurs fois, Kubernetes redémarrera le conteneur.
-          livenessProbe:
-            httpGet:
-              path: / # Idem, la racine devrait répondre.
-              port: 8081
-            initialDelaySeconds: 20 # Attend un peu plus longtemps avant de vérifier la vitalité
-            periodSeconds: 20
-          # Montage de volumes dans le conteneur.
+          # Volumes montés dans le conteneur.
           volumeMounts:
-            - name: dataset-storage
-              mountPath: /datasets
-      # Définition des volumes disponibles pour ce Pod.
+            # Volume pour stocker les logs de l'application.
+            - name: app-logs
+              mountPath: /app/logs
+      # Définition des volumes utilisés par les conteneurs.
       volumes:
-        - name: dataset-storage
+        # Volume temporaire pour les logs.
+        - name: app-logs
           emptyDir: {}
+      # Politique de redémarrage des Pods en cas d'échec.
+      restartPolicy: Always
+      # Tolérance par défaut pour éviter l'éviction précoce par le scheduler.
+      terminationGracePeriodSeconds: 30

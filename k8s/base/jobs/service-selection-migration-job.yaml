@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: service-selection-migration-job
-  namespace: exai
+  namespace: ibis-x
 spec:
   # Supprime automatiquement le job après 5 minutes
   ttlSecondsAfterFinished: 300
@@ -12,8 +12,8 @@ spec:
     spec:
       containers:
       - name: service-selection-migration
-        # Image par défaut pour développement local (sera surchargée par overlays)
-        image: service-selection:latest
+        # Image ACR pour production Azure
+        image: ibisxprodacr6630.azurecr.io/service-selection:latest
         imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
         command: ["alembic", "upgrade", "head"]
         workingDir: /app # Répertoire où se trouve alembic.ini

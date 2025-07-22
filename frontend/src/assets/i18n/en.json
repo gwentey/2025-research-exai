@@ -28,7 +28,7 @@
     "MICROSOFT": "Microsoft",
     "LOGIN": {
       "TITLE": "Welcome back",
-      "SUBTITLE": "Sign in to access your ExAI workspace",
+      "SUBTITLE": "Sign in to access your IBIS-X workspace",
       "EMAIL_LABEL": "Email Address",
       "PASSWORD_LABEL": "Password",
       "SUBMIT": "Sign In",
@@ -44,7 +44,7 @@
     },
     "REGISTER": {
       "TITLE": "Create Account",
-      "SUBTITLE": "Join the ExAI platform to get started",
+      "SUBTITLE": "Join the IBIS-X platform to get started",
       "EMAIL_LABEL": "Email Address",
       "PASSWORD_LABEL": "Password",
       "CONFIRM_PASSWORD_LABEL": "Confirm Password",
@@ -63,7 +63,7 @@
     "LOADING": "Loading..."
   },
   "DASHBOARD": {
-    "TITLE": "EXAI Dashboard",
+    "TITLE": "IBIS-X Dashboard",
     "SUBTITLE": "Overview of your explainable AI platform",
     "REFRESH": "Refresh",
     "NEW_PROJECT": "New Project",
@@ -139,13 +139,13 @@
         },
         "VIEW_DOCUMENTATION": {
           "TITLE": "View Documentation",
-          "DESCRIPTION": "EXAI guides and tutorials"
+          "DESCRIPTION": "IBIS-X guides and tutorials"
         }
       }
     },
     "SYSTEM_STATUS": {
       "TITLE": "System Status",
-      "SUBTITLE": "EXAI Services",
+      "SUBTITLE": "IBIS-X Services",
       "API_GATEWAY": "API Gateway",
       "DATASET_SERVICE": "Dataset Service",
       "ML_PIPELINE": "ML Pipeline",
@@ -551,9 +551,9 @@
     }
   },
   "DASHBOARD": {
-    "TITLE": "ExAI Dashboard",
+    "TITLE": "IBIS-X Dashboard",
     "SUBTITLE": "Overview of your machine learning projects and datasets",
-    "WELCOME": "Welcome to ExAI Platform",
+    "WELCOME": "Welcome to IBIS-X Platform",
     "METRICS": {
       "DATASETS_AVAILABLE": "Datasets Available",
       "ACTIVE_PROJECTS": "Active Projects", 
@@ -574,6 +574,12 @@
       "EXPLANATION_GENERATED": "Explanation generated",
       "DATASET_UPLOADED": "Dataset uploaded"
     }
+  },
+  "STARTER": {
+    "WELCOME": "Welcome to IBIS-X",
+    "SUBTITLE": "Simple home page",
+    "VIEW_DATASETS": "View datasets",
+    "VIEW_PROJECTS": "View projects"
   },
   "CARDS": {
     "PROJECT": {
@@ -680,7 +686,7 @@
       "MY_PROFILE": "My Profile",
       "ACCOUNT_SETTINGS": "Account Settings",
       "PREFERENCES": "Preferences",
-      "EXAI_CONFIGURATION": "EXAI Configuration",
+      "IBIS_X_CONFIGURATION": "IBIS-X Configuration",
       "HELP_SUPPORT": "Help & Support",
       "DOCUMENTATION": "Documentation and FAQ"
     }

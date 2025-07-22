@@ -1,4 +1,4 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
+﻿apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Cet overlay se base sur ../../base
@@ -13,6 +13,7 @@ resources:
   - ../../base/postgres/postgresql-service.yaml
   - ../../base/service-selection/deployment.yaml
   - ../../base/service-selection/db-secrets.yaml
+  - ../../base/service-selection/storage-secrets.yaml
   - ../../base/service-selection/service.yaml
   # - ../../base/service-selection/dataset-pvc.yaml # Supprimé car nous n'utilisons plus de PVC
   - ../../base/frontend/deployment.yaml
@@ -25,36 +26,21 @@ resources:
 
 # Appliquer un namespace spécifique pour cet overlay
 # (Redondant si la base le fait déjà, mais peut être utile pour surcharger)
-# Décommenté pour forcer le déploiement dans le namespace 'exai' sur Azure
-namespace: exai
+# Décommenté pour forcer le déploiement dans le namespace 'ibis-x' sur Azure
+namespace: ibis-x
 
 # Remplacement des noms d'images spécifiques à Azure
 images:
-  - name: exai-api-gateway
-    newName: exaiprodacr.azurecr.io/exai-api-gateway
+  - name: ibis-x-api-gateway
+    newName: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway
   - name: service-selection
-    newName: exaiprodacr.azurecr.io/service-selection
+    newName: ibisxprodacr6630.azurecr.io/service-selection
   - name: frontend
-    newName: exaiprodacr.azurecr.io/frontend
+    newName: ibisxprodacr6630.azurecr.io/frontend
 
 # Patches pour les configurations spécifiques à Azure
-# Supprimer la référence au patch oauth-redirect-patch.yaml
-# patches:
-#   - path: oauth-redirect-patch.yaml
-#     target:
-#       kind: Secret
-#       name: gateway-secrets
-
-# Suppression du patch ciblant l'ancien Deployment
-# Patches pour les configurations spécifiques à Azure
-# patches:
-#   - path: postgresql-deployment-patch.yaml
-#     target:
-#       kind: Deployment
-#       name: postgresql-deployment
-
-# Patches spécifiques à Azure
 patches:
+  # Jobs de migration
   - path: migration-jobs-image-patch.yaml
     target:
       kind: Job
@@ -63,6 +49,16 @@ patches:
     target:
       kind: Job
       name: service-selection-migration-job
+  # Configuration stockage
+  - path: storage-config-patch.yaml
+    target:
+      kind: Deployment
+      name: service-selection
+  # Auto-initialisation des vrais datasets en production
+  - path: service-selection-auto-init-patch.yaml
+    target:
+      kind: Deployment
+      name: service-selection-deployment
 
 # Supprimer le patch pour le StatefulSet PostgreSQL puisque nous utilisons notre propre StatefulSet
 # patches:

@@ -1,8 +1,8 @@
-# EXAI : Plan d'Implémentation Révisé (Basé sur Avancement Actuel)
+# IBIS-X : Plan d'Implémentation Révisé (Basé sur Avancement Actuel)
 
-**Objectif :** Fournir une séquence d'étapes de développement **ajustée à l'état d'avancement actuel** du projet EXAI (tel que décrit dans le document "EXAI - Assistant IA pour développement PoC XAI"), destinée à être suivie par Cursor AI.
+**Objectif :** Fournir une séquence d'étapes de développement **ajustée à l'état d'avancement actuel** du projet IBIS-X (tel que décrit dans le document "IBIS-X - Assistant IA pour développement PoC XAI"), destinée à être suivie par Cursor AI.
 
-**Basé sur :** PRD Détaillé v2 (`prd_exai_poc_v2`), Tech Stack (`tech_stack_exai_v2`), État d'avancement fourni.
+**Basé sur :** PRD Détaillé v2 (`prd_ibis_x_poc_v2`), Tech Stack (`tech_stack_ibis_x_v2`), État d'avancement fourni.
 
 **Environnement Cible :** Développement local avec Docker & Minikube.
 
@@ -28,7 +28,7 @@
     * **Instruction :** Crée `skaffold.yaml`. Configure `artifacts` (build Docker pour chaque service) et `deploy` (via Kustomize `k8s/overlays/minikube/`).
     * **Test :** `skaffold build` doit réussir. `skaffold run` doit tenter le déploiement.
 * **[✅ Étape 0.7 : Déploiement PostgreSQL sur Minikube]** (Supposée faite)
-    * **Test :** Pods 'Running', PVC 'Bound', Service existe. Connexion via `kubectl exec ... psql` réussit. BDD `exai_db` et user `exai_user` existent.
+    * **Test :** Pods 'Running', PVC 'Bound', Service existe. Connexion via `kubectl exec ... psql` réussit. BDD `ibis_x_db` et user `ibis_x_user` existent.
 * **[✅ Étape 0.8 : Initialisation Tables BDD (datasets, users)]** (Supposée faite via Alembic ou script)
     * **Test :** Vérifier existence des tables `datasets` et `user` (et `alembic_version`) dans la BDD.
 * **[✅ Étape 0.9 : Stabilisation Environnement Local & Accès]**
@@ -147,7 +147,7 @@
 
 * **[✅ Étape 7.1 : Activation & Configuration NGINX Ingress]**
     * **Instruction :** Active addon Ingress Minikube. Crée `k8s/base/ingress.yaml`. Définit règles : `/` -> frontend-service, `/api/v1/` -> gateway-service (ou directement les services si gateway simplifiée). Applique. *(Note: Réalisé sur AKS avec Helm pour Nginx et Cert-Manager)*
-    * **Test :** Accéder à l'IP de Minikube (`minikube ip`). Vérifier que le frontend charge. Accéder à `/api/v1/datasets` (via IP Minikube), vérifier réponse (après login). *(Note: Testé avec succès sur les domaines publics `https://exai-pipeline.fr/` et `https://api.exai-pipeline.fr/`)*
+    * **Test :** Accéder à l'IP de Minikube (`minikube ip`). Vérifier que le frontend charge. Accéder à `/api/v1/datasets` (via IP Minikube), vérifier réponse (après login). *(Note: Testé avec succès sur les domaines publics `https://ibisx.fr/` et `https://api.ibisx.fr/`)*
 
 ## Phase 8 : Finalisation PoC et Test End-to-End
 

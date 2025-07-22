@@ -1,0 +1,22 @@
+# Kustomize patch pour la configuration MinIO en environnement minikube
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: service-selection
+        env:
+        - name: STORAGE_TYPE
+          value: "minio"
+        - name: MINIO_ENDPOINT
+          value: "http://minio-service.ibis-x.svc.cluster.local:6700"
+        - name: MINIO_ACCESS_KEY
+          value: "minioadmin"
+        - name: MINIO_SECRET_KEY
+          value: "minioadmin"
+        - name: STORAGE_BUCKET
+          value: "ibis-x-datasets" 

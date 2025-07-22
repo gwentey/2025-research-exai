@@ -6,11 +6,11 @@ on:
       - production
 
 env:
-  AZURE_CONTAINER_REGISTRY: 'exaiprodacr'
-  AZURE_RESOURCE_GROUP: 'exai-perso-rg'
-  AKS_CLUSTER_NAME: 'exai-prod-aks'
-  K8S_NAMESPACE: 'exai'
-  API_GATEWAY_IMAGE_NAME: 'exai-api-gateway'
+  AZURE_CONTAINER_REGISTRY: 'ibisprodacr'
+  AZURE_RESOURCE_GROUP: 'ibis-x-perso-rg'
+  AKS_CLUSTER_NAME: 'ibis-x-prod-aks'
+  K8S_NAMESPACE: 'ibis-x'
+  API_GATEWAY_IMAGE_NAME: 'ibis-x-api-gateway'
   SERVICE_SELECTION_IMAGE_NAME: 'service-selection'
   FRONTEND_IMAGE_NAME: 'frontend'
   WITH_DATA: 'true'
@@ -98,6 +98,10 @@ jobs:
           # Utiliser directement le secret OAUTH_REDIRECT_URL pour la production
           OAUTH_REDIRECT_URL_PROD_B64=$(echo -n "${{ secrets.OAUTH_REDIRECT_URL }}" | base64 -w 0)
           
+          # Encodage des credentials Kaggle pour l'auto-initialisation
+          KAGGLE_USERNAME_B64=$(echo -n "${{ secrets.KAGGLE_USERNAME }}" | base64 -w 0)
+          KAGGLE_KEY_B64=$(echo -n "${{ secrets.KAGGLE_KEY }}" | base64 -w 0)
+          
           # Mise à jour du fichier secret de base AVEC L'URL DE PRODUCTION
           sed -i "s|secret-key: .*|secret-key: $SECRET_KEY_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
           sed -i "s|database-url: .*|database-url: $DATABASE_URL_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
@@ -105,19 +109,28 @@ jobs:
           sed -i "s|google-client-secret: .*|google-client-secret: $GOOGLE_CLIENT_SECRET_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
           # Injecte l'URL de production (depuis secrets.OAUTH_REDIRECT_URL) dans le fichier de base
           sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $OAUTH_REDIRECT_URL_PROD_B64|g" k8s/base/api-gateway/gateway-secrets.yaml 
+          
+          # Mise à jour des secrets Kaggle pour l'auto-initialisation
+          sed -i "s|username: .*|username: $KAGGLE_USERNAME_B64|g" k8s/base/service-selection/kaggle-secrets.yaml
+          sed -i "s|key: .*|key: $KAGGLE_KEY_B64|g" k8s/base/service-selection/kaggle-secrets.yaml
           # Plus besoin de modifier le fichier patch Kustomize
 
       # --- ÉTAPE DE DÉBOGAGE --- 
-      - name: Verify gateway-secrets.yaml content AFTER sed
+      - name: Verify secrets content AFTER sed
         run: |
           echo "--- Content of k8s/base/api-gateway/gateway-secrets.yaml after sed: ---"
           cat k8s/base/api-gateway/gateway-secrets.yaml
           echo "--------------------------------------------------------------------"
+          echo "--- Content of k8s/base/service-selection/kaggle-secrets.yaml after sed: ---"
+          cat k8s/base/service-selection/kaggle-secrets.yaml
+          echo "--------------------------------------------------------------------"
 
-      # --- Supprimer l'ancien Secret AVANT Skaffold Deploy --- 
-      # Ceci force Skaffold à le recréer proprement basé sur les fichiers locaux modifiés.
-      - name: Delete existing gateway-secrets (force recreation)
-        run: kubectl delete secret gateway-secrets -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+      # --- Supprimer les anciens Secrets AVANT Skaffold Deploy --- 
+      # Ceci force Skaffold à les recréer proprement basé sur les fichiers locaux modifiés.
+      - name: Delete existing secrets (force recreation)
+        run: |
+          kubectl delete secret gateway-secrets -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
+          kubectl delete secret kaggle-secrets -n ${{ env.K8S_NAMESPACE }} --ignore-not-found=true
 
       # --- Installer Skaffold
       - name: Install Skaffold

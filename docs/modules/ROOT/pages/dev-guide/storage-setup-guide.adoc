@@ -1,0 +1,271 @@
+= Guide de Configuration du Stockage pour l'Auto-Initialisation
+:description: Configuration complète du stockage MinIO pour l'auto-initialisation des vrais datasets
+:keywords: MinIO, stockage, configuration, auto-initialisation, développement
+
+== Vue d'Ensemble
+
+Pour que l'**auto-initialisation des vrais datasets** fonctionne, le système IBIS-X nécessite un stockage d'objets configuré. Cette page explique comment tout est automatiquement configuré pour vous.
+
+== ✅ Configuration Automatique Incluse
+
+**Bonne nouvelle !** Toute l'infrastructure de stockage est maintenant **automatiquement déployée** avec votre environnement IBIS-X :
+
+=== Composants Automatiquement Déployés
+
+[cols="2,3,2"]
+|===
+|Composant |Description |Statut
+
+|**MinIO Server**
+|Stockage d'objets compatible S3 pour développement
+|✅ Auto-déployé
+
+|**MinIO Service**
+|Service Kubernetes pour accès interne
+|✅ Auto-configuré
+
+|**Stockage Persistant**
+|Volume persistant de 5Go pour MinIO
+|✅ Auto-créé
+
+|**Secrets Unifiés**
+|Credentials MinIO et Azure pré-configurés
+|✅ Pré-configuré
+
+|**Variables d'Environnement**
+|Configuration automatique des services
+|✅ Auto-injectées
+|===
+
+=== Configuration Automatique des Services
+
+Lorsque vous démarrez avec `make dev-with-data`, voici ce qui se passe automatiquement :
+
+1. **MinIO déployé** : Server MinIO démarré avec stockage persistant
+2. **Service exposé** : MinIO accessible via `minio-service.IBIS-X.svc.cluster.local:9000`
+3. **Bucket créé** : Bucket `IBIS-X-datasets` créé automatiquement
+4. **Service-selection configuré** : Variables d'environnement injectées automatiquement
+5. **Auto-init activée** : Initialisation des vrais datasets au démarrage
+
+== 🔧 Variables d'Environnement Automatiques
+
+=== Service-Selection (Automatique)
+
+[source,yaml]
+----
+env:
+  - name: STORAGE_BACKEND
+    value: "minio"
+  - name: STORAGE_ENDPOINT_URL
+    value: "http://minio-service.IBIS-X.svc.cluster.local:9000"
+  - name: STORAGE_CONTAINER_NAME
+    value: "IBIS-X-datasets"
+  - name: STORAGE_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: storage-secrets
+        key: access-key  # = minioadmin
+  - name: STORAGE_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: storage-secrets  
+        key: secret-key  # = minioadmin
+----
+
+=== Credentials par Défaut
+
+[source,bash]
+----
+# Credentials MinIO (pré-configurés)
+Username: minioadmin
+Password: minioadmin
+Endpoint: http://minio-service.IBIS-X.svc.cluster.local:9000
+Bucket: IBIS-X-datasets
+----
+
+== 🚀 Démarrage Immédiat
+
+Aucune configuration manuelle nécessaire ! Lancez simplement :
+
+[source,bash]
+----
+make dev-with-data
+----
+
+**Ce qui se passe automatiquement :**
+
+1. ✅ **Minikube démarré** avec configuration optimale
+2. ✅ **Namespace `IBIS-X` créé**
+3. ✅ **PostgreSQL déployé** avec stockage persistant
+4. ✅ **MinIO déployé** avec stockage persistant (NOUVEAU !)
+5. ✅ **Services applicatifs déployés** avec variables d'environnement
+6. ✅ **Migrations de base de données** exécutées
+7. ✅ **Auto-initialisation des vrais datasets** avec conversion Parquet
+8. ✅ **Logs en temps réel** affichés
+
+== 🔍 Vérification du Stockage
+
+=== Vérifier MinIO
+
+[source,bash]
+----
+# Vérifier que MinIO est démarré
+kubectl get pods -n IBIS-X -l app=minio
+
+# Vérifier le service MinIO
+kubectl get service minio-service -n IBIS-X
+
+# Vérifier les logs MinIO
+kubectl logs -f deployment/minio -n IBIS-X
+----
+
+=== Vérifier les Datasets Uploadés
+
+[source,bash]
+----
+# Vérifier que les datasets sont dans la base
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
+import sys; sys.path.append('/app')
+from app.database import SessionLocal
+from app.models import Dataset
+with SessionLocal() as db:
+    datasets = db.query(Dataset).all()
+    for d in datasets:
+        print(f'📊 {d.name}: {d.storage_path} ({d.row_count} lignes)')
+"
+
+# Tester l'accès au stockage depuis le service
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
+import sys; sys.path.append('/app/..')
+from common.storage_client import get_storage_client
+try:
+    client = get_storage_client()
+    print('✅ Connexion stockage OK')
+except Exception as e:
+    print(f'❌ Erreur stockage: {e}')
+"
+----
+
+== 🌐 Accès à l'Interface MinIO (Optionnel)
+
+Si vous souhaitez accéder à l'interface web de MinIO pour débugger :
+
+[source,bash]
+----
+# Créer un port-forward vers MinIO Console
+kubectl port-forward -n IBIS-X service/minio-service 9001:9001
+
+# Accéder à l'interface via : http://localhost:9001
+# Credentials : minioadmin / minioadmin
+----
+
+== 📊 Monitoring du Stockage
+
+=== Vérifier l'Espace de Stockage
+
+[source,bash]
+----
+# Vérifier l'utilisation du PVC MinIO
+kubectl get pvc minio-data-pvc -n IBIS-X
+
+# Vérifier les détails du volume
+kubectl describe pvc minio-data-pvc -n IBIS-X
+----
+
+=== Surveiller les Uploads
+
+[source,bash]
+----
+# Surveiller les logs d'upload en temps réel
+kubectl logs -f deployment/service-selection -n IBIS-X | grep -i "upload\|storage\|parquet"
+----
+
+== 🔧 Dépannage
+
+=== Problèmes Courants
+
+[cols="2,3,3"]
+|===
+|Problème |Symptôme |Solution
+
+|MinIO ne démarre pas
+|Pod en `CrashLoopBackOff`
+|Vérifier les logs : `kubectl logs deployment/minio -n IBIS-X`
+
+|PVC pas attaché
+|Pod en `Pending`
+|Vérifier la classe de stockage : `kubectl get storageclass`
+
+|Connexion refusée
+|Erreur "connection refused"
+|Vérifier le service : `kubectl get svc minio-service -n IBIS-X`
+
+|Upload échoue
+|Erreur lors de l'auto-init
+|Vérifier les credentials dans les secrets : `kubectl get secret storage-secrets -n IBIS-X -o yaml`
+
+|Variables d'env manquantes
+|Service ne trouve pas le stockage
+|Vérifier que le pod service-selection a les bonnes env vars
+|===
+
+=== Commandes de Diagnostic
+
+[source,bash]
+----
+# Diagnostic complet du stockage
+echo "=== État MinIO ==="
+kubectl get all -n IBIS-X -l app=minio
+
+echo "=== État PVC ==="
+kubectl get pvc -n IBIS-X
+
+echo "=== Secrets Stockage ==="
+kubectl get secret storage-secrets -n IBIS-X
+
+echo "=== Variables Env Service-Selection ==="
+kubectl exec -n IBIS-X deployment/service-selection -- env | grep STORAGE
+
+echo "=== Test Connexion ==="
+kubectl exec -n IBIS-X deployment/service-selection -- python -c "
+import sys; sys.path.append('/app/..')
+from common.storage_client import get_storage_client
+try:
+    client = get_storage_client()
+    print('✅ Connexion réussie')
+except Exception as e:
+    print(f'❌ Erreur: {e}')
+"
+----
+
+== 🏭 Production Azure
+
+En production, le système bascule automatiquement vers **Azure Blob Storage** grâce au patch Kustomize :
+
+[source,yaml]
+----
+# k8s/overlays/azure/storage-config-patch.yaml
+env:
+  - name: STORAGE_BACKEND
+    value: "azure"  # Bascule vers Azure
+  - name: STORAGE_ENDPOINT_URL
+    value: "https://your-storage-account.blob.core.windows.net"
+----
+
+**Avantages Azure :**
+* 🌐 Géo-réplication automatique
+* 🔒 Sécurité enterprise
+* 📈 Scalabilité illimitée
+* 💰 Modèle de coût à l'usage
+
+== ✅ Résumé
+
+**Vous n'avez rien à configurer manuellement !**
+
+✅ **MinIO** : Déployé automatiquement  
+✅ **Stockage** : 5Go de PVC persistant  
+✅ **Secrets** : Credentials pré-configurés  
+✅ **Variables** : Injection automatique  
+✅ **Auto-init** : Vrais datasets uploadés automatiquement
+
+Lancez simplement `make dev-with-data` et profitez de votre système IBIS-X avec vrais datasets automatiquement initialisés ! 🎉 

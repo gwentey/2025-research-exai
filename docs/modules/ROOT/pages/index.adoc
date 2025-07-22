@@ -1,35 +1,303 @@
-= Bienvenue dans la Documentation du Projet EXAI
+= Documentation IBIS-X (Explainable AI Platform)
+:description: Documentation complète de la plateforme IBIS-X pour l'intelligence artificielle explicable
+:keywords: explicabilité, intelligence artificielle, machine learning, transparence
+:page-layout: default
+:!sectids:
 
-// Optionnel: Ajouter un sous-titre plus descriptif
-// :page-subtitle: Un outil scientifique pour l'IA Explicable et la Sélection de Données
+Bienvenue dans la documentation de la plateforme IBIS-X, votre solution complète pour développer, déployer et expliquer des modèles d'intelligence artificielle.
 
-// Badge pour indiquer le statut du PoC
-[.lead]
-image:https://img.shields.io/badge/Statut-Proof%20of%20Concept%20(PoC)-blue.svg[PoC]
+== 🚀 Démarrage Rapide
 
-Ce projet s'inscrit dans un **Proof of Concept (PoC) scientifique** visant à développer un outil innovant pour la communauté de recherche et les praticiens de l'Intelligence Artificielle.
+=== Nouveau ! Infrastructure Automatisée Azure
 
-== Contexte et Objectifs
+[.card.featured]
+****
+**🆕 Déploiement Azure Ultra-Simplifié avec Terraform**
 
-Le projet EXAI vise à répondre à trois défis majeurs dans le domaine de l'IA appliquée :
+Plus jamais de configuration manuelle ! Déployez toute votre infrastructure Azure en une seule commande.
 
-1.  **Sélection de Datasets :** Aider les utilisateurs (experts ou non) à choisir des datasets pertinents en fonction de critères techniques, éthiques et métier spécifiques à leurs besoins.
-2.  **Pipeline ML Interactif :** Fournir une interface guidée pour la création et l'expérimentation de pipelines de Machine Learning, rendant ces processus accessibles même aux non-spécialistes.
-3.  **Explicabilité (XAI) :** Recommander et appliquer des techniques d'IA Explicable adaptées au modèle, aux données et aux besoins de l'utilisateur, afin de favoriser la confiance et la compréhension des modèles d'IA.
+* ✅ **Infrastructure complète** : AKS, stockage, monitoring, SSL automatique
+* ✅ **Développement local** : Environnement de dev avec hot reload  
+* ✅ **Zero configuration** : Scripts entièrement automatisés
+* ✅ **Production-ready** : Sécurité et bonnes pratiques intégrées
 
-== Enjeux Scientifiques
+[.text-center]
+xref:deployment/azure-terraform-guide.adoc[🚀 **Guide Complet Azure + Terraform** →]
+****
 
-Ce PoC accorde une importance particulière aux aspects suivants :
+=== Guides d'Installation
 
-*   **Validation Académique :** Le processus et les résultats doivent suivre une démarche scientifique rigoureuse.
-*   **Explicabilité :** L'intégration native de méthodes XAI est au cœur du projet.
-*   **Reproductibilité :** La documentation (gérée via Antora) doit permettre à quiconque de comprendre, utiliser et répliquer entièrement le système et les expériences.
-*   **Éthique & RGPD :** Les considérations éthiques et la conformité réglementaire sont intégrées dès la conception.
+[cols="1,1", frame=none, grid=none]
+|===
+a|
+[.card]
+****
+**⚡ Installation Automatisée**
 
-== Navigation
+Terraform + Scripts automatisés pour Azure
 
-Utilisez le menu de navigation sur la gauche pour explorer les différentes sections :
+* Infrastructure cloud complète
+* Développement local avec Make
+* Monitoring intégré
 
-*   xref:getting-started.adoc[Installation & Démarrage] : Pour commencer à utiliser EXAI.
-*   `Guide Utilisateur` : Pour apprendre à utiliser les fonctionnalités principales.
-*   `Guide Développeur` : Pour comprendre l'architecture et comment contribuer. 
+xref:deployment/azure-terraform-guide.adoc[Guide Azure Terraform →]
+****
+
+a|
+[.card]
+****
+**🔧 Installation Manuelle**
+
+Pour les environnements personnalisés
+
+* Configuration étape par étape
+* Contrôle total des composants
+* Environnements spécialisés
+
+xref:development/azure-deployment.adoc[Déploiement Manuel →]
+****
+|===
+
+== 📚 Documentation par Rôle
+
+=== 👨‍💻 Développeurs
+
+[.card-grid]
+****
+[.card]
+--
+**Architecture & APIs**
+
+* xref:dev-guide/architecture.adoc[Architecture Système]
+* xref:dev-guide/api-reference.adoc[Référence API Complète]
+* xref:dev-guide/frontend-development.adoc[Développement Frontend]
+* xref:dev-guide/backend-api-development.adoc[APIs Backend]
+--
+
+[.card]
+--
+**Données & Stockage**
+
+* xref:dev-guide/dataset-management-guide.adoc[Gestion des Datasets]
+* xref:dev-guide/object-storage-implementation.adoc[Stockage d'Objets]
+* xref:dev-guide/auto-dataset-initialization.adoc[Auto-initialisation]
+--
+
+[.card]
+--
+**Tests & Qualité**
+
+* xref:dev-guide/testing-guide.adoc[Guide de Tests]
+* xref:dev-guide/monitoring-logging.adoc[Monitoring]
+* xref:dev-guide/security-guidelines.adoc[Sécurité]
+--
+****
+
+=== 👥 Utilisateurs Finaux
+
+[.card-grid]
+****
+[.card]
+--
+**Gestion des Projets**
+
+* xref:user-guide/project-creation.adoc[Créer un Projet ML]
+* xref:user-guide/dataset-selection.adoc[Sélectionner des Datasets]
+* xref:user-guide/pipeline-execution.adoc[Exécuter des Pipelines]
+--
+
+[.card]
+--
+**Analyse & Résultats**
+
+* xref:user-guide/results-interpretation.adoc[Interpréter les Résultats]
+* xref:user-guide/explainability-reports.adoc[Rapports d'Explicabilité]
+* xref:user-guide/data-export.adoc[Exporter les Données]
+--
+
+[.card]
+--
+**Collaboration**
+
+* xref:user-guide/collaboration.adoc[Travail en Équipe]
+* xref:user-guide/profile-settings.adoc[Paramètres de Profil]
+* xref:user-guide/account-deletion.adoc[Gestion du Compte]
+--
+****
+
+=== 🏗️ Administrateurs & DevOps
+
+[.card-grid]
+****
+[.card]
+--
+**Infrastructure**
+
+* xref:deployment/azure-terraform-guide.adoc[🚀 Terraform Azure]
+* xref:development/azure-deployment.adoc[Déploiement Manuel]
+* xref:dev-guide/environment-setup.adoc[Configuration Environnement]
+--
+
+[.card]
+--
+**Maintenance**
+
+* xref:development/database-migrations.adoc[Migrations BDD]
+* xref:dev-guide/troubleshooting.adoc[Dépannage]
+* xref:dev-guide/performance-optimization.adoc[Optimisation]
+--
+
+[.card]
+--
+**Avancé**
+
+* xref:dev-guide/scalability-patterns.adoc[Patterns de Scalabilité]
+* xref:dev-guide/disaster-recovery.adoc[Plan de Reprise]
+* xref:dev-guide/ci-cd-pipeline.adoc[Pipeline CI/CD]
+--
+****
+
+== 🎯 Fonctionnalités Principales
+
+=== Intelligence Artificielle Explicable
+
+IBIS-X transforme vos modèles ML complexes en insights compréhensibles :
+
+* **📊 Analyse de Features** : Importance et impact des variables
+* **🔍 Explication Locale** : Pourquoi une prédiction spécifique
+* **📈 Visualisations Intuitives** : Graphiques et rapports clairs
+* **🎛️ Comparaison de Modèles** : Évaluation de performance et transparence
+
+=== Workflow Complet de ML
+
+De la donnée au modèle explicable :
+
+[source,mermaid]
+----
+graph LR
+    A[📥 Import Datasets] --> B[🔧 Preprocessing]
+    B --> C[🤖 Entraînement ML]
+    C --> D[🔍 Génération XAI]
+    D --> E[📊 Rapports Explicables]
+    E --> F[📤 Export & Partage]
+----
+
+=== Architecture Cloud-Native
+
+* **☸️ Kubernetes** : Orchestration et scalabilité automatique
+* **🐳 Containerisation** : Déploiement cohérent et isolé
+* **📊 Monitoring** : Métriques et logs en temps réel
+* **🔒 Sécurité** : Authentification, autorisation et chiffrement
+
+== 🆕 Nouveautés
+
+=== Version 2.0 - Infrastructure as Code
+
+[.highlight-box]
+****
+**🎉 Déploiement Azure Révolutionnaire**
+
+* **Terraform complet** : Infrastructure entière automatisée
+* **Scripts intelligents** : Déploiement en une commande
+* **Développement hybride** : Cloud + environnement local
+* **Monitoring intégré** : Application Insights + Log Analytics
+
+xref:deployment/azure-terraform-guide.adoc[Découvrir le nouveau workflow →]
+****
+
+=== Améliorations Récentes
+
+* ✅ **Auto-initialisation des datasets** : Plus de configuration manuelle
+* ✅ **Stockage d'objets hybride** : MinIO local + Azure Blob en production
+* ✅ **Pipeline CI/CD amélioré** : Déploiement continu automatisé
+* ✅ **Interface utilisateur modernisée** : Angular avec Material Design
+
+== 🛠️ Technologies
+
+IBIS-X est construit avec des technologies modernes et éprouvées :
+
+[cols="3*", frame=none, grid=rows]
+|===
+| **Frontend** | **Backend** | **Infrastructure**
+
+| Angular 17 + Material
+TypeScript
+RxJS | FastAPI + Python
+PostgreSQL
+Async/Await | Kubernetes (AKS)
+Docker
+Terraform
+
+| **ML & XAI** | **Stockage** | **Monitoring**
+
+| Scikit-learn
+SHAP, LIME
+Pandas, NumPy | Azure Blob Storage
+MinIO (local)
+Parquet optimisé | Application Insights
+Log Analytics
+Prometheus
+|===
+
+== 🎓 Formation et Support
+
+=== Ressources d'Apprentissage
+
+* **🎥 Tutoriels Vidéo** : Guides pas à pas pour chaque fonctionnalité
+* **📖 Exemples Pratiques** : Cas d'usage réels avec datasets
+* **🧪 Environnement de Test** : Sandbox pour expérimenter
+* **📚 Documentation API** : Référence complète des endpoints
+
+=== Support Communautaire
+
+* **💬 Discussions GitHub** : Questions et partage d'expérience
+* **🐛 Reporting de Bugs** : Système de tickets intégré
+* **🚀 Demandes de Fonctionnalités** : Roadmap collaborative
+* **📝 Contributions** : Guide pour contribuer au projet
+
+== 🎯 Cas d'Usage
+
+=== Secteurs d'Application
+
+[.use-cases]
+****
+**🏥 Santé** : Diagnostic médical explicable et transparent
+
+**🏦 Finance** : Analyse de risque crédit avec justifications
+
+**🛒 E-commerce** : Recommandations personnalisées compréhensibles
+
+**🏭 Industrie** : Maintenance prédictive avec explications
+
+**🎓 Éducation** : Évaluation d'apprentissage justifiée
+****
+
+=== Types de Modèles Supportés
+
+* **Classification** : Binaire et multi-classes
+* **Régression** : Prédiction de valeurs continues
+* **Clustering** : Segmentation et groupement
+* **Séries Temporelles** : Prédiction temporelle explicable
+
+== 🚀 Commencer Maintenant
+
+[.cta-section]
+****
+**Prêt à déployer IBIS-X ?**
+
+[.button-group]
+* xref:deployment/azure-terraform-guide.adoc[🚀 **Déploiement Automatique Azure**] _(Recommandé)_
+* xref:getting-started.adoc[⚡ **Guide de Démarrage Rapide**]
+* xref:development/azure-deployment.adoc[🔧 **Installation Manuelle**]
+
+**Besoin d'aide ?**
+
+* xref:dev-guide/troubleshooting.adoc[🔧 Guide de Dépannage]
+* https://github.com/votre-org/ibis-x/discussions[💬 Discussions GitHub]
+* mailto:support@ibis-x.com[📧 Support Technique]
+****
+
+---
+
+[.footer-note]
+_IBIS-X est un projet open-source dédié à démocratiser l'intelligence artificielle explicable. Contribuez sur https://github.com/votre-org/ibis-x[GitHub] !_ 

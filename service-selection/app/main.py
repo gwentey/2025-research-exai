@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Query, Header
+from fastapi import FastAPI, Depends, HTTPException, Query, Header, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_
 from typing import List, Optional
@@ -6,6 +6,8 @@ from datetime import datetime
 import math
 import logging
 import uuid
+import pandas as pd
+import io
 from pydantic import UUID4
 
 # Configuration du logging
@@ -21,17 +23,25 @@ try:
     from . import models
     from . import database
     from . import schemas
+    from . import auto_init
 except ImportError:
     # Imports absolus pour le conteneur Docker
     import models
     import database
     import schemas
+    import auto_init
+
+# Import du client de stockage commun
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from common.storage_client import get_storage_client, StorageClientError
 from fastapi.middleware.cors import CORSMiddleware
 
 # --- Configuration de l'application FastAPI ---
 
 app = FastAPI(
-    title="Service de Sélection de Datasets EXAI",
+    title="Service de Sélection de Datasets IBIS-X",
     description="API pour la gestion des datasets avec métadonnées techniques et éthiques.",
     version="2.0.0"
 )
@@ -44,6 +54,119 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Event handler pour l'auto-initialisation au démarrage
+@app.on_event("startup")
+async def startup_event():
+    """
+    Event handler de démarrage - lance l'auto-initialisation des vrais datasets
+    si la variable d'environnement AUTO_INIT_DATA=true.
+    """
+    logger.info("Démarrage de l'application Service Selection")
+    await auto_init.auto_init_startup()
+
+# --- Fonctions utilitaires pour le stockage ---
+
+def convert_to_parquet(file_content: bytes, filename: str) -> bytes:
+    """
+    Convertit un fichier CSV en format Parquet.
+    
+    Args:
+        file_content: Contenu du fichier CSV en bytes
+        filename: Nom original du fichier
+        
+    Returns:
+        Contenu du fichier Parquet en bytes
+    """
+    try:
+        # Lire le CSV depuis les bytes
+        csv_data = pd.read_csv(io.BytesIO(file_content))
+        
+        # Convertir en Parquet
+        parquet_buffer = io.BytesIO()
+        csv_data.to_parquet(parquet_buffer, index=False)
+        parquet_buffer.seek(0)
+        
+        return parquet_buffer.read()
+    except Exception as e:
+        logger.error(f"Erreur lors de la conversion CSV->Parquet pour {filename}: {str(e)}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Impossible de convertir le fichier {filename} en Parquet: {str(e)}"
+        )
+
+def upload_dataset_files(dataset_id: str, files: List[UploadFile]) -> str:
+    """
+    Upload les fichiers d'un dataset vers le stockage d'objets.
+    
+    Args:
+        dataset_id: UUID du dataset
+        files: Liste des fichiers à uploader
+        
+    Returns:
+        storage_path: Préfixe du dossier de stockage (ex: 'ibis-x-datasets/uuid/')
+    """
+    try:
+        storage_client = get_storage_client()
+        storage_path_prefix = f"ibis-x-datasets/{dataset_id}/"
+        
+        for file in files:
+            # Lire le contenu du fichier
+            file_content = file.file.read()
+            file.file.seek(0)  # Reset pour usage ultérieur si nécessaire
+            
+            # Convertir en Parquet si c'est un CSV
+            if file.filename.lower().endswith('.csv'):
+                parquet_content = convert_to_parquet(file_content, file.filename)
+                parquet_filename = file.filename.rsplit('.', 1)[0] + '.parquet'
+                object_path = f"{storage_path_prefix}{parquet_filename}"
+                storage_client.upload_file(parquet_content, object_path)
+                logger.info(f"Fichier uploadé et converti: {file.filename} -> {parquet_filename}")
+            else:
+                # Upload direct pour les autres formats
+                object_path = f"{storage_path_prefix}{file.filename}"
+                storage_client.upload_file(file_content, object_path)
+                logger.info(f"Fichier uploadé: {file.filename}")
+        
+        return storage_path_prefix
+        
+    except StorageClientError as e:
+        logger.error(f"Erreur de stockage pour dataset {dataset_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erreur lors de l'upload des fichiers: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors de l'upload pour dataset {dataset_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erreur inattendue lors de l'upload: {str(e)}"
+        )
+
+def cleanup_dataset_storage(storage_path: str):
+    """
+    Nettoie les fichiers de stockage d'un dataset.
+    
+    Args:
+        storage_path: Préfixe du dossier de stockage à nettoyer
+    """
+    try:
+        storage_client = get_storage_client()
+        
+        # Lister et supprimer tous les fichiers dans le préfixe
+        files = storage_client.list_files(prefix=storage_path)
+        for file_path in files:
+            success = storage_client.delete_file(file_path)
+            if success:
+                logger.info(f"Fichier de stockage supprimé: {file_path}")
+            else:
+                logger.warning(f"Échec de suppression du fichier: {file_path}")
+                
+    except StorageClientError as e:
+        logger.error(f"Erreur lors du nettoyage du stockage {storage_path}: {str(e)}")
+        # Ne pas lever d'exception ici car la suppression en BDD est prioritaire
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors du nettoyage {storage_path}: {str(e)}")
 
 # --- Authentification via headers ---
 
@@ -257,15 +380,52 @@ def apply_sorting(query, sort_by: str, sort_order: str):
 async def root():
     """Route racine simple pour vérifier que l'API est en ligne."""
     return {
-        "message": "Bienvenue sur l'API du Service de Sélection de Datasets EXAI",
+        "message": "Bienvenue sur l'API du Service de Sélection de Datasets IBIS-X",
         "version": app.version,
         "documentation": ["/docs", "/redoc"]
     }
 
 @app.get("/health")
 async def health_check():
-    """Vérification de la santé du service."""
+    """Endpoint de vérification de santé du service."""
     return {"status": "healthy", "service": "service-selection"}
+
+@app.get("/debug/datasets-count")
+async def debug_datasets_count():
+    """
+    ENDPOINT TEMPORAIRE - Retourne le nombre total de datasets
+    À SUPPRIMER en production !
+    """
+    try:
+        session = next(database.get_db())
+        datasets = session.query(models.Dataset).all()
+        
+        # Compter par nom unique pour détecter les doublons
+        unique_names = set()
+        dataset_details = []
+        
+        for dataset in datasets:
+            unique_names.add(dataset.dataset_name)
+            dataset_details.append({
+                "id": dataset.id,
+                "name": dataset.dataset_name,
+                "instances": dataset.instances_number,
+                "storage_path": dataset.storage_path
+            })
+        
+        return {
+            "total_datasets": len(datasets),
+            "unique_dataset_names": len(unique_names),
+            "status": "✅ OK" if len(datasets) <= 10 else f"⚠️  TROP DE DOUBLONS ({len(datasets)})",
+            "datasets": dataset_details
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors du debug datasets: {e}")
+        return {
+            "error": str(e),
+            "total_datasets": "unknown"
+        }
 
 @app.get("/datasets", response_model=schemas.DatasetListResponse)
 def list_datasets(
@@ -460,7 +620,7 @@ def get_dataset_details(dataset_id: str, db: Session = Depends(database.get_db))
     distribution_analysis = generate_distribution_analysis(dataset)
     
     # Générer les métadonnées des fichiers
-    files_metadata = generate_files_metadata(dataset)
+    files_metadata = generate_files_metadata(dataset, db)
     
     return schemas.DatasetDetailResponse(
         id=dataset.id,
@@ -502,8 +662,8 @@ def get_dataset_preview(dataset_id: str, db: Session = Depends(database.get_db))
     if dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
     
-    # Générer l'aperçu des données (simulation)
-    preview_data = generate_dataset_preview(dataset)
+    # Générer l'aperçu des données depuis MinIO
+    preview_data = generate_dataset_preview(dataset, db)
     
     return preview_data
 
@@ -549,17 +709,178 @@ def get_similar_datasets(dataset_id: str, limit: int = 5, db: Session = Depends(
     )
 
 @app.post("/datasets", response_model=schemas.DatasetRead, status_code=201)
-def create_dataset(dataset: schemas.DatasetCreate, db: Session = Depends(database.get_db)):
-    """Crée un nouvel enregistrement de dataset dans la base de données."""
-    # Créer une instance du modèle SQLAlchemy
-    db_dataset = models.Dataset(**dataset.dict())
-    
-    # Ajouter à la session et sauvegarder
-    db.add(db_dataset)
-    db.commit()
-    db.refresh(db_dataset)
-    
-    return db_dataset
+def create_dataset(
+    dataset_name: str = Form(...),
+    year: Optional[int] = Form(None),
+    objective: Optional[str] = Form(None),
+    access: Optional[str] = Form(None),
+    availability: Optional[str] = Form(None),
+    num_citations: Optional[int] = Form(0),
+    citation_link: Optional[str] = Form(None),
+    sources: Optional[str] = Form(None),
+    storage_uri: Optional[str] = Form(None),
+    instances_number: Optional[int] = Form(None),
+    features_description: Optional[str] = Form(None),
+    features_number: Optional[int] = Form(None),
+    domain: Optional[str] = Form(None),  # JSON string pour les arrays
+    representativity_description: Optional[str] = Form(None),
+    representativity_level: Optional[str] = Form(None),
+    sample_balance_description: Optional[str] = Form(None),
+    sample_balance_level: Optional[str] = Form(None),
+    split: Optional[bool] = Form(False),
+    missing_values_description: Optional[str] = Form(None),
+    has_missing_values: Optional[bool] = Form(False),
+    global_missing_percentage: Optional[float] = Form(None),
+    missing_values_handling_method: Optional[str] = Form(None),
+    temporal_factors: Optional[bool] = Form(False),
+    metadata_provided_with_dataset: Optional[bool] = Form(False),
+    external_documentation_available: Optional[bool] = Form(False),
+    documentation_link: Optional[str] = Form(None),
+    task: Optional[str] = Form(None),  # JSON string pour les arrays
+    # Critères éthiques
+    informed_consent: Optional[bool] = Form(False),
+    transparency: Optional[bool] = Form(False),
+    user_control: Optional[bool] = Form(False),
+    equity_non_discrimination: Optional[bool] = Form(False),
+    security_measures_in_place: Optional[bool] = Form(False),
+    data_quality_documented: Optional[bool] = Form(False),
+    data_errors_description: Optional[str] = Form(None),
+    anonymization_applied: Optional[bool] = Form(False),
+    record_keeping_policy_exists: Optional[bool] = Form(False),
+    purpose_limitation_respected: Optional[bool] = Form(False),
+    accountability_defined: Optional[bool] = Form(False),
+    # Fichiers
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(database.get_db)
+):
+    """
+    Crée un nouvel enregistrement de dataset avec upload de fichiers.
+    Supporte le format multipart/form-data avec métadonnées et fichiers.
+    """
+    try:
+        # Générer un UUID pour le dataset
+        dataset_id = str(uuid.uuid4())
+        
+        # Upload des fichiers vers le stockage d'objets
+        storage_path = upload_dataset_files(dataset_id, files)
+        
+        # Parser les arrays JSON si nécessaires
+        domain_list = None
+        if domain:
+            try:
+                import json
+                domain_list = json.loads(domain)
+            except:
+                domain_list = [domain]  # Fallback si c'est une string simple
+        
+        task_list = None
+        if task:
+            try:
+                import json
+                task_list = json.loads(task)
+            except:
+                task_list = [task]  # Fallback si c'est une string simple
+        
+        # Créer l'instance du modèle SQLAlchemy avec l'UUID fixe et storage_path
+        db_dataset = models.Dataset(
+            id=dataset_id,
+            dataset_name=dataset_name,
+            year=year,
+            objective=objective,
+            access=access,
+            availability=availability,
+            num_citations=num_citations,
+            citation_link=citation_link,
+            sources=sources,
+            storage_uri=storage_uri,
+            storage_path=storage_path,
+            instances_number=instances_number,
+            features_description=features_description,
+            features_number=features_number,
+            domain=domain_list,
+            representativity_description=representativity_description,
+            representativity_level=representativity_level,
+            sample_balance_description=sample_balance_description,
+            sample_balance_level=sample_balance_level,
+            split=split,
+            missing_values_description=missing_values_description,
+            has_missing_values=has_missing_values,
+            global_missing_percentage=global_missing_percentage,
+            missing_values_handling_method=missing_values_handling_method,
+            temporal_factors=temporal_factors,
+            metadata_provided_with_dataset=metadata_provided_with_dataset,
+            external_documentation_available=external_documentation_available,
+            documentation_link=documentation_link,
+            task=task_list,
+            informed_consent=informed_consent,
+            transparency=transparency,
+            user_control=user_control,
+            equity_non_discrimination=equity_non_discrimination,
+            security_measures_in_place=security_measures_in_place,
+            data_quality_documented=data_quality_documented,
+            data_errors_description=data_errors_description,
+            anonymization_applied=anonymization_applied,
+            record_keeping_policy_exists=record_keeping_policy_exists,
+            purpose_limitation_respected=purpose_limitation_respected,
+            accountability_defined=accountability_defined
+        )
+        
+        # Ajouter à la session et sauvegarder
+        db.add(db_dataset)
+        db.commit()
+        db.refresh(db_dataset)
+        
+        # Créer les enregistrements DatasetFile
+        for file in files:
+            # Déterminer le format final (converti en Parquet si CSV)
+            if file.filename.lower().endswith('.csv'):
+                final_filename = file.filename.rsplit('.', 1)[0] + '.parquet'
+                file_format = 'parquet'
+                mime_type = 'application/octet-stream'
+            else:
+                final_filename = file.filename
+                file_format = file.filename.split('.')[-1].lower() if '.' in file.filename else 'unknown'
+                mime_type = file.content_type or 'application/octet-stream'
+            
+            # Calculer la taille (approximative pour les fichiers convertis)
+            file.file.seek(0, 2)  # Aller à la fin
+            file_size = file.file.tell()
+            file.file.seek(0)  # Revenir au début
+            
+            db_file = models.DatasetFile(
+                dataset_id=db_dataset.id,
+                file_name_in_storage=final_filename,
+                logical_role="data_file",  # Rôle par défaut
+                format=file_format,
+                mime_type=mime_type,
+                size_bytes=file_size
+            )
+            db.add(db_file)
+        
+        db.commit()
+        
+        logger.info(f"Dataset créé avec succès: {dataset_id} avec {len(files)} fichiers")
+        return db_dataset
+        
+    except HTTPException:
+        # Re-lever les HTTPException (erreurs de validation/upload)
+        raise
+    except Exception as e:
+        # Rollback en cas d'erreur
+        db.rollback()
+        
+        # Essayer de nettoyer le stockage si le dataset a été partiellement créé
+        try:
+            if 'storage_path' in locals():
+                cleanup_dataset_storage(storage_path)
+        except:
+            pass  # Ignorer les erreurs de nettoyage
+        
+        logger.error(f"Erreur lors de la création du dataset: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la création du dataset: {str(e)}"
+        )
 
 @app.put("/datasets/{dataset_id}", response_model=schemas.DatasetRead)
 def update_dataset(
@@ -584,15 +905,107 @@ def update_dataset(
 
 @app.delete("/datasets/{dataset_id}", status_code=200)
 def delete_dataset(dataset_id: str, db: Session = Depends(database.get_db)):
-    """Supprime un dataset de la base de données par son ID."""
+    """Supprime un dataset de la base de données et du stockage d'objets."""
     db_dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
     if db_dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
     
+    # Nettoyer le stockage d'objets si un storage_path existe
+    if db_dataset.storage_path:
+        cleanup_dataset_storage(db_dataset.storage_path)
+        logger.info(f"Stockage nettoyé pour dataset {dataset_id}: {db_dataset.storage_path}")
+    
+    # Supprimer de la base de données (cascade supprime automatiquement les fichiers associés)
     db.delete(db_dataset)
     db.commit()
     
-    return {"message": f"Dataset avec l'ID {dataset_id} supprimé avec succès"}
+    return {"message": f"Dataset avec l'ID {dataset_id} supprimé avec succès du stockage et de la base de données"}
+
+@app.get("/datasets/{dataset_id}/download/{filename}")
+def download_dataset_file(
+    dataset_id: str, 
+    filename: str, 
+    db: Session = Depends(database.get_db)
+):
+    """
+    Télécharge un fichier spécifique d'un dataset depuis le stockage d'objets.
+    """
+    # Vérifier que le dataset existe
+    db_dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if db_dataset is None:
+        raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
+    
+    if not db_dataset.storage_path:
+        raise HTTPException(status_code=404, detail="Aucun fichier de stockage associé à ce dataset")
+    
+    # Vérifier que le fichier existe dans les métadonnées
+    db_file = db.query(models.DatasetFile).filter(
+        models.DatasetFile.dataset_id == dataset_id,
+        models.DatasetFile.file_name_in_storage == filename
+    ).first()
+    
+    if db_file is None:
+        raise HTTPException(status_code=404, detail=f"Fichier {filename} non trouvé pour ce dataset")
+    
+    try:
+        # Télécharger depuis le stockage d'objets
+        storage_client = get_storage_client()
+        object_path = f"{db_dataset.storage_path}{filename}"
+        
+        file_data = storage_client.download_file(object_path)
+        
+        # Retourner le fichier avec les headers appropriés
+        from fastapi.responses import Response
+        
+        return Response(
+            content=file_data,
+            media_type=db_file.mime_type or 'application/octet-stream',
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Length": str(len(file_data))
+            }
+        )
+        
+    except StorageClientError as e:
+        logger.error(f"Erreur de téléchargement pour {dataset_id}/{filename}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors du téléchargement du fichier: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors du téléchargement {dataset_id}/{filename}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur inattendue lors du téléchargement: {str(e)}"
+        )
+
+@app.get("/datasets/{dataset_id}/files")
+def list_dataset_files(dataset_id: str, db: Session = Depends(database.get_db)):
+    """Liste les fichiers disponibles pour un dataset."""
+    # Vérifier que le dataset existe
+    db_dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if db_dataset is None:
+        raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
+    
+    # Récupérer tous les fichiers du dataset
+    files = db.query(models.DatasetFile).filter(models.DatasetFile.dataset_id == dataset_id).all()
+    
+    file_list = []
+    for file in files:
+        file_list.append({
+            "filename": file.file_name_in_storage,
+            "format": file.format,
+            "size_bytes": file.size_bytes,
+            "logical_role": file.logical_role,
+            "mime_type": file.mime_type,
+            "download_url": f"/datasets/{dataset_id}/download/{file.file_name_in_storage}"
+        })
+    
+    return {
+        "dataset_id": dataset_id,
+        "files": file_list,
+        "total_files": len(file_list)
+    }
 
 
 # --- FONCTIONS UTILITAIRES POUR LE SCORING ---
@@ -898,8 +1311,73 @@ def generate_distribution_analysis(dataset: models.Dataset) -> schemas.DataDistr
     )
 
 
-def generate_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFileMetadata]:
-    """Génère les métadonnées des fichiers pour un dataset."""
+def generate_files_metadata(dataset: models.Dataset, db: Session = None) -> List[schemas.DatasetFileMetadata]:
+    """
+    Génère les métadonnées des fichiers pour un dataset en lisant depuis la base de données.
+    
+    Args:
+        dataset: Instance du dataset
+        db: Session de base de données pour accéder aux fichiers et colonnes
+    
+    Returns:
+        List[DatasetFileMetadata]: Liste des métadonnées des fichiers
+    """
+    
+    # Si pas de session DB fournie, générer des données simulées (fallback)
+    if db is None:
+        return generate_fallback_files_metadata(dataset)
+    
+    # Récupérer les fichiers du dataset depuis la base de données
+    dataset_files = db.query(models.DatasetFile).filter(
+        models.DatasetFile.dataset_id == dataset.id
+    ).order_by(models.DatasetFile.created_at).all()
+    
+    # Si aucun fichier trouvé, retourner des métadonnées simulées
+    if not dataset_files:
+        logger.warning(f"Aucun fichier trouvé pour dataset {dataset.id}, génération de métadonnées simulées")
+        return generate_fallback_files_metadata(dataset)
+    
+    files_metadata = []
+    
+    for dataset_file in dataset_files:
+        # Récupérer les colonnes du fichier depuis la base de données
+        file_columns = db.query(models.FileColumn).filter(
+            models.FileColumn.dataset_file_id == dataset_file.id
+        ).order_by(models.FileColumn.position).all()
+        
+        # Convertir les colonnes en schémas ColumnMetadata
+        columns_metadata = []
+        for file_column in file_columns:
+            columns_metadata.append(schemas.ColumnMetadata(
+                column_name=file_column.column_name,
+                position=file_column.position,
+                data_type_original=file_column.data_type_original or "unknown",
+                data_type_interpreted=file_column.data_type_interpreted or file_column.data_type_original or "unknown",
+                is_nullable=file_column.is_nullable,
+                is_primary_key_component=file_column.is_primary_key_component,
+                is_pii=file_column.is_pii,
+                description=file_column.description,
+                example_values=file_column.example_values or []
+            ))
+        
+        # Créer les métadonnées du fichier
+        file_metadata = schemas.DatasetFileMetadata(
+            file_name_in_storage=dataset_file.file_name_in_storage,
+            format=dataset_file.format or "unknown",
+            size_bytes=dataset_file.size_bytes or 0,
+            row_count=dataset_file.row_count or 0,
+            description=dataset_file.description,
+            columns=columns_metadata
+        )
+        
+        files_metadata.append(file_metadata)
+        logger.info(f"Métadonnées chargées pour fichier {dataset_file.file_name_in_storage}: {len(columns_metadata)} colonnes")
+    
+    return files_metadata
+
+
+def generate_fallback_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFileMetadata]:
+    """Génère des métadonnées de fichiers simulées en cas d'erreur lors de la lecture des vraies données."""
     import random
     
     # Nombre de fichiers basé sur la taille du dataset
@@ -971,8 +1449,8 @@ def generate_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFile
         file_size = file_instances * avg_bytes_per_row
         
         files.append(schemas.DatasetFileMetadata(
-            filename=filename,
-            file_format="csv",
+            file_name_in_storage=filename,
+            format="csv",
             size_bytes=file_size,
             row_count=file_instances,
             description=f"Fichier principal du dataset" if i == 0 else f"Fichier de {'test' if i == 1 else 'validation'}",
@@ -982,8 +1460,167 @@ def generate_files_metadata(dataset: models.Dataset) -> List[schemas.DatasetFile
     return files
 
 
-def generate_dataset_preview(dataset: models.Dataset) -> schemas.DatasetPreviewResponse:
-    """Génère un aperçu des données pour un dataset."""
+def generate_dataset_preview(dataset: models.Dataset, db: Session = None) -> schemas.DatasetPreviewResponse:
+    """
+    Génère un aperçu des données réelles pour un dataset en lisant depuis MinIO.
+    
+    Args:
+        dataset: Instance du dataset
+        db: Session de base de données pour accéder aux fichiers
+    
+    Returns:
+        DatasetPreviewResponse: Aperçu avec vraies données tronquées
+    """
+    
+    # Si pas de session DB fournie, générer des données simulées (fallback)
+    if db is None:
+        return generate_fallback_preview(dataset)
+    
+    # Récupérer les fichiers du dataset depuis la base de données
+    dataset_files = db.query(models.DatasetFile).filter(
+        models.DatasetFile.dataset_id == dataset.id,
+        models.DatasetFile.format == 'parquet'  # Prioriser les fichiers Parquet
+    ).all()
+    
+    # Si aucun fichier Parquet, essayer avec tous les formats
+    if not dataset_files:
+        dataset_files = db.query(models.DatasetFile).filter(
+            models.DatasetFile.dataset_id == dataset.id
+        ).all()
+    
+    # Si toujours aucun fichier, retourner un aperçu simulé
+    if not dataset_files:
+        logger.warning(f"Aucun fichier trouvé pour dataset {dataset.id}, génération d'un aperçu simulé")
+        return generate_fallback_preview(dataset)
+    
+    # Prendre le premier fichier de données (généralement le fichier principal)
+    main_file = None
+    for file in dataset_files:
+        if file.logical_role in ['data_file', 'training_data', None]:
+            main_file = file
+            break
+    
+    if main_file is None:
+        main_file = dataset_files[0]  # Prendre le premier fichier disponible
+    
+    try:
+        # Télécharger le fichier depuis MinIO
+        storage_client = get_storage_client()
+        
+        # Construire le chemin complet vers le fichier
+        if dataset.storage_path:
+            object_path = f"{dataset.storage_path.rstrip('/')}/{main_file.file_name_in_storage}"
+        else:
+            object_path = f"ibis-x-datasets/{dataset.id}/{main_file.file_name_in_storage}"
+        
+        logger.info(f"Téléchargement du fichier pour aperçu: {object_path}")
+        file_data = storage_client.download_file(object_path)
+        
+        # Lire le fichier Parquet avec pandas
+        parquet_buffer = io.BytesIO(file_data)
+        df = pd.read_parquet(parquet_buffer)
+        
+        logger.info(f"Données lues avec succès: {len(df)} lignes, {len(df.columns)} colonnes")
+        
+        # Limiter le nombre de lignes pour l'aperçu (performance)
+        sample_rows = min(100, len(df))  # Maximum 100 lignes pour l'aperçu
+        max_columns = min(20, len(df.columns))  # Maximum 20 colonnes pour l'affichage
+        
+        # Prendre un échantillon aléatoire des données
+        if len(df) > sample_rows:
+            df_sample = df.sample(n=sample_rows, random_state=42)
+        else:
+            df_sample = df.copy()
+        
+        # Limiter le nombre de colonnes si nécessaire
+        if len(df.columns) > max_columns:
+            df_sample = df_sample.iloc[:, :max_columns]
+            logger.info(f"Aperçu limité aux {max_columns} premières colonnes")
+        
+        # Générer les statistiques des colonnes
+        columns_info = []
+        for col in df_sample.columns:
+            col_data = df[col]  # Utiliser le dataset complet pour les statistiques
+            
+            # Déterminer le type de données
+            if pd.api.types.is_numeric_dtype(col_data):
+                col_type = 'numeric'
+                mean_val = float(col_data.mean()) if not col_data.mean() != col_data.mean() else None  # Vérifier NaN
+                std_val = float(col_data.std()) if not col_data.std() != col_data.std() else None
+                min_val = str(col_data.min()) if not pd.isna(col_data.min()) else None
+                max_val = str(col_data.max()) if not pd.isna(col_data.max()) else None
+            elif pd.api.types.is_bool_dtype(col_data):
+                col_type = 'boolean'
+                mean_val = None
+                std_val = None
+                min_val = str(col_data.min()) if not pd.isna(col_data.min()) else None
+                max_val = str(col_data.max()) if not pd.isna(col_data.max()) else None
+            elif pd.api.types.is_datetime64_any_dtype(col_data):
+                col_type = 'datetime'
+                mean_val = None
+                std_val = None
+                min_val = str(col_data.min()) if not pd.isna(col_data.min()) else None
+                max_val = str(col_data.max()) if not pd.isna(col_data.max()) else None
+            else:
+                col_type = 'categorical' if col_data.nunique() < len(col_data) * 0.5 else 'text'
+                mean_val = None
+                std_val = None
+                min_val = None
+                max_val = None
+            
+            # Calculer les valeurs les plus fréquentes pour les colonnes catégorielles
+            top_values = None
+            if col_type in ['categorical', 'text']:
+                value_counts = col_data.value_counts().head(3)
+                if len(value_counts) > 0:
+                    top_values = [str(val) for val in value_counts.index.tolist()]
+            
+            columns_info.append(schemas.ColumnStatistics(
+                name=col,
+                type=col_type,
+                non_null_count=int(col_data.notna().sum()),
+                unique_count=int(col_data.nunique()),
+                mean=mean_val,
+                std=std_val,
+                min_value=min_val,
+                max_value=max_val,
+                top_values=top_values
+            ))
+        
+        # Convertir les données en format dict pour l'API
+        sample_data = []
+        for _, row in df_sample.iterrows():
+            row_dict = {}
+            for col in df_sample.columns:
+                value = row[col]
+                # Convertir les valeurs pandas/numpy en types Python natifs
+                if pd.isna(value):
+                    row_dict[col] = None
+                elif isinstance(value, (pd.Timestamp, pd.Period)):
+                    row_dict[col] = str(value)
+                elif hasattr(value, 'item'):  # numpy types
+                    row_dict[col] = value.item()
+                else:
+                    row_dict[col] = value
+            sample_data.append(row_dict)
+        
+        return schemas.DatasetPreviewResponse(
+            file_name=main_file.file_name_in_storage,
+            total_rows=len(df),
+            sample_data=sample_data,
+            columns_info=columns_info
+        )
+        
+    except StorageClientError as e:
+        logger.error(f"Erreur de stockage lors de la génération d'aperçu pour {dataset.id}: {str(e)}")
+        return generate_fallback_preview(dataset)
+    except Exception as e:
+        logger.error(f"Erreur lors de la génération d'aperçu pour {dataset.id}: {str(e)}")
+        return generate_fallback_preview(dataset)
+
+
+def generate_fallback_preview(dataset: models.Dataset) -> schemas.DatasetPreviewResponse:
+    """Génère un aperçu simulé en cas d'erreur lors de la lecture des vraies données."""
     import random
     import string
     

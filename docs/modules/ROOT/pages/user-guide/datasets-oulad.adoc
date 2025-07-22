@@ -204,8 +204,8 @@ Le dataset OULAD présente un excellent score éthique grâce à :
 
 == Support technique
 
-Pour toute question sur l'utilisation du dataset OULAD dans EXAI :
+Pour toute question sur l'utilisation du dataset OULAD dans IBIS-X :
 
 * **Documentation API** : Consultez la section développeur
-* **Exemples de code** : Disponibles dans les tutoriels EXAI
-* **Support communautaire** : Forum des utilisateurs EXAI 
+* **Exemples de code** : Disponibles dans les tutoriels IBIS-X
+* **Support communautaire** : Forum des utilisateurs IBIS-X 

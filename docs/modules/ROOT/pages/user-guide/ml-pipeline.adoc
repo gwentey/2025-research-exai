@@ -1,6 +1,6 @@
 = 🛠️ Pipeline ML Interactif
 
-EXAI vous guide à travers chaque étape du processus de Machine Learning.
+IBIS-X vous guide à travers chaque étape du processus de Machine Learning.
 
 == Étapes Principales
 
