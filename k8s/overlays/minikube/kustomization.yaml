@@ -5,12 +5,12 @@ kind: Kustomization
 resources:
   - ../../base
 
-# Applique les patches spécifiques à Minikube
-patchesStrategicMerge:
-  - postgresql-statefulset-patch.yaml
-  - storage-config-patch.yaml
-  - minio-pvc-patch.yaml
-  - migration-jobs-image-patch.yaml  # Patch pour les images locales des jobs de migration
+# Applique les patches spécifiques à Minikube (syntaxe moderne)
+patches:
+  - path: postgresql-statefulset-patch.yaml
+  - path: storage-config-patch.yaml  
+  - path: minio-pvc-patch.yaml
+  - path: migration-jobs-image-patch.yaml  # Patch pour les images locales des jobs de migration
   # Ajoutez ici d'autres patches spécifiques à Minikube si nécessaire
 
 # (Optionnel) Vous pouvez aussi ajouter des préfixes/suffixes aux noms,

@@ -187,18 +187,5 @@ data:
       max_retries: 3
       timeout_seconds: 300
 
----
-# Secret template pour les credentials Kaggle
-apiVersion: v1
-kind: Secret
-metadata:
-  name: kaggle-secrets
-  namespace: ibis-x
-  labels:
-    app: kaggle-dataset-import
-type: Opaque
-data:
-  # Placeholders - remplacés par le script update-local-secrets.py
-  # Les valeurs réelles viennent du fichier .env
-  username: REPLACE_WITH_KAGGLE_USERNAME
-  key: REPLACE_WITH_KAGGLE_API_KEY 
+# Note: Le secret kaggle-secrets est défini dans service-selection/kaggle-secrets.yaml
+# Ne pas redéfinir ici pour éviter les conflits Kustomize 
