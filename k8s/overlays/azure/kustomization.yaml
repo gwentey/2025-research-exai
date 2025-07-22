@@ -1,4 +1,4 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
+﻿apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Cet overlay se base sur ../../base
@@ -32,11 +32,11 @@ namespace: ibis-x
 # Remplacement des noms d'images spécifiques à Azure
 images:
   - name: ibis-x-api-gateway
-    newName: ibisprodacr.azurecr.io/ibis-x-api-gateway
+    newName: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway
   - name: service-selection
-    newName: ibisprodacr.azurecr.io/service-selection
+    newName: ibisxprodacr6630.azurecr.io/service-selection
   - name: frontend
-    newName: ibisprodacr.azurecr.io/frontend
+    newName: ibisxprodacr6630.azurecr.io/frontend
 
 # Patches pour les configurations spécifiques à Azure
 patches:

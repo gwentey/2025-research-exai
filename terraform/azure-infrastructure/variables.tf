@@ -44,11 +44,11 @@ variable "location" {
 variable "kubernetes_version" {
   description = "Version de Kubernetes pour le cluster AKS"
   type        = string
-  default     = "1.28"
+  default     = "1.30.12"
   
   validation {
-    condition     = can(regex("^1\\.(2[7-9]|[3-9][0-9])$", var.kubernetes_version))
-    error_message = "La version Kubernetes doit être 1.27 ou supérieure."
+    condition     = can(regex("^1\\.(2[8-9]|[3-9][0-9])\\.[0-9]+$", var.kubernetes_version))
+    error_message = "La version Kubernetes doit être 1.28 ou supérieure (ex: 1.30.12, 1.31.9)."
   }
 }
 
@@ -142,8 +142,8 @@ variable "min_node_count" {
   default     = 1
   
   validation {
-    condition     = var.min_node_count >= 1 && var.min_node_count <= var.max_node_count
-    error_message = "Le nombre minimum de nœuds doit être >= 1 et <= au maximum."
+    condition     = var.min_node_count >= 1 && var.min_node_count <= 100
+    error_message = "Le nombre minimum de nœuds doit être >= 1 et <= 100."
   }
 }
 
@@ -153,8 +153,8 @@ variable "max_node_count" {
   default     = 5
   
   validation {
-    condition     = var.max_node_count >= var.min_node_count && var.max_node_count <= 100
-    error_message = "Le nombre maximum de nœuds doit être >= au minimum et <= 100."
+    condition     = var.max_node_count >= 1 && var.max_node_count <= 100
+    error_message = "Le nombre maximum de nœuds doit être >= 1 et <= 100."
   }
 }
 

@@ -19,36 +19,10 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
-    storage {
-      prevent_nested_items_deletion = false
-    }
   }
 }
 
-# Variables de configuration
-variable "project_name" {
-  description = "Nom du projet"
-  type        = string
-  default     = "ibis-x"
-}
-
-variable "environment" {
-  description = "Environnement (dev, staging, prod)"
-  type        = string
-  default     = "prod"
-}
-
-variable "location" {
-  description = "Région Azure"
-  type        = string
-  default     = "East US"
-}
-
-variable "kubernetes_version" {
-  description = "Version de Kubernetes"
-  type        = string
-  default     = "1.28"
-}
+# Variables importées depuis variables.tf
 
 # Génération de noms uniques
 locals {
@@ -90,7 +64,7 @@ resource "azurerm_storage_account" "ibis-x_storage" {
   account_kind             = "StorageV2"
 
   # Activation des fonctionnalités avancées
-  enable_https_traffic_only = true
+  https_traffic_only_enabled = true
   min_tls_version          = "TLS1_2"
 
   # Configuration des fonctionnalités blob

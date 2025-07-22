@@ -62,3 +62,11 @@ coverage/
 # NOTE: NE PAS ignorer les dossiers de migrations Alembic !
 # Les fichiers suivants sont essentiels et doivent être versionnés :
 # alembic/versions/
+
+# Terraform - Fichiers générés (NE PAS versionner)
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate*
+**/terraform.tfvars
+**/tfplan
+terraform.tfstate

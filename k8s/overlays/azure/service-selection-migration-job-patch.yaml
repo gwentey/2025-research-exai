@@ -2,7 +2,7 @@
 # Patch pour utiliser la bonne image ACR et forcer le pull en production
 - op: replace
   path: /spec/template/spec/containers/0/image
-  value: ibisprodacr.azurecr.io/service-selection:latest
+  value: ibisxprodacr1982.azurecr.io/service-selection:latest
 - op: replace
   path: /spec/template/spec/containers/0/imagePullPolicy
   value: Always 

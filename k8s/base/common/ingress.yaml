@@ -6,7 +6,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
     # CORS Configuration
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE, PATCH"
@@ -14,24 +14,21 @@ metadata:
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/cors-max-age: "86400"
     # Configuration spéciale : Permettre CORS seulement depuis les domaines de production et locaux
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://ibis-x.fr,https://www.ibis-x.fr,http://localhost:8080,http://localhost:9000"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://ibisx.fr,https://www.ibisx.fr,http://localhost:8080,http://localhost:9000"
     # Certificats Let's Encrypt (Cert-Manager)
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    # Redirection www -> sans www
-    nginx.ingress.kubernetes.io/server-snippet: |
-      if ($host = 'www.ibis-x.fr') {
-        return 301 https://ibis-x.fr$request_uri;
-      }
+    # Redirection www -> sans www (sera gérée par une règle séparée)
 spec:
+  ingressClassName: nginx
   tls:
   - hosts:
-    - api.ibis-x.fr # Votre nom d'hôte
-    - ibis-x.fr   # Votre domaine racine
-    - www.ibis-x.fr  # Redirection www
-    secretName: ibis-x-tls  # Secret pour les certificats TLS
+    - api.ibisx.fr # Votre nom d'hôte
+    - ibisx.fr   # Votre domaine racine
+    - www.ibisx.fr  # Redirection www
+    secretName: ibisx-tls  # Secret pour les certificats TLS
   rules:
   # API Backend
-  - host: api.ibis-x.fr # Votre nom d'hôte
+  - host: api.ibisx.fr # Votre nom d'hôte
     http:
       paths:
       - path: /
@@ -42,21 +39,25 @@ spec:
             port:
               number: 80
   # Frontend
-  - host: ibis-x.fr # Votre domaine racine
+  - host: ibisx.fr # Votre domaine racine
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: frontend-service
+            name: frontend
             port:
               number: 80
-  # Configuration TLS pour certificats HTTPS via cert-manager
+  # Accès direct par IP (pour tests)
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
   # Les certificats TLS sont automatiquement fournis par Let's Encrypt
-  # grâce aux annotations cert-manager définies plus haut
-  - hosts:
-    - api.ibis-x.fr # Host pour l'API
-    - ibis-x.fr   # Host pour le Frontend
-    - www.ibis-x.fr  # Host pour la redirection www
-    secretName: ibis-x-tls # <-- Décommenté et Nommé
+  # grâce aux annotations cert-manager définies plus haut et à la section tls ci-dessus

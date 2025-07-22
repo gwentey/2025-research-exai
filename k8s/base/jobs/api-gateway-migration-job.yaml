@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: api-gateway-migration
-        # Image par défaut pour développement local (sera surchargée par overlays)
-        image: ibis-x-api-gateway:latest
+        # Image ACR pour production Azure
+        image: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway:latest
         imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
         command: ["alembic", "upgrade", "head"]
         workingDir: /app # Répertoire où se trouve alembic.ini

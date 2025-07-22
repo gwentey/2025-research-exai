@@ -12,8 +12,8 @@ spec:
     spec:
       containers:
       - name: service-selection-migration
-        # Image par défaut pour développement local (sera surchargée par overlays)
-        image: service-selection:latest
+        # Image ACR pour production Azure
+        image: ibisxprodacr6630.azurecr.io/service-selection:latest
         imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
         command: ["alembic", "upgrade", "head"]
         workingDir: /app # Répertoire où se trouve alembic.ini

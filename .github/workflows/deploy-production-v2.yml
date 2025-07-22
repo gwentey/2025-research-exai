@@ -1,0 +1,122 @@
+name: Deploy Production IBIS-X v2 (Script Intelligent)
+
+on:
+  push:
+    branches:
+      - production
+  workflow_dispatch:  # Permettre le déclenchement manuel
+
+env:
+  # Variables d'environnement pour le mode PRODUCTION
+  GITHUB_ACTIONS: 'true'
+  IS_PRODUCTION: 'true'
+  
+  # Configuration Azure (correspondent aux variables dans notre script)
+  AZURE_CONTAINER_REGISTRY: 'ibisprodacr'
+  AZURE_RESOURCE_GROUP: 'ibis-x-perso-rg'
+  AKS_CLUSTER_NAME: 'ibis-x-prod-aks'
+  K8S_NAMESPACE: 'ibis-x'
+  
+  # Configuration de l'application
+  WITH_DATA: 'true'
+
+jobs:
+  deploy:
+    name: 🚀 Déploiement Production Intelligent
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout du code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: 🔐 Connexion à Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 🛠️ Installation des outils
+        run: |
+          # Installer jq pour le parsing JSON
+          sudo apt-get update && sudo apt-get install -y jq
+          
+          # Installer kubectl (dernière version)
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          kubectl version --client
+          
+          # Installer Terraform
+          wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install terraform
+
+      - name: 🔑 Injection des secrets production dans les fichiers YAML
+        run: |
+          echo "🔐 Injection des secrets de production dans les fichiers K8s..."
+          
+          # Encodage Base64 des secrets
+          SECRET_KEY_B64=$(echo -n "${{ secrets.JWT_SECRET_KEY }}" | base64 -w 0)
+          DATABASE_URL_B64=$(echo -n "${{ secrets.DATABASE_URL }}" | base64 -w 0)
+          GOOGLE_CLIENT_ID_B64=$(echo -n "${{ secrets.GOOGLE_CLIENT_ID }}" | base64 -w 0)
+          GOOGLE_CLIENT_SECRET_B64=$(echo -n "${{ secrets.GOOGLE_CLIENT_SECRET }}" | base64 -w 0)
+          OAUTH_REDIRECT_URL_B64=$(echo -n "${{ secrets.OAUTH_REDIRECT_URL }}" | base64 -w 0)
+          KAGGLE_USERNAME_B64=$(echo -n "${{ secrets.KAGGLE_USERNAME }}" | base64 -w 0)
+          KAGGLE_KEY_B64=$(echo -n "${{ secrets.KAGGLE_KEY }}" | base64 -w 0)
+          
+          # Injection dans gateway-secrets.yaml
+          sed -i "s|secret-key: .*|secret-key: $SECRET_KEY_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|database-url: .*|database-url: $DATABASE_URL_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|google-client-id: .*|google-client-id: $GOOGLE_CLIENT_ID_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|google-client-secret: .*|google-client-secret: $GOOGLE_CLIENT_SECRET_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          sed -i "s|oauth-redirect-url: .*|oauth-redirect-url: $OAUTH_REDIRECT_URL_B64|g" k8s/base/api-gateway/gateway-secrets.yaml
+          
+          # Injection dans kaggle-secrets.yaml
+          sed -i "s|username: .*|username: $KAGGLE_USERNAME_B64|g" k8s/base/service-selection/kaggle-secrets.yaml
+          sed -i "s|key: .*|key: $KAGGLE_KEY_B64|g" k8s/base/service-selection/kaggle-secrets.yaml
+          
+          echo "✅ Secrets injectés dans les fichiers YAML"
+
+      - name: 🚀 Déploiement automatique via script intelligent
+        run: |
+          echo "🚀 Lancement du script de déploiement intelligent..."
+          chmod +x scripts/deploy-to-azure.sh
+          
+          # Le script détectera automatiquement l'environnement GitHub Actions
+          # et utilisera les variables d'environnement définies ci-dessus
+          ./scripts/deploy-to-azure.sh
+
+      - name: 📊 Vérification finale du déploiement
+        run: |
+          echo "📊 Vérification de l'état final de l'application..."
+          
+          # Afficher l'état des pods
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }}
+          
+          # Afficher l'état des jobs
+          kubectl get jobs -n ${{ env.K8S_NAMESPACE }}
+          
+          # Afficher les ingress
+          kubectl get ingress -n ${{ env.K8S_NAMESPACE }}
+          
+          # Récupérer l'IP publique
+          PUBLIC_IP=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "N/A")
+          echo "🌐 IP publique de l'application: $PUBLIC_IP"
+          
+          # Test de connectivité (si IP disponible)
+          if [[ "$PUBLIC_IP" != "N/A" ]] && [[ -n "$PUBLIC_IP" ]]; then
+            echo "🧪 Test de connectivité..."
+            curl -s -o /dev/null -w "Status: %{http_code}\n" "http://$PUBLIC_IP" || echo "Test de connectivité échoué"
+          fi
+
+      - name: 📋 Résumé du déploiement
+        if: always()
+        run: |
+          echo "=================== RÉSUMÉ DÉPLOIEMENT ==================="
+          echo "✅ Mode: Production (GitHub Actions)"
+          echo "✅ ACR: ${{ env.AZURE_CONTAINER_REGISTRY }}" 
+          echo "✅ AKS: ${{ env.AKS_CLUSTER_NAME }}"
+          echo "✅ Resource Group: ${{ env.AZURE_RESOURCE_GROUP }}"
+          echo "✅ Namespace: ${{ env.K8S_NAMESPACE }}"
+          echo "✅ Données: ${{ env.WITH_DATA }}"
+          echo "==========================================================" 
