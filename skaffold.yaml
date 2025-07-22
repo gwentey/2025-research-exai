@@ -40,31 +40,13 @@ deploy:
   kubectl: {}
 profiles:
   - name: local
-    # Retour à rawYaml, sans l'Ingress
+    # Utiliser Kustomize avec l'overlay minikube pour avoir les patches corrects
     manifests:
-      rawYaml:
-        # API Gateway
-        - k8s/base/api-gateway/deployment.yaml
-        - k8s/base/api-gateway/gateway-secrets.yaml
-        - k8s/base/api-gateway/service.yaml
-        # Frontend
-        - k8s/base/frontend/deployment.yaml
-        - k8s/base/frontend/service.yaml
-        # Postgres
-        - k8s/base/postgres/postgresql-statefulset.yaml
-        - k8s/base/postgres/postgresql-headless-service.yaml
-        - k8s/base/postgres/postgresql-service.yaml
-        # MinIO (Stockage d'objets pour développement)
-        - k8s/base/minio/minio-deployment.yaml
-        - k8s/base/minio/minio-service.yaml
-        - k8s/base/minio/minio-pvc.yaml
-        # Service Selection
-        - k8s/base/service-selection/deployment.yaml
-        # - k8s/base/service-selection/dataset-pvc.yaml # Supprimé car nous n'utilisons plus de PVC
-        - k8s/base/service-selection/db-secrets.yaml
-        - k8s/base/service-selection/storage-secrets.yaml
-        - k8s/base/service-selection/kaggle-secrets.yaml
-        - k8s/base/service-selection/service.yaml
+      kustomize:
+        buildArgs:
+          - --load-restrictor=LoadRestrictionsNone
+        paths:
+          - k8s/overlays/minikube
     # Configuration explicite du Port Forwarding
     portForward:
       # Frontend sur localhost:8080
