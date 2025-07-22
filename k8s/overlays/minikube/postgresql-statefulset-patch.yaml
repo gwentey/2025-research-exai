@@ -2,8 +2,8 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgresql
+  namespace: ibis-x
 spec:
-  # Configuration Minikube complète
   template:
     spec:
       containers:
@@ -16,9 +16,8 @@ spec:
             cpu: 250m
             memory: 512Mi
   volumeClaimTemplates:
-    # Le nom doit correspondre à celui dans la base (postgresql-data)
-    # On ne patch que le storageClassName
-    - metadata:
-        name: postgresql-data
-      spec:
-        storageClassName: standard # Valeur spécifique pour Minikube 
+  - metadata:
+      name: postgresql-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: standard  # Spécifique à minikube 

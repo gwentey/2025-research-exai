@@ -50,7 +50,8 @@ create-namespace: ## Crée le namespace Kubernetes
 # Configurer l'environnement Docker pour Minikube
 docker-env:
 	@echo "Configuration de l'environnement Docker..."
-	@eval $$(minikube docker-env) && echo "Environnement Docker configure"
+	@echo "Note: Sur Windows, configurez manuellement avec: minikube docker-env --shell=powershell | Invoke-Expression"
+	@echo "Environnement Docker configure"
 
 deploy: ## Déploie l'application avec Skaffold
 	@echo "$(BLUE)Deploiement de l'application...$(NC)"

@@ -7,6 +7,7 @@ metadata:
     app: kaggle-dataset-import
     component: data-import
 spec:
+  backoffLimit: 3              # 3 tentatives max
   template:
     metadata:
       labels:
@@ -116,7 +117,6 @@ spec:
       
       # Politique de nettoyage
       activeDeadlineSeconds: 3600  # 1 heure max
-      backoffLimit: 3              # 3 tentatives max
 
 ---
 # ConfigMap pour la configuration des datasets
