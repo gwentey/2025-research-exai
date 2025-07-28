@@ -1,0 +1,39 @@
+# api-gateway-migration-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # Nom du Job. Utiliser generateName pour éviter les conflits si relancé rapidement,
+  # ou un nom fixe si géré par un pipeline qui supprime l'ancien job avant.
+  # On utilise un nom fixe ici pour simplifier.
+  name: api-gateway-migration-job
+  namespace: ibis-x # Assure-toi que c'est le bon namespace
+spec:
+  # ttlSecondsAfterFinished: 300 # Optionnel: Supprime le Job automatiquement après sa fin
+  backoffLimit: 4 # Nombre de tentatives avant d'échouer
+  template:
+    spec:
+      containers:
+      - name: api-gateway-migration
+        # Image ACR pour production Azure
+        image: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway:latest
+        imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
+        command: ["alembic", "upgrade", "head"]
+        workingDir: /app # Répertoire où se trouve alembic.ini
+        env:
+        # Définir explicitement DATABASE_URL à partir de la clé du secret
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: gateway-secrets # Nom du Secret
+              key: database-url    # Nom de la clé DANS le Secret (corrigé avec tiret)
+        # Monte également les autres clés du secret si nécessaire (ex: SECRET_KEY si alembic/env.py l'utilise)
+        # Si SECRET_KEY est aussi dans gateway-secrets avec la clé 'secret-key':
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gateway-secrets
+              key: secret-key # Assurez-vous que la clé est correcte dans le Secret
+        # Optionnel: Si d'autres variables d'env sont nécessaires (ex: depuis ConfigMap)
+        # - configMapRef:
+        #     name: api-gateway-config
+      restartPolicy: Never # Ne redémarre pas le pod en cas d'échec 

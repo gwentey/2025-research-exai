@@ -1,0 +1,67 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Configuration temporaire pour déployer uniquement les services (sans jobs)
+# Étend l'overlay minikube existant en ajoutant le patch d'exclusion des jobs
+
+# Utilise toutes les ressources de base
+resources:
+  - ../../base
+
+# Patches spécifiques à Minikube (copiés de l'overlay principal)
+patches:
+  - path: postgresql-statefulset-patch.yaml
+    target:
+      kind: StatefulSet
+      name: postgresql
+  - path: storage-config-patch.yaml  
+  - path: minio-pvc-patch.yaml
+  # Modifier l'ingress pour le local (sans SSL)
+  - path: ingress-patch.yaml
+  # Supprimer le ClusterIssuer (cert-manager) pour le local
+  - target:
+      kind: ClusterIssuer
+      name: letsencrypt-prod
+    patch: |-
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-prod
+      $patch: delete
+  # AJOUT: Patches pour exclure les jobs
+  - target:
+      kind: Job
+      name: api-gateway-migration-job
+    patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: api-gateway-migration-job
+      $patch: delete
+  - target:
+      kind: Job
+      name: service-selection-migration-job
+    patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: service-selection-migration-job
+      $patch: delete
+  - target:
+      kind: Job
+      name: service-selection-data-init-job
+    patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: service-selection-data-init-job
+      $patch: delete
+  - target:
+      kind: Job
+      name: kaggle-dataset-import-job
+    patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: kaggle-dataset-import-job
+      $patch: delete 

@@ -1,0 +1,30 @@
+# service-selection-migration-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: service-selection-migration-job
+  namespace: ibis-x
+spec:
+  # Supprime automatiquement le job après 5 minutes
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 4 # Nombre de tentatives avant d'échouer
+  template:
+    spec:
+      containers:
+      - name: service-selection-migration
+        # Image ACR pour production Azure
+        image: ibisxprodacr6630.azurecr.io/service-selection:latest
+        imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
+        command: ["alembic", "upgrade", "head"]
+        workingDir: /app # Répertoire où se trouve alembic.ini
+        env:
+        # Définir explicitement DATABASE_URL à partir de la clé du secret
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets # Nom du Secret spécifique au service-selection
+              key: database-url # Nom de la clé dans le Secret
+        # Optionnel: Si d'autres variables d'env sont nécessaires pour les migrations
+        # - configMapRef:
+        #     name: service-selection-config
+      restartPolicy: Never # Ne redémarre pas le pod en cas d'échec 

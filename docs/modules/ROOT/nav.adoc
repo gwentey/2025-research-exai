@@ -21,6 +21,9 @@
 ** xref:user-guide/account-deletion.adoc[Suppression de Compte]
 
 * Guides de Développement
+** xref:dev-guide/local-development-quickstart.adoc[🚀 Démarrage Rapide Local]
+** xref:dev-guide/local-development-sequential.adoc[🔧 Architecture Déploiement Séquentiel]
+** xref:dev-guide/deployment-improvements-v2.adoc[📝 Améliorations v2.0]
 ** xref:dev-guide/architecture.adoc[Architecture Système]
 ** xref:dev-guide/api-reference.adoc[Référence API]
 ** xref:dev-guide/authentication-error-messages.adoc[Messages d'Erreur d'Authentification]

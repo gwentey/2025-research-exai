@@ -40,27 +40,27 @@ deploy:
   kubectl: {}
 profiles:
   - name: local
-    # Utiliser Kustomize avec l'overlay minikube pour avoir les patches corrects
+    # Profil complet pour déploiement local avec tous les composants
     manifests:
       kustomize:
         buildArgs:
           - --load-restrictor=LoadRestrictionsNone
         paths:
           - k8s/overlays/minikube
-    # Configuration explicite du Port Forwarding
+    # Configuration des Port Forwards
     portForward:
       # Frontend sur localhost:8080
       - resourceType: service
-        resourceName: frontend # Nom du service K8s du frontend
+        resourceName: frontend
         namespace: ibis-x
-        port: 80 # Port interne du service
-        localPort: 8080 # Port sur votre machine locale
+        port: 80
+        localPort: 8080
       # API Gateway sur localhost:9000
       - resourceType: service
-        resourceName: api-gateway-service # Nom du service K8s API Gateway
+        resourceName: api-gateway-service
         namespace: ibis-x
-        port: 80 # Port interne du service
-        localPort: 9000 # Port sur votre machine locale
+        port: 80
+        localPort: 9000
       - resourceType: service
         resourceName: minio-service
         namespace: ibis-x
@@ -71,7 +71,38 @@ profiles:
         namespace: ibis-x
         port: 6701
         localPort: 6701
-
+  - name: local-services
+    # Profil pour déployer uniquement les services (sans jobs) - déploiement initial
+    manifests:
+      kustomize:
+        buildArgs:
+          - --load-restrictor=LoadRestrictionsNone
+        paths:
+          - k8s/overlays/minikube-no-jobs
+    # Même configuration des Port Forwards
+    portForward:
+      # Frontend sur localhost:8080
+      - resourceType: service
+        resourceName: frontend
+        namespace: ibis-x
+        port: 80
+        localPort: 8080
+      # API Gateway sur localhost:9000
+      - resourceType: service
+        resourceName: api-gateway-service
+        namespace: ibis-x
+        port: 80
+        localPort: 9000
+      - resourceType: service
+        resourceName: minio-service
+        namespace: ibis-x
+        port: 6700
+        localPort: 6700
+      - resourceType: service
+        resourceName: minio-service
+        namespace: ibis-x
+        port: 6701
+        localPort: 6701
   - name: azure
     # Utiliser des patches pour modifier les noms d'images ET les buildArgs pour ce profil
     patches:
