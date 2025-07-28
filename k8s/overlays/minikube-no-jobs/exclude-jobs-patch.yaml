@@ -1,0 +1,45 @@
+# Patch temporaire pour exclure les jobs du déploiement initial
+# Utilisé pour permettre un déploiement séquentiel sans créer une nouvelle structure
+# Les jobs seront appliqués séparément après que PostgreSQL soit prêt
+
+# Suppression temporaire des jobs de migration
+- target:
+    kind: Job
+    name: api-gateway-migration-job
+  patch: |-
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: api-gateway-migration-job
+    $patch: delete
+
+- target:
+    kind: Job
+    name: service-selection-migration-job
+  patch: |-
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: service-selection-migration-job
+    $patch: delete
+
+# Suppression temporaire des jobs d'initialisation
+- target:
+    kind: Job
+    name: service-selection-data-init-job
+  patch: |-
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: service-selection-data-init-job
+    $patch: delete
+
+- target:
+    kind: Job
+    name: kaggle-dataset-import-job
+  patch: |-
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: kaggle-dataset-import-job
+    $patch: delete 

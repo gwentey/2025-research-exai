@@ -1,0 +1,261 @@
+= Guide Technique : Déploiement Local Séquentiel IBIS-X
+:description: Guide technique détaillé du nouveau système de déploiement séquentiel pour l'environnement de développement local
+:keywords: développement local, kubernetes, postgresql, déploiement séquentiel, architecture technique
+:page-layout: default
+
+== Vue d'Ensemble Technique
+
+Le système de développement local IBIS-X utilise une approche de **déploiement séquentiel** pour résoudre les problèmes de dépendances entre services et jobs de migration dans Kubernetes.
+
+[WARNING]
+.Problème Résolu
+====
+**Avant**: Les jobs de migration tentaient de se connecter à PostgreSQL avant que celui-ci soit prêt, causant des erreurs `Connection refused`.
+
+**Maintenant**: Déploiement en deux phases garantissant que PostgreSQL est opérationnel avant l'exécution des jobs.
+====
+
+== Architecture de Déploiement
+
+=== Problème Technique Fondamental
+
+[source,text]
+----
+Timeline Problématique (AVANT):
+T=0s   : Skaffold déploie TOUT simultanément
+T=1s   : Jobs tentent connexion PostgreSQL ❌ ÉCHEC
+T=5s   : PostgreSQL PVC créé  
+T=10s  : PostgreSQL Pod créé
+T=30s  : PostgreSQL container démarre
+T=45s  : PostgreSQL accepte connexions ✅ 
+T=60s  : Jobs ont échoué définitivement ❌
+----
+
+[source,text]
+----
+Timeline Corrigée (MAINTENANT):
+Phase 1 - Services:
+T=0s   : Déploiement services uniquement
+T=45s  : PostgreSQL prêt ✅
+
+Phase 2 - Jobs:  
+T=50s  : Déploiement jobs de migration
+T=55s  : Jobs se connectent avec succès ✅
+----
+
+=== Structure Kubernetes Mise en Place
+
+==== 1. Base Configuration (`k8s/base/`)
+La configuration de base reste inchangée et contient tous les composants :
+
+* Services (API Gateway, Frontend, Service Selection, MinIO, PostgreSQL)
+* Jobs (Migration, Data Init, Kaggle Import)
+* Configuration réseau et secrets
+
+==== 2. Overlays Séquentiels
+
+===== `k8s/overlays/minikube/` (Configuration standard)
+Configuration complète pour déploiement normal avec tous les composants.
+
+===== `k8s/overlays/minikube-no-jobs/` (Services uniquement)
+[source,yaml]
+----
+# Étend minikube avec suppression des jobs
+patches:
+  - target: {kind: Job, name: api-gateway-migration-job}
+    patch: |-
+      $patch: delete
+  - target: {kind: Job, name: service-selection-migration-job}  
+    patch: |-
+      $patch: delete
+  # ... autres jobs
+----
+
+===== `k8s/overlays/minikube-jobs-only/` (Jobs uniquement)
+[source,yaml]
+----
+# Jobs avec patches minikube (images locales)
+resources:
+  - api-gateway-migration-job.yaml
+  - service-selection-migration-job.yaml
+  - service-selection-data-init-job.yaml
+
+patches:
+  - path: migration-jobs-image-patch.yaml
+    target: {kind: Job, name: api-gateway-migration-job}
+----
+
+== Configuration Skaffold
+
+=== Profils de Déploiement
+
+==== Profil `local` (Complet)
+[source,yaml]
+----
+profiles:
+  - name: local
+    manifests:
+      kustomize:
+        paths: [k8s/overlays/minikube]
+    portForward: [...]  # Port forwards configurés
+----
+
+==== Profil `local-services` (Services uniquement)  
+[source,yaml]
+----
+profiles:
+  - name: local-services
+    manifests:
+      kustomize:
+        paths: [k8s/overlays/minikube-no-jobs]
+    portForward: [...]  # Mêmes port forwards
+----
+
+== Workflow de Déploiement
+
+=== Commandes Make Modifiées
+
+==== `make deploy-services`
+[source,bash]
+----
+# Utilise le profil local-services (sans jobs)
+skaffold run --profile=local-services --namespace=ibis-x
+----
+
+==== `make deploy-jobs`  
+[source,bash]
+----
+# Déploie uniquement les jobs avec patches minikube
+kubectl apply -k k8s/overlays/minikube-jobs-only
+----
+
+==== `make dev` (Workflow complet)
+[source,bash]
+----
+dev: check-prerequisites update-secrets start-minikube create-namespace \
+     docker-env deploy-services wait-services deploy-jobs logs
+----
+
+=== Gestion des Dépendances
+
+==== Attente de PostgreSQL
+La commande `make wait-services` utilise `kubectl wait` pour attendre que PostgreSQL soit prêt :
+
+[source,bash]
+----
+kubectl wait --for=condition=ready pod -l app=postgresql \
+  -n ibis-x --timeout=300s
+----
+
+==== Images des Jobs en Local
+Les jobs utilisent des images locales buildées par Skaffold grâce aux patches :
+
+[source,yaml]
+----
+# migration-jobs-image-patch.yaml  
+spec:
+  template:
+    spec:
+      containers:
+      - name: api-gateway-migration
+        image: ibis-x-api-gateway:latest
+        imagePullPolicy: Never  # Force image locale
+----
+
+== Avantages Techniques
+
+=== 1. Gestion des Dépendances Applicatives
+* **PostgreSQL ready** avant exécution des jobs
+* **Évite les backoff failures** des jobs Kubernetes
+* **Démarrage déterministe** de l'environnement
+
+=== 2. Maintien de la Cohérence
+* **Structure existante préservée** - Pas de refactoring majeur
+* **Réutilisation des configurations** - DRY (Don't Repeat Yourself)
+* **Compatibilité production** - Même approche applicable sur Azure
+
+=== 3. Flexibilité de Développement
+* **Déploiement partiel possible** - Services sans jobs
+* **Debugging facilité** - Séparation des composants
+* **Hot reload conservé** - Skaffold dev fonctionne normalement
+
+== Comparaison avec les Alternatives
+
+[cols="1,2,2", options="header"]
+|===
+|Approche |Avantages |Inconvénients
+
+|**Déploiement Séquentiel** *(Choisie)*
+|✅ Simple à maintenir +
+✅ Structure cohérente +  
+✅ Debugging facile
+|⚠️ Deux commandes de déploiement
+
+|Init Containers d'attente
+|✅ Tout automatique
+|❌ Complexité dans chaque job +
+❌ Timeout management difficile
+
+|Job Dependencies (Argo/Flux)
+|✅ Dépendances déclaratives  
+|❌ Outils supplémentaires +
+❌ Overkill pour développement local
+
+|Helm Hooks
+|✅ Gestion native des phases
+|❌ Changement d'outil (Helm vs Kustomize) +
+❌ Complexity ajoutée
+|===
+
+== Résolution des Problèmes
+
+=== Jobs Échouent Encore
+[source,bash]
+----
+# Vérifier PostgreSQL
+kubectl get pods -n ibis-x -l app=postgresql
+kubectl logs -n ibis-x statefulset/postgresql
+
+# Redéployer les jobs
+make clean-migrations
+make deploy-jobs
+----
+
+=== PostgreSQL Lent à Démarrer
+[source,bash]
+----
+# Augmenter le timeout
+kubectl wait --for=condition=ready pod -l app=postgresql \
+  -n ibis-x --timeout=600s
+----
+
+=== Images Jobs Non Trouvées
+[source,bash]
+----
+# Rebuilder les images
+skaffold build --profile=local-services
+make deploy-jobs
+----
+
+== Évolution Future
+
+=== Production Azure
+L'approche séquentielle peut être adaptée pour Azure avec :
+
+* **Azure Container Instances Jobs** pour les migrations
+* **Terraform dependency management** pour l'ordre de déploiement  
+* **GitHub Actions sequential steps** pour le workflow CI/CD
+
+=== Monitoring Avancé
+Intégration possible avec :
+
+* **Job completion webhooks** pour notification automatique
+* **Health checks sophistiqués** pour PostgreSQL readiness
+* **Metrics Prometheus** pour temps de déploiement
+
+== Références Techniques
+
+* link:https://kubernetes.io/docs/concepts/workloads/controllers/job/[Kubernetes Jobs Documentation]
+* link:https://skaffold.dev/docs/environment/profiles/[Skaffold Profiles]  
+* link:https://kustomize.io/[Kustomize Documentation]
+* xref:dev-guide/architecture.adoc[Architecture IBIS-X] 

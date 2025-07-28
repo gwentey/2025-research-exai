@@ -1,0 +1,304 @@
+= Guide de Démarrage Rapide : Développement Local IBIS-X
+:description: Guide pratique pour démarrer rapidement l'environnement de développement local IBIS-X avec la nouvelle approche séquentielle
+:keywords: démarrage rapide, développement local, make dev, installation, première utilisation
+:page-layout: default
+
+== 🚀 Démarrage Ultra-Rapide
+
+[.lead]
+Lancez votre environnement de développement IBIS-X en **moins de 5 minutes** avec cette nouvelle approche simplifiée et fiable.
+
+[NOTE]
+.Nouveau ! Déploiement Séquentiel Fiable
+====
+🆕 **Fini les erreurs de démarrage !** Notre nouveau système de déploiement séquentiel garantit que tous les services démarrent dans le bon ordre, éliminant les problèmes de connexion à la base de données.
+====
+
+== ⚡ Installation Express
+
+=== 1. Prérequis (Installation Unique)
+
+Assurez-vous d'avoir installé :
+
+[source,bash]
+----
+# Vérification rapide des outils
+docker --version         # ✅ Docker Desktop
+minikube version         # ✅ Minikube  
+kubectl version --client # ✅ kubectl
+skaffold version         # ✅ Skaffold
+python --version         # ✅ Python 3.8+
+----
+
+[TIP]
+.Installation Automatique des Prérequis
+====
+Si certains outils manquent, consultez notre xref:dev-guide/environment-setup.adoc[Guide d'Installation des Prérequis] qui inclut des scripts automatisés pour Windows, macOS et Linux.
+====
+
+=== 2. Configuration des Secrets
+
+Créez un fichier `.env` à la racine du projet avec vos credentials :
+
+[source,bash]
+----
+# Base de données (utilise les valeurs par défaut pour le local)
+DATABASE_URL=postgresql://ibis_x_user:password@postgresql-service.ibis-x.svc.cluster.local:5432/ibis_x_db
+
+# JWT Secret (générez une clé sécurisée)
+SECRET_KEY=your-super-secret-jwt-key-here
+
+# OAuth Google (obtenez vos clés sur Google Cloud Console)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+LOCAL_REDIRECT_URL=http://localhost:8080/authentication/callback
+
+# Kaggle API (pour l'import automatique des datasets)
+KAGGLE_USERNAME=your-kaggle-username
+KAGGLE_KEY=your-kaggle-api-key
+----
+
+[IMPORTANT]
+.Configuration OAuth Google
+====
+Pour obtenir vos clés Google OAuth :
+
+1. Allez sur https://console.cloud.google.com/
+2. Créez un nouveau projet ou sélectionnez un projet existant
+3. Activez l'API Google+ 
+4. Créez des identifiants OAuth 2.0
+5. Ajoutez `http://localhost:8080` aux origines autorisées
+====
+
+== 🎯 Commandes de Démarrage
+
+=== Démarrage Complet avec Vrais Datasets (Recommandé)
+
+[.lead]
+**🆕 Nouveau !** `make dev` inclut maintenant automatiquement les 7 vrais datasets IBIS-X.
+
+[source,bash]
+----
+# Installation et démarrage complet avec vrais datasets
+make dev
+----
+
+Cette commande exécute automatiquement :
+1. ✅ Vérification des prérequis
+2. ✅ Mise à jour des secrets Kubernetes  
+3. ✅ Démarrage de Minikube
+4. ✅ Création du namespace
+5. ✅ **Déploiement des services** (PostgreSQL, API, Frontend, MinIO)
+6. ✅ **Attente que PostgreSQL soit prêt**
+7. ✅ **Déploiement des jobs de migration**
+8. ✅ **🆕 Initialisation automatique des 7 vrais datasets**
+9. ✅ **Port forwards automatiques** (URLs d'accès affichées)
+10. ✅ Affichage des logs en temps réel
+
+=== Démarrage Sans Datasets (Tests Uniquement)
+
+[source,bash]
+----
+# Installation SANS datasets (pour tests spécialisés uniquement)
+make dev-no-data
+----
+
+Version allégée pour des cas spécifiques :
+- 🧪 **Tests de l'interface** sans dépendances données
+- ⚡ **Développement frontend pur**
+- 🔧 **Tests d'infrastructure** uniquement
+
+=== Option 3 : Démarrage Rapide (Minikube Déjà Actif)
+
+[source,bash]
+----
+# Si Minikube est déjà en cours d'exécution
+make quick-dev
+----
+
+== 🎮 Utilisation
+
+=== Accès aux Services
+
+Une fois le démarrage terminé, accédez à votre application :
+
+[cols="2,3,2", options="header"]
+|===
+|Service |URL |Description
+
+|**🎨 Frontend Angular**
+|http://localhost:8080
+|Interface utilisateur principale
+
+|**🔌 API Gateway**  
+|http://localhost:9000
+|API REST backend
+
+|**📚 Documentation API**
+|http://localhost:9000/docs
+|Interface Swagger interactive
+
+|**💾 MinIO Console**
+|http://localhost:6701
+|Gestion du stockage (admin/admin)
+|===
+
+=== Vérification du Statut
+
+[source,bash]
+----
+# Vérifier que tous les services sont actifs
+kubectl get pods -n ibis-x
+
+# Résultat attendu :
+# NAME                                READY   STATUS
+# api-gateway-xxx                     1/1     Running    
+# frontend-xxx                        1/1     Running
+# minio-xxx                          1/1     Running
+# postgresql-0                        1/1     Running  
+# service-selection-xxx               1/1     Running
+----
+
+[source,bash]
+----
+# Vérifier que les jobs ont terminé avec succès
+kubectl get jobs -n ibis-x
+
+# Résultat attendu :
+# NAME                            COMPLETIONS   AGE
+# api-gateway-migration-job       1/1           2m
+# service-selection-migration-job 1/1           2m
+# service-selection-data-init-job 1/1           2m
+----
+
+== 🛠️ Commandes de Gestion
+
+=== Développement Quotidien
+
+[source,bash]
+----
+# Voir les logs en temps réel de tous les services
+make logs
+
+# Arrêter l'application (garde Minikube actif)
+make stop
+
+# Redémarrage rapide après modifications
+make quick-dev
+----
+
+=== Gestion Avancée
+
+[source,bash]
+----
+# Nettoyage complet (supprime tout)
+make clean
+
+# Reset complet (clean + redémarrage)
+make reset
+
+# Déployer uniquement les services (sans jobs)
+make deploy-services
+
+# Déployer uniquement les jobs (PostgreSQL doit être prêt)
+make deploy-jobs
+----
+
+== 🔧 Résolution de Problèmes
+
+=== Problèmes Courants
+
+==== ❌ "Jobs échouent avec Connection refused"
+
+[source,bash]
+----
+# Solution : Utiliser le déploiement séquentiel
+make clean
+make dev  # La nouvelle approche résout ce problème automatiquement
+----
+
+==== ❌ "PostgreSQL lent à démarrer"
+
+[source,bash]
+----
+# Attendre plus longtemps ou augmenter les ressources Minikube
+minikube config set memory 4096
+minikube config set cpus 2
+minikube delete && minikube start
+----
+
+==== ❌ "Images Docker non trouvées"
+
+[source,bash]
+----
+# Configurer l'environnement Docker sur Minikube
+eval $(minikube docker-env)  # Linux/macOS
+# ou 
+minikube docker-env --shell=powershell | Invoke-Expression  # Windows
+----
+
+=== Debugging Avancé
+
+[source,bash]
+----
+# Voir les détails d'un pod spécifique
+kubectl describe pod -n ibis-x <nom-du-pod>
+
+# Voir les logs d'un service spécifique  
+kubectl logs -n ibis-x deployment/api-gateway -f
+
+# Vérifier les secrets et configmaps
+kubectl get secrets,configmaps -n ibis-x
+----
+
+== 🚀 Étapes Suivantes
+
+Une fois votre environnement actif :
+
+1. **🎯 Explorez l'Interface** : Connectez-vous sur http://localhost:8080
+2. **📊 Testez les Datasets** : Parcourez les datasets pré-chargés
+3. **🔍 Consultez l'API** : Explorez http://localhost:9000/docs
+4. **💻 Développez** : Vos modifications sont automatiquement reloadées
+5. **📚 Approfondissez** : Consultez la xref:dev-guide/local-development-sequential.adoc[Documentation Technique Détaillée]
+
+[NOTE]
+.Hot Reload Actif
+====
+✨ **Skaffold surveille automatiquement** vos modifications de code et redéploie les services modifiés en temps réel. Pas besoin de redémarrer manuellement !
+====
+
+== 📋 Aide-Mémoire des Commandes
+
+[source,bash]
+----
+# DÉMARRAGE
+make dev              # Démarrage complet + vrais datasets + logs
+make dev-no-data      # Démarrage SANS datasets (tests uniquement)  
+make quick-dev        # Démarrage rapide + datasets
+
+# GESTION
+make logs            # Logs temps réel
+make stop            # Arrêter
+make clean           # Nettoyage complet
+make reset           # Reset + redémarrage
+
+# DEBUGGING  
+kubectl get pods -n ibis-x           # Statut services
+kubectl get jobs -n ibis-x           # Statut jobs
+kubectl logs -n ibis-x deployment/api-gateway  # Logs spécifiques
+----
+
+== 🆘 Support
+
+Si vous rencontrez des problèmes :
+
+1. **📖 Consultez** la xref:dev-guide/local-development-sequential.adoc[Documentation Technique]
+2. **🔍 Vérifiez** les logs avec `make logs`  
+3. **🧹 Nettoyez** avec `make clean` puis `make dev`
+4. **💬 Contactez** l'équipe de développement
+
+[TIP]
+.Contribution et Amélioration
+====
+Ce guide évolue constamment ! Si vous identifiez des améliorations possibles ou rencontrez des problèmes non documentés, n'hésitez pas à contribuer à la documentation.
+==== 

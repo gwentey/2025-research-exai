@@ -1,0 +1,11 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: service-selection-migration-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: service-selection-migration
+        image: service-selection:latest
+        imagePullPolicy: Never 

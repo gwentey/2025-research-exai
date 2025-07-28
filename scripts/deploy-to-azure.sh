@@ -191,7 +191,7 @@ check_prerequisites() {
                 fi
             else
                 log_error "Terraform non installé et winget indisponible. Installez manuellement depuis https://www.terraform.io/downloads.html"
-                exit 1
+        exit 1
             fi
         else
             # Installation sur Linux/MacOS
@@ -722,6 +722,7 @@ deploy_application() {
                 \$content = \$content -replace 'newName: .*azurecr\.io/ibis-x-api-gateway', 'newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway'
                 \$content = \$content -replace 'newName: .*azurecr\.io/service-selection', 'newName: $ACR_NAME.azurecr.io/service-selection'  
                 \$content = \$content -replace 'newName: .*azurecr\.io/frontend', 'newName: $ACR_NAME.azurecr.io/frontend'
+                \$content = \$content -replace 'PLACEHOLDER_ACR', '$ACR_NAME'
                 [System.IO.File]::WriteAllText('$KUSTOMIZATION_FILE_WIN', \$content, [System.Text.Encoding]::UTF8)
                 Write-Host 'Fichier kustomization.yaml mis à jour avec PowerShell'
             } else {
@@ -742,17 +743,19 @@ deploy_application() {
                 -e "s|newName: .*azurecr.io/ibis-x-api-gateway|newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway|" \
                 -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/service-selection|" \
                 -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/frontend|" \
+                -e "s|PLACEHOLDER_ACR|$ACR_NAME|g" \
                 "$KUSTOMIZATION_FILE" 2>/dev/null || true
             rm -f "$KUSTOMIZATION_FILE.tmp" 2>/dev/null || true
         fi
     else
         # Utiliser sed pour Linux/MacOS
         log_info "Utilisation de sed pour Linux/MacOS..."
-        sed -i.tmp \
-            -e "s|newName: .*azurecr.io/ibis-x-api-gateway|newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway|" \
-            -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/service-selection|" \
-            -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/frontend|" \
-            "$KUSTOMIZATION_FILE"
+    sed -i.tmp \
+        -e "s|newName: .*azurecr.io/ibis-x-api-gateway|newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway|" \
+        -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/service-selection|" \
+        -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/frontend|" \
+        -e "s|PLACEHOLDER_ACR|$ACR_NAME|g" \
+        "$KUSTOMIZATION_FILE"
         rm -f "$KUSTOMIZATION_FILE.tmp" 2>/dev/null || true
     fi
     

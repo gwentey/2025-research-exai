@@ -40,7 +40,4 @@ spec:
             secretKeyRef:
               name: gateway-secrets
               key: secret-key # Assurez-vous que la clé est correcte dans le Secret
-        # Optionnel: Si d'autres variables d'env sont nécessaires (ex: depuis ConfigMap)
-        # - configMapRef:
-        #     name: api-gateway-config
       restartPolicy: OnFailure 

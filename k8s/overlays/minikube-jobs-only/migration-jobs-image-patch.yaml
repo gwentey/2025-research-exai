@@ -1,0 +1,14 @@
+# Patch pour les jobs de migration en local (Minikube)
+# Remplace les images ACR par des images locales buildées par Skaffold
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: api-gateway-migration-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: api-gateway-migration
+        image: ibis-x-api-gateway:latest
+        imagePullPolicy: Never 

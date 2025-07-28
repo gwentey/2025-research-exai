@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Configuration temporaire pour déployer uniquement les jobs avec les patches minikube
+namespace: ibis-x
+
+resources:
+  - ../../base/jobs/api-gateway-migration-job.yaml
+  - ../../base/jobs/service-selection-migration-job.yaml
+  - ../../base/jobs/service-selection-data-init-job.yaml
+  - ../../base/jobs/kaggle-dataset-import-job.yaml
+
+# Patches spécifiques à Minikube pour les jobs (images locales)
+patches:
+  - path: migration-jobs-image-patch.yaml
+    target:
+      kind: Job
+      name: api-gateway-migration-job
+  - path: service-selection-migration-job-patch.yaml
+    target:
+      kind: Job
+      name: service-selection-migration-job 

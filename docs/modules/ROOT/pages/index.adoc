@@ -8,7 +8,24 @@ Bienvenue dans la documentation de la plateforme IBIS-X, votre solution complèt
 
 == 🚀 Démarrage Rapide
 
-=== Nouveau ! Infrastructure Automatisée Azure
+=== Nouveau ! Développement Local Ultra-Fiable
+
+[.card.featured]
+****
+**🆕 Déploiement Local Séquentiel - Fini les Erreurs de Démarrage !**
+
+Notre nouveau système de déploiement séquentiel garantit un démarrage fiable à 100% de votre environnement de développement.
+
+* ✅ **Démarrage fiable** : PostgreSQL prêt avant les migrations
+* ✅ **Installation ultra-rapide** : `make dev` et c'est parti !  
+* ✅ **Zero erreur** : Plus jamais de "Connection refused"
+* ✅ **Hot reload** : Développement fluide avec Skaffold
+
+[.text-center]
+xref:dev-guide/local-development-quickstart.adoc[🚀 **Guide de Démarrage Rapide** →]
+****
+
+=== Infrastructure Automatisée Azure
 
 [.card.featured]
 ****
@@ -27,14 +44,28 @@ xref:deployment/azure-terraform-guide.adoc[🚀 **Guide Complet Azure + Terrafor
 
 === Guides d'Installation
 
-[cols="1,1", frame=none, grid=none]
+[cols="1,1,1", frame=none, grid=none]
 |===
 a|
 [.card]
 ****
-**⚡ Installation Automatisée**
+**🚀 Développement Local**
 
-Terraform + Scripts automatisés pour Azure
+Nouveau ! Déploiement séquentiel fiable
+
+* Installation en 5 minutes
+* `make dev` et c'est parti
+* Zéro erreur de démarrage
+
+xref:dev-guide/local-development-quickstart.adoc[Démarrage Rapide →]
+****
+
+a|
+[.card]
+****
+**⚡ Installation Azure**
+
+Terraform + Scripts automatisés
 
 * Infrastructure cloud complète
 * Développement local avec Make
