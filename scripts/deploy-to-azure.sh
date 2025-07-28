@@ -676,9 +676,7 @@ deploy_application() {
     
     cd "$PROJECT_ROOT"
     
-    # CORRECTION PRÉVENTIVE DES ACR avant tout déploiement
-    log_info "🔧 Correction préventive des noms ACR avant déploiement..."
-    update_all_acr_references
+    # Les placeholders ACR ont déjà été remplacés lors de get_terraform_outputs
     
     # Vérifier les noms de projet
     verify_project_names
@@ -700,66 +698,7 @@ deploy_application() {
         --selector=app.kubernetes.io/name=cert-manager \
         --timeout=300s
     
-    # Mettre à jour les références d'images dans kustomization.yaml de façon automatique
-    KUSTOMIZATION_FILE="$K8S_DIR/overlays/azure/kustomization.yaml"
-    
-    # Créer une copie de sauvegarde
-    cp "$KUSTOMIZATION_FILE" "$KUSTOMIZATION_FILE.backup"
-    
-    # Méthode robuste compatible Windows/Linux - Skip Python pour éviter les erreurs
-    log_info "Mise à jour automatique du kustomization.yaml..."
-    
-    # Méthode directe selon l'OS
-    if [[ "$IS_WINDOWS" == true ]]; then
-        # Convertir le chemin pour Windows
-        local KUSTOMIZATION_FILE_WIN=$(echo "$KUSTOMIZATION_FILE" | sed 's|^/c/|C:/|')
-        
-        log_info "Utilisation de PowerShell pour Windows..."
-        powershell.exe -Command "
-        try {
-            if (Test-Path '$KUSTOMIZATION_FILE_WIN') {
-                \$content = Get-Content '$KUSTOMIZATION_FILE_WIN' -Raw -Encoding UTF8
-                \$content = \$content -replace 'newName: .*azurecr\.io/ibis-x-api-gateway', 'newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway'
-                \$content = \$content -replace 'newName: .*azurecr\.io/service-selection', 'newName: $ACR_NAME.azurecr.io/service-selection'  
-                \$content = \$content -replace 'newName: .*azurecr\.io/frontend', 'newName: $ACR_NAME.azurecr.io/frontend'
-                \$content = \$content -replace 'PLACEHOLDER_ACR', '$ACR_NAME'
-                [System.IO.File]::WriteAllText('$KUSTOMIZATION_FILE_WIN', \$content, [System.Text.Encoding]::UTF8)
-                Write-Host 'Fichier kustomization.yaml mis à jour avec PowerShell'
-            } else {
-                Write-Warning 'Fichier kustomization.yaml non trouvé, création avec sed alternative...'
-                exit 2
-            }
-        } catch {
-            Write-Warning ('Erreur PowerShell: ' + \$_.Exception.Message)
-            exit 2
-        }
-        " 2>/dev/null
-        
-        # Vérifier si PowerShell a réussi
-        if [[ $? -ne 0 ]]; then
-            log_warning "PowerShell échoué, utilisation de sed comme alternative..."
-            # Alternative sed même sur Windows (via Git Bash)
-            sed -i.tmp \
-                -e "s|newName: .*azurecr.io/ibis-x-api-gateway|newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway|" \
-                -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/service-selection|" \
-                -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/frontend|" \
-                -e "s|PLACEHOLDER_ACR|$ACR_NAME|g" \
-                "$KUSTOMIZATION_FILE" 2>/dev/null || true
-            rm -f "$KUSTOMIZATION_FILE.tmp" 2>/dev/null || true
-        fi
-    else
-        # Utiliser sed pour Linux/MacOS
-        log_info "Utilisation de sed pour Linux/MacOS..."
-    sed -i.tmp \
-        -e "s|newName: .*azurecr.io/ibis-x-api-gateway|newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway|" \
-        -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/service-selection|" \
-        -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/frontend|" \
-        -e "s|PLACEHOLDER_ACR|$ACR_NAME|g" \
-        "$KUSTOMIZATION_FILE"
-        rm -f "$KUSTOMIZATION_FILE.tmp" 2>/dev/null || true
-    fi
-    
-    log_success "Mise à jour du kustomization.yaml terminée"
+    # Les placeholders ACR ont déjà été remplacés
     
     # Déploiement automatique avec stratégie optimisée par OS
     log_info "Déploiement automatique avec stratégie optimisée..."
@@ -896,155 +835,13 @@ deploy_app_with_correct_images() {
     log_success "✅ DÉPLOIEMENT 100% AUTOMATIQUE RÉUSSI ! Applications en ligne avec images ACR, secrets, et SSL !"
 }
 
-# Fonction ULTRA-ROBUSTE pour corriger automatiquement TOUS les noms ACR (VERSION AMÉLIORÉE)
+# Fonction SIMPLE et EFFICACE pour remplacer les placeholders ACR
 update_all_acr_references() {
-    log_info "🔍 CORRECTION AUTOMATIQUE ROBUSTE du nom ACR : $ACR_NAME"
+    log_info "🔍 Remplacement des placeholders ACR : PLACEHOLDER_ACR → $ACR_NAME"
     
-    local new_acr_name="$ACR_NAME.azurecr.io"
     local updated_files=0
-    local debug_mode=true
     
-    # PATTERNS ACR ÉTENDUS - capture TOUS les types possibles
-    local acr_patterns=(
-        "ibisxprodacr[0-9]*\.azurecr\.io"      # Pattern principal
-        "ibisprodacr[0-9]*\.azurecr\.io"       # Ancien pattern
-        "exaiacr[0-9]*\.azurecr\.io"           # Pattern EXAI
-        "exai.*acr[0-9]*\.azurecr\.io"         # Pattern EXAI étendu
-        "[a-z]*acr[0-9]*\.azurecr\.io"         # Pattern générique
-        "[a-zA-Z0-9]*\.azurecr\.io"            # Pattern très large
-    )
-    
-    # Fonction interne ULTRA-ROBUSTE pour corriger un fichier spécifique
-    fix_acr_in_file_robust() {
-        local file_path="$1"
-        local file_name=$(basename "$file_path")
-        local correction_needed=false
-        local correction_successful=false
-        
-        if [[ ! -f "$file_path" ]]; then
-            log_warning "⚠️ Fichier introuvable: $file_path"
-            return 1
-        fi
-        
-        [[ "$debug_mode" == true ]] && log_info "🔧 Analyse de $file_name..."
-        
-        # Détecter TOUS les patterns ACR possibles
-        for pattern in "${acr_patterns[@]}"; do
-            if grep -q "$pattern" "$file_path" 2>/dev/null; then
-                correction_needed=true
-                [[ "$debug_mode" == true ]] && log_info "📍 Pattern détecté dans $file_name: $pattern"
-                break
-            fi
-        done
-        
-        # Si aucun pattern détecté, vérifier si le nouveau ACR est déjà présent
-        if [[ "$correction_needed" == false ]]; then
-            if grep -q "$new_acr_name" "$file_path" 2>/dev/null; then
-                [[ "$debug_mode" == true ]] && log_info "✅ $file_name déjà à jour avec $ACR_NAME"
-                return 0
-            else
-                # Détection générale d'azurecr.io pour catch-all
-                if grep -q "azurecr\.io" "$file_path" 2>/dev/null; then
-                    correction_needed=true
-                    [[ "$debug_mode" == true ]] && log_info "📍 Pattern générique azurecr.io détecté dans $file_name"
-                fi
-            fi
-        fi
-        
-        if [[ "$correction_needed" == false ]]; then
-            [[ "$debug_mode" == true ]] && log_info "✅ $file_name ne nécessite aucune correction"
-            return 0
-        fi
-        
-        log_info "🔧 Correction REQUISE pour $file_name..."
-        
-        # Sauvegarde de sécurité
-        cp "$file_path" "$file_path.backup-$(date +%s)" 2>/dev/null || true
-        
-        # MÉTHODE 1: PowerShell sur Windows (plus agressive)
-        if [[ "$IS_WINDOWS" == true ]]; then
-            local ps_result=$(powershell.exe -Command "
-            try {
-                \$content = Get-Content '$file_path' -Raw -Encoding UTF8
-                \$originalContent = \$content
-                
-                # Remplacer TOUS les patterns possibles
-                \$content = \$content -replace 'ibisxprodacr[0-9]+\.azurecr\.io', '$new_acr_name'
-                \$content = \$content -replace 'ibisprodacr[0-9]+\.azurecr\.io', '$new_acr_name'
-                \$content = \$content -replace 'exaiacr[0-9]+\.azurecr\.io', '$new_acr_name'
-                \$content = \$content -replace 'exai[a-zA-Z0-9]*acr[0-9]+\.azurecr\.io', '$new_acr_name'
-                \$content = \$content -replace '[a-z]+acr[0-9]+\.azurecr\.io', '$new_acr_name'
-                
-                # Vérifier si une modification a eu lieu
-                if (\$content -ne \$originalContent) {
-                    Set-Content '$file_path' -Value \$content -NoNewline -Encoding UTF8
-                    Write-Output 'SUCCESS'
-                } else {
-                    Write-Output 'NOCHANGE'
-                }
-            } catch {
-                Write-Output \"FAILED: \$(\$_.Exception.Message)\"
-            }
-            " 2>/dev/null || echo "FAILED")
-            
-            case "$ps_result" in
-                "SUCCESS")
-                    log_info "✅ $file_name corrigé avec PowerShell"
-                    correction_successful=true
-                    ;;
-                "NOCHANGE")
-                    [[ "$debug_mode" == true ]] && log_info "🔄 PowerShell: aucun changement détecté pour $file_name"
-                    ;;
-                *)
-                    log_warning "⚠️ PowerShell échoué pour $file_name: $ps_result"
-                    ;;
-            esac
-        fi
-        
-        # MÉTHODE 2: sed (fallback universel)
-        if [[ "$correction_successful" == false ]]; then
-            [[ "$debug_mode" == true ]] && log_info "🔄 Tentative avec sed pour $file_name..."
-            
-            # Appliquer TOUS les remplacements sed
-            local sed_success=true
-            for pattern in "${acr_patterns[@]}"; do
-                # Convertir le pattern grep en pattern sed (échapper les caractères spéciaux)
-                local sed_pattern="${pattern//\\/\\\\}"
-                sed -i.bak "s|$sed_pattern|$new_acr_name|g" "$file_path" 2>/dev/null || sed_success=false
-            done
-            
-            if [[ "$sed_success" == true ]]; then
-                rm -f "$file_path.bak" 2>/dev/null || true
-                log_info "✅ $file_name corrigé avec sed"
-                correction_successful=true
-            else
-                rm -f "$file_path.bak" 2>/dev/null || true
-                log_warning "⚠️ sed également échoué pour $file_name"
-            fi
-        fi
-        
-        # VÉRIFICATION FINALE OBLIGATOIRE
-        if grep -q "$new_acr_name" "$file_path" 2>/dev/null; then
-            log_success "✅ VÉRIFICATION OK: $file_name contient maintenant $ACR_NAME"
-            correction_successful=true
-        else
-            log_error "❌ ÉCHEC CRITIQUE: $file_name ne contient toujours pas $ACR_NAME après correction!"
-            correction_successful=false
-        fi
-        
-        # Restaurer backup en cas d'échec
-        if [[ "$correction_successful" == false ]] && [[ -f "$file_path.backup-"* ]]; then
-            log_warning "🔄 Restauration du backup pour $file_name..."
-            cp "$file_path.backup-"* "$file_path" 2>/dev/null || true
-        fi
-        
-        return $([ "$correction_successful" == true ] && echo 0 || echo 1)
-    }
-    
-    # Corriger chaque fichier critique avec vérification
-    log_info "🎯 Correction ROBUSTE des fichiers de déploiement..."
-    
-    # Fichiers à corriger (ordre de priorité)
+    # Fichiers critiques à mettre à jour
     local critical_files=(
         "$K8S_DIR/base/jobs/api-gateway-migration-job.yaml"
         "$K8S_DIR/base/jobs/service-selection-migration-job.yaml"
@@ -1053,80 +850,59 @@ update_all_acr_references() {
         "$K8S_DIR/overlays/azure/service-selection-migration-job-patch.yaml"
     )
     
-    for file in "${critical_files[@]}"; do
-        if fix_acr_in_file_robust "$file"; then
-            updated_files=$((updated_files + 1))
+    # Fonction simple pour remplacer PLACEHOLDER_ACR dans un fichier
+    replace_placeholder_in_file() {
+        local file_path="$1"
+        local file_name=$(basename "$file_path")
+        
+        if [[ ! -f "$file_path" ]]; then
+            log_warning "⚠️ Fichier introuvable: $file_path"
+            return 1
+        fi
+        
+        # Vérifier si le fichier contient des placeholders
+        if ! grep -q "PLACEHOLDER_ACR" "$file_path" 2>/dev/null; then
+            log_info "✅ $file_name - aucun placeholder à remplacer"
+            return 0
+        fi
+        
+        log_info "🔧 Remplacement des placeholders dans $file_name..."
+        
+        # Remplacement simple et direct
+        if sed -i "s|PLACEHOLDER_ACR|$ACR_NAME|g" "$file_path" 2>/dev/null; then
+            # Vérifier que le remplacement a fonctionné
+            if grep -q "$ACR_NAME\.azurecr\.io" "$file_path" 2>/dev/null; then
+                log_success "✅ $file_name mis à jour avec $ACR_NAME"
+                return 0
+            else
+                log_error "❌ Échec de vérification pour $file_name"
+                return 1
+            fi
         else
-            log_error "❌ ÉCHEC CRITIQUE pour $file"
+            log_error "❌ Échec du remplacement pour $file_name"
+            return 1
+        fi
+    }
+    
+    # Remplacer les placeholders dans chaque fichier critique
+    log_info "🎯 Remplacement des placeholders dans tous les fichiers..."
+    
+    for file in "${critical_files[@]}"; do
+        if replace_placeholder_in_file "$file"; then
+            updated_files=$((updated_files + 1))
         fi
     done
     
-    # Vérification finale STRICTE
-    log_info "🔍 Vérification finale STRICTE..."
+    log_success "🎯 Remplacement terminé - $updated_files fichier(s) traités avec ACR : $ACR_NAME"
     
-    local api_job_ok=0
-    local service_job_ok=0
-    
-    # Compter les occurrences du nouveau ACR
-    if [[ -f "$K8S_DIR/base/jobs/api-gateway-migration-job.yaml" ]]; then
-        api_job_ok=$(grep -c "$new_acr_name" "$K8S_DIR/base/jobs/api-gateway-migration-job.yaml" 2>/dev/null | tr -d '\r\n' || echo "0")
-    fi
-    
-    if [[ -f "$K8S_DIR/base/jobs/service-selection-migration-job.yaml" ]]; then
-        service_job_ok=$(grep -c "$new_acr_name" "$K8S_DIR/base/jobs/service-selection-migration-job.yaml" 2>/dev/null | tr -d '\r\n' || echo "0")
-    fi
-    
-    # Nettoyer les variables
-    api_job_ok=${api_job_ok//[^0-9]/}
-    service_job_ok=${service_job_ok//[^0-9]/}
-    api_job_ok=${api_job_ok:-0}
-    service_job_ok=${service_job_ok:-0}
-    
-    if [[ "$api_job_ok" -gt 0 ]] && [[ "$service_job_ok" -gt 0 ]]; then
-        log_success "✅ VÉRIFICATION RÉUSSIE - Tous les jobs contiennent le bon ACR: $ACR_NAME"
-        log_info "📊 Comptage: API Job = $api_job_ok, Service Job = $service_job_ok"
-    else
-        log_error "❌ ÉCHEC FINAL - Certains jobs n'ont TOUJOURS PAS le bon ACR!"
-        log_error "📊 Comptage: API Job = $api_job_ok, Service Job = $service_job_ok"
-        
-        # Debug supplémentaire en cas d'échec
-        log_info "🔍 DIAGNOSTIC D'ÉCHEC:"
-        if [[ -f "$K8S_DIR/base/jobs/api-gateway-migration-job.yaml" ]]; then
-            local api_current=$(grep "azurecr.io" "$K8S_DIR/base/jobs/api-gateway-migration-job.yaml" 2>/dev/null || echo "AUCUN ACR DÉTECTÉ")
-            log_info "API Job contient: $api_current"
-        fi
-        if [[ -f "$K8S_DIR/base/jobs/service-selection-migration-job.yaml" ]]; then
-            local service_current=$(grep "azurecr.io" "$K8S_DIR/base/jobs/service-selection-migration-job.yaml" 2>/dev/null || echo "AUCUN ACR DÉTECTÉ")
-            log_info "Service Job contient: $service_current"
-        fi
-    fi
-    
-    # Nettoyage des backups (mais garder en cas d'échec pour debug)
-    if [[ "$api_job_ok" -gt 0 ]] && [[ "$service_job_ok" -gt 0 ]]; then
-        find "$K8S_DIR" -name "*.backup-*" -delete 2>/dev/null || true
-        log_info "🧹 Backups nettoyés après succès"
-    else
-        log_warning "🔒 Backups conservés pour debug après échec"
-    fi
-    
-    # TOUJOURS nettoyer les jobs après correction (pour être sûr)
-    log_info "🧹 Nettoyage automatique des anciens jobs..."
-    kubectl delete job api-gateway-migration-job service-selection-migration-job -n ibis-x 2>/dev/null || true
-    sleep 2
-    
-    log_success "🎯 CORRECTION ROBUSTE TERMINÉE - $updated_files fichier(s) traités avec ACR : $ACR_NAME"
-    
-    # Retourner le statut de succès
-    return $([ "$api_job_ok" -gt 0 ] && [ "$service_job_ok" -gt 0 ] && echo 0 || echo 1)
+    return 0
 }
 
 # Fonction INTELLIGENTE pour gérer automatiquement les jobs de migration avec les bonnes images ACR
 fix_migration_jobs() {
     log_info "🔍 VÉRIFICATION INTELLIGENTE des jobs de migration avec ACR $ACR_NAME..."
     
-    # FORCER la correction des fichiers avant toute chose
-    log_info "🎯 CORRECTION PRÉVENTIVE des fichiers jobs avant création..."
-    update_all_acr_references
+    # Les fichiers ont déjà été corrigés avec les placeholders ACR
     
     # Vérifier les jobs existants et leur statut
     local api_job_exists=$(kubectl get job api-gateway-migration-job -n ibis-x 2>/dev/null && echo "true" || echo "false")
@@ -1232,9 +1008,7 @@ fix_migration_jobs() {
 final_auto_check_and_fix() {
     log_info "🔍 Vérification finale et auto-correction..."
     
-    # 1. Vérifier et corriger automatiquement les ACR dans les fichiers
-    log_info "🔧 Auto-correction des noms ACR..."
-    update_all_acr_references
+    # 1. Les ACR ont déjà été corrigés automatiquement
     
     # 2. Vérifier et corriger automatiquement les jobs de migration
     log_info "🔧 Auto-correction des jobs de migration..."
