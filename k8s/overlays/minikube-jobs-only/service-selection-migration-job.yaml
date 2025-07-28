@@ -7,24 +7,27 @@ metadata:
 spec:
   # Supprime automatiquement le job après 5 minutes
   ttlSecondsAfterFinished: 300
-  backoffLimit: 4 # Nombre de tentatives avant d'échouer
+  backoffLimit: 3 # Nombre de tentatives avant d'échouer
   template:
+    metadata:
+      labels:
+        job: service-selection-migration
     spec:
       containers:
-      - name: service-selection-migration
-        # Image ACR pour production Azure
-        image: ibisxprodacr6630.azurecr.io/service-selection:latest
-        imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
-        command: ["alembic", "upgrade", "head"]
-        workingDir: /app # Répertoire où se trouve alembic.ini
+      - name: migration
+        # IMAGE DYNAMIQUE - Remplacée automatiquement par le script de déploiement
+        image: PLACEHOLDER_ACR.azurecr.io/service-selection:latest
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "Début de la migration Service Selection..."
+            cd /app
+            alembic upgrade head
+            echo "Migration Service Selection terminée avec succès"
         env:
-        # Définir explicitement DATABASE_URL à partir de la clé du secret
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: db-secrets # Nom du Secret spécifique au service-selection
-              key: database-url # Nom de la clé dans le Secret
-        # Optionnel: Si d'autres variables d'env sont nécessaires pour les migrations
-        # - configMapRef:
-        #     name: service-selection-config
-      restartPolicy: Never # Ne redémarre pas le pod en cas d'échec 
+              name: db-secrets
+              key: database-url
+      restartPolicy: OnFailure 

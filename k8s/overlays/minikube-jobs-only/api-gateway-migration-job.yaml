@@ -9,16 +9,23 @@ metadata:
   namespace: ibis-x # Assure-toi que c'est le bon namespace
 spec:
   # ttlSecondsAfterFinished: 300 # Optionnel: Supprime le Job automatiquement après sa fin
-  backoffLimit: 4 # Nombre de tentatives avant d'échouer
+  backoffLimit: 3 # Nombre de tentatives avant d'échouer
   template:
+    metadata:
+      labels:
+        job: api-gateway-migration
     spec:
       containers:
-      - name: api-gateway-migration
-        # Image ACR pour production Azure
-        image: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway:latest
-        imagePullPolicy: IfNotPresent # Ne pas forcer le pull en local
-        command: ["alembic", "upgrade", "head"]
-        workingDir: /app # Répertoire où se trouve alembic.ini
+      - name: migration
+        # IMAGE DYNAMIQUE - Remplacée automatiquement par le script de déploiement
+        image: PLACEHOLDER_ACR.azurecr.io/ibis-x-api-gateway:latest
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "Début de la migration API Gateway..."
+            cd /app
+            alembic upgrade head
+            echo "Migration API Gateway terminée avec succès"
         env:
         # Définir explicitement DATABASE_URL à partir de la clé du secret
         - name: DATABASE_URL
@@ -33,7 +40,4 @@ spec:
             secretKeyRef:
               name: gateway-secrets
               key: secret-key # Assurez-vous que la clé est correcte dans le Secret
-        # Optionnel: Si d'autres variables d'env sont nécessaires (ex: depuis ConfigMap)
-        # - configMapRef:
-        #     name: api-gateway-config
-      restartPolicy: Never # Ne redémarre pas le pod en cas d'échec 
+      restartPolicy: OnFailure 

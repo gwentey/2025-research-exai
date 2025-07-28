@@ -722,6 +722,7 @@ deploy_application() {
                 \$content = \$content -replace 'newName: .*azurecr\.io/ibis-x-api-gateway', 'newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway'
                 \$content = \$content -replace 'newName: .*azurecr\.io/service-selection', 'newName: $ACR_NAME.azurecr.io/service-selection'  
                 \$content = \$content -replace 'newName: .*azurecr\.io/frontend', 'newName: $ACR_NAME.azurecr.io/frontend'
+                \$content = \$content -replace 'PLACEHOLDER_ACR', '$ACR_NAME'
                 [System.IO.File]::WriteAllText('$KUSTOMIZATION_FILE_WIN', \$content, [System.Text.Encoding]::UTF8)
                 Write-Host 'Fichier kustomization.yaml mis à jour avec PowerShell'
             } else {
@@ -742,6 +743,7 @@ deploy_application() {
                 -e "s|newName: .*azurecr.io/ibis-x-api-gateway|newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway|" \
                 -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/service-selection|" \
                 -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/frontend|" \
+                -e "s|PLACEHOLDER_ACR|$ACR_NAME|g" \
                 "$KUSTOMIZATION_FILE" 2>/dev/null || true
             rm -f "$KUSTOMIZATION_FILE.tmp" 2>/dev/null || true
         fi
@@ -752,6 +754,7 @@ deploy_application() {
         -e "s|newName: .*azurecr.io/ibis-x-api-gateway|newName: $ACR_NAME.azurecr.io/ibis-x-api-gateway|" \
         -e "s|newName: .*azurecr.io/service-selection|newName: $ACR_NAME.azurecr.io/service-selection|" \
         -e "s|newName: .*azurecr.io/frontend|newName: $ACR_NAME.azurecr.io/frontend|" \
+        -e "s|PLACEHOLDER_ACR|$ACR_NAME|g" \
         "$KUSTOMIZATION_FILE"
         rm -f "$KUSTOMIZATION_FILE.tmp" 2>/dev/null || true
     fi

@@ -30,13 +30,14 @@ resources:
 namespace: ibis-x
 
 # Remplacement des noms d'images spécifiques à Azure
+# NOMS DYNAMIQUES - Remplacés automatiquement par le script de déploiement
 images:
   - name: ibis-x-api-gateway
-    newName: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway
+    newName: PLACEHOLDER_ACR.azurecr.io/ibis-x-api-gateway
   - name: service-selection
-    newName: ibisxprodacr6630.azurecr.io/service-selection
+    newName: PLACEHOLDER_ACR.azurecr.io/service-selection
   - name: frontend
-    newName: ibisxprodacr6630.azurecr.io/frontend
+    newName: PLACEHOLDER_ACR.azurecr.io/frontend
 
 # Patches pour les configurations spécifiques à Azure
 patches:
@@ -60,15 +61,15 @@ patches:
       kind: Deployment
       name: service-selection-deployment
 
-# Supprimer le patch pour le StatefulSet PostgreSQL puisque nous utilisons notre propre StatefulSet
-# patches:
-#   - path: postgresql-statefulset-patch.yaml
-#     target:
-#       kind: StatefulSet
-#       name: postgresql
-#       # Le namespace est déjà défini globalement pour l'overlay, pas besoin ici
+# Variables d'environnement spécifiques à Azure (si nécessaire)
+# patchesStrategicMerge:
+#   - azure-env-patch.yaml
 
-# Important: Ne pas inclure explicitement les fichiers de secrets ou PVC ici
-# s'ils sont déjà dans les dossiers référencés par 'resources'.
-# Kustomize les prendra en compte automatiquement.
-# Nous gérons les secrets manuellement sur AKS pour l'instant.
+# Configuration des replicas pour la production (via patches)
+# Les replicas sont gérés via les patches dans les déploiements
+
+# Tags pour toutes les images (sera remplacé dynamiquement)
+commonLabels:
+  environment: production
+  deployment: azure
+  managed-by: github-actions
