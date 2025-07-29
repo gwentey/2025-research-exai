@@ -1,0 +1,119 @@
+= Auto-Rebuild Frontend Production - Guide Technique
+:navtitle: Auto-Rebuild Frontend
+:description: Configuration automatique du frontend Angular en mode production
+
+== Vue d'ensemble
+
+Le script `deploy-to-azure.sh` intègre désormais une fonctionnalité automatique de reconstruction du frontend Angular en mode production pour garantir que les bonnes URLs d'API sont utilisées.
+
+== Fonctionnalités automatiques
+
+=== 1. Configuration automatique de l'environnement
+
+Le script modifie automatiquement `frontend/src/environments/environment.prod.ts` avec les URLs correctes :
+
+[source,typescript]
+----
+export const environment = {
+  production: true,
+  apiUrl: 'https://api.ibisx.fr',
+  productionDomain: 'ibisx.fr'
+};
+----
+
+=== 2. Rebuild forcé avec --no-cache
+
+En mode production, le script :
+
+* Supprime les images Docker frontend existantes
+* Force la reconstruction avec `--no-cache`
+* Utilise `--build-arg ANGULAR_ENV=production`
+* Push automatiquement vers Azure Container Registry
+
+=== 3. Redéploiement automatique
+
+Après la reconstruction :
+
+* Mise à jour de l'image du deployment Kubernetes
+* Rollout restart automatique
+* Attente de la complétion du déploiement
+
+== Déclenchement automatique
+
+La fonctionnalité se déclenche automatiquement quand :
+
+* `DEPLOYMENT_MODE=manual-production`
+* ou `ANGULAR_ENV=production`
+
+[source,bash]
+----
+# Le script détecte automatiquement le mode production
+./scripts/deploy-to-azure.sh
+----
+
+== Logs de débogage
+
+Le script fournit des logs détaillés :
+
+[source,bash]
+----
+[INFO] 🎯 Mode production détecté - Vérification et correction automatique du frontend...
+[INFO] 🚀 Reconstruction automatique du frontend en mode production...
+[INFO] 📝 Mise à jour FORCÉE des URLs frontend pour le domaine de production...
+[INFO] 🎯 CONFIGURATION PRODUCTION FORCÉE:
+[INFO]    API URL: https://api.ibisx.fr
+[INFO]    Frontend Domain: ibisx.fr
+[INFO]    Production Mode: TRUE
+[INFO] 🧹 Suppression des images frontend existantes...
+[INFO] 🏗️ Construction frontend avec ANGULAR_ENV=production...
+[SUCCESS] ✅ Frontend FORCÉ en mode production:
+[SUCCESS]    ✅ production: true
+[SUCCESS]    ✅ API URL: https://api.ibisx.fr
+[SUCCESS]    ✅ Domaine: ibisx.fr
+----
+
+== Avantages
+
+* **Automatique** : Plus besoin de modifier manuellement les fichiers de configuration
+* **Fiable** : Rebuild forcé avec --no-cache garantit la prise en compte des changements
+* **Immédiat** : Redéploiement automatique après reconstruction
+* **Vérification** : Validation automatique des URLs configurées
+
+== Dépannage
+
+=== Problème : URLs de développement utilisées en production
+
+**Solution** : Le script corrige automatiquement ce problème en forçant la reconstruction.
+
+=== Problème : Image Docker non mise à jour
+
+**Solution** : Le script supprime les images existantes et force le rebuild avec `--no-cache`.
+
+=== Vérification manuelle
+
+Pour vérifier que le frontend utilise les bonnes URLs :
+
+[source,bash]
+----
+# Voir les logs du pod frontend
+kubectl logs -f deployment/frontend -n ibis-x
+
+# Vérifier la configuration dans le navigateur
+# Developer Tools > Network > Voir les appels vers api.ibisx.fr
+----
+
+== Fichiers modifiés automatiquement
+
+[cols="1,3"]
+|===
+| Fichier | Modification
+
+| `frontend/src/environments/environment.prod.ts`
+| URLs mises à jour automatiquement
+
+| Images Docker
+| Reconstruction forcée avec bonnes variables d'environnement
+
+| Deployment Kubernetes
+| Image mise à jour et rollout restart
+|=== 

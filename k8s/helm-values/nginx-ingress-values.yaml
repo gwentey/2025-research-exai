@@ -7,6 +7,9 @@ controller:
     annotations:
       # Indique à Azure LB comment vérifier la santé du contrôleur
       service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: /healthz
+      # ✅ IP STATIQUE AUTOMATIQUE (configurée par deploy-to-azure.sh)
+      service.beta.kubernetes.io/azure-load-balancer-static-ip: "52.226.32.96"
+      service.beta.kubernetes.io/azure-load-balancer-resource-group: "MC_ibis-x-prod-rg_ibis-x-prod-aks_eastus"
   admissionWebhooks:
     patch:
       nodeSelector:

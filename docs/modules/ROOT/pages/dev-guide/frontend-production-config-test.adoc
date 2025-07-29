@@ -1,0 +1,207 @@
+= Test Configuration Frontend Production
+:navtitle: Test Frontend Production
+
+== Vue d'ensemble
+
+Ce guide vous aide à **vérifier** que votre frontend Angular est correctement configuré en **mode production** avec les bonnes URLs API après déploiement.
+
+== Problème Résolu
+
+**Avant :** Le script `deploy-to-azure.sh` ne configurait pas correctement le frontend → URLs dev utilisées en production
+
+**Maintenant :** Configuration automatique du frontend → URLs production correctes !
+
+== Tests de Vérification
+
+=== 🧪 Test 1 : Vérifier la Configuration Frontend
+
+[source,bash]
+----
+# Vérifier le fichier environment.prod.ts après déploiement
+cat frontend/src/environments/environment.prod.ts
+
+# Vous devriez voir :
+# apiUrl: 'https://api.ibisx.fr'
+# productionDomain: 'ibisx.fr'
+----
+
+=== 🧪 Test 2 : Vérifier l'Image Docker Frontend
+
+[source,bash]
+----
+# Se connecter à votre ACR
+az acr login --name [VOTRE_ACR_NAME]
+
+# Vérifier les tags d'images
+az acr repository show-tags --name [VOTRE_ACR_NAME] --repository frontend
+
+# Tester l'image localement (optionnel)
+docker run -p 8080:80 [VOTRE_ACR_NAME].azurecr.io/frontend:latest
+----
+
+=== 🧪 Test 3 : Vérifier les URLs en Production
+
+[source,bash]
+----
+# Tester l'API via le frontend déployé
+curl -I https://api.ibisx.fr/health
+
+# Tester le frontend
+curl -I https://ibisx.fr
+
+# Vérifier les certificats SSL
+curl -s -o /dev/null -w "SSL: %{ssl_verify_result}\n" https://ibisx.fr
+----
+
+=== 🧪 Test 4 : Vérifier les Logs du Frontend
+
+[source,bash]
+----
+# Voir les logs du pod frontend
+kubectl logs -f deployment/frontend -n ibis-x
+
+# Rechercher des erreurs de connexion API
+kubectl logs deployment/frontend -n ibis-x | grep -i "api\|error\|connection"
+----
+
+== Test Complet du Workflow
+
+=== 📋 Procédure de Test
+
+[source,bash]
+----
+# 1. Vérifier les fichiers AVANT déploiement
+echo "=== AVANT DÉPLOIEMENT ==="
+cat frontend/src/environments/environment.prod.ts
+
+# 2. Lancer le déploiement
+bash scripts/deploy-to-azure.sh
+
+# 3. Vérifier les fichiers APRÈS déploiement
+echo "=== APRÈS DÉPLOIEMENT ==="
+cat frontend/src/environments/environment.prod.ts
+
+# 4. Tester l'application
+echo "=== TEST APPLICATION ==="
+curl -I https://ibisx.fr
+curl -I https://api.ibisx.fr/health
+----
+
+=== ✅ Résultats Attendus
+
+.Configuration Frontend Correcte
+[source,javascript]
+----
+export const environment = {
+  production: true,
+  apiUrl: 'https://api.ibisx.fr',
+  productionDomain: 'ibisx.fr'
+};
+----
+
+.Réponses Curl Attendues
+----
+# Frontend
+HTTP/1.1 200 OK
+Content-Type: text/html
+
+# API
+HTTP/1.1 200 OK
+Content-Type: application/json
+----
+
+== Dépannage
+
+=== 🔍 Problème : Frontend utilise encore localhost
+
+**Cause :** Le script n'a pas configuré correctement l'environnement
+
+**Solution :**
+[source,bash]
+----
+# Vérifier les logs du déploiement
+grep -i "frontend\|angular" /tmp/deploy-logs.txt
+
+# Forcer la reconfiguration
+rm frontend/src/environments/environment.prod.ts.backup-*
+bash scripts/deploy-to-azure.sh
+----
+
+=== 🔍 Problème : API non accessible depuis frontend
+
+**Cause :** CORS mal configuré ou certificats SSL
+
+**Solution :**
+[source,bash]
+----
+# Vérifier l'ingress CORS
+kubectl get ingress ibis-x-ingress -n ibis-x -o yaml | grep cors
+
+# Vérifier les certificats
+kubectl get certificates -n ibis-x
+kubectl describe certificate ibisx-tls -n ibis-x
+----
+
+=== 🔍 Problème : Images Docker non mises à jour
+
+**Cause :** Cache Docker ou push raté
+
+**Solution :**
+[source,bash]
+----
+# Vérifier les images dans ACR
+az acr repository list --name [VOTRE_ACR_NAME]
+
+# Forcer rebuild sans cache
+docker build --no-cache -t [ACR_NAME].azurecr.io/frontend:latest frontend/
+docker push [ACR_NAME].azurecr.io/frontend:latest
+
+# Redémarrer les pods
+kubectl rollout restart deployment/frontend -n ibis-x
+----
+
+== Automatisation GitHub Actions
+
+Le workflow GitHub Actions utilise le **même script**, donc ces tests s'appliquent aussi au déploiement automatique.
+
+### Différences GitHub Actions vs Script Manuel
+
+.Comparaison
+|===
+|Aspect |Script Manuel |GitHub Actions
+
+|Configuration Frontend
+|✅ Automatique
+|✅ Automatique
+
+|Secrets
+|⚠️ Placeholders
+|✅ Vrais secrets
+
+|Images Docker
+|✅ Build local
+|✅ Build dans runner
+
+|IP Statique
+|✅ Terraform
+|✅ Terraform
+|===
+
+TIP: Les deux méthodes produisent le **même résultat** pour la configuration frontend !
+
+== Validation Complète
+
+### ✅ Checklist Finale
+
+- [ ] `environment.prod.ts` contient `https://api.ibisx.fr`
+- [ ] Frontend accessible sur `https://ibisx.fr`
+- [ ] API accessible sur `https://api.ibisx.fr`
+- [ ] Certificats SSL valides
+- [ ] Pas d'erreurs CORS dans les logs
+- [ ] Données chargées correctement
+
+### 🎉 Succès !
+
+Si tous les tests passent, votre frontend est **correctement configuré** en production !
+
+Plus besoin de `git push origin production` juste pour corriger la configuration frontend. 

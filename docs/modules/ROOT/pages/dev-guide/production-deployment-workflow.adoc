@@ -1,0 +1,178 @@
+= Workflow de Déploiement Production Automatisé
+:navtitle: Déploiement Production
+
+== Vue d'ensemble
+
+Le workflow de déploiement production IBIS-X est maintenant **100% automatisé** avec gestion intelligente de l'IP publique statique. Ce guide explique le processus optimisé pour supprimer et recréer l'infrastructure complète.
+
+== Workflow Utilisateur Standard
+
+=== 🔄 Processus Complet
+
+[source,bash]
+----
+# 1. Supprimer complètement le cluster Kubernetes sur Azure
+# (via Azure Portal ou Azure CLI)
+
+# 2. Exécuter le script de déploiement
+bash scripts/deploy-to-azure.sh
+
+# 3. Déclencher la pipeline GitHub Actions
+# (push sur branch 'production' ou manuel)
+----
+
+=== ✅ Automatisations Incluses
+
+Le script `deploy-to-azure.sh` gère automatiquement :
+
+* **📡 IP Publique Statique** : Configuration automatique via Terraform
+* **🌐 NGINX Ingress** : Utilisation de l'IP statique (plus de changement d'IP !)
+* **🔐 Secrets Kubernetes** : Création automatique avec vraies valeurs Azure
+* **🐳 Images Docker** : Build et push automatiques vers ACR
+* **🏗️ Infrastructure** : Création/détection automatique via Terraform
+
+== Configuration IP Statique Automatique
+
+=== 🎯 Problème Résolu
+
+**Avant :** L'IP publique changeait à chaque redéploiement → Configuration DNS requise à chaque fois
+
+**Maintenant :** IP statique automatique → DNS configuré une seule fois !
+
+=== 🔧 Fonctionnement Technique
+
+[source,bash]
+----
+# Le script configure automatiquement :
+# 1. Récupération IP statique depuis Terraform
+# 2. Détection du Resource Group AKS automatique  
+# 3. Mise à jour nginx-ingress-values.yaml
+# 4. Installation NGINX avec IP statique
+----
+
+.Configuration automatique nginx-ingress-values.yaml
+[source,yaml]
+----
+controller:
+  service:
+    type: LoadBalancer
+    annotations:
+      # ✅ Configuré automatiquement par deploy-to-azure.sh
+      service.beta.kubernetes.io/azure-load-balancer-static-ip: "20.172.234.65"
+      service.beta.kubernetes.io/azure-load-balancer-resource-group: "MC_ibis-x-prod-rg_ibis-x-prod-aks_eastus"
+----
+
+== Avantages du Nouveau Workflow
+
+=== 🚀 Pour l'Utilisateur
+
+* **Zero Configuration** : Aucune modification manuelle requise
+* **IP Stable** : Configurez DNS **une seule fois**
+* **Reproductible** : Suppression/recréation → même IP publique
+* **Robust** : Gestion automatique des échecs et rollbacks
+
+=== 🛠️ Pour le Développeur
+
+* **Sauvegarde Automatique** : Backup des fichiers modifiés
+* **Restauration d'Erreur** : Rollback automatique en cas d'échec  
+* **Logs Détaillés** : Visibilité complète du processus
+* **Multi-OS** : Fonctionne Windows, Linux, macOS
+
+== Utilisation Pratique
+
+=== 📋 Déploiement Complet
+
+[source,bash]
+----
+# Workflow typique utilisateur :
+
+# 1. Supprimer infrastructure (Azure Portal)
+az aks delete --name ibis-x-prod-aks --resource-group ibis-x-prod-rg
+
+# 2. Déploiement automatique
+bash scripts/deploy-to-azure.sh
+
+# 3. Vérification IP statique
+kubectl get svc -n ingress-nginx
+# → L'IP sera identique à avant la suppression !
+
+# 4. GitHub Actions (optionnel)
+git push origin production
+----
+
+=== 🌐 Configuration DNS (Une Seule Fois)
+
+```dns
+# Configurez chez votre registrar :
+Type: A
+Nom: @
+Valeur: [IP_STATIQUE_TERRAFORM]  # Ne change jamais !
+
+Type: A  
+Nom: www
+Valeur: [IP_STATIQUE_TERRAFORM]
+
+Type: A
+Nom: api
+Valeur: [IP_STATIQUE_TERRAFORM]
+```
+
+WARNING: L'IP statique reste **identique** après suppression/recréation. Configurez vos DNS **une seule fois** !
+
+== Dépannage
+
+=== 🔍 Vérification IP Statique
+
+[source,bash]
+----
+# Vérifier IP configurée dans NGINX
+kubectl get svc ingress-nginx-controller -n ingress-nginx
+
+# Vérifier IP Terraform
+cd terraform/azure-infrastructure
+terraform output public_ip_address
+
+# Les deux doivent être identiques !
+----
+
+=== 🧹 Nettoyage Manuel
+
+[source,bash]
+----
+# Si problème pendant déploiement :
+# Les fichiers sont automatiquement restaurés
+
+# Nettoyage manuel force :
+find k8s/ -name "*.backup-*" -delete
+git checkout k8s/helm-values/nginx-ingress-values.yaml
+----
+
+== Monitoring
+
+=== 📊 Commandes Utiles
+
+[source,bash]
+----
+# État du déploiement
+kubectl get pods -n ibis-x
+kubectl get ingress -n ibis-x  
+kubectl get certificates -n ibis-x
+
+# Logs des applications
+kubectl logs -f deployment/api-gateway -n ibis-x
+kubectl logs -f deployment/frontend -n ibis-x
+
+# Test connectivité
+curl -I https://ibisx.fr
+curl -I https://api.ibisx.fr/health
+----
+
+== Migration depuis Ancien Workflow
+
+Si vous utilisiez l'ancien système avec IP dynamique :
+
+1. **Récupérez votre nouvelle IP statique** : `terraform output public_ip_address`
+2. **Mettez à jour vos DNS** avec cette IP  
+3. **Supprimez/recréez l'infrastructure** → L'IP reste identique !
+
+TIP: L'IP statique est créée par Terraform au premier déploiement et **ne change jamais**, même après suppression complète du cluster. 

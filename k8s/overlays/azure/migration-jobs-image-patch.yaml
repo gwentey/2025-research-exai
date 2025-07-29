@@ -3,7 +3,7 @@
 - op: replace
   path: /spec/template/spec/containers/0/image
   # IMAGE DYNAMIQUE - Remplacée automatiquement par le script de déploiement
-  value: PLACEHOLDER_ACR.azurecr.io/ibis-x-api-gateway:latest
+  value: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway:latest
 - op: replace
   path: /spec/template/spec/containers/0/imagePullPolicy
   value: Always 

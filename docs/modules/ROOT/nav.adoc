@@ -5,6 +5,7 @@
 
 * Guides d'Installation et Déploiement
 ** xref:deployment/azure-terraform-guide.adoc[🚀 Guide Complet Azure + Terraform]
+** xref:dev-guide/production-deployment-workflow.adoc[🔄 Workflow Déploiement Production Automatisé]
 ** xref:development/azure-deployment.adoc[Déploiement Azure Manuel]
 
 * Guides Utilisateur
@@ -31,6 +32,8 @@
 ** xref:dev-guide/database-migrations.adoc[Migrations de Base de Données]
 ** xref:dev-guide/environment-setup.adoc[Configuration de l'Environnement]
 ** xref:dev-guide/frontend-development.adoc[Développement Frontend]
+** xref:dev-guide/frontend-production-config-test.adoc[🧪 Test Configuration Frontend Production]
+** xref:dev-guide/frontend-production-auto-rebuild.adoc[🔄 Auto-Rebuild Frontend Production]
 ** xref:dev-guide/backend-api-development.adoc[Développement API Backend]
 ** xref:dev-guide/ml-pipeline-integration.adoc[Intégration Pipeline ML]
 ** xref:dev-guide/xai-engine-development.adoc[Développement Moteur XAI]

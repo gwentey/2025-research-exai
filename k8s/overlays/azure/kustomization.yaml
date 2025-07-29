@@ -33,11 +33,11 @@ namespace: ibis-x
 # NOMS DYNAMIQUES - Remplacés automatiquement par le script de déploiement
 images:
   - name: ibis-x-api-gateway
-    newName: PLACEHOLDER_ACR.azurecr.io/ibis-x-api-gateway
+    newName: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway
   - name: service-selection
-    newName: PLACEHOLDER_ACR.azurecr.io/service-selection
+    newName: ibisxprodacr6630.azurecr.io/service-selection
   - name: frontend
-    newName: PLACEHOLDER_ACR.azurecr.io/frontend
+    newName: ibisxprodacr6630.azurecr.io/frontend
 
 # Patches pour les configurations spécifiques à Azure
 patches:

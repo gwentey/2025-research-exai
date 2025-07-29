@@ -18,7 +18,7 @@ spec:
       containers:
       - name: migration
         # IMAGE DYNAMIQUE - Remplacée automatiquement par le script de déploiement
-        image: PLACEHOLDER_ACR.azurecr.io/ibis-x-api-gateway:latest
+        image: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway:latest
         command: ["sh", "-c"]
         args:
           - |

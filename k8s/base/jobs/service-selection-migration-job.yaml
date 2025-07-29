@@ -16,7 +16,7 @@ spec:
       containers:
       - name: migration
         # IMAGE DYNAMIQUE - Remplacée automatiquement par le script de déploiement
-        image: PLACEHOLDER_ACR.azurecr.io/service-selection:latest
+        image: ibisxprodacr6630.azurecr.io/service-selection:latest
         command: ["sh", "-c"]
         args:
           - |
