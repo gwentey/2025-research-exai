@@ -43,8 +43,14 @@ check-prerequisites: ## Vérifie que tous les outils requis sont installés
 
 update-secrets: ## Met à jour les secrets Kubernetes avec les valeurs du .env
 	@echo "$(BLUE)Mise a jour des secrets Kubernetes...$(NC)"
-	@python -m scripts.update-local-secrets
+	@python scripts/development/update-local-secrets.py
 	@echo "$(GREEN)Secrets mis a jour$(NC)"
+
+clean-minikube: ## Nettoie et supprime Minikube (en cas de problème)
+	@echo "$(BLUE)Nettoyage de Minikube...$(NC)"
+	-@minikube stop 2>nul
+	-@minikube delete 2>nul
+	@echo "$(GREEN)Minikube nettoye$(NC)"
 
 start-minikube: ## Démarre Minikube avec configuration optimale
 	@echo "$(BLUE)Demarrage de Minikube...$(NC)"
@@ -52,6 +58,8 @@ start-minikube: ## Démarre Minikube avec configuration optimale
 	@minikube addons enable ingress
 	@minikube addons enable storage-provisioner
 	@echo "$(GREEN)Minikube demarre$(NC)"
+
+restart-minikube: clean-minikube start-minikube ## Redémarre Minikube proprement (en cas de problème)
 
 create-namespace: ## Crée le namespace Kubernetes
 	@echo "$(BLUE)Creation du namespace $(NAMESPACE)...$(NC)"
@@ -61,13 +69,13 @@ create-namespace: ## Crée le namespace Kubernetes
 
 # Configurer l'environnement Docker pour Minikube
 docker-env:
-	@echo "Configuration de l'environnement Docker..."
-	@echo "Note: Sur Windows, configurez manuellement avec: minikube docker-env --shell=powershell | Invoke-Expression"
-	@echo "Environnement Docker configure"
+	@echo "$(BLUE)Configuration de l'environnement Docker...$(NC)"
+	@powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression"
+	@echo "$(GREEN)Environnement Docker configure$(NC)"
 
 deploy-services: ## Déploie les services uniquement (sans jobs) avec Skaffold
 	@echo "$(BLUE)Deploiement des services (sans jobs)...$(NC)"
-	@skaffold run --profile=local-services --namespace=$(NAMESPACE)
+	@powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression; skaffold dev --profile=local-services --namespace=$(NAMESPACE) --no-prune=false --cache-artifacts=false --cleanup=false --port-forward=false"
 	@echo "$(GREEN)Services deployes$(NC)"
 
 start-portforwards: stop-portforwards ## Lance les port forwards automatiquement
@@ -192,5 +200,5 @@ reset: clean dev ## Reset complet (nettoyage + redémarrage)
 
 reset-secrets: ## Remet les placeholders dans les fichiers de secrets
 	@echo "$(BLUE)Remise des placeholders...$(NC)"
-	@python -m scripts.reset-placeholders
+	@python scripts/development/reset-placeholders.py
 	@echo "$(GREEN)Placeholders restaures$(NC)" 

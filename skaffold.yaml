@@ -5,7 +5,7 @@ metadata:
 build:
   # Pas de defaultRepo global
   tagPolicy:
-    sha256: {}
+    gitCommit: {}
   # Configuration pour optimiser le cache mais permettre le pull des images manquantes
   local:
     push: false
@@ -41,6 +41,10 @@ deploy:
 profiles:
   - name: local
     # Profil complet pour déploiement local avec tous les composants
+    build:
+      tagPolicy:
+        envTemplate:
+          template: "latest"
     manifests:
       kustomize:
         buildArgs:
@@ -73,6 +77,10 @@ profiles:
         localPort: 6701
   - name: local-services
     # Profil pour déployer uniquement les services (sans jobs) - déploiement initial
+    build:
+      tagPolicy:
+        envTemplate:
+          template: "latest"
     manifests:
       kustomize:
         buildArgs:

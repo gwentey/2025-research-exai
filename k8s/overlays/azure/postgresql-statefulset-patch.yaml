@@ -5,6 +5,10 @@ metadata:
   name: postgresql
   namespace: ibis-x
 spec:
+  serviceName: "postgresql-headless"
+  selector:
+    matchLabels:
+      app: postgresql
   template:
     spec:
       containers:

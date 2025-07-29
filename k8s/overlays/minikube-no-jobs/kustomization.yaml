@@ -18,6 +18,8 @@ patches:
   - path: minio-pvc-patch.yaml
   # Modifier l'ingress pour le local (sans SSL)
   - path: ingress-patch.yaml
+  # Patch pour utiliser les images locales (imagePullPolicy: IfNotPresent)
+  - path: image-pull-policy-patch.yaml
   # Supprimer le ClusterIssuer (cert-manager) pour le local
   - target:
       kind: ClusterIssuer

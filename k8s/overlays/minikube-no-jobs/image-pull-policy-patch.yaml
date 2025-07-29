@@ -1,0 +1,54 @@
+# Patch pour changer l'imagePullPolicy en mode local Minikube
+# Cela permet d'utiliser les images locales au lieu d'essayer de les tirer depuis un registry distant
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: api-gateway
+        imagePullPolicy: IfNotPresent
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: service-selection
+        imagePullPolicy: IfNotPresent
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: frontend
+        imagePullPolicy: IfNotPresent
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: minio
+        imagePullPolicy: IfNotPresent 
