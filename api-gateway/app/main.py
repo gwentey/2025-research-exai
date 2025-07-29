@@ -39,10 +39,17 @@ app = FastAPI(
     lifespan=lifespan # Utilisez lifespan si défini
 )
 
-# Configuration CORS - Version simple qui fonctionnait
+# Configuration CORS - Support production et développement
+allowed_origins = [
+    "http://localhost:8080",  # Développement local
+    "http://ibisx.fr",        # HTTP temporaire en production
+    "https://ibisx.fr",       # HTTPS production principal
+    "https://www.ibisx.fr",   # Variante avec www
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # Seulement l'origine nécessaire
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],  # Toutes les méthodes
     allow_headers=["*"],  # Tous les headers
@@ -85,18 +92,14 @@ async def google_oauth_authorize(request: Request, redirect_uri: str = Query(...
     Endpoint personnalisé pour l'autorisation Google OAuth qui corrige le problème de HTTP vs HTTPS.
     Remplace la route par défaut de fastapi-users pour plus de contrôle.
     """
-    # Détection du mode production en utilisant les domaines configurés
-    is_production = (
-        any(domain in request.base_url.netloc for domain in settings.PRODUCTION_DOMAINS) or
-        settings.OAUTH_REDIRECT_URL.startswith("https://")
-    )
+    # CORRECTION : Utiliser directement le redirect_uri du frontend au lieu de construire une URL API
+    # Le redirect_uri vient du frontend (ex: https://ibisx.fr/authentication/callback)
+    callback_url = redirect_uri
     
-    # Forcer HTTPS en production, peu importe le protocole de la requête entrante
-    scheme = "https" if is_production else request.base_url.scheme
-    callback_url = f"{scheme}://{request.base_url.netloc}/auth/google/callback"
+    # Détection du mode production pour validation
+    is_production = callback_url.startswith("https://")
     
-    logger.info(f"OAUTH: Using callback URL: {callback_url} (production: {is_production})")
-    logger.info(f"OAUTH: Frontend redirect URI: {redirect_uri}")
+    logger.info(f"OAUTH: Using frontend callback URL: {callback_url} (production: {is_production})")
     
     # Générer un state simple pour l'autorisation
     from uuid import uuid4
@@ -104,7 +107,7 @@ async def google_oauth_authorize(request: Request, redirect_uri: str = Query(...
     # Préparer un token simple qui servira de state
     token = str(uuid4())
     
-    # Obtenir l'URL d'autorisation
+    # Obtenir l'URL d'autorisation avec le bon callback URL (frontend)
     authorization_url = await google_oauth_client.get_authorization_url(
         redirect_uri=callback_url,
         state=token
@@ -200,20 +203,25 @@ async def exchange_google_token(
                 content={"detail": "Missing code or state parameter"},
             )
         
-        # Détection du mode production en utilisant les domaines configurés
-        is_production = (
-            any(domain in request.base_url.netloc for domain in settings.PRODUCTION_DOMAINS) or
-            settings.OAUTH_REDIRECT_URL.startswith("https://")
-        )
-            
-        # Construire l'URL de callback backend avec le bon protocole
-        scheme = "https" if is_production else request.base_url.scheme
-        backend_callback_url = f"{scheme}://{request.base_url.netloc}/auth/google/callback"
-        logger.info(f"Using callback URL for token exchange: {backend_callback_url} (production: {is_production})")
+        # CORRECTION : Utiliser la même URL de redirection que celle utilisée lors de l'autorisation
+        # Google OAuth exige que l'URL de redirection soit EXACTEMENT la même lors de l'échange du token
+        # Nous devons reconstituer l'URL du frontend depuis le referer ou utiliser une URL standard
         
-        # Obtenir le token d'accès auprès de Google
+        # Pour la production, utiliser l'URL standard du frontend
+        is_production = "https://" in str(request.headers.get("referer", ""))
+        
+        if is_production:
+            # URL du frontend en production (même que celle utilisée pour l'autorisation)
+            frontend_callback_url = "https://ibisx.fr/authentication/callback"
+        else:
+            # URL du frontend en développement
+            frontend_callback_url = "http://localhost:8080/authentication/callback"
+            
+        logger.info(f"Using frontend callback URL for token exchange: {frontend_callback_url} (production: {is_production})")
+        
+        # Obtenir le token d'accès auprès de Google avec l'URL frontend
         try:
-            access_token = await oauth_client.get_access_token(code, backend_callback_url)
+            access_token = await oauth_client.get_access_token(code, frontend_callback_url)
         except Exception as e:
             logger.exception(f"Error getting access token: {str(e)}")
             return JSONResponse(

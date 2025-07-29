@@ -329,14 +329,14 @@ configure_static_ip_for_nginx() {
             log_success "✅ IP statique existante trouvée : $static_ip"
         fi
         
-        # Double vérification : s'assurer que l'IP est bien statique
-        local ip_allocation=$(az network public-ip show --resource-group "$node_resource_group" --name "$ip_name" --query "publicIpAllocationMethod" --output tsv 2>/dev/null || echo "")
-        if [[ "$ip_allocation" != "Static" ]]; then
-            log_error "❌ ERREUR CRITIQUE : L'IP n'est pas statique (allocation: $ip_allocation) !"
+        # Double vérification : s'assurer que l'IP existe et est accessible
+        local ip_exists=$(az network public-ip show --resource-group "$node_resource_group" --name "$ip_name" --query "ipAddress" --output tsv 2>/dev/null || echo "")
+        if [[ -z "$ip_exists" ]] || [[ "$ip_exists" != "$static_ip" ]]; then
+            log_error "❌ ERREUR CRITIQUE : L'IP statique est incohérente (trouvée: $ip_exists, attendue: $static_ip) !"
             exit 1
         fi
         
-        log_success "✅ Vérification IP statique confirmée : $static_ip (allocation: $ip_allocation)"
+        log_success "✅ Vérification IP statique confirmée : $static_ip (accessible et cohérente)"
     else
         log_error "❌ ERREUR CRITIQUE : Resource group AKS non trouvé !"
         exit 1

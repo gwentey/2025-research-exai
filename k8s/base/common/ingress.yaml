@@ -6,15 +6,18 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # ⚠️  STRATÉGIE SSL : Pour un NOUVEAU domaine, commencer avec "false" puis passer à "true"
+    # ✅ CERTIFICATS EXISTANTS : Garde "true" car les certificats sont déjà générés
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     # CORS Configuration
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE, PATCH"
     nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/cors-max-age: "86400"
-    # Configuration spéciale : Permettre CORS seulement depuis les domaines de production et locaux
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://ibisx.fr,https://www.ibisx.fr,http://localhost:8080,http://localhost:9000"
+    # Configuration spéciale : Permettre CORS depuis les domaines de production et locaux
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://ibisx.fr,https://www.ibisx.fr,http://ibisx.fr,http://localhost:8080,http://localhost:9000"
     # Certificats Let's Encrypt (Cert-Manager)
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     # Redirection www -> sans www (sera gérée par une règle séparée)

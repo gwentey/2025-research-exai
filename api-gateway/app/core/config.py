@@ -27,10 +27,10 @@ class Settings(BaseSettings):
     # URL de redirection après authentification OAuth (frontend)
     # Par exemple: http://localhost:4200/auth/callback
     # Mettre à jour avec l'URL réelle du composant de callback Angular
-    OAUTH_REDIRECT_URL: str = os.getenv("OAUTH_REDIRECT_URL", "http://localhost:8080/authentication/callback")
+    OAUTH_REDIRECT_URL: str = os.getenv("OAUTH_REDIRECT_URL", "https://ibisx.fr/authentication/callback")
     
     # Domaines de production pour détection automatique
-    PRODUCTION_DOMAINS: list[str] = os.getenv("PRODUCTION_DOMAINS", "ibis-x.fr,api.ibis-x.fr").split(",")
+    PRODUCTION_DOMAINS: list[str] = os.getenv("PRODUCTION_DOMAINS", "ibisx.fr,api.ibisx.fr").split(",")
     
     # CORS Origins (Optionnel, si vous voulez le configurer via env)
     # Séparez les origines par des virgules si plusieurs.
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # Pas de "*" autorisé si allow_credentials=True dans main.py.
     BACKEND_CORS_ORIGINS: str = os.getenv(
         "BACKEND_CORS_ORIGINS",
-        "http://localhost:8080,https://ibis-x.fr,https://www.ibis-x.fr" # Local et production
+        "http://localhost:8080,http://ibisx.fr,https://ibisx.fr,https://www.ibisx.fr" # Local et production
     )
 
     # URLs des services backend pour le reverse proxy
