@@ -66,7 +66,8 @@ if [[ "$IS_GITHUB_ACTIONS" == "true" ]]; then
     fi
     
     export USE_GITHUB_SECRETS=true
-    export WITH_DATA="${WITH_DATA:-true}"
+    # ✅ TOUJOURS IMPORTER LES VRAIS DATASETS
+    export WITH_DATA="true"
     export ANGULAR_ENV="production"
     
 else
@@ -80,11 +81,13 @@ else
     export K8S_NAMESPACE="${K8S_NAMESPACE:-ibis-x}"
     export IMAGE_TAG="${IMAGE_TAG:-latest}"
     export USE_GITHUB_SECRETS=false
-    export WITH_DATA="${WITH_DATA:-false}"
+    # ✅ TOUJOURS IMPORTER LES VRAIS DATASETS (modifié de false à true)
+    export WITH_DATA="true"
     # ✅ FORCER PRODUCTION: Toujours en mode production pour Azure
     export ANGULAR_ENV="production"
     
     log_info "🎯 Mode Manuel Production - Frontend configuré automatiquement en PRODUCTION"
+    log_info "🎯 VRAIS DATASETS : WITH_DATA=true (toujours activé pour production)"
 fi
 
 # ==========================================
@@ -663,6 +666,7 @@ get_manual_infrastructure_info() {
         cd "$TERRAFORM_DIR"
         
         # Récupérer les outputs Terraform
+        # Récupérer les outputs Terraform (déjà dans TERRAFORM_DIR)
         local tf_storage=$(terraform output -raw storage_account_name 2>/dev/null || echo "")
         local tf_acr=$(terraform output -raw acr_name 2>/dev/null || echo "")
         local tf_aks=$(terraform output -raw aks_cluster_name 2>/dev/null || echo "")
@@ -698,7 +702,7 @@ get_manual_infrastructure_info() {
     
     log_info "📋 Configuration finale:"
     log_info "  ACR: $ACR_NAME"
-    log_info "  AKS: $AKS_NAME" 
+    log_info "  AKS: $AKS_NAME"
     log_info "  Resource Group: $RESOURCE_GROUP"
     
     log_success "✅ Configuration manuelle chargée"
@@ -967,79 +971,39 @@ deploy_application() {
     
     # Les placeholders ACR ont déjà été remplacés
     
-    # Déploiement automatique avec stratégie optimisée par OS
-    log_info "Déploiement automatique avec stratégie optimisée..."
+    # 🎯 DÉPLOIEMENT UNIFIÉ : Toujours utiliser Kustomize avec overlay Azure
+    # Applique automatiquement TOUS les patches Azure (stockage, auto-init, etc.)
+    log_info "🚀 Déploiement unifié avec Kustomize Azure (Windows/Linux/MacOS)..."
     
     # Sauvegarder le répertoire courant
     ORIGINAL_DIR=$(pwd)
     
-    # Sur Windows, utiliser directement le déploiement robuste (kustomize a des problèmes avec les chemins)
-    # Sur Linux/MacOS, essayer d'abord kustomize
-    if [[ "$IS_WINDOWS" == true ]]; then
-        log_info "Windows détecté - utilisation du déploiement robuste optimisé..."
-        
-        # Déploiement robuste étape par étape
-        log_info "Déploiement automatique des composants..."
-        
-        # 1. Secrets de base (déjà créés par create_missing_secrets)
-        kubectl apply -f "$K8S_DIR/base/api-gateway/gateway-secrets.yaml" 2>/dev/null || true
-        kubectl apply -f "$K8S_DIR/base/service-selection/db-secrets.yaml" 2>/dev/null || true
-        
-        # 2. PostgreSQL
-        kubectl apply -f "$K8S_DIR/overlays/azure/postgresql-statefulset.yaml" || true
-        kubectl apply -f "$K8S_DIR/base/postgres/postgresql-service.yaml" || true
-        
-        # 3. Applications avec images automatiquement corrigées
-        deploy_app_with_correct_images
-        
-        # 4. Services
-        kubectl apply -f "$K8S_DIR/base/api-gateway/service.yaml" || true
-        kubectl apply -f "$K8S_DIR/base/service-selection/service.yaml" || true  
-        kubectl apply -f "$K8S_DIR/base/frontend/service.yaml" || true
-        
-        # 5. Ingress et certificats
-        kubectl apply -f "$K8S_DIR/base/common/letsencrypt-prod-issuer.yaml" || true
-        kubectl apply -f "$K8S_DIR/base/common/ingress.yaml" || true
-        
-        log_success "Déploiement robuste Windows terminé avec succès"
+    # Utiliser TOUJOURS l'overlay Azure qui applique automatiquement :
+    # ✅ Configuration stockage Azure (au lieu de MinIO)
+    # ✅ Auto-initialisation datasets forcée 
+    # ✅ Variables d'environnement production
+    # ✅ Images ACR correctes
+    # ✅ Tous les patches spécifiques à Azure
+    
+    log_info "📦 Application overlay Azure avec tous les patches..."
+    
+    cd "$K8S_DIR/overlays/azure/" || {
+        log_error "❌ Impossible d'accéder au répertoire Azure overlay"
+        exit 1
+    }
+    
+    if kubectl apply -k . ; then
+        cd "$ORIGINAL_DIR"
+        log_success "✅ Déploiement Kustomize Azure réussi - TOUS les patches appliqués automatiquement"
+        log_info "✅ Patches Azure appliqués :"
+        log_info "  🗂️  Stockage: Azure Blob Storage (PAS MinIO)"
+        log_info "  🔄 Auto-init: FORCE_INIT_DATA=true + AUTO_INIT_DATA=true"
+        log_info "  🐳 Images: ACR $ACR_NAME"
+        log_info "  🎯 Mode: Production avec WITH_DATA=true"
     else
-        # Sur Linux/MacOS, essayer d'abord Kustomize
-        log_info "Linux/MacOS détecté - tentative Kustomize puis fallback si nécessaire..."
-        
-        cd "$K8S_DIR/overlays/azure/" || exit 1
-        
-        if kubectl apply -k . 2>/dev/null; then
-            cd "$ORIGINAL_DIR"
-            log_success "Déploiement Kustomize réussi"
-        else
-            log_info "Kustomize échoué - utilisation du déploiement alternatif..."
-            cd "$ORIGINAL_DIR"
-            
-            # Déploiement robuste étape par étape
-            log_info "Déploiement automatique des composants..."
-            
-            # 1. Secrets de base (déjà créés par create_missing_secrets)
-            kubectl apply -f "$K8S_DIR/base/api-gateway/gateway-secrets.yaml" 2>/dev/null || true
-            kubectl apply -f "$K8S_DIR/base/service-selection/db-secrets.yaml" 2>/dev/null || true
-            
-            # 2. PostgreSQL
-            kubectl apply -f "$K8S_DIR/overlays/azure/postgresql-statefulset.yaml" || true
-            kubectl apply -f "$K8S_DIR/base/postgres/postgresql-service.yaml" || true
-            
-            # 3. Applications avec images automatiquement corrigées
-            deploy_app_with_correct_images
-            
-            # 4. Services
-            kubectl apply -f "$K8S_DIR/base/api-gateway/service.yaml" || true
-            kubectl apply -f "$K8S_DIR/base/service-selection/service.yaml" || true  
-            kubectl apply -f "$K8S_DIR/base/frontend/service.yaml" || true
-            
-            # 5. Ingress et certificats
-            kubectl apply -f "$K8S_DIR/base/common/letsencrypt-prod-issuer.yaml" || true
-            kubectl apply -f "$K8S_DIR/base/common/ingress.yaml" || true
-            
-            log_success "Déploiement alternatif automatique terminé"
-        fi
+        log_error "❌ Échec du déploiement Kustomize Azure"
+        cd "$ORIGINAL_DIR"
+        exit 1
     fi
 }
 
@@ -1507,26 +1471,33 @@ create_manual_secrets() {
 create_storage_secrets_from_azure() {
     log_info "☁️ Récupération des secrets de stockage Azure..."
     
-    # Utiliser les valeurs déjà récupérées ou récupérer via Azure CLI
+    # Toujours privilégier les valeurs Terraform si disponibles
     if [[ -z "$STORAGE_ACCOUNT" ]] || [[ -z "$STORAGE_KEY" ]]; then
         log_info "📂 Récupération storage depuis Azure CLI..."
-        STORAGE_ACCOUNT=$(az storage account list --resource-group "$RESOURCE_GROUP" --query "[0].name" -o tsv 2>/dev/null || echo "")
+        # Filtrer pour récupérer spécifiquement le storage account IBIS-X (pattern: ibisxprodstg*)
+        STORAGE_ACCOUNT=$(az storage account list --resource-group "$RESOURCE_GROUP" --query "[?starts_with(name, 'ibisxprodstg')].name | [0]" -o tsv 2>/dev/null || echo "")
         if [[ -n "$STORAGE_ACCOUNT" ]]; then
             STORAGE_KEY=$(az storage account keys list --resource-group "$RESOURCE_GROUP" --account-name "$STORAGE_ACCOUNT" --query "[0].value" -o tsv 2>/dev/null || echo "")
         fi
+    fi
+    
+    # SÉCURITÉ : Corriger automatiquement si on détecte l'ancien storage account
+    if [[ "$STORAGE_ACCOUNT" == "ibisxprodstg2205" ]]; then
+        log_warning "⚠️ Ancien storage account détecté ($STORAGE_ACCOUNT), correction automatique..."
+        STORAGE_ACCOUNT="ibisxprodstg6630"
+        STORAGE_KEY=$(cd terraform/azure-infrastructure && terraform output -raw storage_account_primary_key 2>/dev/null || echo "")
+        log_info "✅ Correction : STORAGE_ACCOUNT=$STORAGE_ACCOUNT"
     fi
     
     # Créer le secret storage si on a les valeurs
     if [[ -n "$STORAGE_ACCOUNT" ]] && [[ -n "$STORAGE_KEY" ]]; then
         kubectl delete secret storage-secrets -n "$K8S_NAMESPACE" 2>/dev/null || true
         
-        log_info "🗂️ Création storage-secrets avec valeurs Azure..."
+        log_info "🗂️ Création storage-secrets avec valeurs Azure: $STORAGE_ACCOUNT"
         kubectl create secret generic storage-secrets -n "$K8S_NAMESPACE" \
             --from-literal=azure-storage-account-name="$STORAGE_ACCOUNT" \
             --from-literal=azure-storage-account-key="$STORAGE_KEY" \
-            --from-literal=azure-container-name=ibis-x-datasets \
-            --from-literal=access-key="$STORAGE_ACCOUNT" \
-            --from-literal=secret-key="$STORAGE_KEY"
+            --from-literal=azure-container-name=ibis-x-datasets
         
         log_success "✅ Storage secrets créés: $STORAGE_ACCOUNT"
     else
@@ -1803,6 +1774,8 @@ create_infrastructure() {
     
     log_success "✅ Infrastructure créée avec succès"
 }
+
+
 
 # Vérifier si le script est exécuté directement
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

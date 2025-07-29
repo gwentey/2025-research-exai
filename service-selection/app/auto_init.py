@@ -31,6 +31,12 @@ def check_data_already_initialized() -> bool:
     Returns:
         bool: True si au moins 5 des 7 datasets Kaggle existent, False sinon
     """
+    # Variable pour forcer l'initialisation même si les données existent
+    force_init = os.getenv("FORCE_INIT_DATA", "false").lower() in ("true", "1", "yes", "on")
+    if force_init:
+        logger.info("🔄 FORCE_INIT_DATA activé - bypass de la vérification d'initialisation")
+        return False
+    
     try:
         # Approche hybride pour gérer les imports en local et dans Docker
         try:

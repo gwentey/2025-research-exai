@@ -1,0 +1,66 @@
+# Patch complet pour redéfinir toutes les variables d'environnement en production Azure
+# REMPLACEMENT STRATÉGIQUE COMPLET - évite les conflits value/valueFrom
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: service-selection
+        env:
+        # Variables de base requises
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: database-url
+        - name: AUTO_INIT_DATA
+          value: "true"
+        - name: FORCE_INIT_DATA
+          value: "true"
+        # Variables Kaggle
+        - name: KAGGLE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kaggle-secrets
+              key: username
+        - name: KAGGLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kaggle-secrets
+              key: key
+        # Variables Azure Blob Storage UNIQUEMENT
+        - name: STORAGE_TYPE
+          value: "azure"
+        # Endpoint URL vide pour Azure (pas utilisé)
+        - name: STORAGE_ENDPOINT_URL
+          value: ""
+        - name: STORAGE_CONTAINER_NAME
+          value: "ibis-x-datasets"
+        # Clés d'accès Azure (remplacent MinIO access/secret keys)
+        - name: STORAGE_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: azure-storage-account-name
+        - name: STORAGE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: azure-storage-account-key
+        # Variables Azure spécifiques supplémentaires
+        - name: AZURE_STORAGE_ACCOUNT_NAME
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: azure-storage-account-name
+        - name: AZURE_STORAGE_ACCOUNT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: azure-storage-account-key
+        - name: STORAGE_BUCKET
+          value: "ibis-x-datasets" 

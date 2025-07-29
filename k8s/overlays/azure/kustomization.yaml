@@ -1,35 +1,14 @@
 ﻿apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Cet overlay se base sur ../../base
-# Utilise 'resources' au lieu de 'bases' (corrigé)
+# Référence la base commune
 resources:
-  - ../../base/api-gateway/deployment.yaml
-  - ../../base/api-gateway/gateway-secrets.yaml
-  - ../../base/api-gateway/service.yaml
-  # Utilisation de notre propre StatefulSet au lieu de celui de base
-  # - ../../base/postgres/postgresql-statefulset.yaml
-  - postgresql-statefulset.yaml
-  - ../../base/postgres/postgresql-service.yaml
-  - ../../base/service-selection/deployment.yaml
-  - ../../base/service-selection/db-secrets.yaml
-  - ../../base/service-selection/storage-secrets.yaml
-  - ../../base/service-selection/service.yaml
-  # - ../../base/service-selection/dataset-pvc.yaml # Supprimé car nous n'utilisons plus de PVC
-  - ../../base/frontend/deployment.yaml
-  - ../../base/frontend/service.yaml
-  - ../../base/common/ingress.yaml
-  - ../../base/common/letsencrypt-prod-issuer.yaml
-  # Jobs de migration
-  - ../../base/jobs/api-gateway-migration-job.yaml
-  - ../../base/jobs/service-selection-migration-job.yaml
+  - ../../base
 
 # Appliquer un namespace spécifique pour cet overlay
-# (Redondant si la base le fait déjà, mais peut être utile pour surcharger)
-# Décommenté pour forcer le déploiement dans le namespace 'ibis-x' sur Azure
 namespace: ibis-x
 
-# Remplacement des noms d'images spécifiques à Azure
+# Remplacement automatique des noms d'images pour Azure
 # NOMS DYNAMIQUES - Remplacés automatiquement par le script de déploiement
 images:
   - name: ibis-x-api-gateway
@@ -41,35 +20,20 @@ images:
 
 # Patches pour les configurations spécifiques à Azure
 patches:
-  # Jobs de migration
-  - path: migration-jobs-image-patch.yaml
+  # PostgreSQL avec ressources pour production Azure
+  - path: postgresql-statefulset-patch.yaml
     target:
-      kind: Job
-      name: api-gateway-migration-job
-  - path: service-selection-migration-job-patch.yaml
-    target:
-      kind: Job
-      name: service-selection-migration-job
-  # Configuration stockage
-  - path: storage-config-patch.yaml
+      kind: StatefulSet
+      name: postgresql
+  # Configuration complète des variables d'environnement Azure (remplace MinIO + auto-init)
+  - path: complete-env-patch.yaml
     target:
       kind: Deployment
       name: service-selection
-  # Auto-initialisation des vrais datasets en production
-  - path: service-selection-auto-init-patch.yaml
-    target:
-      kind: Deployment
-      name: service-selection-deployment
-
-# Variables d'environnement spécifiques à Azure (si nécessaire)
-# patchesStrategicMerge:
-#   - azure-env-patch.yaml
-
-# Configuration des replicas pour la production (via patches)
-# Les replicas sont gérés via les patches dans les déploiements
 
 # Tags pour toutes les images (sera remplacé dynamiquement)
 commonLabels:
   environment: production
   deployment: azure
-  managed-by: github-actions
+  managed-by: scripts
+

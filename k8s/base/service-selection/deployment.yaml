@@ -39,7 +39,7 @@ spec:
         - name: service-selection
           # Image Docker à utiliser pour ce conteneur.
           image: service-selection
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           # Liste des ports que le conteneur expose.
           ports:
             # Le conteneur écoute sur le port 8081 (port d'Uvicorn).
