@@ -1,0 +1,156 @@
+.step-content {
+  padding: 20px 0;
+  min-height: 400px;
+}
+
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.dataset-card {
+  margin-bottom: 20px;
+}
+
+.dataset-stats {
+  margin-top: 15px;
+}
+
+.algorithm-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.algorithm-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  &.selected {
+    border: 2px solid var(--mdc-theme-primary);
+    background-color: rgba(var(--mdc-theme-primary-rgb), 0.05);
+  }
+}
+
+.preprocessing-options {
+  margin-top: 20px;
+  
+  mat-checkbox {
+    display: block;
+    margin-bottom: 15px;
+  }
+  
+  .encoding-options {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    
+    mat-label {
+      margin-right: 10px;
+    }
+  }
+}
+
+.hyperparameters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.parameter-control {
+  .boolean-param {
+    padding: 10px 0;
+    
+    .param-description {
+      margin-top: 5px;
+      font-size: 0.875rem;
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+}
+
+.summary-section {
+  .summary-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.training-section {
+  padding: 40px 0;
+  
+  mat-progress-bar {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+.results-section {
+  .metrics-card {
+    margin-top: 20px;
+  }
+  
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+  }
+  
+  .metric-item {
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    
+    strong {
+      text-transform: capitalize;
+    }
+    
+    span {
+      float: right;
+      color: var(--mdc-theme-primary);
+      font-weight: 500;
+    }
+  }
+}
+
+.visualizations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+  
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .algorithm-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .hyperparameters {
+    grid-template-columns: 1fr;
+  }
+  
+  .visualizations {
+    grid-template-columns: 1fr;
+  }
+} 

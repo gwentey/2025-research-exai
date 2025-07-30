@@ -1,6 +1,6 @@
 # Suivi de Progression - Projet IBIS-X PoC
 
-**Version :** (Basée sur l'analyse du code au 2024-MM-JJ - *remplacez MM-JJ*)
+**Version :** (Basée sur l'analyse du code au 2025-07-29)
 **Basé sur :** `implementation_plan_exai_poc_adjusted.md` et analyse du code existant.
 
 **Légende :**
@@ -26,7 +26,7 @@ L'infrastructure de base (K8s, Postgres, Skaffold, Kustomize) est en place. L'au
 *   [✅] **Étape 0.6 : Configuration Skaffold** (Supposée prête, `skaffold.yaml` existe probablement, `push: false` confirmé.)
 *   [✅] **Étape 0.7 : Déploiement PostgreSQL sur Minikube** (Confirmé implicitement par le fonctionnement de l'authentification et les migrations.)
 *   [✅] **Étape 0.8 : Initialisation Tables BDD** (Confirmé par les migrations Alembic pour `users` dans Gateway et `datasets` dans Selection.)
-*   [⬜] **Étape 0.9 : Déploiement Redis sur Minikube**
+*   [✅] **Étape 0.9 : Déploiement Redis sur Minikube** (Implémenté 2025-07-29 : StatefulSet Redis configuré avec persistance)
 
 ## Phase 1 : Module `service-selection` - Finalisation Fonctionnalités
 
@@ -49,16 +49,16 @@ L'infrastructure de base (K8s, Postgres, Skaffold, Kustomize) est en place. L'au
 
 ## Phase 3 : Infrastructure Asynchrone (Celery)
 
-*   [⬜] **Étape 3.1 : Redis Déployé** (Lié à Étape 0.9.)
-*   [⬜] **Étape 3.2 : Configuration Celery dans Services ML/XAI**
-*   [⬜] **Étape 3.3 : Déploiement Worker(s) Celery**
+*   [✅] **Étape 3.1 : Redis Déployé** (Complété via Étape 0.9.)
+*   [✅] **Étape 3.2 : Configuration Celery dans Services ML/XAI** (Implémenté 2025-07-29 : Celery configuré dans ml-pipeline-service avec Redis comme broker)
+*   [✅] **Étape 3.3 : Déploiement Worker(s) Celery** (Implémenté 2025-07-29 : Workers Celery déployés via celery-worker-deployment.yaml)
 
 ## Phase 4 : Module `ml-pipeline` - Implémentation Complète
 
-*   [⬜] **Étape 4.1 : Modèle BDD `PipelineRun` & Migration**
-*   [⬜] **Étape 4.2 : Tâche Celery `run_ml_pipeline_task`**
-*   [⬜] **Étape 4.3 : API Endpoints (`POST /pipelines`, `GET /pipelines/{id}`)**
-*   [⬜] **Étape 4.4 : Finalisation Déploiement K8s `ml-pipeline`**
+*   [✅] **Étape 4.1 : Modèle BDD `PipelineRun` & Migration** (Implémenté 2025-07-29 : Modèle `Experiment` créé avec tous les champs nécessaires, migrations Alembic configurées)
+*   [✅] **Étape 4.2 : Tâche Celery `run_ml_pipeline_task`** (Implémenté 2025-07-29 : Tâche `train_model` complète avec prétraitement, entraînement, évaluation et sauvegarde)
+*   [✅] **Étape 4.3 : API Endpoints (`POST /pipelines`, `GET /pipelines/{id}`)** (Implémenté 2025-07-29 : Endpoints créés - POST /experiments, GET /experiments/{id}, GET /experiments/{id}/results, GET /algorithms)
+*   [✅] **Étape 4.4 : Finalisation Déploiement K8s `ml-pipeline`** (Implémenté 2025-07-29 : Deployment API et Workers Celery configurés avec probes et secrets)
 
 ## Phase 5 : Module `xai-engine` - Implémentation Complète
 
@@ -69,9 +69,9 @@ L'infrastructure de base (K8s, Postgres, Skaffold, Kustomize) est en place. L'au
 
 ## Phase 6 : Frontend - Implémentation & Intégration
 
-*   [🚧] **Étape 6.1 : Services & Auth** (`AuthService` existe, module `authentication` présent.)
-*   [⬜] **Étape 6.2 : Module Sélection Dataset** (Non trouvé.)
-*   [⬜] **Étape 6.3 : Module Pipeline ML** (Non trouvé.)
+*   [✅] **Étape 6.1 : Services & Auth** (`AuthService` existe, module `authentication` présent.)
+*   [✅] **Étape 6.2 : Module Sélection Dataset** (Implémenté dans les pages datasets)
+*   [✅] **Étape 6.3 : Module Pipeline ML** (Implémenté 2025-07-29 : Wizard 5 étapes complet avec Angular Material, intégration depuis les projets)
 *   [⬜] **Étape 6.4 : Module XAI** (Non trouvé.)
 *   [🚧] **Étape 6.5 : Déploiement K8s Frontend** (Déployé sur Azure, sondes liveness/readiness configurées.)
 
@@ -110,5 +110,31 @@ L'infrastructure de base (K8s, Postgres, Skaffold, Kustomize) est en place. L'au
     *   Déploiement initial de PostgreSQL sur Minikube.
     *   Première configuration de Skaffold.
     *   Mise en place de la structure Kustomize (base/overlays).
+
+**Semaine du 29 Juillet 2025:**
+
+*   **Module ML Pipeline - Implémentation Complète :**
+    *   [✅] Création du service `ml-pipeline-service` avec FastAPI + Celery + scikit-learn
+    *   [✅] Configuration Redis comme broker Celery (StatefulSet K8s avec persistance)
+    *   [✅] Implémentation des modèles SQLAlchemy (table `experiments`) et schémas Pydantic
+    *   [✅] Développement des algorithmes ML : Decision Tree et Random Forest (wrappers sklearn)
+    *   [✅] Module de prétraitement : gestion valeurs manquantes, encodage, scaling
+    *   [✅] Module d'évaluation : métriques, visualisations (matrices confusion, courbes ROC, feature importance)
+    *   [✅] Tâches Celery asynchrones pour l'entraînement avec suivi de progression
+    *   [✅] API endpoints : création d'expériences, suivi statut, récupération résultats, listing algorithmes
+    *   [✅] Déploiement K8s : API service + Workers Celery avec configuration appropriée
+    *   [✅] Intégration stockage objet : MinIO (local) / Azure Blob (prod) pour modèles et artefacts
+*   **Frontend Angular - Module ML Pipeline :**
+    *   [✅] Wizard 5 étapes avec Angular Material Stepper
+    *   [✅] Intégration depuis la page projet (bouton "Sélectionner" sur recommandations)
+    *   [✅] Service Angular `MlPipelineService` pour communication API
+    *   [✅] Formulaires réactifs pour configuration (preprocessing, algorithmes, hyperparamètres)
+    *   [✅] Suivi temps réel de l'entraînement avec polling
+    *   [✅] Affichage des résultats et visualisations
+    *   [✅] Traductions complètes FR/EN
+*   **Infrastructure & DevOps :**
+    *   [✅] Configuration API Gateway pour routage vers ML Pipeline service
+    *   [✅] Mise à jour Skaffold pour build image ml-pipeline
+    *   [✅] Documentation Antora technique et utilisateur complète
 
 ---

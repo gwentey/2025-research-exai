@@ -1,0 +1,222 @@
+<div class="ml-pipeline-dashboard">
+  <!-- Hero Section avec Animation de Bienvenue -->
+  <div class="hero-section" [@fadeInUp]>
+    <div class="hero-background">
+      <div class="particle" *ngFor="let i of [1,2,3,4,5,6,7,8]"></div>
+    </div>
+    
+    <div class="hero-content">
+      <div class="hero-icon">
+        <div class="icon-glow"></div>
+        <mat-icon class="hero-main-icon">psychology</mat-icon>
+      </div>
+      
+      <h1 class="hero-title">{{ 'ML_PIPELINE.HERO.TITLE' | translate }}</h1>
+      <p class="hero-subtitle">{{ 'ML_PIPELINE.HERO.SUBTITLE' | translate }}</p>
+      
+      <div class="hero-stats" [@staggerList]>
+        <div class="stat-card" *ngFor="let stat of [
+          { icon: 'analytics', label: 'ML_PIPELINE.STATS.EXPERIMENTS', value: stats.totalExperiments },
+          { icon: 'trending_up', label: 'ML_PIPELINE.STATS.SUCCESS_RATE', value: stats.successRate + '%' },
+          { icon: 'speed', label: 'ML_PIPELINE.STATS.AVG_ACCURACY', value: stats.averageAccuracy.toFixed(1) + '%' },
+          { icon: 'timer', label: 'ML_PIPELINE.STATS.AVG_TIME', value: formatDuration(stats.processingTime) }
+        ]">
+          <mat-icon>{{ stat.icon }}</mat-icon>
+          <div class="stat-value">{{ stat.value }}</div>
+          <div class="stat-label">{{ stat.label | translate }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Workflow Principal -->
+  <div class="workflow-section" [@fadeInUp]>
+    <div class="container-fluid">
+      <!-- État du Dataset -->
+      <div class="dataset-status-card" *ngIf="dataset || !dataset">
+        <div class="status-header">
+          <h2>{{ 'ML_PIPELINE.WORKFLOW.DATASET_STATUS' | translate }}</h2>
+          <div class="status-indicator" [class.active]="dataset">
+            <mat-icon>{{ dataset ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+          </div>
+        </div>
+        
+        <div class="dataset-info" *ngIf="dataset; else noDataset">
+          <div class="dataset-preview">
+            <div class="preview-icon">
+              <mat-icon>storage</mat-icon>
+            </div>
+            <div class="preview-details">
+              <h3>{{ dataset.dataset_name }}</h3>
+              <p>{{ dataset.objective }}</p>
+              <div class="dataset-chips">
+                <span class="chip" *ngFor="let domain of dataset.domain">{{ domain }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="dataset-metrics">
+            <div class="metric">
+              <mat-icon>table_rows</mat-icon>
+              <span>{{ dataset.instances_number | number }} {{ 'ML_PIPELINE.DATASET.ROWS' | translate }}</span>
+            </div>
+            <div class="metric">
+              <mat-icon>view_column</mat-icon>
+              <span>{{ dataset.features_number }} {{ 'ML_PIPELINE.DATASET.FEATURES' | translate }}</span>
+            </div>
+            <div class="metric">
+              <mat-icon>stars</mat-icon>
+              <span>{{ 'ML_PIPELINE.DATASET.QUALITY_SCORE' | translate }}: {{ dataset.overall_score || 85 }}%</span>
+            </div>
+          </div>
+          
+          <button mat-raised-button color="primary" 
+                  class="action-button"
+                  (click)="startNewExperiment()">
+            <mat-icon>rocket_launch</mat-icon>
+            {{ 'ML_PIPELINE.ACTIONS.START_TRAINING' | translate }}
+          </button>
+        </div>
+        
+        <ng-template #noDataset>
+          <div class="no-dataset">
+            <div class="empty-state-icon">
+              <mat-icon>cloud_off</mat-icon>
+            </div>
+            <h3>{{ 'ML_PIPELINE.WORKFLOW.NO_DATASET' | translate }}</h3>
+            <p>{{ 'ML_PIPELINE.WORKFLOW.SELECT_DATASET_FIRST' | translate }}</p>
+            <button mat-raised-button color="accent" 
+                    class="action-button"
+                    (click)="navigateToDatasetSelection()">
+              <mat-icon>add_circle</mat-icon>
+              {{ 'ML_PIPELINE.ACTIONS.SELECT_DATASET' | translate }}
+            </button>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Algorithmes Disponibles -->
+      <div class="algorithms-section" [@fadeInUp]>
+        <h2>{{ 'ML_PIPELINE.ALGORITHMS.TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'ML_PIPELINE.ALGORITHMS.SUBTITLE' | translate }}</p>
+        
+        <div class="algorithms-grid" [@staggerList]>
+          <div class="algorithm-card" 
+               *ngFor="let algo of algorithms"
+               [class.featured]="algo.name === 'random_forest'">
+            <div class="card-header">
+              <div class="algo-icon">
+                <mat-icon>{{ algo.name === 'decision_tree' ? 'account_tree' : 'forest' }}</mat-icon>
+              </div>
+              <div class="algo-badges">
+                <span class="badge classification" *ngIf="algo.supports_classification">
+                  {{ 'ML_PIPELINE.ALGORITHMS.CLASSIFICATION' | translate }}
+                </span>
+                <span class="badge regression" *ngIf="algo.supports_regression">
+                  {{ 'ML_PIPELINE.ALGORITHMS.REGRESSION' | translate }}
+                </span>
+              </div>
+            </div>
+            
+            <h3>{{ algo.display_name }}</h3>
+            <p>{{ algo.description }}</p>
+            
+            <div class="algo-features">
+              <div class="feature" *ngFor="let param of getTopHyperparameters(algo)">
+                <mat-icon>tune</mat-icon>
+                <span>{{ param }}</span>
+              </div>
+            </div>
+            
+            <div class="algo-performance">
+              <div class="perf-indicator">
+                <mat-icon>speed</mat-icon>
+                <span>{{ 'ML_PIPELINE.ALGORITHMS.PERFORMANCE' | translate }}: 
+                  {{ algo.name === 'decision_tree' ? 'Rapide' : 'Optimal' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expériences Récentes -->
+      <div class="recent-experiments" [@fadeInUp] *ngIf="recentExperiments.length > 0">
+        <div class="section-header">
+          <h2>{{ 'ML_PIPELINE.RECENT.TITLE' | translate }}</h2>
+          <button mat-button color="primary" routerLink="experiments">
+            {{ 'ML_PIPELINE.RECENT.VIEW_ALL' | translate }}
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+        
+        <div class="experiments-timeline">
+          <div class="timeline-item" 
+               *ngFor="let exp of recentExperiments"
+               [@slideIn]
+               (click)="viewExperimentDetails(exp.id)">
+            <div class="timeline-marker" [class]="getStatusClass(exp.status)">
+              <mat-icon>{{ getStatusIcon(exp.status) }}</mat-icon>
+            </div>
+            
+            <div class="timeline-content">
+              <div class="exp-header">
+                <h4>{{ exp.algorithm }} - {{ exp.created_at | date:'short' }}</h4>
+                <span class="status-badge" [class]="getStatusClass(exp.status)">
+                  {{ ('ML_PIPELINE.STATUS.' + exp.status.toUpperCase()) | translate }}
+                </span>
+              </div>
+              
+              <div class="exp-metrics" *ngIf="exp.metrics">
+                <div class="metric-item" *ngIf="exp.metrics.accuracy">
+                  <span class="metric-label">{{ 'ML_PIPELINE.METRICS.ACCURACY' | translate }}:</span>
+                  <span class="metric-value">{{ (exp.metrics.accuracy * 100).toFixed(1) }}%</span>
+                </div>
+                <div class="metric-item" *ngIf="exp.metrics.f1_score">
+                  <span class="metric-label">F1-Score:</span>
+                  <span class="metric-value">{{ (exp.metrics.f1_score * 100).toFixed(1) }}%</span>
+                </div>
+              </div>
+              
+              <mat-progress-bar 
+                *ngIf="exp.status === 'running'"
+                mode="determinate" 
+                [value]="exp.progress || 0">
+              </mat-progress-bar>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guide Interactif -->
+      <div class="interactive-guide" [@fadeInUp]>
+        <h2>{{ 'ML_PIPELINE.GUIDE.TITLE' | translate }}</h2>
+        <div class="guide-steps">
+          <div class="guide-step" 
+               *ngFor="let step of [
+                 { icon: 'storage', title: 'ML_PIPELINE.GUIDE.STEP1_TITLE', desc: 'ML_PIPELINE.GUIDE.STEP1_DESC' },
+                 { icon: 'tune', title: 'ML_PIPELINE.GUIDE.STEP2_TITLE', desc: 'ML_PIPELINE.GUIDE.STEP2_DESC' },
+                 { icon: 'model_training', title: 'ML_PIPELINE.GUIDE.STEP3_TITLE', desc: 'ML_PIPELINE.GUIDE.STEP3_DESC' },
+                 { icon: 'insights', title: 'ML_PIPELINE.GUIDE.STEP4_TITLE', desc: 'ML_PIPELINE.GUIDE.STEP4_DESC' }
+               ]; let i = index"
+               [@staggerList]>
+            <div class="step-number">{{ i + 1 }}</div>
+            <div class="step-content">
+              <mat-icon>{{ step.icon }}</mat-icon>
+              <h3>{{ step.title | translate }}</h3>
+              <p>{{ step.desc | translate }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call to Action Flottant -->
+  <div class="floating-cta" *ngIf="dataset" [@pulse]="'active'">
+    <button mat-fab extended color="accent" (click)="startNewExperiment()">
+      <mat-icon>rocket_launch</mat-icon>
+      {{ 'ML_PIPELINE.ACTIONS.LAUNCH_ML' | translate }}
+    </button>
+  </div>
+</div>

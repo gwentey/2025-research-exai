@@ -60,7 +60,10 @@
     }
   },
   "COMMON": {
-    "LOADING": "Chargement..."
+    "LOADING": "Chargement...",
+    "NEXT": "Suivant",
+    "BACK": "Retour",
+    "CANCEL": "Annuler"
   },
   "DASHBOARD": {
     "TITLE": "Tableau de Bord IBIS-X",
@@ -365,6 +368,7 @@
       "CREATED_AT": "Date de création",
       "UPDATED_AT": "Dernière modification"
     },
+    "SELECT_FOR_ML": "Créer Pipeline ML",
     "FILTERS": {
       "TITLE": "Filtres Avancés",
       "APPLY": "Appliquer les Filtres",
@@ -890,5 +894,307 @@
     "SUBTITLE": "Page d'accueil simple",
     "VIEW_DATASETS": "Voir les datasets",
     "VIEW_PROJECTS": "Voir les projets"
+  },
+  "ML_PIPELINE": {
+    "TITLE": "Pipeline ML",
+    "HERO": {
+      "TITLE": "Intelligence Artificielle Révolutionnaire",
+      "SUBTITLE": "Exploitez la puissance du Machine Learning avec notre technologie brevetée IBIS-X"
+    },
+    "STATS": {
+      "EXPERIMENTS": "Expériences",
+      "SUCCESS_RATE": "Taux de Succès",
+      "AVG_ACCURACY": "Précision Moyenne",
+      "AVG_TIME": "Temps Moyen"
+    },
+    "WORKFLOW": {
+      "DATASET_STATUS": "État du Dataset",
+      "NO_DATASET": "Aucun dataset sélectionné",
+      "SELECT_DATASET_FIRST": "Commencez par sélectionner un dataset pour débloquer la puissance du ML"
+    },
+    "ACTIONS": {
+      "START_TRAINING": "Lancer l'Entraînement ML",
+      "SELECT_DATASET": "Sélectionner un Dataset",
+      "LAUNCH_ML": "Lancer le ML"
+    },
+    "ALGORITHMS": {
+      "TITLE": "Algorithmes de Pointe",
+      "SUBTITLE": "Choisissez parmi nos algorithmes optimisés pour des performances exceptionnelles",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Régression",
+      "PERFORMANCE": "Performance",
+      "USE_CASES": "Cas d'Usage"
+    },
+    "RECENT": {
+      "TITLE": "Expériences Récentes",
+      "VIEW_ALL": "Voir Toutes"
+    },
+    "STATUS": {
+      "COMPLETED": "Terminé",
+      "RUNNING": "En cours",
+      "FAILED": "Échoué",
+      "PENDING": "En attente"
+    },
+    "METRICS": {
+      "ACCURACY": "Précision"
+    },
+    "GUIDE": {
+      "TITLE": "Comment ça Marche",
+      "STEP1_TITLE": "Sélectionnez vos Données",
+      "STEP1_DESC": "Choisissez un dataset parmi notre collection organisée",
+      "STEP2_TITLE": "Configurez le Pipeline",
+      "STEP2_DESC": "Ajustez les paramètres de prétraitement et d'entraînement",
+      "STEP3_TITLE": "Lancez l'Entraînement",
+      "STEP3_DESC": "Notre IA optimise automatiquement le processus d'apprentissage",
+      "STEP4_TITLE": "Analysez les Résultats",
+      "STEP4_DESC": "Explorez les métriques et visualisations détaillées"
+    },
+    "STEPS": {
+      "DATASET_OVERVIEW": "Aperçu du Dataset",
+      "DATA_QUALITY": "Analyse de Qualité des Données",
+      "ALGORITHM": "Sélection de l'Algorithme",
+      "HYPERPARAMETERS": "Configuration des Hyperparamètres",
+      "SUMMARY": "Résumé et Lancement"
+    },
+    "DATASET": {
+      "TITLE": "Dataset Sélectionné",
+      "ROWS": "lignes",
+      "FEATURES": "caractéristiques",
+      "QUALITY_SCORE": "Score de Qualité",
+      "CONFIRM": "Je confirme l'utilisation de ce dataset pour l'entraînement"
+    },
+    "DATA_QUALITY": {
+      "TITLE": "Configuration du Prétraitement",
+      "TARGET_COLUMN": "Colonne Cible",
+      "TASK_TYPE": "Type de Tâche",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Régression",
+      "MISSING_VALUES": "Stratégie pour Valeurs Manquantes",
+      "DROP": "Supprimer les lignes",
+      "MEAN": "Remplacer par la moyenne",
+      "MEDIAN": "Remplacer par la médiane",
+      "FORWARD_FILL": "Propagation avant",
+      "TEST_SIZE": "Taille de l'Ensemble de Test",
+      "TEST_SIZE_HINT": "Proportion des données réservées pour le test (10-50%)",
+      "FEATURE_SCALING": "Normalisation des Caractéristiques",
+      "ENCODING": "Encodage des Variables Catégorielles",
+      "COMPLETENESS": "Complétude",
+      "ACCURACY": "Exactitude",
+      "CONSISTENCY": "Cohérence",
+      "VALIDITY": "Validité",
+      "UNIQUENESS": "Unicité",
+      "SCORE": "Score de Qualité",
+      "GOOD_QUALITY": "Qualité des données optimale pour l'entraînement",
+      "SAMPLES": "échantillons",
+      "FEATURES": "variables"
+    },
+    "ALGORITHM": {
+      "TITLE": "Choisir un Algorithme d'Apprentissage",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Régression"
+    },
+    "HYPERPARAMETERS": {
+      "TITLE": "Configuration des Hyperparamètres"
+    },
+    "SUMMARY": {
+      "TITLE": "Résumé de la Configuration",
+      "CONFIGURATION": "Configuration d'Entraînement",
+      "DATASET": "Dataset",
+      "ALGORITHM": "Algorithme",
+      "TARGET": "Colonne Cible",
+      "TASK_TYPE": "Type de Tâche",
+      "CONFIRM": "Je confirme le lancement de l'entraînement avec cette configuration"
+    },
+    "TRAINING": {
+      "START": "Lancer l'Entraînement",
+      "IN_PROGRESS": "Entraînement en Cours",
+      "COMPLETE": "complété",
+      "STATUS": "Statut",
+      "INITIALIZING": "Initialisation du pipeline ML...",
+      "LOADING_DATA": "Chargement des données...",
+      "PREPROCESSING": "Prétraitement en cours...",
+      "TRAINING_MODEL": "Entraînement du modèle...",
+      "FINALIZING": "Finalisation et sauvegarde...",
+      "COMPLETED": "Entraînement terminé avec succès!",
+      "FAILED": "L'entraînement a échoué",
+      "STARTED": "L'entraînement a démarré avec succès",
+      "SUCCESS": "Modèle entraîné avec succès!",
+      "DATA_LOADED": "Données chargées",
+      "PREPROCESSING_DONE": "Prétraitement terminé",
+      "MODEL_TRAINED": "Modèle entraîné"
+    },
+    "RESULTS": {
+      "TITLE": "Résultats de l'Entraînement",
+      "METRICS": "Métriques de Performance",
+      "BACK_TO_PROJECT": "Retour au Projet"
+    }
+  },
+  "ML_STUDIO": {
+    "TITLE": "ML Studio - Configuration Avancée",
+    "STEPS": {
+      "STEP1": "Configuration des Données",
+      "STEP2": "Prétraitement",
+      "STEP3": "Sélection de l'Algorithme",
+      "STEP4": "Hyperparamètres"
+    },
+    "DATA_CONFIG": {
+      "TITLE": "Configuration des Données",
+      "DESCRIPTION": "Définissez la colonne cible et le type de problème à résoudre",
+      "TARGET_SELECTION": "Sélection de la Variable Cible",
+      "TARGET_COLUMN": "Colonne Cible",
+      "TARGET_HINT": "La variable que vous souhaitez prédire",
+      "TASK_TYPE": "Type de Problème ML",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Régression",
+      "TEST_SIZE": "Taille du Jeu de Test",
+      "TEST_SIZE_HINT": "Pourcentage des données réservées pour l'évaluation"
+    },
+    "DATA_QUALITY": {
+      "TITLE": "Analyse de Qualité",
+      "COMPLETENESS": "Complétude",
+      "ACCURACY": "Exactitude",
+      "CONSISTENCY": "Cohérence",
+      "VALIDITY": "Validité",
+      "UNIQUENESS": "Unicité",
+      "SCORE": "Score",
+      "GOOD_QUALITY": "Qualité optimale détectée",
+      "SAMPLES": "échantillons",
+      "FEATURES": "variables"
+    },
+    "PREPROCESSING": {
+      "TITLE": "Configuration du Prétraitement",
+      "DESCRIPTION": "Optimisez vos données pour un apprentissage optimal",
+      "ADVANCED_OPTIONS": "Options Avancées",
+      "MISSING_VALUES": "Valeurs Manquantes",
+      "STRATEGY": "Stratégie",
+      "DROP": "Supprimer",
+      "MEAN": "Moyenne",
+      "MEDIAN": "Médiane",
+      "FORWARD_FILL": "Propagation",
+      "FEATURE_ENGINEERING": "Ingénierie des Variables",
+      "SCALING": "Normalisation des données",
+      "ENCODING": "Encodage",
+      "OUTLIERS": "Valeurs Aberrantes",
+      "REMOVE_OUTLIERS": "Supprimer les outliers",
+      "THRESHOLD": "Seuil"
+    },
+    "PRESETS": {
+      "TITLE": "Configurations Prédéfinies",
+      "QUICK": "Rapide",
+      "QUICK_DESC": "Entraînement rapide pour prototypage",
+      "BALANCED": "Équilibré",
+      "BALANCED_DESC": "Équilibre optimal entre vitesse et précision",
+      "ACCURATE": "Précis",
+      "ACCURATE_DESC": "Maximise la précision du modèle"
+    },
+    "ALGORITHM": {
+      "TITLE": "Sélection de l'Algorithme",
+      "DESCRIPTION": "Choisissez l'algorithme le plus adapté à votre problème",
+      "USE_CASES": "Cas d'Usage Recommandés",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Régression"
+    },
+    "HYPERPARAMETERS": {
+      "TITLE": "Réglage des Hyperparamètres",
+      "DESCRIPTION": "Affinez les paramètres pour optimiser les performances"
+    },
+    "SUMMARY": {
+      "TITLE": "Résumé de Configuration",
+      "DATASET": "Dataset",
+      "ALGORITHM": "Algorithme",
+      "TARGET": "Variable Cible",
+      "TASK": "Type de Tâche"
+    },
+    "ACTIONS": {
+      "PREVIOUS": "Précédent",
+      "NEXT": "Suivant",
+      "CANCEL": "Annuler",
+      "START_TRAINING": "Lancer l'Entraînement"
+    },
+    "TRAINING": {
+      "IN_PROGRESS": "Entraînement en Cours",
+      "INITIALIZING": "Initialisation...",
+      "LOADING_DATA": "Chargement des données...",
+      "PREPROCESSING": "Prétraitement...",
+      "TRAINING_MODEL": "Entraînement du modèle...",
+      "FINALIZING": "Finalisation...",
+      "COMPLETED": "Terminé!",
+      "FAILED": "Échec",
+      "STARTED": "Entraînement démarré",
+      "SUCCESS": "Entraînement réussi!",
+      "DATA_LOADED": "Données chargées",
+      "PREPROCESSING_DONE": "Prétraitement terminé",
+      "MODEL_TRAINED": "Modèle entraîné"
+    },
+    "ERRORS": {
+      "LOAD_DATASET": "Erreur lors du chargement du dataset",
+      "START_TRAINING": "Erreur lors du démarrage de l'entraînement",
+      "TRAINING_FAILED": "L'entraînement a échoué"
+    }
+  },
+  "ML_RESULTS": {
+    "TITLE": "Résultats de l'Expérience",
+    "DOWNLOAD_MODEL": "Télécharger le Modèle",
+    "NEW_EXPERIMENT": "Nouvelle Expérience",
+    "PERFORMANCE_METRICS": "Métriques de Performance",
+    "METRICS": {
+      "ACCURACY": "Précision",
+      "PRECISION": "Précision",
+      "RECALL": "Rappel",
+      "F1_SCORE": "Score F1",
+      "MAE": "Erreur Absolue Moyenne",
+      "MSE": "Erreur Quadratique Moyenne",
+      "RMSE": "Racine de l'Erreur Quadratique Moyenne",
+      "R2": "Coefficient R²",
+      "ROC_AUC": "Aire sous la Courbe ROC"
+    },
+    "VISUALIZATIONS": "Visualisations",
+    "CONFUSION_MATRIX": "Matrice de Confusion",
+    "CONFUSION_MATRIX_DESC": "La matrice de confusion montre les prédictions correctes et incorrectes pour chaque classe.",
+    "ROC_CURVE": "Courbe ROC",
+    "ROC_CURVE_DESC": "La courbe ROC illustre la performance du classificateur à différents seuils de décision.",
+    "FEATURE_IMPORTANCE": "Importance des Caractéristiques",
+    "FEATURE_IMPORTANCE_DESC": "Ce graphique montre quelles caractéristiques ont le plus contribué aux prédictions du modèle.",
+    "REGRESSION_PLOT": "Graphique de Régression",
+    "REGRESSION_PLOT_DESC": "Comparaison entre les valeurs prédites et les valeurs réelles.",
+    "EXPERIMENT_DETAILS": "Détails de l'Expérience",
+    "EXPERIMENT_ID": "ID de l'Expérience",
+    "ALGORITHM": "Algorithme",
+    "STATUS": "Statut",
+    "CREATED": "Créée",
+    "HYPERPARAMETERS": "Hyperparamètres",
+    "NEXT_STEPS": "Prochaines Étapes",
+    "IMPROVE_MODEL": "Améliorer le Modèle",
+    "DEPLOY_MODEL": "Déployer le Modèle",
+    "SHARE_RESULTS": "Partager les Résultats",
+    "EXPORT_CODE": "Exporter le Code",
+    "LOADING": "Chargement des résultats..."
+  },
+  "ML_EXPERIMENTS": {
+    "TITLE": "Toutes les Expériences ML",
+    "SUBTITLE": "Gérez et analysez vos expériences d'apprentissage automatique",
+    "NEW_EXPERIMENT": "Nouvelle Expérience",
+    "SEARCH": "Rechercher",
+    "SEARCH_PLACEHOLDER": "Rechercher par ID ou algorithme...",
+    "STATUS_FILTER": "Filtrer par statut",
+    "ALL_STATUS": "Tous les statuts",
+    "ALGORITHM_FILTER": "Filtrer par algorithme",
+    "ALL_ALGORITHMS": "Tous les algorithmes",
+    "SHOWING": "Affichage",
+    "OF": "sur",
+    "EXPERIMENTS": "expériences",
+    "ALGORITHM": "Algorithme",
+    "STATUS": "Statut",
+    "ACCURACY": "Précision",
+    "CREATED": "Date de création",
+    "ACTIONS": "Actions",
+    "VIEW_RESULTS": "Voir les résultats",
+    "DUPLICATE": "Dupliquer",
+    "NO_EXPERIMENTS": "Aucune expérience trouvée",
+    "CREATE_FIRST": "Créer votre première expérience",
+    "COMPLETED_COUNT": "Expériences terminées",
+    "RUNNING_COUNT": "En cours d'exécution",
+    "AVG_ACCURACY": "Précision moyenne",
+    "SUCCESS_RATE": "Taux de réussite"
   }
 }

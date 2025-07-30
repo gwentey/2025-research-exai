@@ -1,0 +1,240 @@
+= Interface ML Pipeline Moderne
+:toc:
+:toc-title: Table des matières
+:toclevels: 3
+:numbered:
+:icons: font
+:imagesdir: ../images
+
+== Vue d'ensemble
+
+L'interface ML Pipeline d'IBIS-X a été entièrement repensée pour offrir une expérience utilisateur moderne et intuitive. Cette nouvelle interface met l'accent sur la fluidité, les animations et une approche guidée du Machine Learning.
+
+=== Caractéristiques principales
+
+* **Design moderne et élégant** : Interface inspirée des meilleures applications SaaS
+* **Animations fluides** : Transitions et animations qui rendent l'expérience agréable
+* **Guidance utilisateur** : Processus guidé étape par étape
+* **Visualisations interactives** : Graphiques et métriques en temps réel
+* **Support multilingue** : Interface disponible en français et anglais
+
+== Dashboard ML Pipeline
+
+=== Page d'accueil
+
+Le nouveau dashboard ML Pipeline présente :
+
+[cols="1,3"]
+|===
+| Élément | Description
+
+| Hero Section
+| Section d'accueil avec animation de particules, statistiques en temps réel et titre accrocheur
+
+| État du Dataset
+| Carte interactive montrant le dataset sélectionné avec ses métriques principales
+
+| Algorithmes disponibles
+| Présentation visuelle des algorithmes avec leurs caractéristiques et cas d'usage
+
+| Expériences récentes
+| Timeline interactive des dernières expériences avec leur statut et métriques
+
+| Guide interactif
+| Étapes visuelles pour guider les nouveaux utilisateurs
+|===
+
+=== Navigation
+
+Pour accéder au ML Pipeline depuis un projet :
+
+1. Ouvrez votre projet
+2. Cliquez sur "ML Pipeline" dans le menu latéral
+3. Le dashboard s'affiche avec toutes vos expériences
+
+== ML Studio
+
+Le ML Studio est l'interface de configuration avancée pour créer de nouvelles expériences ML.
+
+=== Processus en 4 étapes
+
+==== Étape 1 : Configuration des données
+
+* Sélection de la colonne cible
+* Choix du type de problème (classification/régression)
+* Configuration de la taille du jeu de test
+* Visualisation de la qualité des données avec graphique radar
+
+==== Étape 2 : Prétraitement
+
+Trois presets prédéfinis pour simplifier la configuration :
+
+[cols="1,3"]
+|===
+| Preset | Description
+
+| Rapide
+| Configuration minimale pour un prototypage rapide
+
+| Équilibré
+| Équilibre optimal entre vitesse et précision
+
+| Précis
+| Configuration maximisant la précision du modèle
+|===
+
+Options avancées disponibles :
+* Stratégie pour valeurs manquantes
+* Normalisation des données
+* Encodage des variables catégorielles
+* Gestion des valeurs aberrantes
+
+==== Étape 3 : Sélection de l'algorithme
+
+Présentation visuelle des algorithmes avec :
+* Icône distinctive
+* Description détaillée
+* Caractéristiques principales
+* Cas d'usage recommandés
+
+==== Étape 4 : Hyperparamètres
+
+Interface intuitive pour configurer les hyperparamètres :
+* Sliders pour les valeurs numériques
+* Sélecteurs pour les options
+* Toggles pour les booléens
+* Aide contextuelle pour chaque paramètre
+
+=== Animation d'entraînement
+
+Pendant l'entraînement, une animation moderne montre :
+* Réseau de neurones animé
+* Barre de progression détaillée
+* Statut en temps réel
+* Étapes complétées avec indicateurs visuels
+
+== Résultats d'expérience
+
+=== Métriques de performance
+
+Les métriques sont présentées dans des cartes interactives avec :
+* Icônes thématiques
+* Valeurs en grand format
+* Graphiques circulaires de progression
+* Code couleur selon la performance
+
+=== Visualisations
+
+Onglets interactifs pour explorer :
+
+[cols="1,3"]
+|===
+| Visualisation | Description
+
+| Matrice de confusion
+| Pour les problèmes de classification
+
+| Courbe ROC
+| Performance du classificateur binaire
+
+| Importance des features
+| Variables les plus influentes
+
+| Graphique de régression
+| Comparaison prédictions/valeurs réelles
+|===
+
+=== Actions disponibles
+
+* Télécharger le modèle entraîné
+* Lancer une nouvelle expérience
+* Améliorer le modèle existant
+* Partager les résultats (à venir)
+
+== Liste des expériences
+
+=== Fonctionnalités
+
+* **Recherche** : Par ID ou algorithme
+* **Filtres** : Par statut et algorithme
+* **Tri** : Par date, précision, statut
+* **Actions rapides** : Voir résultats, dupliquer
+
+=== Statistiques globales
+
+Quatre cartes de statistiques en temps réel :
+* Expériences terminées
+* En cours d'exécution
+* Précision moyenne
+* Taux de réussite
+
+== Conseils d'utilisation
+
+=== Pour débuter
+
+1. **Sélectionnez un dataset** : Commencez par choisir vos données
+2. **Utilisez un preset** : Les configurations prédéfinies sont optimisées
+3. **Lancez l'entraînement** : L'IA optimise automatiquement le processus
+4. **Analysez les résultats** : Explorez les métriques et visualisations
+
+=== Bonnes pratiques
+
+* Commencez avec le preset "Équilibré" pour la plupart des cas
+* Vérifiez la qualité des données avant l'entraînement
+* Utilisez les hyperparamètres par défaut pour un premier essai
+* Comparez plusieurs algorithmes sur le même dataset
+
+=== Optimisation
+
+Pour améliorer les performances :
+
+1. **Augmentez la taille du dataset** si possible
+2. **Ajustez les hyperparamètres** après analyse des résultats
+3. **Essayez différents algorithmes** selon votre problème
+4. **Utilisez le preset "Précis"** pour maximiser l'accuracy
+
+== Dépannage
+
+=== Problèmes courants
+
+[cols="2,3"]
+|===
+| Problème | Solution
+
+| Dataset non trouvé
+| Vérifiez que le dataset est bien sélectionné depuis la page datasets
+
+| Entraînement échoué
+| Consultez le message d'erreur et vérifiez la configuration
+
+| Résultats non disponibles
+| Attendez la fin de l'entraînement (statut "completed")
+
+| Performances faibles
+| Essayez un autre algorithme ou ajustez les hyperparamètres
+|===
+
+=== Support
+
+Pour toute question ou problème :
+* Consultez la documentation technique
+* Contactez l'équipe support
+* Explorez les exemples fournis
+
+== Évolutions futures
+
+=== Fonctionnalités prévues
+
+* Export du code Python généré
+* Déploiement one-click des modèles
+* Comparaison side-by-side d'expériences
+* AutoML pour optimisation automatique
+* Intégration avec des notebooks Jupyter
+
+=== Améliorations continues
+
+Nous travaillons constamment à améliorer l'interface :
+* Nouvelles visualisations
+* Plus d'algorithmes
+* Optimisations de performance
+* Fonctionnalités collaboratives

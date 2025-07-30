@@ -1,0 +1,229 @@
+<div class="experiments-list" [@fadeIn]>
+  <!-- Header -->
+  <div class="list-header">
+    <div class="container-fluid">
+      <div class="header-content">
+        <div class="header-left">
+          <button mat-icon-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="header-info">
+            <h1>{{ 'ML_EXPERIMENTS.TITLE' | translate }}</h1>
+            <p class="subtitle">{{ 'ML_EXPERIMENTS.SUBTITLE' | translate }}</p>
+          </div>
+        </div>
+        
+        <button mat-raised-button color="primary" (click)="createNewExperiment()">
+          <mat-icon>add</mat-icon>
+          {{ 'ML_EXPERIMENTS.NEW_EXPERIMENT' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="container-fluid">
+      <div class="filters-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'ML_EXPERIMENTS.SEARCH' | translate }}</mat-label>
+          <input matInput 
+                 [placeholder]="'ML_EXPERIMENTS.SEARCH_PLACEHOLDER' | translate"
+                 (input)="onSearch($event)">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'ML_EXPERIMENTS.STATUS_FILTER' | translate }}</mat-label>
+          <mat-select [(value)]="statusFilter" (selectionChange)="onStatusFilterChange($event.value)">
+            <mat-option value="all">{{ 'ML_EXPERIMENTS.ALL_STATUS' | translate }}</mat-option>
+            <mat-option value="completed">
+              <mat-icon class="status-icon success">check_circle</mat-icon>
+              {{ 'ML_PIPELINE.STATUS.COMPLETED' | translate }}
+            </mat-option>
+            <mat-option value="running">
+              <mat-icon class="status-icon primary">sync</mat-icon>
+              {{ 'ML_PIPELINE.STATUS.RUNNING' | translate }}
+            </mat-option>
+            <mat-option value="failed">
+              <mat-icon class="status-icon warn">error</mat-icon>
+              {{ 'ML_PIPELINE.STATUS.FAILED' | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'ML_EXPERIMENTS.ALGORITHM_FILTER' | translate }}</mat-label>
+          <mat-select [(value)]="algorithmFilter" (selectionChange)="onAlgorithmFilterChange($event.value)">
+            <mat-option value="all">{{ 'ML_EXPERIMENTS.ALL_ALGORITHMS' | translate }}</mat-option>
+            <mat-option value="decision_tree">Decision Tree</mat-option>
+            <mat-option value="random_forest">Random Forest</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      
+      <div class="filter-summary">
+        <span>{{ 'ML_EXPERIMENTS.SHOWING' | translate }}: <strong>{{ filteredExperiments.length }}</strong> {{ 'ML_EXPERIMENTS.OF' | translate }} <strong>{{ experiments.length }}</strong> {{ 'ML_EXPERIMENTS.EXPERIMENTS' | translate }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-section">
+    <div class="container-fluid">
+      <mat-card>
+        <mat-card-content class="p-0">
+          <div class="table-container" *ngIf="!isLoading">
+            <table mat-table [dataSource]="filteredExperiments" class="experiments-table">
+              
+              <!-- Algorithm Column -->
+              <ng-container matColumnDef="algorithm">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ML_EXPERIMENTS.ALGORITHM' | translate }}</th>
+                <td mat-cell *matCellDef="let experiment">
+                  <div class="algorithm-cell">
+                    <mat-icon>{{ experiment.algorithm === 'decision_tree' ? 'account_tree' : 'forest' }}</mat-icon>
+                    <span>{{ experiment.algorithm | titlecase }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ML_EXPERIMENTS.STATUS' | translate }}</th>
+                <td mat-cell *matCellDef="let experiment">
+                  <mat-chip [color]="getStatusColor(experiment.status)" selected>
+                    <mat-icon>{{ getStatusIcon(experiment.status) }}</mat-icon>
+                    {{ ('ML_PIPELINE.STATUS.' + experiment.status.toUpperCase()) | translate }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- Accuracy Column -->
+              <ng-container matColumnDef="accuracy">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ML_EXPERIMENTS.ACCURACY' | translate }}</th>
+                <td mat-cell *matCellDef="let experiment">
+                  <div class="accuracy-cell">
+                    <span class="accuracy-value">{{ getAccuracy(experiment) }}</span>
+                    <mat-progress-bar 
+                      *ngIf="experiment.metrics?.accuracy"
+                      mode="determinate" 
+                      [value]="experiment.metrics.accuracy * 100"
+                      [color]="experiment.metrics.accuracy > 0.8 ? 'primary' : 'warn'">
+                    </mat-progress-bar>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Created Date Column -->
+              <ng-container matColumnDef="created_at">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ML_EXPERIMENTS.CREATED' | translate }}</th>
+                <td mat-cell *matCellDef="let experiment">
+                  {{ experiment.created_at | date:'medium' }}
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ML_EXPERIMENTS.ACTIONS' | translate }}</th>
+                <td mat-cell *matCellDef="let experiment">
+                  <div class="actions-cell">
+                    <button mat-icon-button 
+                            [matTooltip]="'ML_EXPERIMENTS.VIEW_RESULTS' | translate"
+                            (click)="viewResults(experiment.id)"
+                            [disabled]="experiment.status !== 'completed'">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button mat-icon-button 
+                            [matTooltip]="'ML_EXPERIMENTS.DUPLICATE' | translate"
+                            (click)="duplicateExperiment(experiment.id)">
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+                  class="experiment-row"
+                  [class.clickable]="row.status === 'completed'"
+                  (click)="row.status === 'completed' ? viewResults(row.id) : null">
+              </tr>
+              
+              <!-- No data row -->
+              <tr class="mat-row no-data-row" *matNoDataRow>
+                <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+                  <div class="no-data">
+                    <mat-icon>science</mat-icon>
+                    <p>{{ 'ML_EXPERIMENTS.NO_EXPERIMENTS' | translate }}</p>
+                    <button mat-button color="primary" (click)="createNewExperiment()">
+                      {{ 'ML_EXPERIMENTS.CREATE_FIRST' | translate }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="loading-container" *ngIf="isLoading">
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Stats Section -->
+  <div class="stats-section" *ngIf="experiments.length > 0">
+    <div class="container-fluid">
+      <div class="stats-grid">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ getCompletedCount() }}</h3>
+              <p>{{ 'ML_EXPERIMENTS.COMPLETED_COUNT' | translate }}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon running">
+              <mat-icon>sync</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ getRunningCount() }}</h3>
+              <p>{{ 'ML_EXPERIMENTS.RUNNING_COUNT' | translate }}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon accuracy">
+              <mat-icon>insights</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ calculateAverageAccuracy() }}%</h3>
+              <p>{{ 'ML_EXPERIMENTS.AVG_ACCURACY' | translate }}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon success">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ calculateSuccessRate() }}%</h3>
+              <p>{{ 'ML_EXPERIMENTS.SUCCESS_RATE' | translate }}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

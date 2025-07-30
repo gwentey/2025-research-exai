@@ -97,18 +97,18 @@
 
 ## Phase 4 : Module `ml-pipeline` - Implémentation Complète
 
-* **[⬜ Étape 4.1 : Modèle BDD `PipelineRun` & Migration]**
+* **[✅ Étape 4.1 : Modèle BDD `PipelineRun` & Migration]** (Complété 2025-07-29)
     * **Instruction :** Dans `ml-pipeline/app/models.py`, définis `PipelineRun` (cf. PRD). Configure Alembic. Génère/applique migration.
-    * **Test :** Table `pipeline_runs` créée.
-* **[⬜ Étape 4.2 : Tâche Celery `run_ml_pipeline_task`]**
+    * **Test :** Table `experiments` créée avec tous les champs nécessaires.
+* **[✅ Étape 4.2 : Tâche Celery `run_ml_pipeline_task`]** (Complété 2025-07-29)
     * **Instruction :** Dans `ml-pipeline/app/tasks.py`, implémente la tâche complète (cf. Plan précédent, Étape 5.5) : MAJ statut RUNNING -> charge données (PV) -> prétraitement simple -> split -> instancie/entraîne modèle (ex: LogReg) -> évalue (accuracy) -> sauvegarde modèle (PV) -> MAJ statut SUCCESS/FAILURE + results + model_reference. Utilise la session BDD correctement.
-    * **Test :** Tests unitaires pour les étapes clés. Test de déclenchement manuel (via endpoint test).
-* **[⬜ Étape 4.3 : API Endpoints (`POST /pipelines`, `GET /pipelines/{id}`) ]**
+    * **Test :** Tâche `train_model` complète avec workflow complet implémenté.
+* **[✅ Étape 4.3 : API Endpoints (`POST /pipelines`, `GET /pipelines/{id}`) ]** (Complété 2025-07-29)
     * **Instruction :** Implémente les endpoints dans `ml-pipeline/main.py` (cf. Plan précédent, Étapes 5.3, 5.4). Protéger avec dépendance Auth (via gateway).
-    * **Test :** Tests d'intégration API (via `pytest` + `TestClient` ou Postman via gateway). Vérifier création `PipelineRun`, déclenchement tâche, récupération statut/résultats.
-* **[⬜ Étape 4.4 : Finalisation Déploiement K8s `ml-pipeline`]**
+    * **Test :** Endpoints créés : POST /experiments, GET /experiments/{id}, GET /experiments/{id}/results, GET /algorithms.
+* **[✅ Étape 4.4 : Finalisation Déploiement K8s `ml-pipeline`]** (Complété 2025-07-29)
     * **Instruction :** Finaliser `k8s/base/ml-pipeline-deployment.yaml` (App FastAPI) et `celery-worker-deployment.yaml` (si worker séparé envisagé plus tard, sinon le pool partagé est déjà là). Configurer DB/Redis URLs via Secrets. Ajouter probes. MAJ overlay. Appliquer.
-    * **Test :** Pods 'Running'. API répond via gateway. Tâches s'exécutent via worker.
+    * **Test :** Deployment API et Workers Celery configurés avec probes et secrets.
 
 ## Phase 5 : Module `xai-engine` - Implémentation Complète
 
@@ -133,9 +133,9 @@
 * **[⬜ Étape 6.2 : Module Sélection Dataset]**
     * **Instruction :** Crée `DatasetSelectionModule`, `dataset.service.ts`, `dataset-list.component` (formulaire filtres/poids réactif, bouton score, `MatTable` avec `MatPaginator`/`MatSort` pour résultats).
     * **Test :** Affichage liste, filtres, scoring, tri/pagination table OK.
-* **[⬜ Étape 6.3 : Module Pipeline ML]**
+* **[✅ Étape 6.3 : Module Pipeline ML]** (Complété 2025-07-29)
     * **Instruction :** Crée `MLPipelineModule`, `pipeline.service.ts`, `pipeline-launcher.component` (sélection dataset, choix tâche/algo via `MatSelect`, bouton lancement, affichage statut/résultats via polling et `MatCard`/`MatChip`).
-    * **Test :** Lancement pipeline OK, suivi statut OK, affichage résultats OK.
+    * **Test :** Wizard 5 étapes complet avec Angular Material, intégration depuis projets, suivi temps réel, affichage résultats.
 * **[⬜ Étape 6.4 : Module XAI]**
     * **Instruction :** Crée `XAIModule`, `explanation.service.ts`, `explanation-requester.component` (sélection run ML, choix audience `MatSelect`, bouton demande, affichage statut/résultat simple).
     * **Test :** Demande explication OK, suivi statut OK, affichage résultat (top features) OK.

@@ -15,8 +15,9 @@ spec:
     spec:
       containers:
       - name: migration
-        # IMAGE DYNAMIQUE - Remplacée automatiquement par le script de déploiement
-        image: PLACEHOLDER_ACR.azurecr.io/service-selection:latest
+        # IMAGE LOCALE pour développement minikube
+        image: service-selection:latest
+        imagePullPolicy: IfNotPresent
         command: ["sh", "-c"]
         args:
           - |
@@ -30,4 +31,5 @@ spec:
             secretKeyRef:
               name: db-secrets
               key: database-url
+        workingDir: /app
       restartPolicy: OnFailure 

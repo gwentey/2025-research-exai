@@ -240,8 +240,12 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
    * Sélection d'un dataset pour le pipeline ML
    */
   onSelectDataset(dataset: DatasetScoredWithDetails): void {
-    // TODO: Navigation vers la configuration du pipeline ML avec ce dataset
-    console.log('Sélection du dataset pour le pipeline:', dataset);
+    this.router.navigate(['/projects', this.projectId, 'ml-pipeline', 'wizard'], { 
+      queryParams: { 
+        datasetId: dataset.id, 
+        returnUrl: this.router.url 
+      } 
+    });
   }
 
   /**

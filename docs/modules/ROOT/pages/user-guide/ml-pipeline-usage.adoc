@@ -1,0 +1,179 @@
+= Utilisation du Pipeline ML dans IBIS-X
+
+:toc: left
+:toclevels: 2
+:icons: font
+:source-highlighter: rouge
+
+== Vue d'ensemble
+
+Le module ML Pipeline d'IBIS-X permet de créer et d'entraîner des modèles d'apprentissage automatique de manière intuitive à partir de vos datasets. Cette fonctionnalité est accessible directement depuis la page de sélection des datasets.
+
+== Accès au ML Pipeline
+
+=== Depuis la liste des datasets
+
+[arabic]
+. Connectez-vous à IBIS-X et accédez à la page *Datasets*
+. Parcourez ou recherchez le dataset que vous souhaitez utiliser
+. Cliquez sur le bouton *Sélectionner* sur la carte du dataset
+. Vous serez automatiquement redirigé vers le wizard ML Pipeline
+
+image::ml-pipeline/dataset-selection.png[Sélection d'un dataset, 600]
+
+=== Depuis un projet
+
+[arabic]
+. Ouvrez votre projet
+. Allez dans l'onglet *ML Pipeline*
+. Cliquez sur *Nouveau Pipeline*
+. Sélectionnez un dataset parmi ceux disponibles
+
+== Assistant de configuration (Wizard)
+
+L'assistant ML Pipeline vous guide à travers 5 étapes essentielles :
+
+=== Étape 1 : Aperçu du Dataset
+
+* Vérifiez les informations du dataset sélectionné
+* Consultez le nombre de lignes et de colonnes
+* Examinez les types de données
+* Confirmez votre choix
+
+=== Étape 2 : Analyse de Qualité des Données
+
+Configurez le prétraitement des données :
+
+* *Colonne cible* : Sélectionnez la variable à prédire
+* *Type de tâche* : Classification ou Régression
+* *Valeurs manquantes* : Choisissez une stratégie (supprimer, remplacer par moyenne/médiane)
+* *Taille du test* : Définissez le pourcentage de données pour l'évaluation (10-50%)
+* *Normalisation* : Activez/désactivez la normalisation des caractéristiques
+
+=== Étape 3 : Sélection de l'Algorithme
+
+Choisissez parmi les algorithmes disponibles :
+
+.Algorithmes de Classification
+* Random Forest
+* Gradient Boosting
+* Support Vector Machine (SVM)
+* Régression Logistique
+* Réseaux de Neurones
+
+.Algorithmes de Régression
+* Random Forest Regressor
+* Gradient Boosting Regressor
+* Support Vector Regressor
+* Régression Linéaire
+* Réseaux de Neurones
+
+=== Étape 4 : Configuration des Hyperparamètres
+
+Ajustez les paramètres spécifiques à l'algorithme sélectionné. Par exemple :
+
+* Pour Random Forest : nombre d'arbres, profondeur maximale
+* Pour SVM : type de kernel, paramètre C
+* Pour Réseaux de Neurones : architecture, taux d'apprentissage
+
+TIP: Utilisez les valeurs par défaut si vous n'êtes pas sûr. Elles sont optimisées pour la plupart des cas d'usage.
+
+=== Étape 5 : Résumé et Lancement
+
+* Vérifiez tous les paramètres configurés
+* Confirmez le lancement de l'entraînement
+* Suivez la progression en temps réel
+
+== Suivi de l'entraînement
+
+Une fois l'entraînement lancé :
+
+* Une barre de progression indique l'avancement
+* Les logs s'affichent en temps réel
+* Vous pouvez continuer à naviguer dans l'application
+
+== Résultats et métriques
+
+À la fin de l'entraînement, consultez :
+
+=== Métriques de performance
+
+* *Classification* : Accuracy, Precision, Recall, F1-Score
+* *Régression* : MSE, RMSE, MAE, R²
+
+=== Visualisations
+
+* Matrice de confusion (classification)
+* Courbes d'apprentissage
+* Importance des caractéristiques
+* Graphiques de performance
+
+=== Actions disponibles
+
+* Télécharger le modèle entraîné
+* Exporter les résultats
+* Créer une nouvelle expérimentation
+* Déployer le modèle (fonctionnalité à venir)
+
+== Bonnes pratiques
+
+[WARNING]
+====
+Assurez-vous que votre dataset est correctement préparé avant de lancer un entraînement :
+* Vérifiez la qualité des données
+* Éliminez les doublons
+* Gérez les valeurs aberrantes
+====
+
+=== Recommandations
+
+. *Commencez simple* : Utilisez d'abord les paramètres par défaut
+. *Itérez* : Améliorez progressivement en ajustant les hyperparamètres
+. *Comparez* : Testez plusieurs algorithmes sur le même dataset
+. *Documentez* : Notez les configurations qui donnent les meilleurs résultats
+
+== Cas d'usage typiques
+
+=== Classification de clients
+
+[source,yaml]
+----
+Dataset: customer_data.csv
+Cible: churn (0/1)
+Algorithme: Random Forest
+Métriques clés: Precision, Recall
+----
+
+=== Prédiction de ventes
+
+[source,yaml]
+----
+Dataset: sales_history.csv
+Cible: revenue
+Algorithme: Gradient Boosting
+Métriques clés: RMSE, R²
+----
+
+== FAQ
+
+.Combien de temps prend un entraînement ?
+Cela dépend de la taille du dataset et de la complexité de l'algorithme. En général :
+* Petit dataset (< 10k lignes) : 1-5 minutes
+* Dataset moyen (10k-100k lignes) : 5-30 minutes
+* Grand dataset (> 100k lignes) : 30 minutes à plusieurs heures
+
+.Puis-je arrêter un entraînement en cours ?
+Oui, un bouton "Arrêter" est disponible pendant l'entraînement. Les résultats partiels seront sauvegardés.
+
+.Comment choisir le bon algorithme ?
+* Pour débuter : Random Forest (robuste et performant)
+* Pour la vitesse : Régression Logistique/Linéaire
+* Pour la précision maximale : Gradient Boosting ou Réseaux de Neurones
+
+== Support
+
+Pour toute question ou problème :
+
+* Consultez la documentation technique
+* Contactez l'équipe support via le chat intégré
+* Participez aux forums de la communauté IBIS-X 

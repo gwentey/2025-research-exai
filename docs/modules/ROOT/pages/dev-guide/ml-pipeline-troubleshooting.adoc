@@ -1,0 +1,196 @@
+= Guide de Dépannage ML Pipeline Service
+:description: Solutions aux problèmes courants du service ML Pipeline d'IBIS-X
+:keywords: ML Pipeline, dépannage, Celery, migrations, troubleshooting
+
+Ce guide couvre les problèmes les plus fréquents rencontrés avec le ML Pipeline Service et leurs solutions.
+
+== Problèmes de Migration de Base de Données
+
+=== Erreur: "relation datasets does not exist"
+
+**Symptôme :**
+```
+[service-selection] WARNING - Impossible de vérifier l'état des datasets: relation "datasets" does not exist
+[service-selection] ERROR - ❌ Erreur initialisation datasets:
+```
+
+**Cause :** Les migrations de base de données n'ont pas été exécutées.
+
+**Solution :**
+```bash
+# Exécuter les migrations manuellement
+make migrate-jobs
+
+# Ou bien relancer le processus complet
+make dev
+```
+
+**Explication :** Le profil `local-services` dans Skaffold utilise l'overlay `minikube-no-jobs` qui exclut les jobs de migration pour permettre un déploiement séquentiel. Les migrations doivent être lancées séparément.
+
+== Problèmes Celery Workers
+
+=== Avertissement de Sécurité: Root Privileges
+
+**Symptôme :**
+```
+[celery-worker] SecurityWarning: You're running the worker with superuser privileges: this is absolutely not recommended!
+User information: uid=0 euid=0 gid=0 egid=0
+```
+
+**Cause :** Les workers Celery s'exécutent en tant qu'utilisateur root.
+
+**Solution :** ✅ **CORRIGÉ** - Le `Dockerfile.worker` a été mis à jour pour utiliser un utilisateur non-root :
+
+```dockerfile
+# Create non-root user for security
+RUN groupadd -r celeryworker && useradd -r -g celeryworker celeryworker
+
+# Change ownership of the app directory to the non-root user
+RUN chown -R celeryworker:celeryworker /app
+
+# Switch to non-root user
+USER celeryworker
+```
+
+=== Avertissement de Configuration Dépréciée
+
+**Symptôme :**
+```
+[celery-worker] CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine whether broker connection retries are made during startup in Celery 6.0 and above.
+```
+
+**Cause :** Configuration Celery non compatible avec les versions futures.
+
+**Solution :** ✅ **CORRIGÉ** - Ajout de `broker_connection_retry_on_startup=True` dans `celery_app.py`:
+
+```python
+# Broker connection configuration (pour Celery 6.0+ compatibility)
+broker_connection_retry_on_startup=True,
+```
+
+=== Erreur de Connexion Redis
+
+**Symptôme :**
+```
+[celery-worker] consumer: Cannot connect to redis://redis:6379/0: Error 111 connecting to redis:6379. Connection refused.
+```
+
+**Cause :** Redis n'est pas encore démarré ou accessible.
+
+**Solution :**
+- **Temporaire :** Attendez quelques secondes, Celery retry automatiquement
+- **Persistant :** Vérifiez que Redis est déployé et accessible
+
+```bash
+# Vérifier le statut de Redis
+kubectl get pods -n ibis-x -l app=redis
+
+# Vérifier les logs Redis
+kubectl logs -n ibis-x statefulset/redis
+```
+
+== Problèmes d'Images Docker
+
+=== Erreur: "trying and failing to pull image"
+
+**Symptôme :**
+```
+Error from server (BadRequest): container "ml-pipeline-migration" in pod "ml-pipeline-migration-job-xxx" is waiting to start: trying and failing to pull image
+```
+
+**Cause :** L'image Docker n'existe pas dans le registre local Minikube.
+
+**Solution :**
+```bash
+# Reconstruire les images localement
+make deploy-services
+
+# Ou forcer la reconstruction
+skaffold dev --profile=local-services --force=true
+```
+
+== Problèmes de Performance
+
+=== Workers Celery Lents
+
+**Causes Possibles :**
+- Ressources insuffisantes allouées au cluster Minikube
+- Trop de tâches en parallèle
+
+**Solutions :**
+```bash
+# Augmenter les ressources Minikube
+minikube stop
+minikube start --memory 6144 --cpus 4
+
+# Réduire la concurrence Celery (dans celery_app.py)
+worker_prefetch_multiplier=1,
+worker_max_tasks_per_child=1,
+```
+
+== Commandes Utiles de Dépannage
+
+=== Vérification de l'État des Services
+
+```bash
+# État des pods
+kubectl get pods -n ibis-x
+
+# État des jobs
+kubectl get jobs -n ibis-x
+
+# État des services
+kubectl get services -n ibis-x
+```
+
+=== Consultation des Logs
+
+```bash
+# Logs ML Pipeline Service
+kubectl logs -n ibis-x deployment/ml-pipeline
+
+# Logs Celery Workers
+kubectl logs -n ibis-x deployment/ml-pipeline-celery-worker
+
+# Logs Redis
+kubectl logs -n ibis-x statefulset/redis
+
+# Logs d'un job spécifique
+kubectl logs -n ibis-x job/service-selection-migration-job
+```
+
+=== Redémarrage des Services
+
+```bash
+# Redémarrer ML Pipeline
+kubectl rollout restart deployment/ml-pipeline -n ibis-x
+
+# Redémarrer Celery Workers
+kubectl rollout restart deployment/ml-pipeline-celery-worker -n ibis-x
+
+# Redémarrer Redis
+kubectl rollout restart statefulset/redis -n ibis-x
+```
+
+== Séquence de Démarrage Recommandée
+
+Pour éviter les problèmes, respectez cette séquence :
+
+```bash
+# 1. Vérifier les prérequis
+make check-prerequisites
+
+# 2. Démarrage complet avec migrations
+make dev
+
+# OU démarrage rapide si Minikube est déjà prêt
+make quick-dev
+```
+
+Cette séquence garantit que :
+1. Les services démarrent dans le bon ordre
+2. Les migrations sont appliquées automatiquement  
+3. Les données sont initialisées correctement
+4. Les port forwards sont configurés
+
+TIP: En cas de problème persistant, utilisez `make clean-minikube && make dev` pour un redémarrage complet. 

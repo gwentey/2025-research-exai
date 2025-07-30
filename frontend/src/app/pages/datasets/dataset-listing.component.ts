@@ -409,7 +409,28 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
    */
   onSelectDataset(dataset: Dataset): void {
     console.log('Dataset sélectionné:', dataset);
-    // TODO: Navigation vers la page de configuration du pipeline
+    console.log('Navigation vers ML Pipeline wizard...');
+    
+    // Navigation vers le wizard ML Pipeline avec le dataset sélectionné
+    this.router.navigate(['/ml-pipeline/wizard'], {
+      queryParams: {
+        datasetId: dataset.id,
+        datasetName: dataset.dataset_name
+      }
+    }).then(success => {
+      if (success) {
+        console.log('Navigation réussie vers ML Pipeline');
+      } else {
+        console.error('Échec de la navigation vers ML Pipeline');
+        // Fallback : essayer une navigation alternative
+        this.router.navigate(['/starter']).then(() => {
+          alert(`Le module ML Pipeline sera bientôt disponible pour le dataset "${dataset.dataset_name}". Cette fonctionnalité est en cours de déploiement.`);
+        });
+      }
+    }).catch(error => {
+      console.error('Erreur de navigation:', error);
+      alert(`Une erreur est survenue. Veuillez rafraîchir la page et réessayer.`);
+    });
   }
 
   /**

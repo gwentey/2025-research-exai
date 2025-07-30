@@ -16,12 +16,18 @@ logger = logging.getLogger(__name__)
 def should_auto_init() -> bool:
     """
     Vérifie si l'auto-initialisation doit être effectuée.
+    DÉSACTIVÉ par défaut - ne s'active qu'explicitement en production.
     
     Returns:
-        bool: True si AUTO_INIT_DATA=true, False sinon
+        bool: True si AUTO_INIT_DATA=true explicitement, False sinon
     """
+    # Auto-init désactivé par défaut pour éviter les conflits avec make dev
+    # Ne s'active qu'avec AUTO_INIT_DATA=true explicite (production Azure)
     auto_init = os.getenv("AUTO_INIT_DATA", "false").lower()
-    return auto_init in ("true", "1", "yes", "on")
+    
+    # DÉSACTIVÉ TEMPORAIREMENT pour éviter les conflits avec make dev
+    logger.info("🚫 Auto-init désactivé temporairement - utiliser make dev pour l'initialisation")
+    return False
 
 def check_data_already_initialized() -> bool:
     """

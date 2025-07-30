@@ -60,7 +60,10 @@
     }
   },
   "COMMON": {
-    "LOADING": "Loading..."
+    "LOADING": "Loading...",
+    "NEXT": "Next",
+    "BACK": "Back",
+    "CANCEL": "Cancel"
   },
   "DASHBOARD": {
     "TITLE": "IBIS-X Dashboard",
@@ -365,6 +368,7 @@
       "CREATED_AT": "Creation date",
       "UPDATED_AT": "Last modified"
     },
+    "SELECT_FOR_ML": "Create ML Pipeline",
     "FILTERS": {
       "TITLE": "Advanced Filters",
       "APPLY": "Apply Filters",
@@ -890,5 +894,307 @@
       "RETRY": "Retry",
       "BACK": "Back"
     }
+  },
+  "ML_PIPELINE": {
+    "TITLE": "ML Pipeline",
+    "HERO": {
+      "TITLE": "Revolutionary Artificial Intelligence",
+      "SUBTITLE": "Harness the power of Machine Learning with our patented IBIS-X technology"
+    },
+    "STATS": {
+      "EXPERIMENTS": "Experiments",
+      "SUCCESS_RATE": "Success Rate",
+      "AVG_ACCURACY": "Average Accuracy",
+      "AVG_TIME": "Average Time"
+    },
+    "WORKFLOW": {
+      "DATASET_STATUS": "Dataset Status",
+      "NO_DATASET": "No dataset selected",
+      "SELECT_DATASET_FIRST": "Start by selecting a dataset to unlock the power of ML"
+    },
+    "ACTIONS": {
+      "START_TRAINING": "Start ML Training",
+      "SELECT_DATASET": "Select a Dataset",
+      "LAUNCH_ML": "Launch ML"
+    },
+    "ALGORITHMS": {
+      "TITLE": "State-of-the-Art Algorithms",
+      "SUBTITLE": "Choose from our optimized algorithms for exceptional performance",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Regression",
+      "PERFORMANCE": "Performance",
+      "USE_CASES": "Use Cases"
+    },
+    "RECENT": {
+      "TITLE": "Recent Experiments",
+      "VIEW_ALL": "View All"
+    },
+    "STATUS": {
+      "COMPLETED": "Completed",
+      "RUNNING": "Running",
+      "FAILED": "Failed",
+      "PENDING": "Pending"
+    },
+    "METRICS": {
+      "ACCURACY": "Accuracy"
+    },
+    "GUIDE": {
+      "TITLE": "How It Works",
+      "STEP1_TITLE": "Select Your Data",
+      "STEP1_DESC": "Choose a dataset from our curated collection",
+      "STEP2_TITLE": "Configure the Pipeline",
+      "STEP2_DESC": "Adjust preprocessing and training parameters",
+      "STEP3_TITLE": "Launch Training",
+      "STEP3_DESC": "Our AI automatically optimizes the learning process",
+      "STEP4_TITLE": "Analyze Results",
+      "STEP4_DESC": "Explore detailed metrics and visualizations"
+    },
+    "STEPS": {
+      "DATASET_OVERVIEW": "Dataset Overview",
+      "DATA_QUALITY": "Data Quality Analysis",
+      "ALGORITHM": "Algorithm Selection",
+      "HYPERPARAMETERS": "Hyperparameter Configuration",
+      "SUMMARY": "Summary & Launch"
+    },
+    "DATASET": {
+      "TITLE": "Selected Dataset",
+      "ROWS": "rows",
+      "FEATURES": "features",
+      "QUALITY_SCORE": "Quality Score",
+      "CONFIRM": "I confirm using this dataset for training"
+    },
+    "DATA_QUALITY": {
+      "TITLE": "Preprocessing Configuration",
+      "TARGET_COLUMN": "Target Column",
+      "TASK_TYPE": "Task Type",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Regression",
+      "MISSING_VALUES": "Missing Values Strategy",
+      "DROP": "Drop rows",
+      "MEAN": "Replace with mean",
+      "MEDIAN": "Replace with median",
+      "FORWARD_FILL": "Forward fill",
+      "TEST_SIZE": "Test Set Size",
+      "TEST_SIZE_HINT": "Proportion of data reserved for testing (10-50%)",
+      "FEATURE_SCALING": "Feature Scaling",
+      "ENCODING": "Categorical Variable Encoding",
+      "COMPLETENESS": "Completeness",
+      "ACCURACY": "Accuracy",
+      "CONSISTENCY": "Consistency",
+      "VALIDITY": "Validity",
+      "UNIQUENESS": "Uniqueness",
+      "SCORE": "Quality Score",
+      "GOOD_QUALITY": "Optimal data quality for training",
+      "SAMPLES": "samples",
+      "FEATURES": "features"
+    },
+    "ALGORITHM": {
+      "TITLE": "Choose a Learning Algorithm",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Regression"
+    },
+    "HYPERPARAMETERS": {
+      "TITLE": "Hyperparameter Configuration"
+    },
+    "SUMMARY": {
+      "TITLE": "Configuration Summary",
+      "CONFIGURATION": "Training Configuration",
+      "DATASET": "Dataset",
+      "ALGORITHM": "Algorithm",
+      "TARGET": "Target Column",
+      "TASK_TYPE": "Task Type",
+      "CONFIRM": "I confirm launching the training with this configuration"
+    },
+    "TRAINING": {
+      "START": "Start Training",
+      "IN_PROGRESS": "Training in Progress",
+      "COMPLETE": "complete",
+      "STATUS": "Status",
+      "INITIALIZING": "Initializing ML pipeline...",
+      "LOADING_DATA": "Loading data...",
+      "PREPROCESSING": "Preprocessing in progress...",
+      "TRAINING_MODEL": "Training model...",
+      "FINALIZING": "Finalizing and saving...",
+      "COMPLETED": "Training completed successfully!",
+      "FAILED": "Training failed",
+      "STARTED": "Training started successfully",
+      "SUCCESS": "Model trained successfully!",
+      "DATA_LOADED": "Data loaded",
+      "PREPROCESSING_DONE": "Preprocessing completed",
+      "MODEL_TRAINED": "Model trained"
+    },
+    "RESULTS": {
+      "TITLE": "Training Results",
+      "METRICS": "Performance Metrics",
+      "BACK_TO_PROJECT": "Back to Project"
+    }
+  },
+  "ML_STUDIO": {
+    "TITLE": "ML Studio - Advanced Configuration",
+    "STEPS": {
+      "STEP1": "Data Configuration",
+      "STEP2": "Preprocessing",
+      "STEP3": "Algorithm Selection",
+      "STEP4": "Hyperparameters"
+    },
+    "DATA_CONFIG": {
+      "TITLE": "Data Configuration",
+      "DESCRIPTION": "Define the target column and the type of problem to solve",
+      "TARGET_SELECTION": "Target Variable Selection",
+      "TARGET_COLUMN": "Target Column",
+      "TARGET_HINT": "The variable you want to predict",
+      "TASK_TYPE": "ML Problem Type",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Regression",
+      "TEST_SIZE": "Test Set Size",
+      "TEST_SIZE_HINT": "Percentage of data reserved for evaluation"
+    },
+    "DATA_QUALITY": {
+      "TITLE": "Quality Analysis",
+      "COMPLETENESS": "Completeness",
+      "ACCURACY": "Accuracy",
+      "CONSISTENCY": "Consistency",
+      "VALIDITY": "Validity",
+      "UNIQUENESS": "Uniqueness",
+      "SCORE": "Score",
+      "GOOD_QUALITY": "Optimal quality detected",
+      "SAMPLES": "samples",
+      "FEATURES": "features"
+    },
+    "PREPROCESSING": {
+      "TITLE": "Preprocessing Configuration",
+      "DESCRIPTION": "Optimize your data for optimal learning",
+      "ADVANCED_OPTIONS": "Advanced Options",
+      "MISSING_VALUES": "Missing Values",
+      "STRATEGY": "Strategy",
+      "DROP": "Drop",
+      "MEAN": "Mean",
+      "MEDIAN": "Median",
+      "FORWARD_FILL": "Forward Fill",
+      "FEATURE_ENGINEERING": "Feature Engineering",
+      "SCALING": "Data normalization",
+      "ENCODING": "Encoding",
+      "OUTLIERS": "Outliers",
+      "REMOVE_OUTLIERS": "Remove outliers",
+      "THRESHOLD": "Threshold"
+    },
+    "PRESETS": {
+      "TITLE": "Preset Configurations",
+      "QUICK": "Quick",
+      "QUICK_DESC": "Fast training for prototyping",
+      "BALANCED": "Balanced",
+      "BALANCED_DESC": "Optimal balance between speed and accuracy",
+      "ACCURATE": "Accurate",
+      "ACCURATE_DESC": "Maximize model accuracy"
+    },
+    "ALGORITHM": {
+      "TITLE": "Algorithm Selection",
+      "DESCRIPTION": "Choose the algorithm best suited to your problem",
+      "USE_CASES": "Recommended Use Cases",
+      "CLASSIFICATION": "Classification",
+      "REGRESSION": "Regression"
+    },
+    "HYPERPARAMETERS": {
+      "TITLE": "Hyperparameter Tuning",
+      "DESCRIPTION": "Fine-tune parameters to optimize performance"
+    },
+    "SUMMARY": {
+      "TITLE": "Configuration Summary",
+      "DATASET": "Dataset",
+      "ALGORITHM": "Algorithm",
+      "TARGET": "Target Variable",
+      "TASK": "Task Type"
+    },
+    "ACTIONS": {
+      "PREVIOUS": "Previous",
+      "NEXT": "Next",
+      "CANCEL": "Cancel",
+      "START_TRAINING": "Start Training"
+    },
+    "TRAINING": {
+      "IN_PROGRESS": "Training in Progress",
+      "INITIALIZING": "Initializing...",
+      "LOADING_DATA": "Loading data...",
+      "PREPROCESSING": "Preprocessing...",
+      "TRAINING_MODEL": "Training model...",
+      "FINALIZING": "Finalizing...",
+      "COMPLETED": "Completed!",
+      "FAILED": "Failed",
+      "STARTED": "Training started",
+      "SUCCESS": "Training successful!",
+      "DATA_LOADED": "Data loaded",
+      "PREPROCESSING_DONE": "Preprocessing done",
+      "MODEL_TRAINED": "Model trained"
+    },
+    "ERRORS": {
+      "LOAD_DATASET": "Error loading dataset",
+      "START_TRAINING": "Error starting training",
+      "TRAINING_FAILED": "Training failed"
+    }
+  },
+  "ML_RESULTS": {
+    "TITLE": "Experiment Results",
+    "DOWNLOAD_MODEL": "Download Model",
+    "NEW_EXPERIMENT": "New Experiment",
+    "PERFORMANCE_METRICS": "Performance Metrics",
+    "METRICS": {
+      "ACCURACY": "Accuracy",
+      "PRECISION": "Precision",
+      "RECALL": "Recall",
+      "F1_SCORE": "F1 Score",
+      "MAE": "Mean Absolute Error",
+      "MSE": "Mean Squared Error",
+      "RMSE": "Root Mean Squared Error",
+      "R2": "R² Coefficient",
+      "ROC_AUC": "ROC AUC Score"
+    },
+    "VISUALIZATIONS": "Visualizations",
+    "CONFUSION_MATRIX": "Confusion Matrix",
+    "CONFUSION_MATRIX_DESC": "The confusion matrix shows correct and incorrect predictions for each class.",
+    "ROC_CURVE": "ROC Curve",
+    "ROC_CURVE_DESC": "The ROC curve illustrates classifier performance at different decision thresholds.",
+    "FEATURE_IMPORTANCE": "Feature Importance",
+    "FEATURE_IMPORTANCE_DESC": "This chart shows which features contributed most to the model's predictions.",
+    "REGRESSION_PLOT": "Regression Plot",
+    "REGRESSION_PLOT_DESC": "Comparison between predicted and actual values.",
+    "EXPERIMENT_DETAILS": "Experiment Details",
+    "EXPERIMENT_ID": "Experiment ID",
+    "ALGORITHM": "Algorithm",
+    "STATUS": "Status",
+    "CREATED": "Created",
+    "HYPERPARAMETERS": "Hyperparameters",
+    "NEXT_STEPS": "Next Steps",
+    "IMPROVE_MODEL": "Improve Model",
+    "DEPLOY_MODEL": "Deploy Model",
+    "SHARE_RESULTS": "Share Results",
+    "EXPORT_CODE": "Export Code",
+    "LOADING": "Loading results..."
+  },
+  "ML_EXPERIMENTS": {
+    "TITLE": "All ML Experiments",
+    "SUBTITLE": "Manage and analyze your machine learning experiments",
+    "NEW_EXPERIMENT": "New Experiment",
+    "SEARCH": "Search",
+    "SEARCH_PLACEHOLDER": "Search by ID or algorithm...",
+    "STATUS_FILTER": "Filter by status",
+    "ALL_STATUS": "All statuses",
+    "ALGORITHM_FILTER": "Filter by algorithm",
+    "ALL_ALGORITHMS": "All algorithms",
+    "SHOWING": "Showing",
+    "OF": "of",
+    "EXPERIMENTS": "experiments",
+    "ALGORITHM": "Algorithm",
+    "STATUS": "Status",
+    "ACCURACY": "Accuracy",
+    "CREATED": "Created",
+    "ACTIONS": "Actions",
+    "VIEW_RESULTS": "View results",
+    "DUPLICATE": "Duplicate",
+    "NO_EXPERIMENTS": "No experiments found",
+    "CREATE_FIRST": "Create your first experiment",
+    "COMPLETED_COUNT": "Completed experiments",
+    "RUNNING_COUNT": "Running experiments",
+    "AVG_ACCURACY": "Average accuracy",
+    "SUCCESS_RATE": "Success rate"
   }
 }

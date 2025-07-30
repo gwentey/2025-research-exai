@@ -16,9 +16,10 @@ spec:
         job: api-gateway-migration
     spec:
       containers:
-      - name: migration
-        # IMAGE DYNAMIQUE - Remplacée automatiquement par le script de déploiement
-        image: ibisxprodacr6630.azurecr.io/ibis-x-api-gateway:latest
+      - name: api-gateway-migration
+        # IMAGE LOCALE pour développement
+        image: ibis-x-api-gateway:latest
+        imagePullPolicy: IfNotPresent
         command: ["sh", "-c"]
         args:
           - |

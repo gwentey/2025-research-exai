@@ -32,6 +32,12 @@ build/
 *.swp
 *.swo
 *~
+
+# Scripts temporaires Windows générés par le Makefile
+port-forward-manager.bat
+logs-viewer.bat
+port-forward-pids.txt
+launch-ports.bat
 .DS_Store
 
 # Fichiers spécifiques à Kubernetes/Docker

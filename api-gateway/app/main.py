@@ -1022,6 +1022,16 @@ async def project_recommendations_proxy(project_id: str, request: Request, curre
     """Proxy vers le service-selection pour récupérer les recommandations d'un projet"""
     return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"projects/{project_id}/recommendations", current_user)
 
+# Routes pour ML Pipeline
+@app.api_route("/api/v1/ml-pipeline/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def proxy_ml_pipeline(
+    path: str,
+    request: Request,
+    current_user: UserModel = Depends(current_active_user)
+):
+    """Proxy requests to ML Pipeline service"""
+    return await proxy_request(request, settings.ML_PIPELINE_URL, path, current_user)
+
 # Route racine simple (optionnel)
 @app.get("/")
 def read_root():

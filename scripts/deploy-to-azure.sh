@@ -749,11 +749,19 @@ wait_for_migrations() {
         log_warning "⚠️ Migration Service Selection non trouvée ou échouée"
     fi
     
+    if kubectl wait --for=condition=complete job/ml-pipeline-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=5m 2>/dev/null; then
+        log_success "✅ Migration ML Pipeline terminée"
+    else
+        log_warning "⚠️ Migration ML Pipeline non trouvée ou échouée"
+    fi
+    
     # Redémarrer les applications (comme dans GitHub Actions)
     if [[ "$DEPLOYMENT_MODE" == "production" ]]; then
         log_info "🔄 Redémarrage des applications (mode production)..."
         kubectl rollout restart deployment api-gateway -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
         kubectl rollout restart deployment service-selection -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        kubectl rollout restart deployment ml-pipeline -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        kubectl rollout restart deployment ml-pipeline-celery-worker -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
     fi
     
     log_success "✅ Migrations et redémarrages terminés"
@@ -763,7 +771,7 @@ wait_for_migrations() {
 cleanup_migration_jobs() {
     if [[ "$DEPLOYMENT_MODE" == "production" ]]; then
         log_info "🧹 Nettoyage des jobs de migration (mode production)..."
-        kubectl delete job api-gateway-migration-job service-selection-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --ignore-not-found=true
+        kubectl delete job api-gateway-migration-job service-selection-migration-job ml-pipeline-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --ignore-not-found=true
         log_success "✅ Jobs de migration nettoyés"
     else
         log_info "🧹 Conservation des jobs de migration (mode développement)"
@@ -923,7 +931,10 @@ build_and_push_images() {
     # 2. Service Selection (contexte racine pour accéder aux modules communs)
     build_and_push_image "service-selection" "service-selection/Dockerfile" "." ""
     
-    # 3. Frontend (avec build args spécifiques à l'environnement)
+    # 3. ML Pipeline
+    build_and_push_image "ml-pipeline" "ml-pipeline-service/Dockerfile" "ml-pipeline-service/" ""
+    
+    # 4. Frontend (avec build args spécifiques à l'environnement)
     local frontend_build_args=""
     if [[ "$DEPLOYMENT_MODE" == "manual-production" ]] || [[ "$ANGULAR_ENV" == "production" ]]; then
         frontend_build_args="--build-arg ANGULAR_ENV=production --no-cache"
@@ -1032,7 +1043,16 @@ deploy_app_with_correct_images() {
     kubectl apply -f "$TEMP_DIR/service-selection-deployment.yaml"
     kubectl apply -f "$K8S_DIR/base/service-selection/service.yaml" 2>/dev/null || true
     
-    # 3. Frontend
+    # 3. ML Pipeline
+    log_info "Déploiement ML Pipeline avec image ACR $ACR_NAME..."
+    sed "s|image: ml-pipeline|image: $ACR_NAME.azurecr.io/ml-pipeline:latest|" "$K8S_DIR/base/ml-pipeline/deployment.yaml" > "$TEMP_DIR/ml-pipeline-deployment.yaml"
+    kubectl apply -f "$TEMP_DIR/ml-pipeline-deployment.yaml"
+    kubectl apply -f "$K8S_DIR/base/ml-pipeline/service.yaml" 2>/dev/null || true
+    kubectl apply -f "$K8S_DIR/base/ml-pipeline/secrets.yaml" 2>/dev/null || true
+    kubectl apply -f "$K8S_DIR/base/ml-pipeline/alembic-config.yaml" 2>/dev/null || true
+    kubectl apply -f "$K8S_DIR/base/ml-pipeline/celery-worker-deployment.yaml" 2>/dev/null || true
+    
+    # 4. Frontend
     log_info "Déploiement Frontend avec image ACR $ACR_NAME..."
     sed "s|image: frontend|image: $ACR_NAME.azurecr.io/frontend:latest|" "$K8S_DIR/base/frontend/deployment.yaml" > "$TEMP_DIR/frontend-deployment.yaml"
     kubectl apply -f "$TEMP_DIR/frontend-deployment.yaml"
@@ -1047,12 +1067,16 @@ deploy_app_with_correct_images() {
     log_info "Redémarrage automatique des pods avec nouvelles images ACR..."
     kubectl delete pods -l app=api-gateway -n ibis-x --ignore-not-found=true 2>/dev/null || true
     kubectl delete pods -l app=service-selection -n ibis-x --ignore-not-found=true 2>/dev/null || true
+    kubectl delete pods -l app=ml-pipeline -n ibis-x --ignore-not-found=true 2>/dev/null || true
+    kubectl delete pods -l app=ml-pipeline-celery-worker -n ibis-x --ignore-not-found=true 2>/dev/null || true
     kubectl delete pods -l app=frontend -n ibis-x --ignore-not-found=true 2>/dev/null || true
     
     # 6. Mise à jour automatique des images vers ACR  
     log_info "Mise à jour automatique des images vers ACR..."
     kubectl set image deployment/api-gateway api-gateway=$ACR_NAME.azurecr.io/ibis-x-api-gateway:latest -n ibis-x 2>/dev/null || true
     kubectl set image deployment/service-selection service-selection=$ACR_NAME.azurecr.io/service-selection:latest -n ibis-x 2>/dev/null || true
+    kubectl set image deployment/ml-pipeline ml-pipeline=$ACR_NAME.azurecr.io/ml-pipeline:latest -n ibis-x 2>/dev/null || true
+    kubectl set image deployment/ml-pipeline-celery-worker ml-pipeline-worker=$ACR_NAME.azurecr.io/ml-pipeline:latest -n ibis-x 2>/dev/null || true
     kubectl set image deployment/frontend frontend=$ACR_NAME.azurecr.io/frontend:latest -n ibis-x 2>/dev/null || true
     
     # 7. Ingress et certificats SSL automatiques

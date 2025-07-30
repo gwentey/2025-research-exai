@@ -32,7 +32,7 @@ export const navItems: NavItem[] = [
     iconName: 'chart-dots',
     bgcolor: 'warning',
     route: '/ml-pipeline',
-    disabled: true, // À activer quand le module sera implémenté
+    disabled: false, // Module maintenant actif !
   },
   {
     displayName: 'XAI Explanations',
@@ -75,7 +75,7 @@ export function getTranslatedNavItems(translate: TranslateService): NavItem[] {
       iconName: 'chart-dots',
       bgcolor: 'warning',
       route: '/ml-pipeline',
-      disabled: true, // À activer quand le module sera implémenté
+      disabled: false, // Module maintenant actif !
     },
     {
       displayName: translate.instant('MENU.XAI_EXPLANATIONS') || 'XAI Explanations',

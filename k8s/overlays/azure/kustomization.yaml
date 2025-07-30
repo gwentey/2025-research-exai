@@ -17,6 +17,8 @@ images:
     newName: ibisxprodacr6630.azurecr.io/service-selection
   - name: frontend
     newName: ibisxprodacr6630.azurecr.io/frontend
+  - name: ml-pipeline
+    newName: ibisxprodacr6630.azurecr.io/ml-pipeline
 
 # Patches pour les configurations spécifiques à Azure
 patches:

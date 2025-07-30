@@ -119,36 +119,45 @@
 
 **3.2.1. Modèles de Données (Potentiellement dans une BDD partagée ou dédiée)**
 
-* **`PipelineRun` :** Table pour suivre les exécutions. Champs : `id`, `dataset_reference`, `task_type`, `algorithm`, `preprocessing_steps` (JSONB), `status` ('PENDING', 'RUNNING', 'SUCCESS', 'FAILURE'), `start_time`, `end_time`, `results` (JSONB, pour métriques), `model_reference` (TEXT, chemin/URL).
-* **`MLModel` :** (Optionnel, si gestion plus fine des modèles) Table pour les modèles : `id`, `run_id` (FK vers `PipelineRun`), `model_type`, `hyperparameters` (JSONB), `model_file_reference`.
+* **`Experiment` :** Table pour suivre les expériences ML. Champs : `id` (UUID), `user_id`, `project_id`, `dataset_id`, `algorithm`, `hyperparameters` (JSONB), `preprocessing_config` (JSONB), `status` ('pending', 'running', 'completed', 'failed'), `progress` (INT), `metrics` (JSONB), `model_uri` (TEXT), `visualizations` (JSONB), `feature_importance` (JSONB), `task_id`, `error_message`, `created_at`, `updated_at`.
+* **`MLModel` :** (Optionnel, si gestion plus fine des modèles) Table pour les modèles : `id`, `experiment_id` (FK vers `Experiment`), `model_type`, `hyperparameters` (JSONB), `model_file_reference`.
 
 **3.2.2. Tâches Celery (`tasks.py`)**
 
-* **`run_ml_pipeline_task(run_id: int, dataset_reference: str, task_type: str, algorithm: str, preprocessing_steps: list, ...)` :**
-    1.  Mettre à jour le statut du `PipelineRun` (ID=`run_id`) à 'RUNNING'.
-    2.  **Charger les données :** Lire le dataset depuis `dataset_reference` (via PV/Blob).
-    3.  **Prétraitement :** Appliquer les étapes de `preprocessing_steps` (ex: `impute_mean` -> utiliser `SimpleImputer(strategy='mean')` de scikit-learn). *Logique très simple pour la PoC.*
-    4.  **Sélection/Instanciation Modèle :** Basé sur `algorithm` (ex: 'LogisticRegression' -> `LogisticRegression()`). *Pas de tuning pour la PoC.*
-    5.  **Entraînement :** Entraîner le modèle (`model.fit(X_train, y_train)`). *Split train/test simple.*
-    6.  **Évaluation :** Calculer les métriques de base (ex: accuracy pour classification, MSE pour régression) sur le set de test.
-    7.  **Sauvegarde Modèle :** Sauvegarder le modèle entraîné sur le stockage partagé (PV/Blob) avec un nom unique (ex: `/data/models/run_{run_id}/model.joblib`).
-    8.  **Mise à jour BDD :** Mettre à jour le `PipelineRun` avec `status='SUCCESS'`, les `results` (métriques) et le `model_reference`.
-    9.  **Gestion Erreurs :** En cas d'échec, mettre à jour le statut à 'FAILURE' et logger l'erreur.
+* **`train_model(experiment_id: str)` :**
+    1.  Mettre à jour le statut de l'`Experiment` (ID=`experiment_id`) à 'running' et progress à 10%.
+    2.  **Charger les données :** Télécharger le dataset depuis le stockage objet (MinIO/Azure) en utilisant les infos du dataset_id.
+    3.  **Prétraitement :** Appliquer la configuration de prétraitement (gestion valeurs manquantes, encodage catégoriel, normalisation) selon `preprocessing_config`.
+    4.  **Sélection/Instanciation Modèle :** Basé sur `algorithm` ('decision_tree' ou 'random_forest') avec les hyperparamètres fournis.
+    5.  **Entraînement :** Entraîner le modèle avec train_test_split selon la configuration. Mise à jour progress à 50%.
+    6.  **Évaluation :** Calculer les métriques complètes (accuracy, precision, recall, F1 pour classification; MAE, MSE, RMSE, R² pour régression).
+    7.  **Visualisations :** Générer les graphiques (matrice confusion, courbes ROC, feature importance) et les encoder en base64.
+    8.  **Sauvegarde Modèle :** Sauvegarder le modèle entraîné sur le stockage objet avec joblib.
+    9.  **Mise à jour BDD :** Mettre à jour l'`Experiment` avec `status='completed'`, les `metrics`, `model_uri`, `visualizations` et `feature_importance`.
+    10. **Gestion Erreurs :** En cas d'échec, mettre à jour le statut à 'failed' avec le message d'erreur détaillé.
 
 **3.2.3. Endpoints API (FastAPI)**
 
-* **`POST /pipelines`**
-    * **Input :** JSON `{ "dataset_reference": str, "task_type": str, "algorithm": str, "preprocessing_steps": list }`.
+* **`POST /experiments`**
+    * **Input :** JSON `{ "project_id": uuid, "dataset_id": uuid, "algorithm": str, "hyperparameters": dict, "preprocessing_config": dict }`.
     * **Logique :**
-        1.  Valider l'input.
-        2.  Créer un enregistrement `PipelineRun` en BDD avec `status='PENDING'`.
-        3.  Lancer la tâche Celery `run_ml_pipeline_task.delay(...)` avec les paramètres nécessaires et l'ID du run.
-        4.  Retourner l'ID du run et le statut 'PENDING'.
-    * **Output :** `{ "pipeline_run_id": int, "status": "PENDING" }`.
-* **`GET /pipelines/{pipeline_run_id}`**
-    * **Input :** `pipeline_run_id: int`.
-    * **Logique :** Récupérer l'enregistrement `PipelineRun` depuis la BDD.
-    * **Output :** JSON contenant le statut, les résultats (si SUCCESS), la référence au modèle, etc.
+        1.  Valider l'input avec les schémas Pydantic.
+        2.  Créer un enregistrement `Experiment` en BDD avec `status='pending'`.
+        3.  Lancer la tâche Celery `train_model.apply_async(args=[str(experiment_id)], queue='ml_queue')`.
+        4.  Sauvegarder le task_id dans l'experiment.
+        5.  Retourner l'experiment créé.
+    * **Output :** `ExperimentRead` avec id, status, created_at.
+* **`GET /experiments/{experiment_id}`**
+    * **Input :** `experiment_id: uuid`.
+    * **Logique :** Récupérer l'`Experiment` et vérifier le statut de la tâche Celery si en cours.
+    * **Output :** `ExperimentStatus` avec statut actuel, progress, et error_message si échec.
+* **`GET /experiments/{experiment_id}/results`**
+    * **Input :** `experiment_id: uuid`.
+    * **Logique :** Récupérer l'`Experiment` complété avec métriques et visualisations.
+    * **Output :** `ExperimentResults` avec metrics, model_uri, visualizations, feature_importance.
+* **`GET /algorithms`**
+    * **Logique :** Retourner la liste des algorithmes disponibles avec leurs configurations.
+    * **Output :** `List[AlgorithmInfo]` avec nom, description, hyperparamètres supportés.
 
 ### 3.3. Module `xai-engine` (FastAPI, Celery, SHAP/LIME)
 

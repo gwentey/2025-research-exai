@@ -1,38 +1,287 @@
-= 🛠️ Pipeline ML Interactif
+= Guide d'utilisation - Pipeline ML
+:toc:
+:toclevels: 3
 
-IBIS-X vous guide à travers chaque étape du processus de Machine Learning.
+== Introduction
 
-== Étapes Principales
+Le Pipeline ML d'IBIS-X vous permet d'entraîner des modèles d'apprentissage automatique sur vos datasets de manière simple et guidée. Cette fonctionnalité est accessible directement depuis vos projets.
 
-1. **Préparation des données**
-   * Nettoyage automatique
-   * Gestion des valeurs manquantes
-   * Encodage des variables catégorielles
-   * Normalisation/standardisation
+== Prérequis
 
-2. **Sélection de la tâche ML**
-   * Classification
-   * Régression
-   * Clustering
+* Avoir créé un projet
+* Avoir des datasets recommandés dans votre projet
+* Comprendre les bases de la classification/régression
 
-3. **Choix d'algorithmes**
-   * Suggestions adaptées à votre tâche
-   * Options classiques et avancées
-   * Paramètres préconfigurés ou personnalisables
+== Accès au Pipeline ML
 
-4. **Entraînement et Évaluation**
-   * Validation croisée
-   * Métriques de performance
-   * Visualisation des résultats
+=== Depuis un projet
 
-== Visualisations d'Évaluation
+1. Naviguez vers votre projet
+2. Dans l'onglet "Recommandations", visualisez les datasets suggérés
+3. Cliquez sur le bouton "Sélectionner" d'un dataset pour lancer le Pipeline ML
 
-* **Classification**: matrices de confusion, courbes ROC/PR
-* **Régression**: dispersions, résidus, importance des variables
-* **Clustering**: dendrogrammes, visualisations t-SNE/UMAP
+image::ml-pipeline/project-recommendations.png[Recommandations de datasets]
 
-== Sauvegarde et Déploiement
+== Assistant de configuration (Wizard)
 
-* Sauvegarde du modèle entraîné
-* Exportation du pipeline complet
-* Intégration avec le module XAI 
+Le Pipeline ML utilise un assistant en 5 étapes pour vous guider dans la configuration de votre modèle.
+
+=== Étape 1 : Aperçu du dataset
+
+Cette étape vous présente les informations clés du dataset sélectionné :
+
+* **Titre et description** du dataset
+* **Domaine** et **tâche ML** associés
+* **Statistiques** : nombre de lignes, colonnes, taille
+
+image::ml-pipeline/step1-dataset-overview.png[Aperçu du dataset]
+
+[IMPORTANT]
+====
+Vous devez confirmer l'utilisation de ce dataset avant de continuer.
+====
+
+=== Étape 2 : Analyse de la qualité des données
+
+Configurez le prétraitement de vos données :
+
+==== Colonne cible
+Sélectionnez la colonne que vous souhaitez prédire. Le système suggère automatiquement la colonne la plus appropriée.
+
+==== Type de tâche
+* **Classification** : Pour prédire des catégories (ex: spam/non-spam)
+* **Régression** : Pour prédire des valeurs numériques (ex: prix)
+
+==== Gestion des valeurs manquantes
+[cols="1,3"]
+|===
+|Stratégie |Description
+
+|Supprimer les lignes
+|Retire les lignes contenant des valeurs manquantes
+
+|Remplacer par la moyenne
+|Remplace par la moyenne de la colonne (numériques)
+
+|Remplacer par la médiane
+|Remplace par la médiane de la colonne (numériques)
+
+|Propagation avant
+|Utilise la dernière valeur connue
+|===
+
+==== Options avancées
+* **Normalisation des caractéristiques** : Recommandé pour améliorer les performances
+* **Encodage des variables catégorielles** : One-Hot ou Label Encoding
+* **Taille de l'ensemble de test** : Portion réservée pour l'évaluation (10-50%)
+
+=== Étape 3 : Sélection de l'algorithme
+
+Choisissez l'algorithme d'apprentissage adapté à votre problème :
+
+==== Decision Tree (Arbre de décision)
+* **Avantages** : Facile à interpréter, pas besoin de normalisation
+* **Inconvénients** : Tendance au surapprentissage
+* **Utilisation** : Données avec relations non-linéaires simples
+
+==== Random Forest (Forêt aléatoire)
+* **Avantages** : Robuste, bonnes performances générales
+* **Inconvénients** : Plus difficile à interpréter
+* **Utilisation** : La plupart des problèmes de classification/régression
+
+image::ml-pipeline/step3-algorithm-selection.png[Sélection de l'algorithme]
+
+=== Étape 4 : Configuration des hyperparamètres
+
+Ajustez les paramètres de l'algorithme sélectionné :
+
+==== Decision Tree
+[cols="1,3,1"]
+|===
+|Paramètre |Description |Recommandation
+
+|Criterion
+|Fonction pour mesurer la qualité d'une division
+|'gini' pour classification
+
+|Max depth
+|Profondeur maximale de l'arbre
+|5-10 pour éviter le surapprentissage
+
+|Min samples split
+|Nombre minimum d'échantillons pour diviser
+|2-10
+
+|Min samples leaf
+|Nombre minimum d'échantillons dans une feuille
+|1-5
+|===
+
+==== Random Forest
+[cols="1,3,1"]
+|===
+|Paramètre |Description |Recommandation
+
+|N estimators
+|Nombre d'arbres dans la forêt
+|100-300
+
+|Max depth
+|Profondeur maximale des arbres
+|10-20
+
+|Bootstrap
+|Utiliser l'échantillonnage avec remise
+|True (recommandé)
+|===
+
+=== Étape 5 : Résumé et lancement
+
+Vérifiez votre configuration avant de lancer l'entraînement :
+
+* Dataset sélectionné
+* Algorithme choisi
+* Colonne cible
+* Type de tâche
+
+[CAUTION]
+====
+L'entraînement peut prendre plusieurs minutes selon la taille du dataset et la complexité du modèle.
+====
+
+== Suivi de l'entraînement
+
+Une fois lancé, vous pouvez suivre la progression :
+
+* **Barre de progression** : Indique l'avancement (0-100%)
+* **Statut** : pending → running → completed/failed
+* **Messages** : Informations sur l'étape en cours
+
+image::ml-pipeline/training-progress.png[Progression de l'entraînement]
+
+== Résultats
+
+=== Métriques de performance
+
+Selon le type de tâche, différentes métriques sont affichées :
+
+==== Classification
+* **Accuracy** : Pourcentage de prédictions correctes
+* **Precision** : Proportion de vrais positifs parmi les prédictions positives
+* **Recall** : Proportion de vrais positifs détectés
+* **F1-Score** : Moyenne harmonique de precision et recall
+
+==== Régression
+* **MAE** : Erreur absolue moyenne
+* **MSE** : Erreur quadratique moyenne
+* **RMSE** : Racine de l'erreur quadratique moyenne
+* **R²** : Coefficient de détermination
+
+=== Visualisations
+
+Le système génère automatiquement des visualisations pour faciliter l'interprétation :
+
+==== Matrice de confusion (Classification)
+Montre la répartition des prédictions vs valeurs réelles.
+
+image::ml-pipeline/confusion-matrix.png[Matrice de confusion]
+
+==== Importance des caractéristiques
+Identifie les variables les plus influentes dans les prédictions.
+
+image::ml-pipeline/feature-importance.png[Importance des caractéristiques]
+
+==== Courbe ROC (Classification binaire)
+Évalue la performance du classificateur.
+
+== Utilisation du modèle
+
+Une fois l'entraînement terminé, le modèle est sauvegardé et peut être :
+
+* Utilisé pour des prédictions sur de nouvelles données
+* Expliqué via le module XAI
+* Comparé avec d'autres modèles du même projet
+
+== Bonnes pratiques
+
+=== Préparation des données
+* Assurez-vous que la colonne cible est correctement identifiée
+* Vérifiez la qualité des données avant l'entraînement
+* Équilibrez les classes pour la classification
+
+=== Choix de l'algorithme
+* Commencez par Random Forest pour une baseline solide
+* Utilisez Decision Tree si l'interprétabilité est cruciale
+* Testez plusieurs configurations
+
+=== Évaluation
+* Ne vous fiez pas à une seule métrique
+* Examinez la matrice de confusion pour comprendre les erreurs
+* Vérifiez l'importance des caractéristiques
+
+== Troubleshooting
+
+=== L'entraînement échoue
+
+**Causes possibles :**
+* Dataset trop petit (< 100 lignes)
+* Trop de valeurs manquantes
+* Colonne cible invalide
+
+**Solutions :**
+* Vérifiez la qualité du dataset
+* Ajustez la stratégie de gestion des valeurs manquantes
+* Assurez-vous que la colonne cible existe
+
+=== Performances faibles
+
+**Causes possibles :**
+* Mauvais choix d'algorithme
+* Hyperparamètres non optimaux
+* Données non préparées
+
+**Solutions :**
+* Essayez un autre algorithme
+* Ajustez les hyperparamètres
+* Activez la normalisation des caractéristiques
+
+=== Résultats non disponibles
+
+**Causes possibles :**
+* Entraînement encore en cours
+* Erreur lors de la génération des visualisations
+
+**Solutions :**
+* Attendez la fin de l'entraînement
+* Consultez les logs d'erreur
+* Relancez l'entraînement
+
+== FAQ
+
+.Combien de temps prend l'entraînement ?
+[%collapsible]
+====
+Cela dépend de la taille du dataset et de l'algorithme :
+* Petit dataset (< 1000 lignes) : 1-5 minutes
+* Dataset moyen (1000-10000 lignes) : 5-15 minutes
+* Grand dataset (> 10000 lignes) : 15-60 minutes
+====
+
+.Puis-je arrêter un entraînement en cours ?
+[%collapsible]
+====
+Non, une fois lancé, l'entraînement doit se terminer. Planifiez vos entraînements en conséquence.
+====
+
+.Comment choisir entre classification et régression ?
+[%collapsible]
+====
+* **Classification** : Si vous prédisez des catégories (oui/non, A/B/C, etc.)
+* **Régression** : Si vous prédisez des valeurs numériques continues (prix, température, etc.)
+====
+
+.Que faire si mon dataset n'a pas de colonne cible évidente ?
+[%collapsible]
+====
+Consultez la documentation du dataset ou contactez le fournisseur de données pour identifier la variable à prédire.
+==== 

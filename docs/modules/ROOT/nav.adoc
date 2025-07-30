@@ -13,6 +13,9 @@
 ** xref:user-guide/dataset-detailed-view.adoc[Vue Détaillée des Datasets]
 ** xref:user-guide/project-creation.adoc[Création de Projets ML]
 ** xref:user-guide/project-configuration.adoc[Configuration des Projets]
+** xref:user-guide/ml-pipeline.adoc[Pipeline ML]
+** xref:user-guide/ml-pipeline-usage.adoc[Utilisation du Pipeline ML]
+** xref:user-guide/ml-pipeline-new-interface.adoc[🎆 Nouvelle Interface ML Pipeline]
 ** xref:user-guide/pipeline-execution.adoc[Exécution des Pipelines]
 ** xref:user-guide/results-interpretation.adoc[Interprétation des Résultats]
 ** xref:user-guide/explainability-reports.adoc[Rapports d'Explicabilité]
@@ -35,6 +38,9 @@
 ** xref:dev-guide/frontend-production-config-test.adoc[🧪 Test Configuration Frontend Production]
 ** xref:dev-guide/frontend-production-auto-rebuild.adoc[🔄 Auto-Rebuild Frontend Production]
 ** xref:dev-guide/backend-api-development.adoc[Développement API Backend]
+** xref:dev-guide/ml-pipeline-service.adoc[Service ML Pipeline]
+** xref:dev-guide/ml-pipeline-database-setup.adoc[Configuration Base de Données ML Pipeline]
+** xref:dev-guide/ml-pipeline-troubleshooting.adoc[🔧 Dépannage ML Pipeline]
 ** xref:dev-guide/ml-pipeline-integration.adoc[Intégration Pipeline ML]
 ** xref:dev-guide/xai-engine-development.adoc[Développement Moteur XAI]
 ** xref:dev-guide/testing-guide.adoc[Guide de Tests]
@@ -43,6 +49,7 @@
 ** xref:dev-guide/performance-optimization.adoc[Optimisation des Performances]
 ** xref:dev-guide/ci-cd-pipeline.adoc[Pipeline CI/CD]
 ** xref:dev-guide/troubleshooting.adoc[Dépannage]
+** xref:dev-guide/troubleshooting-port-forwards.adoc[🔧 Résolution Problèmes Port-Forwards]
 ** xref:dev-guide/contributing.adoc[Guide de Contribution]
 
 * Guides de Données

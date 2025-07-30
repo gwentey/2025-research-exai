@@ -1,0 +1,377 @@
+= Configuration Base de Données ML Pipeline
+:toc:
+:toclevels: 3
+:page-description: Documentation de la structure de base de données pour le service ML Pipeline
+:page-keywords: ml-pipeline, database, postgresql, alembic, experiments
+
+== Vue d'ensemble
+
+Le service ML Pipeline suit l'architecture de base de données partagée d'IBIS-X avec sa propre table de version Alembic (`alembic_version_ml_pipeline`) pour une gestion indépendante des migrations.
+
+== Architecture de Base de Données
+
+=== Principe de Base de Données Partagée
+
+* **Base unique** : `ibis_x_db` partagée entre tous les microservices
+* **Tables dédiées** : Chaque service gère ses propres tables
+* **Migrations indépendantes** : Chaque service utilise sa propre table de version Alembic
+
+=== Tables ML Pipeline
+
+==== Table `experiments`
+
+La table principale qui stocke toutes les expériences d'entraînement ML :
+
+[source,sql]
+----
+CREATE TABLE experiments (
+    -- Identification
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    project_id UUID NOT NULL,
+    dataset_id UUID NOT NULL,
+    
+    -- Configuration ML
+    algorithm VARCHAR(50) NOT NULL,
+    hyperparameters JSONB NOT NULL,
+    preprocessing_config JSONB NOT NULL,
+    
+    -- Statut et progression
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    progress INTEGER DEFAULT 0,
+    task_id VARCHAR(100),
+    error_message TEXT,
+    
+    -- Résultats et artefacts
+    metrics JSONB,
+    model_uri VARCHAR(500),
+    visualizations JSONB,
+    feature_importance JSONB,
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
+);
+----
+
+==== Index pour Performance
+
+[source,sql]
+----
+CREATE INDEX ix_experiments_user_id ON experiments(user_id);
+CREATE INDEX ix_experiments_project_id ON experiments(project_id);
+CREATE INDEX ix_experiments_dataset_id ON experiments(dataset_id);
+CREATE INDEX ix_experiments_status ON experiments(status);
+CREATE INDEX ix_experiments_created_at ON experiments(created_at);
+----
+
+== Structure des Fichiers
+
+=== Organisation du Code
+
+[source]
+----
+ml-pipeline-service/
+├── app/
+│   ├── database.py      # Configuration connexion PostgreSQL
+│   ├── models.py        # Modèles SQLAlchemy (Experiment)
+│   └── schemas.py       # Schémas Pydantic (validation/sérialisation)
+├── alembic/
+│   ├── alembic.ini     # Configuration Alembic (table: alembic_version_ml_pipeline)
+│   ├── env.py          # Environnement de migration
+│   └── versions/
+│       └── 001_initial_migration.py  # Migration initiale
+└── requirements.txt    # Dépendances (inclut alembic, sqlalchemy, etc.)
+----
+
+=== Configuration de Base de Données (`database.py`)
+
+[source,python]
+----
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+import os
+from dotenv import load_dotenv
+
+# Configuration via variables d'environnement
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://ibis_x_user:password@postgresql-service:5432/ibis_x_db"
+)
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+def get_db():
+    """Fonction de dépendance FastAPI pour les sessions DB"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+----
+
+=== Modèle SQLAlchemy (`models.py`)
+
+[source,python]
+----
+class Experiment(Base):
+    __tablename__ = "experiments"
+    
+    id = Column(PostgreSQLUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(PostgreSQLUUID(as_uuid=True), nullable=False, index=True)
+    project_id = Column(PostgreSQLUUID(as_uuid=True), nullable=False, index=True)
+    dataset_id = Column(PostgreSQLUUID(as_uuid=True), nullable=False, index=True)
+    
+    algorithm = Column(String(50), nullable=False)
+    hyperparameters = Column(JSONB, nullable=False)
+    preprocessing_config = Column(JSONB, nullable=False)
+    
+    status = Column(String(20), nullable=False, default='pending', index=True)
+    progress = Column(Integer, nullable=True, default=0)
+    task_id = Column(String(100), nullable=True)
+    error_message = Column(Text, nullable=True)
+    
+    metrics = Column(JSONB, nullable=True)
+    model_uri = Column(String(500), nullable=True)
+    visualizations = Column(JSONB, nullable=True)
+    feature_importance = Column(JSONB, nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+----
+
+== Configuration Alembic
+
+=== Fichier `alembic.ini`
+
+Configuration spécifique au service ML Pipeline :
+
+[source,ini]
+----
+[alembic]
+script_location = alembic
+version_table = alembic_version_ml_pipeline  # Table unique pour ML Pipeline
+sqlalchemy.url = ${DATABASE_URL}
+----
+
+=== Variables d'Environnement
+
+[source,bash]
+----
+# Base de données partagée
+DATABASE_URL="postgresql://ibis_x_user:password@postgresql-service:5432/ibis_x_db"
+
+# Celery (pour les tâches asynchrones)
+CELERY_BROKER_URL="redis://redis-service:6379/0"
+CELERY_RESULT_BACKEND="redis://redis-service:6379/0"
+
+# Stockage objets
+STORAGE_TYPE="minio"
+MINIO_ENDPOINT="minio-service:9000"
+MINIO_ACCESS_KEY="minioadmin"
+MINIO_SECRET_KEY="minioadmin"
+----
+
+== Déploiement et Migrations
+
+=== Développement Local
+
+1. **Port forwarding vers PostgreSQL** :
++
+[source,bash]
+----
+kubectl port-forward service/postgresql-service -n ibis-x 5432:5432
+----
+
+2. **Configuration locale** :
++
+[source,bash]
+----
+# ml-pipeline-service/.env
+DATABASE_URL="postgresql://ibis_x_user:password@localhost:5432/ibis_x_db"
+----
+
+3. **Application des migrations** :
++
+[source,bash]
+----
+cd ml-pipeline-service
+alembic upgrade head
+----
+
+=== Production (Kubernetes)
+
+La migration est automatiquement appliquée via le job Kubernetes `ml-pipeline-migration-job` lors du déploiement.
+
+[source,yaml]
+----
+# k8s/base/jobs/ml-pipeline-migration-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ml-pipeline-migration-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: migration
+        image: ibis-x-ml-pipeline:latest
+        command: ["alembic", "upgrade", "head"]
+        envFrom:
+        - secretRef:
+            name: ml-pipeline-secrets
+----
+
+== Schémas Pydantic
+
+=== ExperimentCreate
+
+[source,python]
+----
+class ExperimentCreate(BaseModel):
+    user_id: UUID
+    project_id: UUID
+    dataset_id: UUID
+    algorithm: str = Field(..., pattern="^(decision_tree|random_forest)$")
+    hyperparameters: Dict[str, Any]
+    preprocessing_config: Dict[str, Any]
+----
+
+=== ExperimentRead
+
+[source,python]
+----
+class ExperimentRead(BaseModel):
+    id: UUID
+    user_id: UUID
+    project_id: UUID
+    dataset_id: UUID
+    algorithm: str
+    hyperparameters: Dict[str, Any]
+    preprocessing_config: Dict[str, Any]
+    status: str
+    progress: Optional[int] = None
+    task_id: Optional[str] = None
+    error_message: Optional[str] = None
+    metrics: Optional[Dict[str, Any]] = None
+    model_uri: Optional[str] = None
+    visualizations: Optional[Dict[str, Any]] = None
+    feature_importance: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    updated_at: datetime
+----
+
+== Statuts d'Expérience
+
+=== Cycle de Vie
+
+[source,mermaid]
+----
+stateDiagram-v2
+    [*] --> pending
+    pending --> running: Celery worker starts
+    running --> completed: Training successful
+    running --> failed: Training error
+    running --> cancelled: User cancellation
+    completed --> [*]
+    failed --> [*]
+    cancelled --> [*]
+----
+
+=== Valeurs de Statut
+
+* **pending** : Expérience créée, en attente d'exécution
+* **running** : Entraînement en cours
+* **completed** : Entraînement terminé avec succès
+* **failed** : Erreur durant l'entraînement
+* **cancelled** : Annulé par l'utilisateur
+
+== Utilisation des Champs JSONB
+
+=== Hyperparamètres
+
+[source,json]
+----
+{
+  "max_depth": 5,
+  "min_samples_split": 2,
+  "criterion": "gini"
+}
+----
+
+=== Configuration de Préprocessing
+
+[source,json]
+----
+{
+  "target_column": "target",
+  "task_type": "classification",
+  "missing_values": {
+    "strategy": "mean"
+  },
+  "scaling": true,
+  "encoding": "onehot",
+  "test_size": 0.2
+}
+----
+
+=== Métriques
+
+[source,json]
+----
+{
+  "accuracy": 0.92,
+  "precision": 0.89,
+  "recall": 0.94,
+  "f1_score": 0.91,
+  "confusion_matrix": [[100, 5], [3, 92]]
+}
+----
+
+=== Visualisations
+
+[source,json]
+----
+{
+  "confusion_matrix": "ibis-x-models/project-id/experiment-id/confusion_matrix.png",
+  "feature_importance": "ibis-x-models/project-id/experiment-id/feature_importance.png",
+  "learning_curves": "ibis-x-models/project-id/experiment-id/learning_curves.png"
+}
+----
+
+=== Importance des Features
+
+[source,json]
+----
+{
+  "feature_1": 0.45,
+  "feature_2": 0.32,
+  "feature_3": 0.23
+}
+----
+
+== Bonnes Pratiques
+
+=== Gestion des Migrations
+
+1. **Toujours tester** les migrations sur un environnement de développement
+2. **Vérifier le contenu** des migrations auto-générées
+3. **Éviter les DROP TABLE** des tables d'autres services
+4. **Utiliser des transactions** pour les migrations complexes
+
+=== Performance
+
+1. **Index appropriés** sur les colonnes de recherche fréquente
+2. **Pagination** pour les listes d'expériences
+3. **Nettoyage périodique** des expériences anciennes
+4. **Archivage** des résultats volumineux
+
+=== Sécurité
+
+1. **Validation stricte** des hyperparamètres
+2. **Limitation des tailles** des champs JSONB
+3. **Authentification** requise pour toutes les opérations
+4. **Logs d'audit** des modifications importantes 

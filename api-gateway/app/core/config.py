@@ -1,6 +1,7 @@
 import os
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
+from typing import Optional
 
 # Charger les variables d'environnement depuis un fichier .env (utile pour le dev local)
 load_dotenv()
@@ -18,7 +19,7 @@ class Settings(BaseSettings):
     # Configuration Base de données (sera utilisée par fastapi-users)
     # Exemple: DATABASE_URL="postgresql+asyncpg://user:password@host:port/db"
     # Sera chargée depuis l'environnement ou un fichier .env
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost:5432/db") # Dev default
+    DATABASE_URL: Optional[str] = None
 
     # Configuration OAuth pour Google
     GOOGLE_OAUTH_CLIENT_ID: str = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
@@ -43,8 +44,8 @@ class Settings(BaseSettings):
 
     # URLs des services backend pour le reverse proxy
     # En Kubernetes: utiliser les noms de services internes
-    SERVICE_SELECTION_URL: str = os.getenv("SERVICE_SELECTION_URL", "http://service-selection-service")
-    ML_PIPELINE_URL: str = os.getenv("ML_PIPELINE_URL", "http://ml-pipeline-service")
+    SERVICE_SELECTION_URL: str = os.getenv("SERVICE_SELECTION_URL", "http://service-selection-service:80")
+    ML_PIPELINE_URL: str = os.getenv("ML_PIPELINE_URL", "http://ml-pipeline:8082")
     XAI_ENGINE_URL: str = os.getenv("XAI_ENGINE_URL", "http://xai-engine-service")
 
     class Config:

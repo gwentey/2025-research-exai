@@ -26,6 +26,12 @@ build:
         dockerfile: service-selection/Dockerfile
         noCache: false
         pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
+    - image: ibis-x-ml-pipeline
+      context: .  # Utilise le répertoire racine comme contexte pour accéder à common/
+      docker: 
+        dockerfile: ml-pipeline-service/Dockerfile
+        noCache: false
+        pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
     - image: frontend
       context: frontend
       # Définir buildArgs pour l'environnement par défaut (local)
@@ -122,10 +128,13 @@ profiles:
         value: ibisprodacr.azurecr.io/service-selection
       - op: replace
         path: /build/artifacts/2/image
+        value: ibisprodacr.azurecr.io/ibis-x-ml-pipeline
+      - op: replace
+        path: /build/artifacts/3/image
         value: ibisprodacr.azurecr.io/frontend
       # Ajouter un patch pour surcharger les buildArgs du frontend pour Azure
       - op: add # Ou 'replace' si buildArgs existe déjà au path exact
-        path: /build/artifacts/2/docker/buildArgs # Index 2 pour l'artefact frontend
+        path: /build/artifacts/3/docker/buildArgs # Index 3 pour l'artefact frontend
         value:
           ANGULAR_ENV: production
     manifests:

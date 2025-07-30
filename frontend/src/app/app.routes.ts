@@ -36,6 +36,16 @@ export const routes: Routes = [
           import('./pages/projects/projects.routes').then((m) => m.PROJECTS_ROUTES),
       },
       {
+        path: 'projects/:id/ml-pipeline',
+        loadChildren: () =>
+          import('./pages/ml-pipeline/ml-pipeline.routes').then((m) => m.ML_PIPELINE_ROUTES),
+      },
+      {
+        path: 'ml-pipeline',
+        loadChildren: () =>
+          import('./pages/ml-pipeline/ml-pipeline.routes').then((m) => m.ML_PIPELINE_ROUTES),
+      },
+      {
         path: 'profile',
         loadChildren: () =>
           import('./pages/profile/profile.routes').then((m) => m.PROFILE_ROUTES),

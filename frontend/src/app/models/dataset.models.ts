@@ -383,6 +383,12 @@ export interface DatasetDetailView extends Dataset {
   files: DatasetFileMetadata[];
   quality_metrics: DatasetQualityMetrics;
   distribution_analysis: DataDistributionAnalysis;
+  columns?: Array<{
+    name: string;
+    type: string;
+    description?: string;
+  }>;
+  overall_score?: number;
   usage_examples?: {
     title: string;
     description: string;

@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ml-pipeline-migration-job
+  namespace: ibis-x
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: ml-pipeline-migration
+        image: ibis-x-ml-pipeline:latest
+        imagePullPolicy: IfNotPresent
+        workingDir: /app
+        command: ["alembic", "upgrade", "head"]
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ml-pipeline-secrets
+              key: database-url
+        - name: PYTHONPATH
+          value: "/app"
+        volumeMounts:
+        - name: alembic-config
+          mountPath: /app/alembic.ini
+          subPath: alembic.ini
+      volumes:
+      - name: alembic-config
+        configMap:
+          name: ml-pipeline-alembic-config
+          items:
+          - key: alembic.ini
+            path: alembic.ini 

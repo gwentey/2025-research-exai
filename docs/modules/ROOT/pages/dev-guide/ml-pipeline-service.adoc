@@ -1,0 +1,348 @@
+= Service ML Pipeline
+:toc:
+:toclevels: 3
+
+== Vue d'ensemble
+
+Le service ML Pipeline est un microservice FastAPI qui gère l'entraînement asynchrone de modèles de machine learning. Il utilise Celery avec Redis comme broker pour l'exécution des tâches longues et offre une API RESTful pour la création et le suivi des expériences.
+
+== Architecture
+
+=== Composants principaux
+
+* **API FastAPI** : Expose les endpoints REST pour la gestion des expériences
+* **Workers Celery** : Exécutent les tâches d'entraînement de manière asynchrone
+* **Redis** : Broker de messages et backend de résultats pour Celery
+* **PostgreSQL** : Stockage des métadonnées des expériences
+* **Stockage objet** : MinIO (local) ou Azure Blob Storage (production) pour les modèles et artefacts
+
+=== Flux de données
+
+[source,mermaid]
+----
+graph LR
+    A[Frontend] --> B[API Gateway]
+    B --> C[ML Pipeline API]
+    C --> D[PostgreSQL]
+    C --> E[Redis]
+    E --> F[Celery Workers]
+    F --> G[Storage]
+    F --> D
+----
+
+== Configuration
+
+=== Variables d'environnement
+
+[cols="2,3,2"]
+|===
+|Variable |Description |Valeur par défaut
+
+|DATABASE_URL
+|URL de connexion PostgreSQL
+|postgresql://user:password@postgres:5432/ml_pipeline
+
+|CELERY_BROKER_URL
+|URL du broker Redis
+|redis://redis:6379/0
+
+|CELERY_RESULT_BACKEND
+|URL du backend de résultats
+|redis://redis:6379/0
+
+|STORAGE_TYPE
+|Type de stockage (minio/azure)
+|minio
+
+|MINIO_ENDPOINT
+|Endpoint MinIO
+|minio:9000
+
+|MINIO_ACCESS_KEY
+|Clé d'accès MinIO
+|minioadmin
+
+|MINIO_SECRET_KEY
+|Clé secrète MinIO
+|minioadmin
+|===
+
+== API Endpoints
+
+=== POST /experiments
+Crée une nouvelle expérience d'entraînement.
+
+**Request Body:**
+[source,json]
+----
+{
+  "project_id": "uuid",
+  "dataset_id": "uuid",
+  "algorithm": "decision_tree|random_forest",
+  "hyperparameters": {
+    "max_depth": 5,
+    "min_samples_split": 2
+  },
+  "preprocessing_config": {
+    "target_column": "target",
+    "task_type": "classification",
+    "missing_values": {
+      "strategy": "mean"
+    },
+    "scaling": true,
+    "encoding": "onehot",
+    "test_size": 0.2
+  }
+}
+----
+
+**Response:**
+[source,json]
+----
+{
+  "id": "uuid",
+  "status": "pending",
+  "progress": 0,
+  "created_at": "2025-07-29T10:00:00Z"
+}
+----
+
+=== GET /experiments/{id}
+Récupère le statut d'une expérience.
+
+**Response:**
+[source,json]
+----
+{
+  "id": "uuid",
+  "status": "running|completed|failed",
+  "progress": 75,
+  "error_message": null,
+  "created_at": "2025-07-29T10:00:00Z",
+  "updated_at": "2025-07-29T10:05:00Z"
+}
+----
+
+=== GET /experiments/{id}/results
+Récupère les résultats d'une expérience terminée.
+
+**Response:**
+[source,json]
+----
+{
+  "id": "uuid",
+  "metrics": {
+    "accuracy": 0.92,
+    "precision": 0.89,
+    "recall": 0.94,
+    "f1_score": 0.91
+  },
+  "model_uri": "ibis-x-models/project-id/experiment-id/model.joblib",
+  "visualizations": {
+    "confusion_matrix": "path/to/confusion_matrix.png",
+    "feature_importance": "path/to/feature_importance.png"
+  },
+  "feature_importance": {
+    "feature1": 0.45,
+    "feature2": 0.32,
+    "feature3": 0.23
+  }
+}
+----
+
+=== GET /algorithms
+Liste les algorithmes disponibles et leurs configurations.
+
+**Response:**
+[source,json]
+----
+[
+  {
+    "name": "decision_tree",
+    "display_name": "Decision Tree",
+    "description": "A tree-like model of decisions",
+    "supports_classification": true,
+    "supports_regression": true,
+    "hyperparameters": {
+      "max_depth": {
+        "type": "number",
+        "min": 1,
+        "max": 50,
+        "default": 5,
+        "description": "Maximum depth of the tree"
+      }
+    }
+  }
+]
+----
+
+== Modèles de données
+
+=== Table experiments
+
+[source,sql]
+----
+CREATE TABLE experiments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    project_id UUID NOT NULL,
+    dataset_id UUID NOT NULL,
+    algorithm VARCHAR(50) NOT NULL,
+    hyperparameters JSONB NOT NULL,
+    preprocessing_config JSONB NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    progress INTEGER DEFAULT 0,
+    metrics JSONB,
+    model_uri VARCHAR(500),
+    visualizations JSONB,
+    feature_importance JSONB,
+    task_id VARCHAR(100),
+    error_message TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_experiments_user_id ON experiments(user_id);
+CREATE INDEX idx_experiments_project_id ON experiments(project_id);
+CREATE INDEX idx_experiments_status ON experiments(status);
+----
+
+== Algorithmes supportés
+
+=== Decision Tree
+
+* **Classification** : DecisionTreeClassifier
+* **Régression** : DecisionTreeRegressor
+* **Hyperparamètres** :
+  - `criterion` : 'gini', 'entropy' (classification)
+  - `max_depth` : 1-50
+  - `min_samples_split` : 2-100
+  - `min_samples_leaf` : 1-50
+
+=== Random Forest
+
+* **Classification** : RandomForestClassifier
+* **Régression** : RandomForestRegressor
+* **Hyperparamètres** :
+  - `n_estimators` : 10-500
+  - `max_depth` : 1-50
+  - `min_samples_split` : 2-100
+  - `bootstrap` : true/false
+
+== Déploiement
+
+=== Local (Minikube)
+
+[source,bash]
+----
+# Via Makefile
+make dev-ml-pipeline
+
+# Via Skaffold
+skaffold dev --profile=local
+----
+
+=== Production (Azure)
+
+Le service est automatiquement déployé via GitHub Actions lors d'un push sur la branche main.
+
+[source,bash]
+----
+# Déploiement manuel
+./scripts/deploy-to-azure.sh
+----
+
+== Monitoring et Logs
+
+=== Logs Celery
+
+Les workers Celery génèrent des logs détaillés pour chaque tâche :
+
+[source,bash]
+----
+# Voir les logs d'un worker
+kubectl logs -n ibis-x deployment/ml-pipeline-celery-worker
+
+# Suivre les logs en temps réel
+kubectl logs -n ibis-x deployment/ml-pipeline-celery-worker -f
+----
+
+=== Métriques
+
+* Nombre d'expériences par statut
+* Temps moyen d'entraînement
+* Taux de succès/échec
+* Utilisation des ressources (CPU/RAM)
+
+== Troubleshooting
+
+=== Problèmes courants
+
+.Tâche bloquée en "pending"
+[WARNING]
+====
+**Symptômes** : L'expérience reste en statut "pending" sans progresser.
+
+**Solutions** :
+1. Vérifier que les workers Celery sont en cours d'exécution
+2. Vérifier la connexion à Redis
+3. Examiner les logs des workers pour des erreurs
+====
+
+.Échec de chargement du dataset
+[WARNING]
+====
+**Symptômes** : Erreur "Dataset not found" dans les logs.
+
+**Solutions** :
+1. Vérifier que le dataset existe dans le stockage
+2. Vérifier les permissions d'accès au stockage
+3. Vérifier la configuration des credentials de stockage
+====
+
+== Développement
+
+=== Structure du code
+
+[source]
+----
+ml-pipeline-service/
+├── app/
+│   ├── main.py          # Application FastAPI
+│   ├── models.py        # Modèles SQLAlchemy
+│   ├── schemas.py       # Schémas Pydantic
+│   ├── tasks.py         # Tâches Celery
+│   ├── database.py      # Configuration DB
+│   ├── core/
+│   │   ├── config.py    # Configuration
+│   │   └── celery_app.py # App Celery
+│   └── ml/
+│       ├── algorithms.py # Wrappers ML
+│       ├── preprocessing.py # Prétraitement
+│       └── evaluation.py # Évaluation
+├── requirements.txt
+├── Dockerfile
+└── alembic/
+    └── versions/        # Migrations DB
+----
+
+=== Tests
+
+[source,bash]
+----
+# Exécuter les tests unitaires
+pytest tests/
+
+# Tests d'intégration
+pytest tests/integration/
+
+# Coverage
+pytest --cov=app tests/
+----
+
+=== Ajout d'un nouvel algorithme
+
+1. Créer une classe wrapper dans `app/ml/algorithms.py`
+2. Implémenter les méthodes `fit`, `predict`, `get_feature_importance`
+3. Ajouter la configuration dans l'endpoint `/algorithms`
+4. Mettre à jour la logique de sélection dans `tasks.py` 
