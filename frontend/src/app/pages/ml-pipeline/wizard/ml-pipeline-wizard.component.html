@@ -1,328 +1,658 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>
-            <h2>{{ 'ML_PIPELINE.TITLE' | translate }}</h2>
-          </mat-card-title>
-        </mat-card-header>
-        
-        <mat-card-content>
-          <mat-stepper #stepper linear>
+<div class="ml-pipeline-wizard" [@fadeInUp]>
+  <!-- Hero Header -->
+  <div class="wizard-hero">
+    <div class="hero-background">
+      <div class="gradient-overlay"></div>
+      <div class="particle" *ngFor="let i of [1,2,3,4,5,6]"></div>
+    </div>
+    
+    <div class="hero-content">
+      <div class="wizard-icon">
+        <div class="icon-pulse"></div>
+        <mat-icon class="main-icon">model_training</mat-icon>
+      </div>
+      
+      <h1 class="wizard-title">{{ 'ML_PIPELINE.WIZARD.TITLE' | translate }}</h1>
+      <p class="wizard-subtitle">{{ 'ML_PIPELINE.WIZARD.SUBTITLE' | translate }}</p>
+      
+      <!-- Progress Indicator -->
+      <div class="progress-indicator">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+        </div>
+        <div class="progress-steps">
+          <div class="progress-step" 
+               *ngFor="let step of ['DATASET', 'DATA_QUALITY', 'ALGORITHM', 'HYPERPARAMETERS', 'SUMMARY']; let i = index"
+               [class.active]="stepper && stepper.selectedIndex !== undefined && stepper.selectedIndex >= i"
+               [class.current]="stepper && stepper.selectedIndex === i">
+            <div class="step-number">{{ i + 1 }}</div>
+            <div class="step-label">{{ ('ML_PIPELINE.STEPS.' + step) | translate }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="wizard-content">
+    <mat-stepper #stepper linear class="modern-stepper">
             <!-- Step 1: Dataset Overview -->
-            <mat-step [stepControl]="datasetForm">
+            <mat-step [stepControl]="datasetForm" [@slideIn]>
               <form [formGroup]="datasetForm">
                 <ng-template matStepLabel>{{ 'ML_PIPELINE.STEPS.DATASET_OVERVIEW' | translate }}</ng-template>
                 
-                <div class="step-content">
-                  <h3>{{ 'ML_PIPELINE.DATASET.TITLE' | translate }}</h3>
-                  
-                  <div *ngIf="dataset" class="dataset-info">
-                    <mat-card class="dataset-card">
-                      <mat-card-header>
-                        <mat-card-title>{{ dataset.dataset_name }}</mat-card-title>
-                        <mat-card-subtitle>{{ dataset.domain?.join(', ') }} - {{ dataset.task?.join(', ') }}</mat-card-subtitle>
-                      </mat-card-header>
-                      
-                      <mat-card-content>
-                        <p>{{ dataset.objective || 'Aucune description disponible' }}</p>
-                        
-                        <div class="dataset-stats">
-                          <mat-chip-set>
-                            <mat-chip *ngIf="dataset.instances_number">
-                              <mat-icon>table_rows</mat-icon>
-                              {{ dataset.instances_number | number }} {{ 'ML_PIPELINE.DATASET.ROWS' | translate }}
-                            </mat-chip>
-                            <mat-chip *ngIf="dataset.features_number">
-                              <mat-icon>view_column</mat-icon>
-                              {{ dataset.features_number }} {{ 'ML_PIPELINE.DATASET.FEATURES' | translate }}
-                            </mat-chip>
-                            <mat-chip *ngIf="dataset.year">
-                              <mat-icon>calendar_today</mat-icon>
-                              {{ dataset.year }}
-                            </mat-chip>
-                          </mat-chip-set>
-                        </div>
-                      </mat-card-content>
-                    </mat-card>
+                <div class="step-content dataset-step">
+                  <div class="step-header">
+                    <mat-icon class="step-icon">storage</mat-icon>
+                    <h2>{{ 'ML_PIPELINE.DATASET.TITLE' | translate }}</h2>
+                    <p class="step-description">{{ 'ML_PIPELINE.DATASET.DESCRIPTION' | translate }}</p>
                   </div>
                   
-                  <mat-checkbox formControlName="confirmed" class="mt-3">
-                    {{ 'ML_PIPELINE.DATASET.CONFIRM' | translate }}
-                  </mat-checkbox>
+                  <div *ngIf="dataset" class="dataset-showcase" [@fadeInScale]>
+                    <div class="dataset-visual">
+                      <div class="dataset-card-modern">
+                        <div class="card-glow"></div>
+                        
+                        <div class="card-header">
+                          <div class="dataset-icon">
+                            <mat-icon>insights</mat-icon>
+                          </div>
+                          <div class="dataset-meta">
+                            <h3>{{ dataset.dataset_name }}</h3>
+                            <div class="domain-tags">
+                              <span class="tag" *ngFor="let domain of dataset.domain">
+                                <mat-icon>label</mat-icon>
+                                {{ domain }}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="card-body">
+                          <p class="dataset-description">{{ dataset.objective || 'Aucune description disponible' }}</p>
+                          
+                          <div class="stats-grid">
+                            <div class="stat-item" *ngIf="dataset.instances_number">
+                              <div class="stat-icon">
+                                <mat-icon>table_rows</mat-icon>
+                              </div>
+                              <div class="stat-info">
+                                <div class="stat-value">{{ dataset.instances_number | number }}</div>
+                                <div class="stat-label">{{ 'ML_PIPELINE.DATASET.ROWS' | translate }}</div>
+                              </div>
+                            </div>
+                            
+                            <div class="stat-item" *ngIf="dataset.features_number">
+                              <div class="stat-icon">
+                                <mat-icon>view_column</mat-icon>
+                              </div>
+                              <div class="stat-info">
+                                <div class="stat-value">{{ dataset.features_number }}</div>
+                                <div class="stat-label">{{ 'ML_PIPELINE.DATASET.FEATURES' | translate }}</div>
+                              </div>
+                            </div>
+                            
+                            <div class="stat-item" *ngIf="dataset.year">
+                              <div class="stat-icon">
+                                <mat-icon>calendar_today</mat-icon>
+                              </div>
+                              <div class="stat-info">
+                                <div class="stat-value">{{ dataset.year }}</div>
+                                <div class="stat-label">{{ 'ML_PIPELINE.DATASET.YEAR' | translate }}</div>
+                              </div>
+                            </div>
+                            
+                            <div class="stat-item">
+                              <div class="stat-icon">
+                                <mat-icon>analytics</mat-icon>
+                              </div>
+                              <div class="stat-info">
+                                <div class="stat-value">{{ dataset.overall_score || 85 }}%</div>
+                                <div class="stat-label">{{ 'ML_PIPELINE.DATASET.QUALITY' | translate }}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                          <div class="quality-indicator">
+                            <div class="quality-bar">
+                              <div class="quality-fill" [style.width.%]="dataset.overall_score || 85"></div>
+                            </div>
+                            <span class="quality-text">{{ 'ML_PIPELINE.DATASET.DATA_QUALITY' | translate }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="confirmation-section">
+                      <mat-checkbox formControlName="confirmed" class="modern-checkbox">
+                        <span class="checkbox-label">{{ 'ML_PIPELINE.DATASET.CONFIRM' | translate }}</span>
+                      </mat-checkbox>
+                    </div>
+                  </div>
                 </div>
                 
                 <div class="step-actions">
-                  <button mat-button (click)="goBack()">{{ 'COMMON.CANCEL' | translate }}</button>
-                  <button mat-button matStepperNext [disabled]="!datasetForm.valid" color="primary">
+                  <button mat-button class="action-button secondary" (click)="goBack()">
+                    <mat-icon>arrow_back</mat-icon>
+                    {{ 'COMMON.CANCEL' | translate }}
+                  </button>
+                  <button mat-raised-button class="action-button primary" matStepperNext [disabled]="!datasetForm.valid">
                     {{ 'COMMON.NEXT' | translate }}
+                    <mat-icon>arrow_forward</mat-icon>
                   </button>
                 </div>
               </form>
             </mat-step>
             
             <!-- Step 2: Data Quality Analysis -->
-            <mat-step [stepControl]="dataQualityForm">
+            <mat-step [stepControl]="dataQualityForm" [@slideIn]>
               <form [formGroup]="dataQualityForm">
                 <ng-template matStepLabel>{{ 'ML_PIPELINE.STEPS.DATA_QUALITY' | translate }}</ng-template>
                 
-                <div class="step-content">
-                  <h3>{{ 'ML_PIPELINE.DATA_QUALITY.TITLE' | translate }}</h3>
-                  
-                  <div class="row">
-                    <div class="col-md-6">
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>{{ 'ML_PIPELINE.DATA_QUALITY.TARGET_COLUMN' | translate }}</mat-label>
-                        <mat-select formControlName="targetColumn">
-                          <mat-option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
-                            {{ col.column_name }} ({{ col.data_type_interpreted || col.data_type_original }})
-                          </mat-option>
-                        </mat-select>
-                      </mat-form-field>
-                    </div>
-                    
-                    <div class="col-md-6">
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>{{ 'ML_PIPELINE.DATA_QUALITY.TASK_TYPE' | translate }}</mat-label>
-                        <mat-select formControlName="taskType">
-                          <mat-option value="classification">{{ 'ML_PIPELINE.DATA_QUALITY.CLASSIFICATION' | translate }}</mat-option>
-                          <mat-option value="regression">{{ 'ML_PIPELINE.DATA_QUALITY.REGRESSION' | translate }}</mat-option>
-                        </mat-select>
-                      </mat-form-field>
-                    </div>
+                <div class="step-content data-quality-step">
+                  <div class="step-header">
+                    <mat-icon class="step-icon">fact_check</mat-icon>
+                    <h2>{{ 'ML_PIPELINE.DATA_QUALITY.TITLE' | translate }}</h2>
+                    <p class="step-description">{{ 'ML_PIPELINE.DATA_QUALITY.DESCRIPTION' | translate }}</p>
                   </div>
                   
-                  <div class="row">
-                    <div class="col-md-6">
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>{{ 'ML_PIPELINE.DATA_QUALITY.MISSING_VALUES' | translate }}</mat-label>
-                        <mat-select formControlName="missingValueStrategy">
-                          <mat-option value="drop">{{ 'ML_PIPELINE.DATA_QUALITY.DROP' | translate }}</mat-option>
-                          <mat-option value="mean">{{ 'ML_PIPELINE.DATA_QUALITY.MEAN' | translate }}</mat-option>
-                          <mat-option value="median">{{ 'ML_PIPELINE.DATA_QUALITY.MEDIAN' | translate }}</mat-option>
-                          <mat-option value="forward_fill">{{ 'ML_PIPELINE.DATA_QUALITY.FORWARD_FILL' | translate }}</mat-option>
-                        </mat-select>
-                      </mat-form-field>
+                  <div class="configuration-grid" [@staggeredAnimation]>
+                    <!-- Target Selection Card -->
+                    <div class="config-card target-card">
+                      <div class="card-icon">
+                        <mat-icon>my_location</mat-icon>
+                      </div>
+                      <h3>{{ 'ML_PIPELINE.DATA_QUALITY.TARGET_SELECTION' | translate }}</h3>
+                      
+                      <div class="form-group">
+                        <mat-form-field appearance="outline" class="modern-field">
+                          <mat-label>{{ 'ML_PIPELINE.DATA_QUALITY.TARGET_COLUMN' | translate }}</mat-label>
+                          <mat-select formControlName="targetColumn">
+                            <mat-option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
+                              <div class="column-option">
+                                <span class="column-name">{{ col.column_name }}</span>
+                                <span class="column-type">{{ col.data_type_interpreted || col.data_type_original }}</span>
+                              </div>
+                            </mat-option>
+                          </mat-select>
+                          <mat-icon matPrefix>flag</mat-icon>
+                        </mat-form-field>
+                      </div>
+                      
+                      <div class="form-group">
+                        <mat-form-field appearance="outline" class="modern-field">
+                          <mat-label>{{ 'ML_PIPELINE.DATA_QUALITY.TASK_TYPE' | translate }}</mat-label>
+                          <mat-select formControlName="taskType">
+                            <mat-option value="classification">
+                              <div class="task-option">
+                                <mat-icon>category</mat-icon>
+                                <span>{{ 'ML_PIPELINE.DATA_QUALITY.CLASSIFICATION' | translate }}</span>
+                              </div>
+                            </mat-option>
+                            <mat-option value="regression">
+                              <div class="task-option">
+                                <mat-icon>show_chart</mat-icon>
+                                <span>{{ 'ML_PIPELINE.DATA_QUALITY.REGRESSION' | translate }}</span>
+                              </div>
+                            </mat-option>
+                          </mat-select>
+                          <mat-icon matPrefix>psychology</mat-icon>
+                        </mat-form-field>
+                      </div>
                     </div>
                     
-                    <div class="col-md-6">
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>{{ 'ML_PIPELINE.DATA_QUALITY.TEST_SIZE' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="testSize" min="0.1" max="0.5" step="0.05">
-                        <mat-hint>{{ 'ML_PIPELINE.DATA_QUALITY.TEST_SIZE_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
+                    <!-- Data Preprocessing Card -->
+                    <div class="config-card preprocessing-card">
+                      <div class="card-icon">
+                        <mat-icon>auto_fix_high</mat-icon>
+                      </div>
+                      <h3>{{ 'ML_PIPELINE.DATA_QUALITY.PREPROCESSING' | translate }}</h3>
+                      
+                      <div class="form-group">
+                        <mat-form-field appearance="outline" class="modern-field">
+                          <mat-label>{{ 'ML_PIPELINE.DATA_QUALITY.MISSING_VALUES' | translate }}</mat-label>
+                          <mat-select formControlName="missingValueStrategy">
+                            <mat-option value="drop">
+                              <div class="strategy-option">
+                                <mat-icon>delete_sweep</mat-icon>
+                                <span>{{ 'ML_PIPELINE.DATA_QUALITY.DROP' | translate }}</span>
+                              </div>
+                            </mat-option>
+                            <mat-option value="mean">
+                              <div class="strategy-option">
+                                <mat-icon>calculate</mat-icon>
+                                <span>{{ 'ML_PIPELINE.DATA_QUALITY.MEAN' | translate }}</span>
+                              </div>
+                            </mat-option>
+                            <mat-option value="median">
+                              <div class="strategy-option">
+                                <mat-icon>align_vertical_center</mat-icon>
+                                <span>{{ 'ML_PIPELINE.DATA_QUALITY.MEDIAN' | translate }}</span>
+                              </div>
+                            </mat-option>
+                            <mat-option value="forward_fill">
+                              <div class="strategy-option">
+                                <mat-icon>trending_flat</mat-icon>
+                                <span>{{ 'ML_PIPELINE.DATA_QUALITY.FORWARD_FILL' | translate }}</span>
+                              </div>
+                            </mat-option>
+                          </mat-select>
+                          <mat-icon matPrefix>healing</mat-icon>
+                        </mat-form-field>
+                      </div>
+                      
+                      <div class="form-group test-size-group">
+                        <mat-label class="slider-label">{{ 'ML_PIPELINE.DATA_QUALITY.TEST_SIZE' | translate }}</mat-label>
+                        <div class="slider-container">
+                          <mat-slider min="10" max="50" step="5" thumbLabel [displayWith]="displayWithPercent">
+                            <input matSliderThumb formControlName="testSize">
+                          </mat-slider>
+                          <div class="slider-value">{{ dataQualityForm.get('testSize')?.value }}%</div>
+                        </div>
+                        <div class="slider-hint">{{ 'ML_PIPELINE.DATA_QUALITY.TEST_SIZE_HINT' | translate }}</div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div class="preprocessing-options">
-                    <mat-checkbox formControlName="featureScaling">
-                      {{ 'ML_PIPELINE.DATA_QUALITY.FEATURE_SCALING' | translate }}
-                    </mat-checkbox>
                     
-                    <mat-radio-group formControlName="categoricalEncoding" class="encoding-options">
-                      <mat-label>{{ 'ML_PIPELINE.DATA_QUALITY.ENCODING' | translate }}:</mat-label>
-                      <mat-radio-button value="onehot">One-Hot Encoding</mat-radio-button>
-                      <mat-radio-button value="label">Label Encoding</mat-radio-button>
-                    </mat-radio-group>
+                    <!-- Advanced Options Card -->
+                    <div class="config-card advanced-card">
+                      <div class="card-icon">
+                        <mat-icon>tune</mat-icon>
+                      </div>
+                      <h3>{{ 'ML_PIPELINE.DATA_QUALITY.ADVANCED_OPTIONS' | translate }}</h3>
+                      
+                      <div class="option-group">
+                        <mat-slide-toggle formControlName="featureScaling" class="modern-toggle">
+                          <span class="toggle-label">
+                            <mat-icon>compress</mat-icon>
+                            {{ 'ML_PIPELINE.DATA_QUALITY.FEATURE_SCALING' | translate }}
+                          </span>
+                        </mat-slide-toggle>
+                        <p class="option-description">{{ 'ML_PIPELINE.DATA_QUALITY.FEATURE_SCALING_DESC' | translate }}</p>
+                      </div>
+                      
+                      <div class="option-group">
+                        <h4>{{ 'ML_PIPELINE.DATA_QUALITY.ENCODING' | translate }}</h4>
+                        <mat-radio-group formControlName="categoricalEncoding" class="modern-radio-group">
+                          <mat-radio-button value="onehot" class="modern-radio">
+                            <span class="radio-content">
+                              <mat-icon>scatter_plot</mat-icon>
+                              <span>One-Hot Encoding</span>
+                            </span>
+                          </mat-radio-button>
+                          <mat-radio-button value="label" class="modern-radio">
+                            <span class="radio-content">
+                              <mat-icon>label</mat-icon>
+                              <span>Label Encoding</span>
+                            </span>
+                          </mat-radio-button>
+                        </mat-radio-group>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
                 <div class="step-actions">
-                  <button mat-button matStepperPrevious>{{ 'COMMON.BACK' | translate }}</button>
-                  <button mat-button matStepperNext [disabled]="!dataQualityForm.valid" color="primary">
+                  <button mat-button class="action-button secondary" matStepperPrevious>
+                    <mat-icon>arrow_back</mat-icon>
+                    {{ 'COMMON.BACK' | translate }}
+                  </button>
+                  <button mat-raised-button class="action-button primary" matStepperNext [disabled]="!dataQualityForm.valid">
                     {{ 'COMMON.NEXT' | translate }}
+                    <mat-icon>arrow_forward</mat-icon>
                   </button>
                 </div>
               </form>
             </mat-step>
             
             <!-- Step 3: Algorithm Selection -->
-            <mat-step [stepControl]="algorithmForm">
+            <mat-step [stepControl]="algorithmForm" [@slideIn]>
               <form [formGroup]="algorithmForm">
                 <ng-template matStepLabel>{{ 'ML_PIPELINE.STEPS.ALGORITHM' | translate }}</ng-template>
                 
-                <div class="step-content">
-                  <h3>{{ 'ML_PIPELINE.ALGORITHM.TITLE' | translate }}</h3>
+                <div class="step-content algorithm-step">
+                  <div class="step-header">
+                    <mat-icon class="step-icon">psychology</mat-icon>
+                    <h2>{{ 'ML_PIPELINE.ALGORITHM.TITLE' | translate }}</h2>
+                    <p class="step-description">{{ 'ML_PIPELINE.ALGORITHM.DESCRIPTION' | translate }}</p>
+                  </div>
                   
-                  <div class="algorithm-cards">
-                    <mat-card *ngFor="let algo of algorithms" 
-                              class="algorithm-card" 
-                              [class.selected]="algorithmForm.get('algorithm')?.value === algo.name"
-                              (click)="algorithmForm.patchValue({algorithm: algo.name}); onAlgorithmSelected()">
-                      <mat-card-header>
-                        <mat-card-title>{{ algo.display_name }}</mat-card-title>
-                      </mat-card-header>
-                      <mat-card-content>
-                        <p>{{ algo.description }}</p>
-                        <mat-chip-set>
-                          <mat-chip *ngIf="algo.supports_classification" color="primary">
-                            {{ 'ML_PIPELINE.ALGORITHM.CLASSIFICATION' | translate }}
-                          </mat-chip>
-                          <mat-chip *ngIf="algo.supports_regression" color="accent">
-                            {{ 'ML_PIPELINE.ALGORITHM.REGRESSION' | translate }}
-                          </mat-chip>
-                        </mat-chip-set>
-                      </mat-card-content>
-                    </mat-card>
+                  <div class="algorithms-showcase" [@staggeredAnimation]>
+                    <div *ngFor="let algo of algorithms" 
+                         class="algorithm-card-modern" 
+                         [class.selected]="algorithmForm.get('algorithm')?.value === algo.name"
+                         [class.recommended]="algo.name === 'random_forest'"
+                         (click)="algorithmForm.patchValue({algorithm: algo.name}); onAlgorithmSelected()"
+                         [@scaleIn]>
+                      
+                      <div class="recommendation-badge" *ngIf="algo.name === 'random_forest'">
+                        <mat-icon>star</mat-icon>
+                        <span>{{ 'ML_PIPELINE.ALGORITHM.RECOMMENDED' | translate }}</span>
+                      </div>
+                      
+                      <div class="algo-header">
+                        <div class="algo-icon">
+                          <mat-icon>{{ algo.name === 'decision_tree' ? 'account_tree' : 'forest' }}</mat-icon>
+                        </div>
+                        <h3>{{ algo.display_name }}</h3>
+                      </div>
+                      
+                      <div class="algo-body">
+                        <p class="algo-description">{{ algo.description }}</p>
+                        
+                        <div class="algo-capabilities">
+                          <div class="capability" *ngIf="algo.supports_classification">
+                            <mat-icon>category</mat-icon>
+                            <span>{{ 'ML_PIPELINE.ALGORITHM.CLASSIFICATION' | translate }}</span>
+                          </div>
+                          <div class="capability" *ngIf="algo.supports_regression">
+                            <mat-icon>show_chart</mat-icon>
+                            <span>{{ 'ML_PIPELINE.ALGORITHM.REGRESSION' | translate }}</span>
+                          </div>
+                        </div>
+                        
+                        <div class="algo-metrics">
+                          <div class="metric">
+                            <mat-icon>speed</mat-icon>
+                            <span>{{ 'ML_PIPELINE.ALGORITHM.SPEED' | translate }}: 
+                              <strong>{{ algo.name === 'decision_tree' ? 'Rapide' : 'Modéré' }}</strong>
+                            </span>
+                          </div>
+                          <div class="metric">
+                            <mat-icon>insights</mat-icon>
+                            <span>{{ 'ML_PIPELINE.ALGORITHM.ACCURACY' | translate }}: 
+                              <strong>{{ algo.name === 'random_forest' ? 'Élevée' : 'Bonne' }}</strong>
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div class="algo-features">
+                          <h4>{{ 'ML_PIPELINE.ALGORITHM.KEY_FEATURES' | translate }}</h4>
+                          <div class="features-list">
+                            <div class="feature" *ngFor="let param of getTopHyperparameters(algo).slice(0, 3)">
+                              <mat-icon>check_circle</mat-icon>
+                              <span>{{ param }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="algo-footer">
+                        <div class="selection-indicator">
+                          <mat-icon>{{ algorithmForm.get('algorithm')?.value === algo.name ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
                 <div class="step-actions">
-                  <button mat-button matStepperPrevious>{{ 'COMMON.BACK' | translate }}</button>
-                  <button mat-button matStepperNext [disabled]="!algorithmForm.valid" color="primary">
+                  <button mat-button class="action-button secondary" matStepperPrevious>
+                    <mat-icon>arrow_back</mat-icon>
+                    {{ 'COMMON.BACK' | translate }}
+                  </button>
+                  <button mat-raised-button class="action-button primary" matStepperNext [disabled]="!algorithmForm.valid">
                     {{ 'COMMON.NEXT' | translate }}
+                    <mat-icon>arrow_forward</mat-icon>
                   </button>
                 </div>
               </form>
             </mat-step>
             
             <!-- Step 4: Hyperparameter Configuration -->
-            <mat-step [stepControl]="hyperparametersForm">
+            <mat-step [stepControl]="hyperparametersForm" [@slideIn]>
               <form [formGroup]="hyperparametersForm">
                 <ng-template matStepLabel>{{ 'ML_PIPELINE.STEPS.HYPERPARAMETERS' | translate }}</ng-template>
                 
-                <div class="step-content">
-                  <h3>{{ 'ML_PIPELINE.HYPERPARAMETERS.TITLE' | translate }}</h3>
+                <div class="step-content hyperparameters-step">
+                  <div class="step-header">
+                    <mat-icon class="step-icon">tune</mat-icon>
+                    <h2>{{ 'ML_PIPELINE.HYPERPARAMETERS.TITLE' | translate }}</h2>
+                    <p class="step-description">{{ 'ML_PIPELINE.HYPERPARAMETERS.DESCRIPTION' | translate }}</p>
+                  </div>
                   
-                  <div class="hyperparameters" *ngIf="selectedAlgorithm">
-                    <div *ngFor="let param of objectKeys(selectedAlgorithm.hyperparameters)" class="parameter-control">
-                      <ng-container [ngSwitch]="selectedAlgorithm.hyperparameters[param].type">
-                        <!-- Number input -->
-                        <mat-form-field *ngSwitchCase="'number'" appearance="outline" class="w-100">
-                          <mat-label>{{ param }}</mat-label>
-                          <input matInput type="number" [formControlName]="param"
-                                 [min]="selectedAlgorithm.hyperparameters[param].min ?? null"
-                                 [max]="selectedAlgorithm.hyperparameters[param].max ?? null">
-                          <mat-hint>{{ selectedAlgorithm.hyperparameters[param].description }}</mat-hint>
-                        </mat-form-field>
+                  <div class="hyperparameters-container" *ngIf="selectedAlgorithm" [@staggeredAnimation]>
+                    <div class="selected-algorithm-info">
+                      <div class="algo-badge">
+                        <mat-icon>{{ selectedAlgorithm.name === 'decision_tree' ? 'account_tree' : 'forest' }}</mat-icon>
+                        <span>{{ selectedAlgorithm.display_name }}</span>
+                      </div>
+                    </div>
+                    
+                    <div class="parameters-grid">
+                      <div *ngFor="let param of objectKeys(selectedAlgorithm.hyperparameters)" 
+                           class="parameter-card"
+                           [@fadeInScale]>
                         
-                        <!-- Select input -->
-                        <mat-form-field *ngSwitchCase="'select'" appearance="outline" class="w-100">
-                          <mat-label>{{ param }}</mat-label>
-                          <mat-select [formControlName]="param">
-                            <mat-option *ngFor="let option of selectedAlgorithm.hyperparameters[param].options" 
-                                        [value]="option">
-                              {{ option }}
-                            </mat-option>
-                          </mat-select>
-                          <mat-hint>{{ selectedAlgorithm.hyperparameters[param].description }}</mat-hint>
-                        </mat-form-field>
-                        
-                        <!-- Boolean input -->
-                        <div *ngSwitchCase="'boolean'" class="boolean-param">
-                          <mat-checkbox [formControlName]="param">
-                            {{ param }}
-                          </mat-checkbox>
-                          <p class="param-description">{{ selectedAlgorithm.hyperparameters[param].description }}</p>
-                        </div>
-                      </ng-container>
+                        <ng-container [ngSwitch]="selectedAlgorithm.hyperparameters[param].type">
+                          <!-- Number Parameter -->
+                          <div *ngSwitchCase="'number'" class="param-number">
+                            <div class="param-header">
+                              <mat-icon>straighten</mat-icon>
+                              <h4>{{ param }}</h4>
+                            </div>
+                            <mat-form-field appearance="outline" class="modern-field">
+                              <input matInput type="number" [formControlName]="param"
+                                     [min]="selectedAlgorithm.hyperparameters[param].min ?? null"
+                                     [max]="selectedAlgorithm.hyperparameters[param].max ?? null">
+                              <span matPrefix>{{ selectedAlgorithm.hyperparameters[param].min }}</span>
+                              <span matSuffix>{{ selectedAlgorithm.hyperparameters[param].max }}</span>
+                            </mat-form-field>
+                            <p class="param-hint">{{ selectedAlgorithm.hyperparameters[param].description }}</p>
+                          </div>
+                          
+                          <!-- Select Parameter -->
+                          <div *ngSwitchCase="'select'" class="param-select">
+                            <div class="param-header">
+                              <mat-icon>list</mat-icon>
+                              <h4>{{ param }}</h4>
+                            </div>
+                            <mat-form-field appearance="outline" class="modern-field">
+                              <mat-select [formControlName]="param">
+                                <mat-option *ngFor="let option of selectedAlgorithm.hyperparameters[param].options" 
+                                            [value]="option">
+                                  {{ option }}
+                                </mat-option>
+                              </mat-select>
+                            </mat-form-field>
+                            <p class="param-hint">{{ selectedAlgorithm.hyperparameters[param].description }}</p>
+                          </div>
+                          
+                          <!-- Boolean Parameter -->
+                          <div *ngSwitchCase="'boolean'" class="param-boolean">
+                            <div class="param-header">
+                              <mat-icon>toggle_on</mat-icon>
+                              <h4>{{ param }}</h4>
+                            </div>
+                            <mat-slide-toggle [formControlName]="param" class="modern-toggle">
+                              <span class="toggle-label">{{ 'ML_PIPELINE.HYPERPARAMETERS.ENABLE' | translate }}</span>
+                            </mat-slide-toggle>
+                            <p class="param-hint">{{ selectedAlgorithm.hyperparameters[param].description }}</p>
+                          </div>
+                        </ng-container>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
                 <div class="step-actions">
-                  <button mat-button matStepperPrevious>{{ 'COMMON.BACK' | translate }}</button>
-                  <button mat-button matStepperNext [disabled]="!hyperparametersForm.valid" color="primary">
+                  <button mat-button class="action-button secondary" matStepperPrevious>
+                    <mat-icon>arrow_back</mat-icon>
+                    {{ 'COMMON.BACK' | translate }}
+                  </button>
+                  <button mat-raised-button class="action-button primary" matStepperNext [disabled]="!hyperparametersForm.valid">
                     {{ 'COMMON.NEXT' | translate }}
+                    <mat-icon>arrow_forward</mat-icon>
                   </button>
                 </div>
               </form>
             </mat-step>
             
             <!-- Step 5: Training Summary & Launch -->
-            <mat-step [stepControl]="summaryForm">
+            <mat-step [stepControl]="summaryForm" [@slideIn]>
               <form [formGroup]="summaryForm">
                 <ng-template matStepLabel>{{ 'ML_PIPELINE.STEPS.SUMMARY' | translate }}</ng-template>
                 
-                <div class="step-content">
-                  <h3>{{ 'ML_PIPELINE.SUMMARY.TITLE' | translate }}</h3>
+                <div class="step-content summary-step">
+                  <div class="step-header">
+                    <mat-icon class="step-icon">rocket_launch</mat-icon>
+                    <h2>{{ 'ML_PIPELINE.SUMMARY.TITLE' | translate }}</h2>
+                    <p class="step-description">{{ 'ML_PIPELINE.SUMMARY.DESCRIPTION' | translate }}</p>
+                  </div>
                   
-                  <div class="summary-section" *ngIf="!isTraining && !experimentResults">
-                    <mat-card>
-                      <mat-card-content>
-                        <h4>{{ 'ML_PIPELINE.SUMMARY.CONFIGURATION' | translate }}</h4>
-                        <div class="summary-item">
-                          <strong>{{ 'ML_PIPELINE.SUMMARY.DATASET' | translate }}:</strong> {{ dataset?.dataset_name }}
+                  <div class="summary-container" *ngIf="!isTraining && !experimentResults" [@fadeInScale]>
+                    <div class="configuration-summary">
+                      <h3>{{ 'ML_PIPELINE.SUMMARY.CONFIGURATION' | translate }}</h3>
+                      
+                      <div class="summary-cards">
+                        <div class="summary-card dataset-summary">
+                          <div class="summary-icon">
+                            <mat-icon>storage</mat-icon>
+                          </div>
+                          <div class="summary-content">
+                            <span class="summary-label">{{ 'ML_PIPELINE.SUMMARY.DATASET' | translate }}</span>
+                            <span class="summary-value">{{ dataset?.dataset_name }}</span>
+                          </div>
                         </div>
-                        <div class="summary-item">
-                          <strong>{{ 'ML_PIPELINE.SUMMARY.ALGORITHM' | translate }}:</strong> {{ selectedAlgorithm?.display_name }}
+                        
+                        <div class="summary-card algorithm-summary">
+                          <div class="summary-icon">
+                            <mat-icon>psychology</mat-icon>
+                          </div>
+                          <div class="summary-content">
+                            <span class="summary-label">{{ 'ML_PIPELINE.SUMMARY.ALGORITHM' | translate }}</span>
+                            <span class="summary-value">{{ selectedAlgorithm?.display_name }}</span>
+                          </div>
                         </div>
-                        <div class="summary-item">
-                          <strong>{{ 'ML_PIPELINE.SUMMARY.TARGET' | translate }}:</strong> {{ dataQualityForm.get('targetColumn')?.value }}
+                        
+                        <div class="summary-card target-summary">
+                          <div class="summary-icon">
+                            <mat-icon>my_location</mat-icon>
+                          </div>
+                          <div class="summary-content">
+                            <span class="summary-label">{{ 'ML_PIPELINE.SUMMARY.TARGET' | translate }}</span>
+                            <span class="summary-value">{{ dataQualityForm.get('targetColumn')?.value }}</span>
+                          </div>
                         </div>
-                        <div class="summary-item">
-                          <strong>{{ 'ML_PIPELINE.SUMMARY.TASK_TYPE' | translate }}:</strong> {{ dataQualityForm.get('taskType')?.value }}
+                        
+                        <div class="summary-card task-summary">
+                          <div class="summary-icon">
+                            <mat-icon>category</mat-icon>
+                          </div>
+                          <div class="summary-content">
+                            <span class="summary-label">{{ 'ML_PIPELINE.SUMMARY.TASK_TYPE' | translate }}</span>
+                            <span class="summary-value">{{ dataQualityForm.get('taskType')?.value | titlecase }}</span>
+                          </div>
                         </div>
-                      </mat-card-content>
-                    </mat-card>
-                    
-                    <mat-checkbox formControlName="confirmed" class="mt-3">
-                      {{ 'ML_PIPELINE.SUMMARY.CONFIRM' | translate }}
-                    </mat-checkbox>
+                      </div>
+                      
+                      <div class="launch-confirmation">
+                        <mat-checkbox formControlName="confirmed" class="modern-checkbox">
+                          <span class="checkbox-label">{{ 'ML_PIPELINE.SUMMARY.CONFIRM' | translate }}</span>
+                        </mat-checkbox>
+                      </div>
+                    </div>
                   </div>
                   
                   <!-- Training Progress -->
-                  <div class="training-section" *ngIf="isTraining">
-                    <div class="text-center">
-                      <mat-spinner diameter="60"></mat-spinner>
-                      <h4 class="mt-3">{{ 'ML_PIPELINE.TRAINING.IN_PROGRESS' | translate }}</h4>
-                      <mat-progress-bar mode="determinate" [value]="trainingProgress" class="mt-3"></mat-progress-bar>
-                      <p class="mt-2">{{ trainingProgress }}% {{ 'ML_PIPELINE.TRAINING.COMPLETE' | translate }}</p>
-                      <p *ngIf="experimentStatus?.status">
-                        {{ 'ML_PIPELINE.TRAINING.STATUS' | translate }}: {{ experimentStatus.status }}
-                      </p>
+                  <div class="training-container" *ngIf="isTraining" [@fadeInScale]>
+                    <div class="training-animation">
+                      <div class="spinner-container">
+                        <div class="spinner-glow"></div>
+                        <mat-spinner diameter="80"></mat-spinner>
+                      </div>
+                      
+                      <h3>{{ 'ML_PIPELINE.TRAINING.IN_PROGRESS' | translate }}</h3>
+                      
+                      <div class="progress-container">
+                        <mat-progress-bar mode="determinate" [value]="trainingProgress" class="modern-progress"></mat-progress-bar>
+                        <div class="progress-info">
+                          <span class="progress-percentage">{{ trainingProgress }}%</span>
+                          <span class="progress-label">{{ 'ML_PIPELINE.TRAINING.COMPLETE' | translate }}</span>
+                        </div>
+                      </div>
+                      
+                      <div class="status-info" *ngIf="experimentStatus?.status">
+                        <mat-icon>info</mat-icon>
+                        <span>{{ 'ML_PIPELINE.TRAINING.STATUS' | translate }}: {{ experimentStatus.status }}</span>
+                      </div>
                     </div>
                   </div>
                   
                   <!-- Results -->
-                  <div class="results-section" *ngIf="experimentResults">
-                    <h4>{{ 'ML_PIPELINE.RESULTS.TITLE' | translate }}</h4>
+                  <div class="results-container" *ngIf="experimentResults" [@fadeInScale]>
+                    <div class="results-header">
+                      <mat-icon class="success-icon">check_circle</mat-icon>
+                      <h3>{{ 'ML_PIPELINE.RESULTS.TITLE' | translate }}</h3>
+                      <p>{{ 'ML_PIPELINE.RESULTS.DESCRIPTION' | translate }}</p>
+                    </div>
                     
-                    <mat-card class="metrics-card">
-                      <mat-card-header>
-                        <mat-card-title>{{ 'ML_PIPELINE.RESULTS.METRICS' | translate }}</mat-card-title>
-                      </mat-card-header>
-                      <mat-card-content>
-                        <div class="metrics-grid">
-                          <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="metric-item">
-                            <strong>{{ metric }}:</strong>
-                            <span>{{ experimentResults.metrics[metric] | number:'1.2-4' }}</span>
-                          </div>
+                    <div class="metrics-showcase">
+                      <div class="metric-card" *ngFor="let metric of objectKeys(experimentResults.metrics)" [@staggeredAnimation]>
+                        <div class="metric-icon">
+                          <mat-icon>{{ getMetricIcon(metric) }}</mat-icon>
                         </div>
-                      </mat-card-content>
-                    </mat-card>
+                        <div class="metric-content">
+                          <span class="metric-name">{{ metric | titlecase }}</span>
+                          <span class="metric-value">{{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%</span>
+                        </div>
+                        <div class="metric-bar">
+                          <div class="metric-fill" [style.width.%]="experimentResults.metrics[metric] * 100"></div>
+                        </div>
+                      </div>
+                    </div>
                     
-                    <!-- Visualizations will be rendered here -->
-                    <div class="visualizations mt-4">
-                      <canvas id="confusion-matrix"></canvas>
-                      <canvas id="feature-importance"></canvas>
+                    <!-- Visualizations -->
+                    <div class="visualizations-grid">
+                      <div class="viz-card">
+                        <h4>{{ 'ML_PIPELINE.RESULTS.CONFUSION_MATRIX' | translate }}</h4>
+                        <canvas id="confusion-matrix"></canvas>
+                      </div>
+                      <div class="viz-card">
+                        <h4>{{ 'ML_PIPELINE.RESULTS.FEATURE_IMPORTANCE' | translate }}</h4>
+                        <canvas id="feature-importance"></canvas>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
                 <div class="step-actions">
-                  <button mat-button matStepperPrevious *ngIf="!isTraining && !experimentResults">
+                  <button mat-button class="action-button secondary" 
+                          matStepperPrevious 
+                          *ngIf="!isTraining && !experimentResults">
+                    <mat-icon>arrow_back</mat-icon>
                     {{ 'COMMON.BACK' | translate }}
                   </button>
-                  <button mat-raised-button color="primary" 
+                  
+                  <button mat-raised-button class="action-button launch" 
                           *ngIf="!isTraining && !experimentResults"
                           [disabled]="!isFormValid()" 
-                          (click)="startTraining()">
-                    <mat-icon>play_arrow</mat-icon>
+                          (click)="startTraining()"
+                          [@pulse]="'active'">
+                    <mat-icon>rocket_launch</mat-icon>
                     {{ 'ML_PIPELINE.TRAINING.START' | translate }}
                   </button>
-                  <button mat-raised-button color="primary" 
+                  
+                  <button mat-raised-button class="action-button success" 
                           *ngIf="experimentResults"
                           (click)="goBack()">
+                    <mat-icon>dashboard</mat-icon>
                     {{ 'ML_PIPELINE.RESULTS.BACK_TO_PROJECT' | translate }}
                   </button>
                 </div>
               </form>
             </mat-step>
           </mat-stepper>
-        </mat-card-content>
-      </mat-card>
     </div>
   </div>
-</div> 
+  
+  <!-- Floating Action Buttons -->
+  <div class="floating-actions" [@fadeIn]>
+    <button mat-fab class="back-to-app-fab" (click)="backToApp()" matTooltip="{{ 'ML_PIPELINE.WIZARD.BACK_TO_APP' | translate }}">
+      <mat-icon>dashboard</mat-icon>
+    </button>
+    <button mat-fab class="help-fab" matTooltip="{{ 'ML_PIPELINE.WIZARD.HELP' | translate }}">
+      <mat-icon>help_outline</mat-icon>
+    </button>
+  </div> 

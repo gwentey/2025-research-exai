@@ -897,6 +897,12 @@
   },
   "ML_PIPELINE": {
     "TITLE": "Pipeline ML",
+    "WIZARD": {
+      "TITLE": "Assistant ML Pipeline",
+      "SUBTITLE": "Configurez et lancez votre modèle d'apprentissage automatique en quelques étapes simples",
+      "BACK_TO_APP": "Retour à l'application",
+      "HELP": "Aide"
+    },
     "HERO": {
       "TITLE": "Intelligence Artificielle Révolutionnaire",
       "SUBTITLE": "Exploitez la puissance du Machine Learning avec notre technologie brevetée IBIS-X"
@@ -950,6 +956,7 @@
       "STEP4_DESC": "Explorez les métriques et visualisations détaillées"
     },
     "STEPS": {
+      "DATASET": "Dataset",
       "DATASET_OVERVIEW": "Aperçu du Dataset",
       "DATA_QUALITY": "Analyse de Qualité des Données",
       "ALGORITHM": "Sélection de l'Algorithme",
@@ -960,11 +967,20 @@
       "TITLE": "Dataset Sélectionné",
       "ROWS": "lignes",
       "FEATURES": "caractéristiques",
+      "YEAR": "Année",
+      "QUALITY": "Qualité",
+      "DATA_QUALITY": "Qualité des données",
+      "DESCRIPTION": "Sélectionnez le dataset pour votre modèle d'apprentissage automatique",
       "QUALITY_SCORE": "Score de Qualité",
       "CONFIRM": "Je confirme l'utilisation de ce dataset pour l'entraînement"
     },
     "DATA_QUALITY": {
       "TITLE": "Configuration du Prétraitement",
+      "DESCRIPTION": "Configurez le prétraitement et la qualité de vos données",
+      "TARGET_SELECTION": "Sélection de la cible",
+      "PREPROCESSING": "Prétraitement",
+      "ADVANCED_OPTIONS": "Options avancées",
+      "FEATURE_SCALING_DESC": "Normalise les valeurs des caractéristiques pour améliorer les performances",
       "TARGET_COLUMN": "Colonne Cible",
       "TASK_TYPE": "Type de Tâche",
       "CLASSIFICATION": "Classification",
@@ -990,14 +1006,22 @@
     },
     "ALGORITHM": {
       "TITLE": "Choisir un Algorithme d'Apprentissage",
+      "DESCRIPTION": "Choisissez l'algorithme d'apprentissage automatique le plus adapté à vos données",
+      "RECOMMENDED": "Recommandé",
+      "SPEED": "Vitesse",
+      "ACCURACY": "Précision",
+      "KEY_FEATURES": "Caractéristiques clés",
       "CLASSIFICATION": "Classification",
       "REGRESSION": "Régression"
     },
     "HYPERPARAMETERS": {
-      "TITLE": "Configuration des Hyperparamètres"
+      "TITLE": "Configuration des Hyperparamètres",
+      "DESCRIPTION": "Ajustez finement les paramètres de votre algorithme pour des performances optimales",
+      "ENABLE": "Activer"
     },
     "SUMMARY": {
       "TITLE": "Résumé de la Configuration",
+      "DESCRIPTION": "Vérifiez votre configuration et lancez l'entraînement du modèle",
       "CONFIGURATION": "Configuration d'Entraînement",
       "DATASET": "Dataset",
       "ALGORITHM": "Algorithme",
@@ -1025,6 +1049,9 @@
     },
     "RESULTS": {
       "TITLE": "Résultats de l'Entraînement",
+      "DESCRIPTION": "Votre modèle a été entraîné avec succès !",
+      "CONFUSION_MATRIX": "Matrice de confusion",
+      "FEATURE_IMPORTANCE": "Importance des caractéristiques",
       "METRICS": "Métriques de Performance",
       "BACK_TO_PROJECT": "Retour au Projet"
     }

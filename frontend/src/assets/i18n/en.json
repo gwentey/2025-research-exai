@@ -897,6 +897,12 @@
   },
   "ML_PIPELINE": {
     "TITLE": "ML Pipeline",
+    "WIZARD": {
+      "TITLE": "ML Pipeline Wizard",
+      "SUBTITLE": "Configure and launch your machine learning model in a few simple steps",
+      "BACK_TO_APP": "Back to Application",
+      "HELP": "Help"
+    },
     "HERO": {
       "TITLE": "Revolutionary Artificial Intelligence",
       "SUBTITLE": "Harness the power of Machine Learning with our patented IBIS-X technology"

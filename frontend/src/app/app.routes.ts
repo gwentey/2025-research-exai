@@ -5,6 +5,19 @@ import { authGuard } from './guards/auth.guard';
 import { onboardingGuard } from './guards/onboarding.guard';
 
 export const routes: Routes = [
+  // ML Pipeline Wizard en plein écran
+  {
+    path: 'ml-pipeline-wizard',
+    component: BlankComponent,
+    canActivate: [authGuard, onboardingGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./pages/ml-pipeline/wizard/ml-pipeline-wizard.component').then((m) => m.MlPipelineWizardComponent),
+      }
+    ]
+  },
   {
     path: '',
     component: FullComponent,

@@ -412,7 +412,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
     console.log('Navigation vers ML Pipeline wizard...');
     
     // Navigation vers le wizard ML Pipeline avec le dataset sélectionné
-    this.router.navigate(['/ml-pipeline/wizard'], {
+    this.router.navigate(['/ml-pipeline-wizard'], {
       queryParams: {
         datasetId: dataset.id,
         datasetName: dataset.dataset_name

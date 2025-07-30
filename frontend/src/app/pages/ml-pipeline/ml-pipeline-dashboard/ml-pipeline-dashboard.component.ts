@@ -189,8 +189,7 @@ export class MlPipelineDashboardComponent implements OnInit {
   
   startNewExperiment() {
     if (this.dataset) {
-      this.router.navigate(['ml-studio'], {
-        relativeTo: this.route,
+      this.router.navigate(['/ml-pipeline-wizard'], {
         queryParams: {
           datasetId: this.dataset.id,
           datasetName: this.dataset.dataset_name

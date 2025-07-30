@@ -15,6 +15,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CommonModule } from '@angular/common';
 import { DatasetService } from '../../../services/dataset.service';
 import { MlPipelineService } from '../../../services/ml-pipeline.service';
@@ -23,6 +24,7 @@ import { DatasetDetailView } from '../../../models/dataset.models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs/operators';
 import { Chart, registerables } from 'chart.js';
+import { trigger, transition, style, animate, query, stagger, keyframes } from '@angular/animations';
 
 Chart.register(...registerables);
 
@@ -46,10 +48,62 @@ Chart.register(...registerables);
     MatIconModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
     TranslateModule
   ],
   templateUrl: './ml-pipeline-wizard.component.html',
-  styleUrls: ['./ml-pipeline-wizard.component.scss']
+  styleUrls: ['./ml-pipeline-wizard.component.scss'],
+  animations: [
+    trigger('fadeInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ]),
+    trigger('slideIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateX(-30px)' }),
+        animate('0.4s ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+      ])
+    ]),
+    trigger('fadeInScale', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.95)' }),
+        animate('0.3s ease-out', style({ opacity: 1, transform: 'scale(1)' }))
+      ])
+    ]),
+    trigger('scaleIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.8)' }),
+        animate('0.4s cubic-bezier(0.35, 0, 0.25, 1)', style({ opacity: 1, transform: 'scale(1)' }))
+      ])
+    ]),
+    trigger('staggeredAnimation', [
+      transition('* => *', [
+        query(':enter', [
+          style({ opacity: 0, transform: 'translateY(30px)' }),
+          stagger(100, [
+            animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
+        ], { optional: true })
+      ])
+    ]),
+    trigger('pulse', [
+      transition('* => active', [
+        animate('1s ease-in-out', keyframes([
+          style({ transform: 'scale(1)' }),
+          style({ transform: 'scale(1.05)' }),
+          style({ transform: 'scale(1)' })
+        ]))
+      ])
+    ]),
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('0.5s ease-out', style({ opacity: 1 }))
+      ])
+    ])
+  ]
 })
 export class MlPipelineWizardComponent implements OnInit {
   @ViewChild('stepper') stepper!: MatStepper;
@@ -125,7 +179,7 @@ export class MlPipelineWizardComponent implements OnInit {
       missingValueStrategy: ['mean', Validators.required],
       featureScaling: [true],
       categoricalEncoding: ['onehot'],
-      testSize: [0.2, [Validators.required, Validators.min(0.1), Validators.max(0.5)]]
+      testSize: [20, [Validators.required, Validators.min(10), Validators.max(50)]]
     });
     
     // Step 3: Algorithm Selection
@@ -223,7 +277,7 @@ export class MlPipelineWizardComponent implements OnInit {
         },
         scaling: this.dataQualityForm.value.featureScaling,
         encoding: this.dataQualityForm.value.categoricalEncoding,
-        test_size: this.dataQualityForm.value.testSize
+        test_size: this.dataQualityForm.value.testSize / 100
       }
     };
     
@@ -341,8 +395,37 @@ export class MlPipelineWizardComponent implements OnInit {
   }
   
   goBack() {
-    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || `/projects/${this.projectId}`;
+    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || `/ml-pipeline`;
     this.router.navigateByUrl(returnUrl);
+  }
+  
+  backToApp() {
+    // Retour au dashboard principal ou à la page d'accueil
+    this.router.navigate(['/starter']);
+  }
+  
+  getProgressPercentage(): number {
+    if (!this.stepper || this.stepper.selectedIndex === undefined) return 0;
+    return ((this.stepper.selectedIndex + 1) / 5) * 100;
+  }
+  
+  getMetricIcon(metric: string): string {
+    const iconMap: { [key: string]: string } = {
+      'accuracy': 'analytics',
+      'precision': 'center_focus_strong',
+      'recall': 'radar',
+      'f1_score': 'score',
+      'auc': 'trending_up'
+    };
+    return iconMap[metric.toLowerCase()] || 'bar_chart';
+  }
+  
+  getTopHyperparameters(algo: AlgorithmInfo): string[] {
+    return Object.keys(algo.hyperparameters || {});
+  }
+  
+  displayWithPercent = (value: number): string => {
+    return `${value}%`;
   }
   
   objectKeys = Object.keys;
