@@ -5,12 +5,13 @@ metadata:
 build:
   # Pas de defaultRepo global
   tagPolicy:
-    gitCommit: {}
+    inputDigest: {}
   # Configuration pour optimiser le cache mais permettre le pull des images manquantes
   local:
     push: false
+    tryImportMissing: false
     useDockerCLI: true
-    useBuildkit: true
+    useBuildkit: false
   artifacts:
     # Noms d'images de base SANS préfixe
     - image: ibis-x-api-gateway

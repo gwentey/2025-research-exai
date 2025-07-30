@@ -18,7 +18,7 @@ spec:
       containers:
         - name: frontend # Nom du conteneur dans le pod
           image: frontend # Nom de l'image Docker (Skaffold s'occupe du build et du tag)
-          imagePullPolicy: Always # Force le pull de l'image pour éviter les problèmes de cache avec 'latest'
+          imagePullPolicy: Never # Images locales dans Minikube
           ports:
             - containerPort: 80 # Port exposé par le conteneur Nginx (cf. Dockerfile et nginx.conf)
           resources: # Optionnel: Définir des limites de ressources

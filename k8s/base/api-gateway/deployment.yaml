@@ -18,7 +18,7 @@ spec:
       containers:
         - name: api-gateway
           image: ibis-x-api-gateway
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           env:
           - name: DATABASE_URL
             valueFrom:

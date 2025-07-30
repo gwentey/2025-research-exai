@@ -13,6 +13,18 @@ spec:
       labels:
         job: service-selection-migration
     spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+          - |
+            echo "Waiting for PostgreSQL to be ready..."
+            until nc -z postgresql-service.ibis-x.svc.cluster.local 5432; do
+              echo "PostgreSQL is not ready yet..."
+              sleep 2
+            done
+            echo "PostgreSQL is ready!"
       containers:
       - name: migration
         # IMAGE LOCALE pour développement
