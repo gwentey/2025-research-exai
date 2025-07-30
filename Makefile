@@ -54,7 +54,7 @@ clean-minikube: ## Nettoie et supprime Minikube (en cas de problème)
 
 start-minikube: ## Démarre Minikube avec configuration optimale
 	@echo "$(BLUE)Demarrage de Minikube...$(NC)"
-	@minikube status >/dev/null 2>&1 || minikube start --memory 4096 --cpus 2 --disk-size 20g
+	-@minikube status || minikube start --memory 4096 --cpus 2 --disk-size 20g
 	@minikube addons enable ingress
 	@minikube addons enable storage-provisioner
 	@echo "$(GREEN)Minikube demarre$(NC)"
@@ -70,28 +70,22 @@ create-namespace: ## Crée le namespace Kubernetes
 # Configurer l'environnement Docker pour Minikube
 docker-env:
 	@echo "$(BLUE)Configuration de l'environnement Docker...$(NC)"
-	@powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression"
+	@eval $$(minikube docker-env)
 	@echo "$(GREEN)Environnement Docker configure$(NC)"
 
 deploy-services: ## Déploie les services uniquement (sans jobs) avec Skaffold
-	@echo "$(BLUE)Deploiement des services (sans jobs)...$(NC)"
-	@powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression; skaffold dev --profile=local-services --namespace=$(NAMESPACE) --no-prune=false --cache-artifacts=false --cleanup=false --port-forward=false"
-	@echo "$(GREEN)Services deployes$(NC)"
+	@echo "$(BLUE)Deploiement stable des services (sans redemarrage continu)...$(NC)"
+	@echo "$(YELLOW)Nettoyage des jobs existants pour eviter les conflits...$(NC)"
+	-@kubectl delete job api-gateway-migration-job -n $(NAMESPACE) 2>/dev/null || true
+	-@kubectl delete job kaggle-dataset-import-job -n $(NAMESPACE) 2>/dev/null || true
+	-@kubectl delete job ml-pipeline-migration-job -n $(NAMESPACE) 2>/dev/null || true
+	-@kubectl delete job service-selection-data-init-job -n $(NAMESPACE) 2>/dev/null || true
+	-@kubectl delete job service-selection-migration-job -n $(NAMESPACE) 2>/dev/null || true
+	@echo "$(YELLOW)Deploiement resilient (continue meme si certains services echouent)...$(NC)"
+	@eval $$(minikube docker-env) && skaffold run --profile=local --namespace=$(NAMESPACE)
+	@echo "$(GREEN)Services deployes de maniere stable (ou partiellement)$(NC)"
 
-start-portforwards: stop-portforwards ## Lance les port forwards automatiquement
-	@echo "$(BLUE)Lancement des port forwards...$(NC)"
-	@echo "$(YELLOW)Configuration des acces externes...$(NC)"
-	@powershell.exe -Command "Start-Process -NoNewWindow kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
-	@powershell.exe -Command "Start-Process -NoNewWindow kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
-	@powershell.exe -Command "Start-Process -NoNewWindow kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:6701'"
-	@echo ""
-	@echo "$(GREEN)Acces aux services maintenant disponibles :$(NC)"
-	@echo "  $(GREEN)Frontend:$(NC) http://localhost:8080"
-	@echo "  $(GREEN)API Gateway:$(NC) http://localhost:9000"
-	@echo "  $(GREEN)API Docs:$(NC) http://localhost:9000/docs"
-	@echo "  $(GREEN)MinIO Console:$(NC) http://localhost:6701"
-	@echo ""
-	@echo "$(GREEN)Port forwards actifs en arriere-plan$(NC)"
+
 
 deploy: deploy-services ## Déploie l'application avec Skaffold (alias pour deploy-services)
 
@@ -175,9 +169,27 @@ quick-logs: ## Affiche uniquement les logs (sans messages d'état)
 	@kubectl logs -f statefulset/postgresql -n $(NAMESPACE) --prefix=true &
 	@wait
 
+start-portforwards: ## Lance les port forwards essentiels
+	@echo "$(BLUE)Configuration des port forwards...$(NC)"
+	@echo "$(YELLOW)Frontend sur port 8080...$(NC)"
+	-@kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
+	@echo "$(YELLOW)API Gateway sur port 9000...$(NC)"
+	-@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
+	@echo "$(YELLOW)MinIO Console sur port 6701...$(NC)"
+	-@kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:6701 > /dev/null 2>&1 &
+	@sleep 3
+	@echo "$(GREEN)✅ Port forwards actifs !$(NC)"
+	@echo "$(GREEN)Acces aux services :$(NC)"
+	@echo "  $(GREEN)Frontend:$(NC) http://localhost:8080"
+	@echo "  $(GREEN)API Gateway:$(NC) http://localhost:9000"
+	@echo "  $(GREEN)API Docs:$(NC) http://localhost:9000/docs"
+	@echo "  $(YELLOW)MinIO Console:$(NC) http://localhost:6701"
+
 stop-portforwards: ## Arrête tous les port forwards actifs
 	@echo "$(BLUE)Arret des port forwards...$(NC)"
-	@taskkill /F /IM kubectl.exe 2>nul || echo "Pas de port forwards actifs"
+	@echo "$(YELLOW)Recherche des processus kubectl...$(NC)"
+	-@killall kubectl 2>/dev/null || echo "Aucun processus kubectl actif"
+	-@ps aux | grep "kubectl port-forward" | grep -v grep | awk '{print $$2}' | xargs kill 2>/dev/null || echo "Aucun port forward actif"
 	@echo "$(GREEN)Port forwards arretes$(NC)"
 
 stop: stop-portforwards ## Arrête l'application
