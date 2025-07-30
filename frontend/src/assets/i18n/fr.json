@@ -900,6 +900,7 @@
     "WIZARD": {
       "TITLE": "Assistant ML Pipeline",
       "SUBTITLE": "Configurez et lancez votre modèle d'apprentissage automatique en quelques étapes simples",
+      "STEP_PROGRESS": "Étape {{current}} sur {{total}}",
       "BACK_TO_APP": "Retour à l'application",
       "HELP": "Aide"
     },

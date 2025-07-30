@@ -409,6 +409,43 @@ export class MlPipelineWizardComponent implements OnInit {
     return ((this.stepper.selectedIndex + 1) / 5) * 100;
   }
   
+  getCurrentStepNumber(): number {
+    if (!this.stepper || this.stepper.selectedIndex === undefined) return 1;
+    return this.stepper.selectedIndex + 1;
+  }
+  
+  nextStep(): void {
+    if (this.stepper && this.isCurrentStepValid()) {
+      this.stepper.next();
+    }
+  }
+  
+  previousStep(): void {
+    if (this.stepper) {
+      this.stepper.previous();
+    }
+  }
+  
+  isCurrentStepValid(): boolean {
+    if (!this.stepper) return false;
+    
+    const currentIndex = this.stepper.selectedIndex;
+    switch (currentIndex) {
+      case 0:
+        return this.datasetForm.valid;
+      case 1:
+        return this.dataQualityForm.valid;
+      case 2:
+        return this.algorithmForm.valid;
+      case 3:
+        return this.hyperparametersForm.valid;
+      case 4:
+        return this.summaryForm.valid;
+      default:
+        return false;
+    }
+  }
+  
   getMetricIcon(metric: string): string {
     const iconMap: { [key: string]: string } = {
       'accuracy': 'analytics',
