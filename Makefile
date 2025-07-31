@@ -19,6 +19,13 @@ else
     NC := \033[0m
 endif
 
+# Null device portable (évite la création d'un fichier 'nul' sous Git Bash)
+ifeq ($(findstring /, $(SHELL)),/)
+    NULL := /dev/null
+else
+    NULL := nul
+endif
+
 help: ## Affiche cette aide
 	@echo "$(BLUE)IBIS-X - Commandes Make disponibles$(NC)"
 	@echo ""
@@ -53,8 +60,8 @@ update-secrets: ## Met à jour les secrets Kubernetes avec les valeurs du .env
 
 clean-minikube: ## Nettoie et supprime Minikube (en cas de problème)
 	@echo "$(BLUE)Nettoyage de Minikube...$(NC)"
-	-@minikube stop 2>nul
-	-@minikube delete 2>nul
+	-@minikube stop 2>$(NULL)
+	-@minikube delete 2>$(NULL)
 	@echo "$(GREEN)Minikube nettoye$(NC)"
 
 start-minikube: ## Démarre Minikube s'il n'est pas déjà en cours d'exécution
@@ -80,7 +87,7 @@ docker-env: ## Configure l'environnement Docker pour Minikube (comme l'ancien sy
 deploy: ## Déploie l'application avec Skaffold (comme l'ancien système)
 	@echo "$(BLUE)Deploiement de l'application...$(NC)"
 	@echo "$(YELLOW)Nettoyage des jobs existants pour eviter les conflits...$(NC)"
-	-@kubectl delete jobs --all -n $(NAMESPACE) 2>nul || echo "$(YELLOW)Aucun job a supprimer$(NC)"
+	-@kubectl delete jobs --all -n $(NAMESPACE) 2>$(NULL) || echo "$(YELLOW)Aucun job a supprimer$(NC)"
 	@powershell.exe -Command "Start-Sleep -Seconds 2"
 	@powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression; skaffold run --profile=local --namespace=$(NAMESPACE)"
 	@echo "$(GREEN)Application deployee$(NC)"
@@ -88,7 +95,7 @@ deploy: ## Déploie l'application avec Skaffold (comme l'ancien système)
 deploy-services-dev: ## Déploie les services en mode développement continu (avec surveillance)
 	@echo "$(BLUE)Deploiement des services en mode developpement continu...$(NC)"
 	@echo "$(YELLOW)Nettoyage des jobs existants pour eviter les conflits...$(NC)"
-	-@kubectl delete jobs --all -n $(NAMESPACE) 2>nul
+	-@kubectl delete jobs --all -n $(NAMESPACE) 2>$(NULL)
 	@powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression; skaffold dev --profile=local-services --namespace=$(NAMESPACE) --no-prune=false --cache-artifacts=false --cleanup=false --port-forward=false"
 	@echo "$(GREEN)Services en mode developpement continu$(NC)"
 
@@ -156,22 +163,22 @@ wait-services: ## Attend que les services essentiels soient prêts (tolère les 
 	@echo "$(BLUE)Attente de la disponibilite des services essentiels...$(NC)"
 	@echo "$(YELLOW)Services CRITIQUES (obligatoires):$(NC)"
 	@echo "$(YELLOW)Attente PostgreSQL...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=postgresql -n $(NAMESPACE) --timeout=60s 2>nul || echo "$(YELLOW)PostgreSQL: tentative d'attente terminée$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=postgresql -n $(NAMESPACE) --timeout=60s 2>$(NULL) || echo "$(YELLOW)PostgreSQL: tentative d'attente terminée$(NC)"
 	@echo "$(YELLOW)Attente API Gateway...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=60s 2>nul || echo "$(YELLOW)API Gateway: tentative d'attente terminée$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=60s 2>$(NULL) || echo "$(YELLOW)API Gateway: tentative d'attente terminée$(NC)"
 	@echo "$(YELLOW)Attente Service Selection...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=service-selection -n $(NAMESPACE) --timeout=60s 2>nul || echo "$(YELLOW)Service Selection: tentative d'attente terminée$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=service-selection -n $(NAMESPACE) --timeout=60s 2>$(NULL) || echo "$(YELLOW)Service Selection: tentative d'attente terminée$(NC)"
 	@echo "$(YELLOW)Attente Frontend...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=frontend -n $(NAMESPACE) --timeout=60s 2>nul || echo "$(YELLOW)Frontend: tentative d'attente terminée$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=frontend -n $(NAMESPACE) --timeout=60s 2>$(NULL) || echo "$(YELLOW)Frontend: tentative d'attente terminée$(NC)"
 	@echo "$(YELLOW)Services OPTIONNELS (peuvent echouer):$(NC)"
 	@echo "$(YELLOW)Attente MinIO (optionnel)...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=minio -n $(NAMESPACE) --timeout=30s 2>nul || echo "$(YELLOW)MinIO: non disponible - application fonctionnera sans stockage objet$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=minio -n $(NAMESPACE) --timeout=30s 2>$(NULL) || echo "$(YELLOW)MinIO: non disponible - application fonctionnera sans stockage objet$(NC)"
 	@echo "$(YELLOW)Attente Redis...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=redis -n $(NAMESPACE) --timeout=60s 2>nul || echo "$(YELLOW)Redis: tentative d'attente terminée$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=redis -n $(NAMESPACE) --timeout=60s 2>$(NULL) || echo "$(YELLOW)Redis: tentative d'attente terminée$(NC)"
 	@echo "$(YELLOW)Attente ML Pipeline...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=ml-pipeline -n $(NAMESPACE) --timeout=60s 2>nul || echo "$(YELLOW)ML Pipeline: tentative d'attente terminée$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=ml-pipeline -n $(NAMESPACE) --timeout=60s 2>$(NULL) || echo "$(YELLOW)ML Pipeline: tentative d'attente terminée$(NC)"
 	@echo "$(YELLOW)Attente ML Pipeline Workers...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=ml-pipeline-celery-worker -n $(NAMESPACE) --timeout=60s 2>nul || echo "$(YELLOW)ML Pipeline Workers: tentative d'attente terminée$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=ml-pipeline-celery-worker -n $(NAMESPACE) --timeout=60s 2>$(NULL) || echo "$(YELLOW)ML Pipeline Workers: tentative d'attente terminée$(NC)"
 	@echo "$(YELLOW)Verification finale de stabilite (15 secondes)...$(NC)"
 	@powershell.exe -Command "Start-Sleep -Seconds 15"
 	@echo "$(GREEN)Services essentiels prets (application accessible meme si certains services optionnels echouent)$(NC)"
@@ -215,7 +222,7 @@ init-data: ## Initialise les vrais datasets (rapide ou échec)
 init-data-job: ## Lance l'initialisation des datasets via un job Kubernetes (pour production)
 	@echo "$(BLUE)Lancement du job d'initialisation des vrais datasets...$(NC)"
 	@echo "$(YELLOW)Suppression de l'ancien job...$(NC)"
-	-@kubectl delete job service-selection-data-init-job -n $(NAMESPACE) 2>nul
+	-@kubectl delete job service-selection-data-init-job -n $(NAMESPACE) 2>$(NULL)
 	@echo "$(YELLOW)Lancement du job d'initialisation...$(NC)"
 	@kubectl apply -f k8s/base/jobs/service-selection-data-init-job.yaml -n $(NAMESPACE)
 	@kubectl wait --for=condition=complete job/service-selection-data-init-job -n $(NAMESPACE) --timeout=$(TIMEOUT) || { echo "$(RED)Echec initialisation datasets$(NC)"; kubectl logs job/service-selection-data-init-job -n $(NAMESPACE); exit 1; }
@@ -225,7 +232,7 @@ dev: clean-namespace check-prerequisites update-secrets start-minikube create-na
 
 clean-namespace: ## Nettoie le namespace avant de démarrer
 	@echo "$(BLUE)Nettoyage du namespace ibis-x...$(NC)"
-	-@kubectl delete namespace ibis-x --force --grace-period=0 2>nul || echo "Namespace deja propre"
+	-@kubectl delete namespace ibis-x --force --grace-period=0 2>$(NULL) || echo "Namespace deja propre"
 	@powershell.exe -Command "Start-Sleep -Seconds 3"
 	@echo "$(GREEN)Namespace nettoye$(NC)"
 
@@ -294,7 +301,7 @@ quick-logs: ## Affiche les logs dans le même terminal (Ctrl+C pour arrêter)
 stop-portforwards: ## Arrête tous les port forwards actifs PROPREMENT 
 	@echo "$(BLUE)Arret de tous les port forwards...$(NC)"
 	@echo "$(YELLOW)Arret des processus kubectl en arriere-plan...$(NC)"
-	-@taskkill /F /IM "kubectl.exe" 2>nul || echo ""
+	-@taskkill /F /IM "kubectl.exe" 2>$(NULL) || echo ""
 	@powershell.exe -Command "Start-Sleep -Seconds 2"
 	@echo "$(GREEN)✓ Tous les port forwards arretes$(NC)"
 
@@ -307,7 +314,7 @@ restart-portforwards: ## Redémarre automatiquement les port forwards de manièr
 	@kubectl wait --for=condition=ready pod -l app=frontend -n $(NAMESPACE) --timeout=60s || echo "$(YELLOW)Frontend: attente terminee$(NC)"
 	@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=60s || echo "$(YELLOW)API Gateway: attente terminee$(NC)"
 	@echo "$(YELLOW)Verification MinIO (optionnel - ne bloque pas si echec)...$(NC)"
-	-@kubectl wait --for=condition=ready pod -l app=minio -n $(NAMESPACE) --timeout=30s 2>nul || echo "$(YELLOW)MinIO: non disponible - port forward MinIO sera ignoré$(NC)"
+	-@kubectl wait --for=condition=ready pod -l app=minio -n $(NAMESPACE) --timeout=30s 2>$(NULL) || echo "$(YELLOW)MinIO: non disponible - port forward MinIO sera ignoré$(NC)"
 	@echo "$(YELLOW)Attente supplementaire pour garantir la stabilite...$(NC)"
 	@powershell.exe -Command "Start-Sleep -Seconds 10"
 	@echo "$(YELLOW)Verification que Skaffold a termine ses operations...$(NC)"
@@ -351,9 +358,9 @@ list-jobs: ## Liste les processus kubectl port-forward actifs
 
 clean-temp-files: ## Nettoie les fichiers temporaires créés par le Makefile
 	@echo "$(BLUE)Nettoyage des fichiers temporaires...$(NC)"
-	-@del launch-ports.bat 2>nul || echo ""
-	-@del logs-viewer.bat 2>nul || echo ""
-	-@del start-portforwards.bat 2>nul || echo ""
+	-@del launch-ports.bat 2>$(NULL) || echo ""
+	-@del logs-viewer.bat 2>$(NULL) || echo ""
+	-@del start-portforwards.bat 2>$(NULL) || echo ""
 
 	@echo "$(GREEN)Fichiers temporaires nettoyes$(NC)"
 
@@ -365,19 +372,19 @@ healthcheck: ## Vérifie l'état de santé des services et port-forwards
 
 stop: stop-portforwards clean-temp-files ## Arrête l'application et nettoie les fichiers temporaires
 	@echo "$(BLUE)Arret de l'application...$(NC)"
-	@skaffold delete --profile=local --namespace=$(NAMESPACE) 2>nul
+	@skaffold delete --profile=local --namespace=$(NAMESPACE) 2>$(NULL)
 	@echo "$(GREEN)Application arretee et nettoyee$(NC)"
 
 clean-migrations: ## Supprime les jobs de migration
 	@echo "$(BLUE)Nettoyage des jobs de migration...$(NC)"
-	-@kubectl delete job api-gateway-migration-job -n $(NAMESPACE) 2>nul
-	-@kubectl delete job service-selection-migration-job -n $(NAMESPACE) 2>nul
-	-@kubectl delete job ml-pipeline-migration-job -n $(NAMESPACE) 2>nul
+	-@kubectl delete job api-gateway-migration-job -n $(NAMESPACE) 2>$(NULL)
+	-@kubectl delete job service-selection-migration-job -n $(NAMESPACE) 2>$(NULL)
+	-@kubectl delete job ml-pipeline-migration-job -n $(NAMESPACE) 2>$(NULL)
 	@echo "$(GREEN)Jobs de migration supprimes$(NC)"
 
 clean: stop clean-migrations ## Nettoyage complet
 	@echo "$(BLUE)Nettoyage complet...$(NC)"
-	-@kubectl delete namespace $(NAMESPACE) 2>nul
+	-@kubectl delete namespace $(NAMESPACE) 2>$(NULL)
 	@echo "$(GREEN)Nettoyage termine$(NC)"
 
 reset: clean dev ## Reset complet (nettoyage + redémarrage)

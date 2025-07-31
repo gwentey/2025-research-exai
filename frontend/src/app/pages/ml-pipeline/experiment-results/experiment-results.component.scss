@@ -1,4 +1,4 @@
-@import '../../../../styles.scss';
+@use '../../../../styles.scss' as *;
 
 .experiment-results {
   min-height: 100vh;

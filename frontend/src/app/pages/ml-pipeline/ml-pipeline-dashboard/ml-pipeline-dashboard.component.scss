@@ -1,4 +1,4 @@
-@import '../../../../styles.scss';
+@use '../../../../styles.scss' as *;
 
 .ml-pipeline-dashboard {
   min-height: 100vh;

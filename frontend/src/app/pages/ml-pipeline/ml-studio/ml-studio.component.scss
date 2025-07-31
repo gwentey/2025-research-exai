@@ -1,5 +1,5 @@
 @use 'sass:math';
-@import '../../../../styles.scss';
+@use '../../../../styles.scss' as *;
 
 .ml-studio {
   min-height: 100vh;

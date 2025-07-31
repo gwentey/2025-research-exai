@@ -1,67 +1,149 @@
-<div class="blank-layout-container">
-  <div class="auth-wrapper">
-    <div class="ml-wizard-card">
-      <div class="auth-body">
-        <!-- Hero Section - Style Dashboard -->
-        <div class="wizard-hero" [@fadeInUp]>
-          <div class="hero-background">
-            <div class="particle" *ngFor="let i of [1,2,3,4,5,6,7,8]"></div>
-          </div>
+<!-- LAYOUT PRINCIPAL MODERNE - STYLE SAAS PREMIUM -->
+<div class="modern-wizard-container">
+  <!-- Loading State Moderne -->
+  <div *ngIf="isLoading" class="modern-loading-overlay">
+    <div class="loading-card">
+      <div class="loading-icon">
+        <mat-icon class="animate-spin">autorenew</mat-icon>
+      </div>
+      <h3 class="loading-title">Initialisation de votre assistant ML</h3>
+      <p class="loading-subtitle">Préparation de l'environnement...</p>
+      <div class="loading-progress">
+        <div class="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layout Principal Moderne -->
+  <div class="modern-wizard-layout" *ngIf="!isLoading">
+    <!-- Sidebar Navigation (Style Notion) -->
+    <aside class="wizard-sidebar">
+      <!-- Logo -->
+      <div class="wizard-logo">
+        <div class="logo-icon">
+          <mat-icon>auto_awesome</mat-icon>
+        </div>
+        <div class="logo-text">ML Pipeline</div>
+      </div>
           
-          <div class="hero-content">
-            <div class="hero-icon">
-              <div class="icon-glow"></div>
-              <mat-icon class="wizard-main-icon">auto_awesome</mat-icon>
-            </div>
+      <!-- Navigation Steps -->
+      <nav class="wizard-nav">
+        <div class="nav-section">
+          <div class="section-title">Assistant ML</div>
+          <div class="nav-steps">
+            <a class="nav-step" [class.active]="getCurrentStepNumber() === 1" [class.completed]="getCurrentStepNumber() > 1">
+              <div class="step-icon">
+                <mat-icon>{{ getCurrentStepNumber() > 1 ? 'check' : 'dataset' }}</mat-icon>
+              </div>
+              <div class="step-text">Sélection du Dataset</div>
+              <div class="step-number">1</div>
+            </a>
             
-            <h1 class="wizard-title">{{ 'ML_PIPELINE.WIZARD.TITLE' | translate }}</h1>
-            <p class="wizard-subtitle">{{ 'ML_PIPELINE.WIZARD.SUBTITLE' | translate }}</p>
+            <a class="nav-step" [class.active]="getCurrentStepNumber() === 2" [class.completed]="getCurrentStepNumber() > 2">
+              <div class="step-icon">
+                <mat-icon>{{ getCurrentStepNumber() > 2 ? 'check' : 'tune' }}</mat-icon>
+              </div>
+              <div class="step-text">Configuration</div>
+              <div class="step-number">2</div>
+            </a>
+            
+            <a class="nav-step" [class.active]="getCurrentStepNumber() === 3" [class.completed]="getCurrentStepNumber() > 3">
+              <div class="step-icon">
+                <mat-icon>{{ getCurrentStepNumber() > 3 ? 'check' : 'smart_toy' }}</mat-icon>
+              </div>
+              <div class="step-text">Algorithme</div>
+              <div class="step-number">3</div>
+            </a>
+            
+            <a class="nav-step" [class.active]="getCurrentStepNumber() === 4" [class.completed]="getCurrentStepNumber() > 4">
+              <div class="step-icon">
+                <mat-icon>{{ getCurrentStepNumber() > 4 ? 'check' : 'settings' }}</mat-icon>
+            </div>
+              <div class="step-text">Paramètres</div>
+              <div class="step-number">4</div>
+            </a>
+            
+            <a class="nav-step" [class.active]="getCurrentStepNumber() === 5" [class.completed]="experimentResults">
+              <div class="step-icon">
+                <mat-icon>{{ experimentResults ? 'check' : 'rocket_launch' }}</mat-icon>
+              </div>
+              <div class="step-text">Entraînement</div>
+              <div class="step-number">5</div>
+            </a>
           </div>
         </div>
+      </nav>
 
-        <!-- Contenu Principal -->
-        <div class="wizard-content">
-          <!-- Progress Bar Moderne -->
-          <div class="progress-container">
-            <mat-progress-bar 
-              mode="determinate" 
-              [value]="getProgressPercentage()"
-              class="wizard-progress">
-            </mat-progress-bar>
-            <div class="progress-text">
-              {{ 'ML_PIPELINE.WIZARD.STEP_PROGRESS' | translate: { current: getCurrentStepNumber(), total: 5 } }}
+      <!-- Progress Overview -->
+      <div class="wizard-progress-overview">
+        <div class="progress-title">Progression</div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+        </div>
+        <div class="progress-text">{{ getCurrentStepNumber() }} / 5 étapes complétées</div>
+      </div>
+    </aside>
+
+    <!-- Contenu Principal Moderne -->
+    <main class="modern-wizard-main">
+      <!-- Header Flottant Moderne -->
+      <header class="modern-floating-header">
+        <div class="header-container">
+          <div class="header-left">
+            <div class="step-indicator">
+              <mat-icon class="step-icon animate-pulse">auto_awesome</mat-icon>
+              <div class="step-info">
+                <h1 class="step-title">{{ getStepTitle() }}</h1>
+                <p class="step-subtitle">{{ getStepSubtitle() }}</p>
+              </div>
             </div>
           </div>
+          
+          <div class="header-right">
+            <div class="progress-indicator">
+              <span class="progress-text">Étape {{ getCurrentStepNumber() }} sur 5</span>
+              <div class="progress-circle">
+                <svg class="progress-ring" width="32" height="32">
+                  <circle cx="16" cy="16" r="14" fill="none" stroke="#e5e7eb" stroke-width="2"/>
+                  <circle cx="16" cy="16" r="14" fill="none" stroke="#6366f1" stroke-width="2" 
+                          [style.stroke-dasharray]="88" 
+                          [style.stroke-dashoffset]="88 - (88 * getProgressPercentage() / 100)"
+                          class="progress-circle-active"/>
+                </svg>
+              </div>
+            </div>
+            
+            <button class="modern-back-button" (click)="goBack()">
+              <mat-icon>arrow_back</mat-icon>
+              <span>Retour</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
-          <!-- Stepper Moderne -->
-            <mat-stepper #stepper linear class="wizard-stepper" [@fadeInUp]>
-            <!-- Step 1: Dataset Overview -->
+      <!-- Zone de Contenu Moderne -->
+      <div class="modern-content-area">
+        <!-- Stepper caché pour la logique -->
+        <mat-stepper #stepper linear class="hidden-stepper">
+          <!-- ÉTAPE 1: Dataset Overview -->
             <mat-step [stepControl]="datasetForm">
               <form [formGroup]="datasetForm">
-                <ng-template matStepLabel>{{ 'ML_PIPELINE.STEPS.DATASET_OVERVIEW' | translate }}</ng-template>
-                
-                <div class="step-container">
+              <div class="step-container animate-fade-in-up">
                   <div class="step-header">
                     <div class="step-icon">
                       <mat-icon>dataset</mat-icon>
                     </div>
-                    <h2 class="step-title">{{ 'ML_PIPELINE.DATASET.TITLE' | translate }}</h2>
+                  <h2 class="step-title">Aperçu du Dataset</h2>
+                  <p class="step-description">Vérifiez les informations de votre dataset avant de continuer</p>
                   </div>
                   
-                  <div *ngIf="dataset" class="step-form">
-                    <div class="dataset-info-card">
-                      <div class="preview-icon">
+                <div class="step-body">
+                  <div *ngIf="dataset" class="dataset-card modern-card">
+                    <div class="dataset-icon">
                         <mat-icon>dataset</mat-icon>
                       </div>
-                      
-                      <div class="dataset-details">
-                        <div class="dataset-header">
-                          <h3>{{ dataset.dataset_name }}</h3>
-                          <div class="dataset-badges">
-                            <span class="badge" *ngFor="let domain of dataset.domain">{{ domain }}</span>
-                          </div>
-                        </div>
-                        
+                    <div class="dataset-content">
+                      <h3 class="dataset-name">{{ dataset.dataset_name }}</h3>
                         <p class="dataset-description">{{ dataset.objective || 'Aucune description disponible' }}</p>
                         
                         <div class="dataset-stats">
@@ -78,129 +160,135 @@
                             <span>Qualité: {{ dataset.overall_score || 85 }}%</span>
                           </div>
                         </div>
+                      
+                      <div class="dataset-tags" *ngIf="dataset.domain">
+                        <span class="tag" *ngFor="let domain of dataset.domain">{{ domain }}</span>
+                        </div>
                       </div>
                     </div>
                     
-                    <mat-checkbox formControlName="confirmed" class="step-checkbox">
-                      Confirmer la sélection de ce dataset
-                    </mat-checkbox>
+                  <div class="form-group">
+                    <label class="form-label">
+                      <input type="checkbox" formControlName="confirmed">
+                      Je confirme vouloir utiliser ce dataset pour mon expérience ML
+                    </label>
+                  </div>
                   </div>
                 </div>
-                
               </form>
             </mat-step>
             
-            <!-- Step 2: Configuration des Données -->
+          <!-- ÉTAPE 2: Configuration -->
             <mat-step [stepControl]="dataQualityForm">
               <form [formGroup]="dataQualityForm">
-                <ng-template matStepLabel>Configuration</ng-template>
-                
-                <div class="step-container">
+              <div class="step-container animate-fade-in-up">
                   <div class="step-header">
                     <div class="step-icon">
                       <mat-icon>tune</mat-icon>
                     </div>
-                    <h2 class="step-title">Configuration des données</h2>
+                  <h2 class="step-title">Configuration des Données</h2>
+                  <p class="step-description">Définissez comment traiter vos données</p>
                   </div>
                   
-                  <div class="step-form">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Colonne cible à prédire</mat-label>
-                      <mat-select formControlName="targetColumn">
-                        <mat-option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
-                          {{ col.column_name }} <span class="text-muted">({{ col.data_type_interpreted || col.data_type_original }})</span>
-                        </mat-option>
-                      </mat-select>
-                      <mat-hint>Sélectionnez la variable que vous souhaitez prédire</mat-hint>
-                    </mat-form-field>
-                    
-                    <mat-form-field appearance="outline">
-                      <mat-label>Type de tâche</mat-label>
-                      <mat-select formControlName="taskType">
-                        <mat-option value="classification">
-                          <mat-icon>category</mat-icon>
-                          Classification (catégories)
-                        </mat-option>
-                        <mat-option value="regression">
-                          <mat-icon>trending_up</mat-icon>
-                          Régression (valeurs numériques)
-                        </mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                    
-                    <mat-form-field appearance="outline">
-                      <mat-label>Gestion des valeurs manquantes</mat-label>
-                      <mat-select formControlName="missingValueStrategy">
-                        <mat-option value="drop">Supprimer les lignes incomplètes</mat-option>
-                        <mat-option value="mean">Remplacer par la moyenne</mat-option>
-                        <mat-option value="median">Remplacer par la médiane</mat-option>
-                        <mat-option value="forward_fill">Report de la valeur précédente</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                    
-                    <div class="slider-group">
-                      <mat-label>Taille du jeu de test: {{ dataQualityForm.get('testSize')?.value }}%</mat-label>
-                      <mat-slider min="10" max="50" step="5" thumbLabel [displayWith]="displayWithPercent">
-                        <input matSliderThumb formControlName="testSize">
-                      </mat-slider>
-                      <mat-hint>Pourcentage de données réservées pour tester le modèle</mat-hint>
+                <div class="step-body">
+                  <div class="form-group">
+                    <label class="form-label">Colonne cible à prédire</label>
+                    <p class="form-description">Sélectionnez la variable que vous souhaitez prédire</p>
+                    <select class="form-input form-select" formControlName="targetColumn">
+                      <option value="">Choisir une colonne...</option>
+                      <option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
+                        {{ col.column_name }} ({{ col.data_type_interpreted || col.data_type_original }})
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Type de tâche</label>
+                    <select class="form-input form-select" formControlName="taskType">
+                      <option value="classification">Classification (catégories)</option>
+                      <option value="regression">Régression (valeurs numériques)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Gestion des valeurs manquantes</label>
+                    <select class="form-input form-select" formControlName="missingValueStrategy">
+                      <option value="drop">Supprimer les lignes incomplètes</option>
+                      <option value="mean">Remplacer par la moyenne</option>
+                      <option value="median">Remplacer par la médiane</option>
+                      <option value="forward_fill">Report de la valeur précédente</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Taille du jeu de test: {{ dataQualityForm.get('testSize')?.value }}%</label>
+                    <input type="range" class="form-input" formControlName="testSize" min="10" max="50" step="5">
+                    <p class="form-description">Pourcentage de données réservées pour tester le modèle</p>
                     </div>
                     
-                    <div class="options-group">
-                      <mat-slide-toggle formControlName="featureScaling">
+                  <div class="form-group">
+                    <label class="form-label">
+                      <input type="checkbox" formControlName="featureScaling">
                         Normalisation des variables numériques
-                      </mat-slide-toggle>
-                      
-                      <mat-radio-group formControlName="categoricalEncoding" class="encoding-group">
-                        <mat-label class="group-label">Encodage des variables catégorielles:</mat-label>
-                        <mat-radio-button value="onehot">One-Hot Encoding</mat-radio-button>
-                        <mat-radio-button value="label">Label Encoding</mat-radio-button>
-                      </mat-radio-group>
+                    </label>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Encodage des variables catégorielles</label>
+                    <div class="flex gap-md">
+                      <label class="form-label">
+                        <input type="radio" formControlName="categoricalEncoding" value="onehot">
+                        One-Hot Encoding
+                      </label>
+                      <label class="form-label">
+                        <input type="radio" formControlName="categoricalEncoding" value="label">
+                        Label Encoding
+                      </label>
+                    </div>
                     </div>
                   </div>
                 </div>
-                
               </form>
             </mat-step>
             
-            <!-- Step 3: Sélection de l'Algorithme -->
+          <!-- ÉTAPE 3: Algorithme -->
             <mat-step [stepControl]="algorithmForm">
               <form [formGroup]="algorithmForm">
-                <ng-template matStepLabel>Algorithme</ng-template>
-                
-                <div class="step-container">
+              <div class="step-container animate-fade-in-up">
                   <div class="step-header">
                     <div class="step-icon">
                       <mat-icon>smart_toy</mat-icon>
                     </div>
-                    <h2 class="step-title">Choisir un algorithme</h2>
+                  <h2 class="step-title">Sélection de l'Algorithme</h2>
+                  <p class="step-description">Choisissez l'algorithme de machine learning adapté à votre problème</p>
                   </div>
                   
-                  <div class="step-form">
-                    <div class="algorithm-selection">
+                <div class="step-body">
+                  <div class="algorithm-grid stagger-children">
                       <div *ngFor="let algo of algorithms" 
-                           class="algorithm-option" 
+                         class="algorithm-card"
                            [class.selected]="algorithmForm.get('algorithm')?.value === algo.name"
-                           (click)="algorithmForm.patchValue({algorithm: algo.name}); onAlgorithmSelected()">
-                        
-                        <div class="algo-header">
-                          <div class="algo-icon">
-                            <mat-icon>{{ algo.name === 'decision_tree' ? 'account_tree' : 'park' }}</mat-icon>
+                         (click)="selectAlgorithm(algo.name)">
+                      
+                      <div class="algorithm-content">
+                        <div class="algorithm-header">
+                          <div class="algorithm-icon">
+                            <mat-icon>{{ getAlgorithmIcon(algo.name) }}</mat-icon>
                           </div>
-                          <mat-icon class="selection-icon" 
-                                   [class.selected]="algorithmForm.get('algorithm')?.value === algo.name">
-                            {{ algorithmForm.get('algorithm')?.value === algo.name ? 'radio_button_checked' : 'radio_button_unchecked' }}
-                          </mat-icon>
+                          <h3 class="algorithm-name">{{ algo.display_name }}</h3>
                         </div>
                         
-                        <h3 class="algo-name">{{ algo.display_name }}</h3>
+                        <p class="algorithm-description">{{ algo.description }}</p>
                         
-                        <p class="algo-description">{{ algo.description }}</p>
-                        
-                        <div class="algo-tags">
-                          <span class="tag" *ngIf="algo.supports_classification">Classification</span>
-                          <span class="tag" *ngIf="algo.supports_regression">Régression</span>
-                          <span class="tag" *ngIf="algo.name === 'random_forest'">Recommandé</span>
+                        <div class="algorithm-features">
+                          <span class="feature" *ngIf="algo.supports_classification">Classification</span>
+                          <span class="feature" *ngIf="algo.supports_regression">Régression</span>
+                          <span class="feature" *ngIf="algo.name === 'random_forest'">Recommandé</span>
+                        </div>
+                      </div>
+                      
+                      <div class="selection-indicator">
+                        <mat-icon>check</mat-icon>
                         </div>
                       </div>
                     </div>
@@ -209,53 +297,57 @@
               </form>
             </mat-step>
             
-            <!-- Step 4: Réglages Avancés -->
+          <!-- ÉTAPE 4: Hyperparamètres -->
             <mat-step [stepControl]="hyperparametersForm">
               <form [formGroup]="hyperparametersForm">
-                <ng-template matStepLabel>Réglages</ng-template>
-                
-                <div class="step-container">
+              <div class="step-container animate-fade-in-up">
                   <div class="step-header">
                     <div class="step-icon">
                       <mat-icon>settings</mat-icon>
                     </div>
-                    <h2 class="step-title">Paramètres avancés</h2>
+                  <h2 class="step-title">Paramètres Avancés</h2>
+                  <p class="step-description">Affinez les paramètres de votre algorithme</p>
                   </div>
                   
-                  <div class="step-form" *ngIf="selectedAlgorithm">
-                    <div class="selected-algorithm">
-                      <mat-icon>{{ selectedAlgorithm.name === 'decision_tree' ? 'account_tree' : 'park' }}</mat-icon>
-                      <span>{{ selectedAlgorithm.display_name }}</span>
+                <div class="step-body">
+                  <div *ngIf="selectedAlgorithm" class="modern-card">
+                    <div class="flex items-center gap-md mb-0">
+                      <div class="algorithm-icon">
+                        <mat-icon>{{ getAlgorithmIcon(selectedAlgorithm.name) }}</mat-icon>
+                      </div>
+                      <h3>{{ selectedAlgorithm.display_name }}</h3>
+                    </div>
                     </div>
                     
-                    <div *ngFor="let param of objectKeys(selectedAlgorithm.hyperparameters)" class="param-field">
-                      <ng-container [ngSwitch]="selectedAlgorithm.hyperparameters[param].type">
+                  <div *ngFor="let param of objectKeys(selectedAlgorithm?.hyperparameters || {})" class="form-group">
+                    <ng-container [ngSwitch]="selectedAlgorithm!.hyperparameters[param].type">
                         <!-- Number Parameter -->
-                        <mat-form-field *ngSwitchCase="'number'" appearance="outline">
-                          <mat-label>{{ param | titlecase }}</mat-label>
-                          <input matInput type="number" [formControlName]="param"
-                                 [min]="selectedAlgorithm.hyperparameters[param].min ?? null"
-                                 [max]="selectedAlgorithm.hyperparameters[param].max ?? null">
-                          <mat-hint>{{ selectedAlgorithm.hyperparameters[param].description }}</mat-hint>
-                        </mat-form-field>
+                      <div *ngSwitchCase="'number'">
+                        <label class="form-label">{{ param | titlecase }}</label>
+                        <p class="form-description">{{ selectedAlgorithm!.hyperparameters[param].description }}</p>
+                        <input class="form-input" type="number" [formControlName]="param"
+                               [min]="selectedAlgorithm!.hyperparameters[param].min ?? null"
+                               [max]="selectedAlgorithm!.hyperparameters[param].max ?? null">
+                      </div>
                         
                         <!-- Select Parameter -->
-                        <mat-form-field *ngSwitchCase="'select'" appearance="outline">
-                          <mat-label>{{ param | titlecase }}</mat-label>
-                          <mat-select [formControlName]="param">
-                            <mat-option *ngFor="let option of selectedAlgorithm.hyperparameters[param].options" [value]="option">
+                      <div *ngSwitchCase="'select'">
+                        <label class="form-label">{{ param | titlecase }}</label>
+                        <p class="form-description">{{ selectedAlgorithm!.hyperparameters[param].description }}</p>
+                        <select class="form-input form-select" [formControlName]="param">
+                          <option *ngFor="let option of selectedAlgorithm!.hyperparameters[param].options" [value]="option">
                               {{ option }}
-                            </mat-option>
-                          </mat-select>
-                          <mat-hint>{{ selectedAlgorithm.hyperparameters[param].description }}</mat-hint>
-                        </mat-form-field>
+                          </option>
+                        </select>
+                      </div>
                         
                         <!-- Boolean Parameter -->
-                        <div *ngSwitchCase="'boolean'" class="boolean-param">
-                          <mat-slide-toggle [formControlName]="param">
+                      <div *ngSwitchCase="'boolean'">
+                        <label class="form-label">
+                          <input type="checkbox" [formControlName]="param">
                             {{ param | titlecase }}
-                          </mat-slide-toggle>
-                          <p class="param-description">{{ selectedAlgorithm.hyperparameters[param].description }}</p>
+                        </label>
+                        <p class="form-description">{{ selectedAlgorithm!.hyperparameters[param].description }}</p>
                         </div>
                       </ng-container>
                     </div>
@@ -264,66 +356,67 @@
               </form>
             </mat-step>
             
-            <!-- Step 5: Lancement -->
+          <!-- ÉTAPE 5: Entraînement -->
             <mat-step [stepControl]="summaryForm">
               <form [formGroup]="summaryForm">
-                <ng-template matStepLabel>Lancement</ng-template>
-                
-                <div class="step-container">
-                  <div class="step-header" *ngIf="!isTraining && !experimentResults">
+              <div class="step-container animate-fade-in-up">
+                <div class="step-header">
                     <div class="step-icon">
-                      <mat-icon>rocket_launch</mat-icon>
+                    <mat-icon>{{ experimentResults ? 'check_circle' : (isTraining ? 'autorenew' : 'rocket_launch') }}</mat-icon>
                     </div>
-                    <h2 class="step-title">Prêt à lancer l'entraînement</h2>
+                  <h2 class="step-title">
+                    {{ experimentResults ? 'Entraînement Terminé !' : (isTraining ? 'Entraînement en cours...' : 'Lancer l\'Entraînement') }}
+                  </h2>
+                  <p class="step-description">
+                    {{ experimentResults ? 'Votre modèle a été entraîné avec succès' : (isTraining ? 'Veuillez patienter pendant l\'entraînement' : 'Vérifiez votre configuration et lancez l\'entraînement') }}
+                  </p>
                   </div>
                   
-                  <!-- Résumé Configuration -->
-                  <div class="step-form" *ngIf="!isTraining && !experimentResults">
-                    <div class="summary-info">
-                      <div class="summary-item">
+                <div class="step-body">
+                  <!-- Résumé de la configuration -->
+                  <div *ngIf="!isTraining && !experimentResults" class="modern-card">
+                    <h3>Résumé de votre configuration</h3>
+                    <div class="flex gap-lg">
+                      <div>
                         <strong>Dataset:</strong> {{ dataset?.dataset_name }}
                       </div>
-                      <div class="summary-item">
+                      <div>
                         <strong>Algorithme:</strong> {{ selectedAlgorithm?.display_name }}
                       </div>
-                      <div class="summary-item">
+                      <div>
                         <strong>Variable cible:</strong> {{ dataQualityForm.get('targetColumn')?.value }}
                       </div>
-                      <div class="summary-item">
+                      <div>
                         <strong>Type de tâche:</strong> {{ dataQualityForm.get('taskType')?.value }}
                       </div>
                     </div>
                     
-                    <mat-checkbox formControlName="confirmed" class="step-checkbox">
+                    <div class="form-group">
+                      <label class="form-label">
+                        <input type="checkbox" formControlName="confirmed">
                       Je confirme vouloir lancer l'entraînement avec ces paramètres
-                    </mat-checkbox>
+                      </label>
+                    </div>
                   </div>
                   
-                  <!-- Progression Training -->
-                  <div class="training-progress" *ngIf="isTraining">
-                    <div class="step-header">
-                      <div class="step-icon">
-                        <mat-icon>autorenew</mat-icon>
+                  <!-- Progression de l'entraînement -->
+                  <div *ngIf="isTraining" class="modern-card text-center">
+                    <div class="loading-spinner"></div>
+                    <h3>Entraînement en cours...</h3>
+                    <div class="progress-bar">
+                      <div class="progress-fill" [style.width.%]="trainingProgress"></div>
                       </div>
-                      <h2 class="step-title">Entraînement en cours...</h2>
-                    </div>
-                    <mat-progress-bar mode="determinate" [value]="trainingProgress"></mat-progress-bar>
-                    <p>{{ trainingProgress }}% terminé</p>
+                    <p>{{ trainingProgress }}% complété</p>
                   </div>
                   
                   <!-- Résultats -->
-                  <div class="results-display" *ngIf="experimentResults">
-                    <div class="step-header">
-                      <div class="step-icon">
-                        <mat-icon>check_circle</mat-icon>
-                      </div>
-                      <h2 class="step-title">Entraînement terminé !</h2>
+                  <div *ngIf="experimentResults" class="modern-card">
+                    <h3>Résultats de l'entraînement</h3>
+                    <div class="flex gap-lg">
+                      <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="text-center">
+                        <div class="text-lg font-bold">{{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%</div>
+                        <div class="text-sm text-gray-600">{{ metric | titlecase }}</div>
                     </div>
-                    
-                    <div class="metrics-grid">
-                      <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="metric-card">
-                        <strong>{{ metric | titlecase }}</strong>
-                        <span>{{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%</span>
                       </div>
                     </div>
                   </div>
@@ -332,61 +425,350 @@
             </mat-step>
           </mat-stepper>
           
-          <!-- Navigation Moderne -->
-          <div class="navigation-buttons">
-            <div class="d-flex justify-content-between align-items-center">
-              <button 
-                mat-stroked-button 
-                (click)="previousStep()" 
-                [disabled]="getCurrentStepNumber() === 1"
-                class="step-button secondary">
-                <mat-icon>chevron_left</mat-icon>
-                Précédent
-              </button>
-
-              <div class="step-indicators">
-                <div class="step-dot" 
-                     *ngFor="let step of [1,2,3,4,5]; let i = index"
-                     [class.active]="getCurrentStepNumber() === step"
-                     [class.completed]="getCurrentStepNumber() > step">
+        <!-- Contenu Moderne et Centré -->
+        <div class="modern-step-content">
+          <!-- Container Principal -->
+          <div class="content-container">
+            <!-- Étape actuelle avec design moderne -->
+            <div [ngSwitch]="getCurrentStepNumber()" class="step-wrapper">
+            
+            <!-- ÉTAPE 1: Dataset Overview -->
+            <div *ngSwitchCase="1" class="modern-step-card">
+              <div class="card-header">
+                <div class="icon-container">
+                  <mat-icon class="step-icon-modern">dataset</mat-icon>
+                </div>
+                <div class="header-text">
+                  <h2 class="modern-step-title">Aperçu du Dataset</h2>
+                  <p class="modern-step-description">Vérifiez les informations de votre dataset avant de continuer</p>
                 </div>
               </div>
-
-              <button 
-                mat-raised-button 
-                color="primary" 
-                (click)="nextStep()"
-                *ngIf="getCurrentStepNumber() < 5"
-                [disabled]="!isCurrentStepValid()"
-                class="step-button primary">
-                Suivant
-                <mat-icon>chevron_right</mat-icon>
-              </button>
               
-              <button 
-                mat-raised-button 
-                color="accent" 
-                (click)="startTraining()"
-                *ngIf="getCurrentStepNumber() === 5 && !isTraining && !experimentResults"
-                [disabled]="!isFormValid()"
-                class="step-button launch">
-                <mat-icon>rocket_launch</mat-icon>
-                Lancer l'entraînement
-              </button>
-              
-              <button 
-                mat-raised-button 
-                color="primary" 
-                (click)="backToApp()"
-                *ngIf="experimentResults"
-                class="step-button success">
-                <mat-icon>check_circle</mat-icon>
-                Terminer
-              </button>
+              <div class="step-body">
+                <div *ngIf="dataset" class="dataset-card modern-card">
+                  <div class="dataset-icon">
+                    <mat-icon>dataset</mat-icon>
+                  </div>
+                  <div class="dataset-content">
+                    <h3 class="dataset-name">{{ dataset.dataset_name }}</h3>
+                    <p class="dataset-description">{{ dataset.objective || 'Aucune description disponible' }}</p>
+                    
+                    <div class="dataset-stats">
+                      <div class="stat" *ngIf="dataset.instances_number">
+                        <mat-icon>table_chart</mat-icon>
+                        <span>{{ dataset.instances_number | number }} lignes</span>
+                      </div>
+                      <div class="stat" *ngIf="dataset.features_number">
+                        <mat-icon>view_column</mat-icon>
+                        <span>{{ dataset.features_number }} colonnes</span>
+                      </div>
+                      <div class="stat">
+                        <mat-icon>verified</mat-icon>
+                        <span>Qualité: {{ dataset.overall_score || 85 }}%</span>
+                      </div>
+                    </div>
+                    
+                    <div class="dataset-tags" *ngIf="dataset.domain">
+                      <span class="tag" *ngFor="let domain of dataset.domain">{{ domain }}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="form-group" [formGroup]="datasetForm">
+                  <label class="form-label">
+                    <input type="checkbox" formControlName="confirmed" style="margin-right: 8px;">
+                    Je confirme vouloir utiliser ce dataset pour mon expérience ML
+                  </label>
+                </div>
+              </div>
             </div>
+
+            <!-- ÉTAPE 2: Configuration -->
+            <div *ngSwitchCase="2" class="step-container animate-fade-in-up">
+              <div class="step-header">
+                <div class="step-icon">
+                  <mat-icon>tune</mat-icon>
+                </div>
+                <h2 class="step-title">Configuration des Données</h2>
+                <p class="step-description">Définissez comment traiter vos données</p>
+              </div>
+              
+              <div class="step-body" [formGroup]="dataQualityForm">
+                <div class="form-group">
+                  <label class="form-label">Colonne cible à prédire</label>
+                  <p class="form-description">Sélectionnez la variable que vous souhaitez prédire</p>
+                  <select class="form-input form-select" formControlName="targetColumn">
+                    <option value="">Choisir une colonne...</option>
+                    <option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
+                      {{ col.column_name }} ({{ col.data_type_interpreted || col.data_type_original }})
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Type de tâche</label>
+                  <select class="form-input form-select" formControlName="taskType">
+                    <option value="classification">Classification (catégories)</option>
+                    <option value="regression">Régression (valeurs numériques)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Gestion des valeurs manquantes</label>
+                  <select class="form-input form-select" formControlName="missingValueStrategy">
+                    <option value="drop">Supprimer les lignes incomplètes</option>
+                    <option value="mean">Remplacer par la moyenne</option>
+                    <option value="median">Remplacer par la médiane</option>
+                    <option value="forward_fill">Report de la valeur précédente</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Taille du jeu de test: {{ dataQualityForm.get('testSize')?.value }}%</label>
+                  <input type="range" class="form-input" formControlName="testSize" min="10" max="50" step="5">
+                  <p class="form-description">Pourcentage de données réservées pour tester le modèle</p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    <input type="checkbox" formControlName="featureScaling" style="margin-right: 8px;">
+                    Normalisation des variables numériques
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Encodage des variables catégorielles</label>
+                  <div class="flex gap-md">
+                    <label class="form-label">
+                      <input type="radio" formControlName="categoricalEncoding" value="onehot" style="margin-right: 8px;">
+                      One-Hot Encoding
+                    </label>
+                    <label class="form-label">
+                      <input type="radio" formControlName="categoricalEncoding" value="label" style="margin-right: 8px;">
+                      Label Encoding
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ÉTAPE 3: Algorithme -->
+            <div *ngSwitchCase="3" class="step-container animate-fade-in-up">
+              <div class="step-header">
+                <div class="step-icon">
+                  <mat-icon>smart_toy</mat-icon>
+                </div>
+                <h2 class="step-title">Sélection de l'Algorithme</h2>
+                <p class="step-description">Choisissez l'algorithme de machine learning adapté à votre problème</p>
+              </div>
+              
+              <div class="step-body">
+                <div class="algorithm-grid stagger-children">
+                  <div *ngFor="let algo of algorithms" 
+                       class="algorithm-card"
+                       [class.selected]="algorithmForm.get('algorithm')?.value === algo.name"
+                       (click)="selectAlgorithm(algo.name)">
+                    
+                    <div class="algorithm-content">
+                      <div class="algorithm-header">
+                        <div class="algorithm-icon">
+                          <mat-icon>{{ getAlgorithmIcon(algo.name) }}</mat-icon>
+                        </div>
+                        <h3 class="algorithm-name">{{ algo.display_name }}</h3>
+                      </div>
+                      
+                      <p class="algorithm-description">{{ algo.description }}</p>
+                      
+                      <div class="algorithm-features">
+                        <span class="feature" *ngIf="algo.supports_classification">Classification</span>
+                        <span class="feature" *ngIf="algo.supports_regression">Régression</span>
+                        <span class="feature" *ngIf="algo.name === 'random_forest'">Recommandé</span>
+                      </div>
+                    </div>
+                    
+                    <div class="selection-indicator">
+                      <mat-icon>check</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ÉTAPE 4: Hyperparamètres -->
+            <div *ngSwitchCase="4" class="step-container animate-fade-in-up">
+              <div class="step-header">
+                <div class="step-icon">
+                  <mat-icon>settings</mat-icon>
+                </div>
+                <h2 class="step-title">Paramètres Avancés</h2>
+                <p class="step-description">Affinez les paramètres de votre algorithme</p>
+              </div>
+              
+              <div class="step-body">
+                <div *ngIf="selectedAlgorithm" class="modern-card">
+                  <div class="flex items-center gap-md mb-0">
+                    <div class="algorithm-icon">
+                      <mat-icon>{{ getAlgorithmIcon(selectedAlgorithm.name) }}</mat-icon>
+                    </div>
+                    <h3>{{ selectedAlgorithm.display_name }}</h3>
+                  </div>
+                </div>
+
+                <div [formGroup]="hyperparametersForm">
+                  <div *ngFor="let param of objectKeys(selectedAlgorithm?.hyperparameters || {})" class="form-group">
+                    <ng-container [ngSwitch]="selectedAlgorithm!.hyperparameters[param].type">
+                      <!-- Number Parameter -->
+                      <div *ngSwitchCase="'number'">
+                        <label class="form-label">{{ param | titlecase }}</label>
+                        <p class="form-description">{{ selectedAlgorithm!.hyperparameters[param].description }}</p>
+                        <input class="form-input" type="number" [formControlName]="param"
+                               [min]="selectedAlgorithm!.hyperparameters[param].min ?? null"
+                               [max]="selectedAlgorithm!.hyperparameters[param].max ?? null">
+                      </div>
+                      
+                      <!-- Select Parameter -->
+                      <div *ngSwitchCase="'select'">
+                        <label class="form-label">{{ param | titlecase }}</label>
+                        <p class="form-description">{{ selectedAlgorithm!.hyperparameters[param].description }}</p>
+                        <select class="form-input form-select" [formControlName]="param">
+                          <option *ngFor="let option of selectedAlgorithm!.hyperparameters[param].options" [value]="option">
+                            {{ option }}
+                          </option>
+                        </select>
+                      </div>
+                      
+                      <!-- Boolean Parameter -->
+                      <div *ngSwitchCase="'boolean'">
+                        <label class="form-label">
+                          <input type="checkbox" [formControlName]="param" style="margin-right: 8px;">
+                          {{ param | titlecase }}
+                        </label>
+                        <p class="form-description">{{ selectedAlgorithm!.hyperparameters[param].description }}</p>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ÉTAPE 5: Entraînement -->
+            <div *ngSwitchCase="5" class="step-container animate-fade-in-up">
+              <div class="step-header">
+                <div class="step-icon">
+                  <mat-icon>{{ experimentResults ? 'check_circle' : (isTraining ? 'autorenew' : 'rocket_launch') }}</mat-icon>
+                </div>
+                <h2 class="step-title">
+                  {{ experimentResults ? 'Entraînement Terminé !' : (isTraining ? 'Entraînement en cours...' : 'Lancer l\'Entraînement') }}
+                </h2>
+                <p class="step-description">
+                  {{ experimentResults ? 'Votre modèle a été entraîné avec succès' : (isTraining ? 'Veuillez patienter pendant l\'entraînement' : 'Vérifiez votre configuration et lancez l\'entraînement') }}
+                </p>
+              </div>
+              
+              <div class="step-body">
+                <!-- Résumé de la configuration -->
+                <div *ngIf="!isTraining && !experimentResults" class="modern-card">
+                  <h3>Résumé de votre configuration</h3>
+                  <div class="flex gap-lg">
+                    <div>
+                      <strong>Dataset:</strong> {{ dataset?.dataset_name }}
+                    </div>
+                    <div>
+                      <strong>Algorithme:</strong> {{ selectedAlgorithm?.display_name }}
+                    </div>
+                    <div>
+                      <strong>Variable cible:</strong> {{ dataQualityForm.get('targetColumn')?.value }}
+                    </div>
+                    <div>
+                      <strong>Type de tâche:</strong> {{ dataQualityForm.get('taskType')?.value }}
+                    </div>
+                  </div>
+                  
+                  <div class="form-group" [formGroup]="summaryForm">
+                    <label class="form-label">
+                      <input type="checkbox" formControlName="confirmed" style="margin-right: 8px;">
+                      Je confirme vouloir lancer l'entraînement avec ces paramètres
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Progression de l'entraînement -->
+                <div *ngIf="isTraining" class="modern-card text-center">
+                  <div class="loading-spinner"></div>
+                  <h3>Entraînement en cours...</h3>
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="trainingProgress"></div>
+                  </div>
+                  <p>{{ trainingProgress }}% complété</p>
+                </div>
+
+                <!-- Résultats -->
+                <div *ngIf="experimentResults" class="modern-card">
+                  <h3>Résultats de l'entraînement</h3>
+                  <div class="flex gap-lg">
+                    <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="text-center">
+                      <div style="font-size: 1.5rem; font-weight: bold;">{{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%</div>
+                      <div style="font-size: 0.875rem; color: var(--text-tertiary);">{{ metric | titlecase }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
-    </div>
+
+              <!-- Navigation Moderne Flottante -->
+        <nav class="modern-navigation">
+          <div class="navigation-container">
+            <div class="nav-left">
+              <button class="modern-nav-button secondary" 
+                (click)="previousStep()" 
+                      [disabled]="getCurrentStepNumber() === 1">
+                <mat-icon>chevron_left</mat-icon>
+                <span>Précédent</span>
+              </button>
+            </div>
+
+            <div class="nav-center">
+              <div class="step-dots-modern">
+                <div *ngFor="let step of [1,2,3,4,5]; let i = index" 
+                     class="dot-modern"
+                     [class.active]="getCurrentStepNumber() === step"
+                     [class.completed]="getCurrentStepNumber() > step">
+                  <span class="dot-number">{{ step }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="nav-right">
+              <button *ngIf="getCurrentStepNumber() < 5" 
+                      class="modern-nav-button primary" 
+                (click)="nextStep()"
+                      [disabled]="!isCurrentStepValid()">
+                <span>Suivant</span>
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+              
+              <button *ngIf="getCurrentStepNumber() === 5 && !isTraining && !experimentResults" 
+                      class="modern-nav-button launch" 
+                (click)="startTraining()"
+                      [disabled]="!isFormValid()">
+                <mat-icon>rocket_launch</mat-icon>
+                <span>Lancer l'entraînement</span>
+              </button>
+              
+              <button *ngIf="experimentResults" 
+                      class="modern-nav-button success" 
+                      (click)="backToApp()">
+                <mat-icon>check_circle</mat-icon>
+                <span>Terminer</span>
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </main>
   </div>
 </div> 

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
@@ -24,7 +24,7 @@ import { DatasetDetailView } from '../../../models/dataset.models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs/operators';
 import { Chart, registerables } from 'chart.js';
-import { trigger, transition, style, animate, query, stagger, keyframes } from '@angular/animations';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 Chart.register(...registerables);
 
@@ -56,56 +56,25 @@ Chart.register(...registerables);
   animations: [
     trigger('fadeInUp', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
+        style({ opacity: 0, transform: 'translateY(30px)' }),
         animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
       ])
     ]),
-    trigger('slideIn', [
+    trigger('slideInRight', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateX(-30px)' }),
+        style({ opacity: 0, transform: 'translateX(30px)' }),
         animate('0.4s ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
-      ])
-    ]),
-    trigger('fadeInScale', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'scale(0.95)' }),
-        animate('0.3s ease-out', style({ opacity: 1, transform: 'scale(1)' }))
       ])
     ]),
     trigger('scaleIn', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'scale(0.8)' }),
-        animate('0.4s cubic-bezier(0.35, 0, 0.25, 1)', style({ opacity: 1, transform: 'scale(1)' }))
-      ])
-    ]),
-    trigger('staggeredAnimation', [
-      transition('* => *', [
-        query(':enter', [
-          style({ opacity: 0, transform: 'translateY(30px)' }),
-          stagger(100, [
-            animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-          ])
-        ], { optional: true })
-      ])
-    ]),
-    trigger('pulse', [
-      transition('* => active', [
-        animate('1s ease-in-out', keyframes([
-          style({ transform: 'scale(1)' }),
-          style({ transform: 'scale(1.05)' }),
-          style({ transform: 'scale(1)' })
-        ]))
-      ])
-    ]),
-    trigger('fadeIn', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('0.5s ease-out', style({ opacity: 1 }))
+        style({ opacity: 0, transform: 'scale(0.95)' }),
+        animate('0.3s ease-out', style({ opacity: 1, transform: 'scale(1)' }))
       ])
     ])
   ]
 })
-export class MlPipelineWizardComponent implements OnInit {
+export class MlPipelineWizardComponent implements OnInit, AfterViewInit {
   @ViewChild('stepper') stepper!: MatStepper;
   
   // Forms for each step
@@ -127,9 +96,26 @@ export class MlPipelineWizardComponent implements OnInit {
   experimentResults: any = null;
   
   // UI State
-  isLoading = false;
+  isLoading = true;
   isTraining = false;
   trainingProgress = 0;
+  
+  // Step titles and descriptions
+  private stepTitles = [
+    'Sélection du Dataset',
+    'Configuration des Données', 
+    'Choix de l\'Algorithme',
+    'Paramètres Avancés',
+    'Entraînement du Modèle'
+  ];
+  
+  private stepSubtitles = [
+    'Vérifiez les informations de votre dataset',
+    'Configurez le preprocessing de vos données',
+    'Sélectionnez l\'algorithme le plus adapté',
+    'Ajustez les hyperparamètres',
+    'Lancez l\'entraînement de votre modèle'
+  ];
   
   constructor(
     private fb: FormBuilder,
@@ -137,10 +123,14 @@ export class MlPipelineWizardComponent implements OnInit {
     private route: ActivatedRoute,
     private datasetService: DatasetService,
     private mlPipelineService: MlPipelineService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private cdr: ChangeDetectorRef
   ) {}
   
   ngOnInit() {
+    // Initialize forms first
+    this.initializeForms();
+    
     // Get route parameters
     this.projectId = this.route.snapshot.parent?.params['id'] || '';
     
@@ -148,9 +138,6 @@ export class MlPipelineWizardComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.datasetId = params['datasetId'] || '';
       const datasetName = params['datasetName'] || '';
-      
-      // Initialize forms
-      this.initializeForms();
       
       // If coming from dataset selection, pre-fill the dataset
       if (this.datasetId) {
@@ -163,6 +150,29 @@ export class MlPipelineWizardComponent implements OnInit {
     });
     
     this.loadAlgorithms();
+    
+    // Simulate loading delay for smooth UX
+    setTimeout(() => {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }, 800);
+  }
+  
+  ngAfterViewInit() {
+    // Initialize stepper after view is ready
+    setTimeout(() => {
+      this.initializeStepper();
+    }, 100);
+  }
+  
+  private initializeStepper(): void {
+    // Ensure stepper is properly initialized
+    if (this.stepper) {
+      // Reset to first step
+      this.stepper.reset();
+      this.stepper.selectedIndex = 0;
+      this.cdr.detectChanges();
+    }
   }
   
   initializeForms() {
@@ -172,7 +182,7 @@ export class MlPipelineWizardComponent implements OnInit {
       confirmed: [false, Validators.requiredTrue]
     });
     
-    // Step 2: Data Quality Analysis
+    // Step 2: Data Configuration
     this.dataQualityForm = this.fb.group({
       targetColumn: ['', Validators.required],
       taskType: ['classification', Validators.required],
@@ -197,12 +207,12 @@ export class MlPipelineWizardComponent implements OnInit {
   }
   
   loadDataset() {
-    this.isLoading = true;
+    if (!this.datasetId) return;
+    
     this.datasetService.getDatasetDetails(this.datasetId)
-      .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: (data) => {
-          this.dataset = data; // data is already the DatasetDetailView
+          this.dataset = data;
           this.datasetDetails = data;
           
           // Auto-suggest target column and task type based on dataset metadata
@@ -224,6 +234,11 @@ export class MlPipelineWizardComponent implements OnInit {
           console.error('Error loading algorithms:', error);
         }
       });
+  }
+  
+  selectAlgorithm(algorithmName: string) {
+    this.algorithmForm.patchValue({ algorithm: algorithmName });
+    this.onAlgorithmSelected();
   }
   
   onAlgorithmSelected() {
@@ -326,22 +341,12 @@ export class MlPipelineWizardComponent implements OnInit {
         next: (results) => {
           this.experimentResults = results;
           this.isTraining = false;
-          
-          // Move to results step
-          setTimeout(() => {
-            this.renderCharts();
-          }, 100);
         },
         error: (error) => {
           console.error('Error loading results:', error);
           this.isTraining = false;
         }
       });
-  }
-  
-  renderCharts() {
-    // Render visualizations using Chart.js
-    // This will be implemented based on the results structure
   }
   
   suggestTargetAndTaskType(data: DatasetDetailView) {
@@ -405,24 +410,86 @@ export class MlPipelineWizardComponent implements OnInit {
   }
   
   getProgressPercentage(): number {
-    if (!this.stepper || this.stepper.selectedIndex === undefined) return 0;
-    return ((this.stepper.selectedIndex + 1) / 5) * 100;
+    // Avoid NG0100 error by ensuring stable values
+    if (!this.stepper || this.stepper.selectedIndex === undefined || this.stepper.selectedIndex === null) {
+      return 20; // Default to step 1 (20%)
+    }
+    return Math.round(((this.stepper.selectedIndex + 1) / 5) * 100);
   }
   
   getCurrentStepNumber(): number {
-    if (!this.stepper || this.stepper.selectedIndex === undefined) return 1;
+    // Ensure stepper is initialized and has a valid selectedIndex
+    if (!this.stepper || this.stepper.selectedIndex === undefined || this.stepper.selectedIndex === null) {
+      return 1;
+    }
     return this.stepper.selectedIndex + 1;
+  }
+  
+  getStepTitle(): string {
+    const stepIndex = this.getCurrentStepNumber() - 1;
+    return this.stepTitles[stepIndex] || 'ML Pipeline Wizard';
+  }
+  
+  getStepSubtitle(): string {
+    const stepIndex = this.getCurrentStepNumber() - 1;
+    return this.stepSubtitles[stepIndex] || 'Créez votre modèle de machine learning';
   }
   
   nextStep(): void {
     if (this.stepper && this.isCurrentStepValid()) {
-      this.stepper.next();
+      // Synchronize the forms with the stepper
+      this.updateStepperForms();
+      setTimeout(() => {
+        this.stepper.next();
+        this.cdr.detectChanges();
+      });
     }
   }
   
   previousStep(): void {
     if (this.stepper) {
-      this.stepper.previous();
+      setTimeout(() => {
+        this.stepper.previous();
+        this.cdr.detectChanges();
+      });
+    }
+  }
+  
+  private updateStepperForms(): void {
+    // Update the stepper forms with current values from our custom forms
+    const currentStep = this.getCurrentStepNumber();
+    
+    switch (currentStep) {
+      case 1:
+        // Update dataset form in stepper
+        if (this.stepper.steps.get(0)) {
+          this.stepper.steps.get(0)!.stepControl = this.datasetForm;
+        }
+        break;
+      case 2:
+        // Update data quality form in stepper
+        if (this.stepper.steps.get(1)) {
+          this.stepper.steps.get(1)!.stepControl = this.dataQualityForm;
+        }
+        break;
+      case 3:
+        // Update algorithm form in stepper
+        if (this.stepper.steps.get(2)) {
+          this.stepper.steps.get(2)!.stepControl = this.algorithmForm;
+        }
+        break;
+      case 4:
+        // Update hyperparameters form in stepper
+        if (this.stepper.steps.get(3)) {
+          this.stepper.steps.get(3)!.stepControl = this.hyperparametersForm;
+        }
+        break;
+      case 5:
+        // Update summary form in stepper
+        if (this.stepper.steps.get(4)) {
+          this.stepper.steps.get(4)!.stepControl = this.summaryForm;
+        }
+        break;
     }
   }
   
@@ -446,24 +513,18 @@ export class MlPipelineWizardComponent implements OnInit {
     }
   }
   
-  getMetricIcon(metric: string): string {
+  getAlgorithmIcon(algorithmName: string): string {
     const iconMap: { [key: string]: string } = {
-      'accuracy': 'analytics',
-      'precision': 'center_focus_strong',
-      'recall': 'radar',
-      'f1_score': 'score',
-      'auc': 'trending_up'
+      'random_forest': 'park',
+      'decision_tree': 'account_tree',
+      'logistic_regression': 'trending_up',
+      'svm': 'scatter_plot',
+      'naive_bayes': 'psychology',
+      'gradient_boosting': 'auto_graph',
+      'neural_network': 'device_hub'
     };
-    return iconMap[metric.toLowerCase()] || 'bar_chart';
-  }
-  
-  getTopHyperparameters(algo: AlgorithmInfo): string[] {
-    return Object.keys(algo.hyperparameters || {});
-  }
-  
-  displayWithPercent = (value: number): string => {
-    return `${value}%`;
+    return iconMap[algorithmName] || 'smart_toy';
   }
   
   objectKeys = Object.keys;
-} 
+}
