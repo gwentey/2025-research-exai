@@ -1,417 +1,773 @@
-<div class="ml-studio">
-  <!-- Header avec progression -->
-  <div class="studio-header" [@fadeIn]>
-    <div class="container-fluid">
-      <div class="header-content">
-        <div class="header-left">
-          <button mat-icon-button (click)="previousStep()" [disabled]="currentStep === 1">
-            <mat-icon>arrow_back</mat-icon>
-          </button>
-          <h1>{{ 'ML_STUDIO.TITLE' | translate }}</h1>
+<!-- ML STUDIO MODERNE - DESIGN SAAS PREMIUM AVEC NAVIGATION -->
+<div class="modern-ml-studio">
+  
+  <!-- Sidebar Navigation Moderne -->
+  <aside class="modern-studio-sidebar">
+    <!-- Logo Studio -->
+    <div class="studio-logo-sidebar">
+      <div class="logo-icon-sidebar">
+        <mat-icon>auto_awesome</mat-icon>
+      </div>
+      <div class="logo-text-sidebar">ML Studio</div>
+    </div>
+    
+    <!-- Navigation Steps -->
+    <nav class="studio-nav">
+      <div class="nav-section">
+        <div class="section-title">ASSISTANT ML</div>
+        <div class="nav-steps">
+          <a class="nav-step-item" 
+             [class.active]="currentStep === 1" 
+             [class.completed]="currentStep > 1">
+            <div class="step-icon-nav">
+              <mat-icon>{{ currentStep > 1 ? 'check' : 'storage' }}</mat-icon>
+            </div>
+            <div class="step-text-nav">Sélection du Dataset</div>
+            <div class="step-number-nav">1</div>
+          </a>
+          
+          <a class="nav-step-item" 
+             [class.active]="currentStep === 2" 
+             [class.completed]="currentStep > 2">
+            <div class="step-icon-nav">
+              <mat-icon>{{ currentStep > 2 ? 'check' : 'tune' }}</mat-icon>
+            </div>
+            <div class="step-text-nav">Configuration</div>
+            <div class="step-number-nav">2</div>
+          </a>
+          
+          <a class="nav-step-item" 
+             [class.active]="currentStep === 3" 
+             [class.completed]="currentStep > 3">
+            <div class="step-icon-nav">
+              <mat-icon>{{ currentStep > 3 ? 'check' : 'smart_toy' }}</mat-icon>
+            </div>
+            <div class="step-text-nav">Algorithme</div>
+            <div class="step-number-nav">3</div>
+          </a>
+          
+          <a class="nav-step-item" 
+             [class.active]="currentStep === 4" 
+             [class.completed]="currentStep > 4">
+            <div class="step-icon-nav">
+              <mat-icon>{{ currentStep > 4 ? 'check' : 'settings' }}</mat-icon>
+            </div>
+            <div class="step-text-nav">Paramètres</div>
+            <div class="step-number-nav">4</div>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Progress summary -->
+      <div class="nav-progress">
+        <div class="progress-title">Progression</div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
+        </div>
+        <div class="progress-text">{{ currentStep }}/{{ totalSteps }} étapes complétées</div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Zone Principale avec Layout -->
+  <div class="studio-main-layout">
+  <!-- Header Moderne Compact et Flottant -->
+  <header class="modern-studio-header-compact" [@fadeIn]>
+    <div class="header-container-compact">
+      <!-- Breadcrumb et titre -->
+      <div class="header-left-compact">
+        <div class="breadcrumb-modern">
+          <span class="breadcrumb-item">Projets</span>
+          <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+          <span class="breadcrumb-item">ML Pipeline</span>
+          <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+          <span class="breadcrumb-item active">Studio</span>
+        </div>
+        <div class="page-title-section">
+          <h1 class="page-title">{{ 'ML_STUDIO.TITLE' | translate }}</h1>
+          <p class="page-subtitle">{{ ('ML_STUDIO.STEPS.STEP' + currentStep) | translate }}</p>
+        </div>
+      </div>
+
+      <!-- Actions et progression -->
+      <div class="header-right-compact">
+        <div class="progress-compact">
+          <div class="progress-circle-mini">
+            <svg viewBox="0 0 32 32">
+              <circle class="circle-bg" cx="16" cy="16" r="14" fill="none" stroke-width="3"/>
+              <circle class="circle-progress" 
+                      cx="16" cy="16" r="14" fill="none" stroke-width="3"
+                      [style.stroke-dasharray]="87.96"
+                      [style.stroke-dashoffset]="87.96 - (87.96 * currentStep / totalSteps)"/>
+              <text x="16" y="20" class="percentage">{{ currentStep }}</text>
+            </svg>
+          </div>
+          <span class="progress-label">{{ currentStep }}/{{ totalSteps }}</span>
         </div>
         
-        <div class="progress-indicator">
-          <div class="step-progress">
-            <div class="progress-bar">
-              <div class="progress-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
-            </div>
-            <div class="step-dots">
-              <div class="step-dot" 
-                   *ngFor="let step of [1,2,3,4]; let i = index"
-                   [class.active]="currentStep > i"
-                   [class.current]="currentStep === i + 1">
-                <span>{{ i + 1 }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="step-label">
-            {{ ('ML_STUDIO.STEPS.STEP' + currentStep) | translate }}
-          </div>
+        <div class="header-actions">
+          <button class="header-action-btn" matTooltip="Aide">
+            <mat-icon>help_outline</mat-icon>
+          </button>
+          <button class="header-action-btn" matTooltip="Paramètres">
+            <mat-icon>settings</mat-icon>
+          </button>
+          <button class="header-action-btn ghost" routerLink="../" matTooltip="Fermer">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Contenu principal -->
-  <div class="studio-content">
-    <form [formGroup]="configForm">
-      <!-- Étape 1: Configuration des données -->
-      <div class="step-content" *ngIf="currentStep === 1" [@slideInRight]>
-        <div class="container-fluid">
-          <div class="row">
-            <!-- Panneau gauche: Configuration -->
-            <div class="col-lg-7">
-              <div class="config-card">
-                <h2>{{ 'ML_STUDIO.DATA_CONFIG.TITLE' | translate }}</h2>
-                <p class="section-description">{{ 'ML_STUDIO.DATA_CONFIG.DESCRIPTION' | translate }}</p>
-                
-                <div class="form-section">
+  <!-- Zone de Contenu Moderne avec Floating Cards -->
+  <main class="modern-studio-content-layout">
+    <div class="content-container-layout">
+      <form [formGroup]="configForm">
+        
+        <!-- ÉTAPE 1: Configuration des données -->
+        <div class="modern-step-card" *ngIf="currentStep === 1" [@slideInRight]>
+          <div class="step-header-modern">
+            <div class="step-icon-container">
+              <mat-icon class="step-icon">tune</mat-icon>
+            </div>
+            <div class="step-header-content">
+              <h2 class="step-title">{{ 'ML_STUDIO.DATA_CONFIG.TITLE' | translate }}</h2>
+              <p class="step-description">{{ 'ML_STUDIO.DATA_CONFIG.DESCRIPTION' | translate }}</p>
+            </div>
+          </div>
+          
+          <div class="step-body-modern">
+            <div class="form-grid">
+              <!-- Configuration principale -->
+              <div class="form-section-modern">
+                <div class="section-header">
                   <h3>{{ 'ML_STUDIO.DATA_CONFIG.TARGET_SELECTION' | translate }}</h3>
-                  
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'ML_STUDIO.DATA_CONFIG.TARGET_COLUMN' | translate }}</mat-label>
-                    <mat-select formControlName="targetColumn">
-                      <mat-option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
-                        <div class="column-option">
-                          <span class="column-name">{{ col.column_name }}</span>
-                          <span class="column-type">{{ col.data_type_interpreted || col.data_type_original }}</span>
-                        </div>
-                      </mat-option>
-                    </mat-select>
-                    <mat-hint>{{ 'ML_STUDIO.DATA_CONFIG.TARGET_HINT' | translate }}</mat-hint>
-                  </mat-form-field>
-                  
-                  <div class="task-type-selector">
-                    <h4>{{ 'ML_STUDIO.DATA_CONFIG.TASK_TYPE' | translate }}</h4>
-                    <mat-radio-group formControlName="taskType" class="task-type-group">
-                      <mat-radio-button value="classification" class="task-option">
-                        <div class="task-content">
-                          <mat-icon>category</mat-icon>
-                          <span>{{ 'ML_STUDIO.DATA_CONFIG.CLASSIFICATION' | translate }}</span>
-                        </div>
-                      </mat-radio-button>
-                      <mat-radio-button value="regression" class="task-option">
-                        <div class="task-content">
-                          <mat-icon>show_chart</mat-icon>
-                          <span>{{ 'ML_STUDIO.DATA_CONFIG.REGRESSION' | translate }}</span>
-                        </div>
-                      </mat-radio-button>
-                    </mat-radio-group>
-                  </div>
-                  
-                  <div class="test-size-config">
-                    <h4>{{ 'ML_STUDIO.DATA_CONFIG.TEST_SIZE' | translate }}</h4>
-                    <div class="slider-container">
-                      <mat-slider
-                        [min]="10"
-                        [max]="50"
-                        [step]="5"
-                        [discrete]="true"
-                        [displayWith]="formatTestSize">
-                        <input matSliderThumb formControlName="testSize">
-                      </mat-slider>
-                      <div class="slider-labels">
-                        <span>10%</span>
-                        <span class="current-value">{{ configForm.get('testSize')?.value }}%</span>
-                        <span>50%</span>
-                      </div>
-                    </div>
-                    <mat-hint>{{ 'ML_STUDIO.DATA_CONFIG.TEST_SIZE_HINT' | translate }}</mat-hint>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Panneau droit: Qualité des données -->
-            <div class="col-lg-5">
-              <div class="quality-card">
-                <h3>{{ 'ML_STUDIO.DATA_QUALITY.TITLE' | translate }}</h3>
-                <div class="chart-container">
-                  <canvas #dataQualityChart></canvas>
-                </div>
-                <div class="quality-insights">
-                  <div class="insight-item">
-                    <mat-icon>check_circle</mat-icon>
-                    <span>{{ 'ML_STUDIO.DATA_QUALITY.GOOD_QUALITY' | translate }}</span>
-                  </div>
-                  <div class="insight-item">
-                    <mat-icon>info</mat-icon>
-                    <span>{{ dataset?.instances_number | number }} {{ 'ML_STUDIO.DATA_QUALITY.SAMPLES' | translate }}</span>
-                  </div>
-                  <div class="insight-item">
-                    <mat-icon>view_column</mat-icon>
-                    <span>{{ dataset?.features_number }} {{ 'ML_STUDIO.DATA_QUALITY.FEATURES' | translate }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Étape 2: Prétraitement -->
-      <div class="step-content" *ngIf="currentStep === 2" [@slideInRight]>
-        <div class="container-fluid">
-          <div class="preprocessing-config">
-            <h2>{{ 'ML_STUDIO.PREPROCESSING.TITLE' | translate }}</h2>
-            <p class="section-description">{{ 'ML_STUDIO.PREPROCESSING.DESCRIPTION' | translate }}</p>
-            
-            <!-- Presets -->
-            <div class="presets-section">
-              <h3>{{ 'ML_STUDIO.PRESETS.TITLE' | translate }}</h3>
-              <div class="presets-grid">
-                <div class="preset-card"
-                     *ngFor="let preset of presets"
-                     [class.selected]="selectedPreset === preset.id"
-                     (click)="applyPreset(preset.id)">
-                  <mat-icon>{{ preset.icon }}</mat-icon>
-                  <h4>{{ preset.name | translate }}</h4>
-                  <p>{{ preset.description | translate }}</p>
-                  <div class="preset-indicator" *ngIf="selectedPreset === preset.id">
-                    <mat-icon>check_circle</mat-icon>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Options détaillées -->
-            <div class="detailed-options">
-              <mat-expansion-panel [expanded]="showAdvancedOptions">
-                <mat-expansion-panel-header>
-                  <mat-panel-title>
-                    {{ 'ML_STUDIO.PREPROCESSING.ADVANCED_OPTIONS' | translate }}
-                  </mat-panel-title>
-                </mat-expansion-panel-header>
-                
-                <div class="options-grid">
-                  <div class="option-group">
-                    <h4>{{ 'ML_STUDIO.PREPROCESSING.MISSING_VALUES' | translate }}</h4>
-                    <mat-form-field appearance="outline">
-                      <mat-label>{{ 'ML_STUDIO.PREPROCESSING.STRATEGY' | translate }}</mat-label>
-                      <mat-select formControlName="missingValueStrategy">
-                        <mat-option value="drop">{{ 'ML_STUDIO.PREPROCESSING.DROP' | translate }}</mat-option>
-                        <mat-option value="mean">{{ 'ML_STUDIO.PREPROCESSING.MEAN' | translate }}</mat-option>
-                        <mat-option value="median">{{ 'ML_STUDIO.PREPROCESSING.MEDIAN' | translate }}</mat-option>
-                        <mat-option value="forward_fill">{{ 'ML_STUDIO.PREPROCESSING.FORWARD_FILL' | translate }}</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
-                  
-                  <div class="option-group">
-                    <h4>{{ 'ML_STUDIO.PREPROCESSING.FEATURE_ENGINEERING' | translate }}</h4>
-                    <mat-slide-toggle formControlName="featureScaling" color="primary">
-                      {{ 'ML_STUDIO.PREPROCESSING.SCALING' | translate }}
-                    </mat-slide-toggle>
-                    
-                    <mat-form-field appearance="outline" class="mt-3">
-                      <mat-label>{{ 'ML_STUDIO.PREPROCESSING.ENCODING' | translate }}</mat-label>
-                      <mat-select formControlName="encoding">
-                        <mat-option value="onehot">One-Hot Encoding</mat-option>
-                        <mat-option value="label">Label Encoding</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
-                  
-                  <div class="option-group">
-                    <h4>{{ 'ML_STUDIO.PREPROCESSING.OUTLIERS' | translate }}</h4>
-                    <mat-slide-toggle formControlName="removeOutliers" color="primary">
-                      {{ 'ML_STUDIO.PREPROCESSING.REMOVE_OUTLIERS' | translate }}
-                    </mat-slide-toggle>
-                    
-                    <mat-form-field appearance="outline" class="mt-3" *ngIf="configForm.get('removeOutliers')?.value">
-                      <mat-label>{{ 'ML_STUDIO.PREPROCESSING.THRESHOLD' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="outlierThreshold" step="0.1">
-                    </mat-form-field>
-                  </div>
-                </div>
-              </mat-expansion-panel>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Étape 3: Sélection de l'algorithme -->
-      <div class="step-content" *ngIf="currentStep === 3" [@slideInRight]>
-        <div class="container-fluid">
-          <div class="algorithm-selection">
-            <h2>{{ 'ML_STUDIO.ALGORITHM.TITLE' | translate }}</h2>
-            <p class="section-description">{{ 'ML_STUDIO.ALGORITHM.DESCRIPTION' | translate }}</p>
-            
-            <div class="algorithms-showcase">
-              <div class="algorithm-card"
-                   *ngFor="let algo of getFilteredAlgorithms()"
-                   [class.selected]="selectedAlgorithm?.name === algo.name"
-                   (click)="onAlgorithmSelect(algo)"
-                   [@fadeIn]>
-                <div class="algo-header">
-                  <div class="algo-icon">
-                    <mat-icon>{{ algo.name === 'decision_tree' ? 'account_tree' : 'forest' }}</mat-icon>
-                  </div>
-                  <div class="algo-selection-indicator" *ngIf="selectedAlgorithm?.name === algo.name">
-                    <mat-icon>check_circle</mat-icon>
-                  </div>
-                </div>
-                
-                <h3>{{ algo.display_name }}</h3>
-                <p>{{ algo.description }}</p>
-                
-                <div class="algo-characteristics">
-                  <div class="characteristic">
-                    <mat-icon>speed</mat-icon>
-                    <span>{{ algo.name === 'decision_tree' ? 'Rapide' : 'Performant' }}</span>
-                  </div>
-                  <div class="characteristic">
-                    <mat-icon>insights</mat-icon>
-                    <span>{{ algo.name === 'decision_tree' ? 'Interprétable' : 'Haute précision' }}</span>
-                  </div>
-                </div>
-                
-                <div class="algo-use-cases">
-                  <h4>{{ 'ML_STUDIO.ALGORITHM.USE_CASES' | translate }}</h4>
-                  <mat-chip-set>
-                    <mat-chip *ngFor="let useCase of getAlgorithmUseCases(algo)">
-                      {{ useCase }}
-                    </mat-chip>
-                  </mat-chip-set>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Étape 4: Configuration des hyperparamètres -->
-      <div class="step-content" *ngIf="currentStep === 4" [@slideInRight]>
-        <div class="container-fluid">
-          <div class="hyperparameters-config">
-            <h2>{{ 'ML_STUDIO.HYPERPARAMETERS.TITLE' | translate }}</h2>
-            <p class="section-description">{{ 'ML_STUDIO.HYPERPARAMETERS.DESCRIPTION' | translate }}</p>
-            
-            <div class="params-grid" formGroupName="hyperparameters">
-              <div class="param-card" 
-                   *ngFor="let param of selectedAlgorithm?.hyperparameters | keyvalue"
-                   [@fadeIn]>
-                <div class="param-header">
-                  <h4>{{ param.key | titlecase }}</h4>
-                  <mat-icon 
-                    matTooltip="{{ param.value.description }}"
-                    matTooltipPosition="above">
+                  <mat-icon class="help-icon" 
+                           matTooltip="Sélectionnez la variable que vous voulez prédire"
+                           matTooltipPosition="above">
                     help_outline
                   </mat-icon>
                 </div>
                 
-                <div class="param-control" [ngSwitch]="getHyperparameterType(param.value)">
-                  <!-- Slider pour les nombres -->
-                  <div *ngSwitchCase="'number'" class="number-param">
-                    <mat-slider
-                      [min]="param.value.min || 1"
-                      [max]="param.value.max || 100"
-                      [step]="1"
-                      [discrete]="true">
-                      <input matSliderThumb [formControlName]="param.key">
-                    </mat-slider>
-                    <div class="param-value">{{ configForm.get('hyperparameters.' + param.key)?.value }}</div>
+                <div class="modern-form-field">
+                  <label class="modern-label">{{ 'ML_STUDIO.DATA_CONFIG.TARGET_COLUMN' | translate }}</label>
+                  <div class="select-wrapper">
+                    <select class="modern-select" formControlName="targetColumn">
+                      <option value="">Choisir une colonne...</option>
+                      <option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
+                        {{ col.column_name }} ({{ col.data_type_interpreted || col.data_type_original }})
+                      </option>
+                    </select>
+                    <mat-icon class="select-arrow">expand_more</mat-icon>
                   </div>
-                  
-                  <!-- Select pour les options -->
-                  <mat-form-field *ngSwitchCase="'select'" appearance="outline">
-                    <mat-select [formControlName]="param.key">
-                      <mat-option *ngFor="let option of param.value.options" [value]="option">
-                        {{ option }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                  
-                  <!-- Toggle pour les booléens -->
-                  <mat-slide-toggle *ngSwitchCase="'boolean'" 
-                                    [formControlName]="param.key"
-                                    color="primary">
-                    {{ param.value.description }}
-                  </mat-slide-toggle>
+                  <p class="field-hint">{{ 'ML_STUDIO.DATA_CONFIG.TARGET_HINT' | translate }}</p>
+                </div>
+                
+                <div class="modern-form-field">
+                  <label class="modern-label">{{ 'ML_STUDIO.DATA_CONFIG.TASK_TYPE' | translate }}</label>
+                  <div class="radio-cards-container">
+                    <div class="radio-card" 
+                         [class.selected]="configForm.get('taskType')?.value === 'classification'"
+                         (click)="configForm.get('taskType')?.setValue('classification')">
+                      <input type="radio" formControlName="taskType" value="classification" style="display: none;">
+                      <div class="radio-card-content">
+                        <div class="radio-icon">
+                          <mat-icon>category</mat-icon>
+                        </div>
+                        <div class="radio-text">
+                          <h4>{{ 'ML_STUDIO.DATA_CONFIG.CLASSIFICATION' | translate }}</h4>
+                          <p>Prédire des catégories ou classes</p>
+                        </div>
+                        <div class="radio-indicator">
+                          <mat-icon>check_circle</mat-icon>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="radio-card" 
+                         [class.selected]="configForm.get('taskType')?.value === 'regression'"
+                         (click)="configForm.get('taskType')?.setValue('regression')">
+                      <input type="radio" formControlName="taskType" value="regression" style="display: none;">
+                      <div class="radio-card-content">
+                        <div class="radio-icon">
+                          <mat-icon>show_chart</mat-icon>
+                        </div>
+                        <div class="radio-text">
+                          <h4>{{ 'ML_STUDIO.DATA_CONFIG.REGRESSION' | translate }}</h4>
+                          <p>Prédire des valeurs numériques</p>
+                        </div>
+                        <div class="radio-indicator">
+                          <mat-icon>check_circle</mat-icon>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="modern-form-field">
+                  <label class="modern-label">
+                    {{ 'ML_STUDIO.DATA_CONFIG.TEST_SIZE' | translate }}
+                    <span class="value-indicator">{{ configForm.get('testSize')?.value }}%</span>
+                  </label>
+                  <div class="modern-slider">
+                    <input type="range" 
+                           class="slider" 
+                           formControlName="testSize"
+                           min="10" 
+                           max="50" 
+                           step="5">
+                    <div class="slider-track">
+                      <div class="slider-progress" [style.width.%]="(configForm.get('testSize')?.value - 10) / 40 * 100"></div>
+                    </div>
+                    <div class="slider-labels">
+                      <span>10%</span>
+                      <span>30%</span>
+                      <span>50%</span>
+                    </div>
+                  </div>
+                  <p class="field-hint">{{ 'ML_STUDIO.DATA_CONFIG.TEST_SIZE_HINT' | translate }}</p>
                 </div>
               </div>
-            </div>
-            
-            <!-- Résumé de configuration -->
-            <div class="config-summary">
-              <h3>{{ 'ML_STUDIO.SUMMARY.TITLE' | translate }}</h3>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <span class="label">{{ 'ML_STUDIO.SUMMARY.DATASET' | translate }}:</span>
-                  <span class="value">{{ dataset?.dataset_name }}</span>
+              
+              <!-- Aperçu qualité des données -->
+              <div class="quality-panel-modern">
+                <div class="panel-header">
+                  <h3>{{ 'ML_STUDIO.DATA_QUALITY.TITLE' | translate }}</h3>
+                  <div class="quality-score">
+                    <div class="score-circle">
+                      <svg viewBox="0 0 36 36">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="circle-progress" stroke-dasharray="85, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <text x="18" y="20.35">85%</text>
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-                <div class="summary-item">
-                  <span class="label">{{ 'ML_STUDIO.SUMMARY.ALGORITHM' | translate }}:</span>
-                  <span class="value">{{ selectedAlgorithm?.display_name }}</span>
+                
+                <div class="chart-container-modern">
+                  <canvas #dataQualityChart></canvas>
                 </div>
-                <div class="summary-item">
-                  <span class="label">{{ 'ML_STUDIO.SUMMARY.TARGET' | translate }}:</span>
-                  <span class="value">{{ configForm.get('targetColumn')?.value }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">{{ 'ML_STUDIO.SUMMARY.TASK' | translate }}:</span>
-                  <span class="value">{{ ('ML_STUDIO.DATA_CONFIG.' + configForm.get('taskType')?.value?.toUpperCase()) | translate }}</span>
+                
+                <div class="quality-metrics">
+                  <div class="metric-item">
+                    <div class="metric-icon">
+                      <mat-icon>table_rows</mat-icon>
+                    </div>
+                    <div class="metric-content">
+                      <span class="metric-value">{{ dataset?.instances_number | number }}</span>
+                      <span class="metric-label">{{ 'ML_STUDIO.DATA_QUALITY.SAMPLES' | translate }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="metric-item">
+                    <div class="metric-icon">
+                      <mat-icon>view_column</mat-icon>
+                    </div>
+                    <div class="metric-content">
+                      <span class="metric-value">{{ dataset?.features_number }}</span>
+                      <span class="metric-label">{{ 'ML_STUDIO.DATA_QUALITY.FEATURES' | translate }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="metric-item">
+                    <div class="metric-icon">
+                      <mat-icon>check_circle</mat-icon>
+                    </div>
+                    <div class="metric-content">
+                      <span class="metric-value">{{ 'ML_STUDIO.DATA_QUALITY.GOOD_QUALITY' | translate }}</span>
+                      <span class="metric-label">Qualité des données</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </form>
-  </div>
 
-  <!-- Footer avec actions -->
-  <div class="studio-footer" [@fadeIn]>
-    <div class="container-fluid">
-      <div class="footer-content">
-        <button mat-button (click)="previousStep()" [disabled]="currentStep === 1">
-          <mat-icon>arrow_back</mat-icon>
-          {{ 'ML_STUDIO.ACTIONS.PREVIOUS' | translate }}
+        <!-- ÉTAPE 2: Prétraitement -->
+        <div class="modern-step-card" *ngIf="currentStep === 2" [@slideInRight]>
+          <div class="step-header-modern">
+            <div class="step-icon-container">
+              <mat-icon class="step-icon">auto_fix_high</mat-icon>
+            </div>
+            <div class="step-header-content">
+              <h2 class="step-title">{{ 'ML_STUDIO.PREPROCESSING.TITLE' | translate }}</h2>
+              <p class="step-description">{{ 'ML_STUDIO.PREPROCESSING.DESCRIPTION' | translate }}</p>
+            </div>
+          </div>
+          
+          <div class="step-body-modern">
+            <!-- Presets rapides -->
+            <div class="presets-section-modern">
+              <div class="section-header">
+                <h3>{{ 'ML_STUDIO.PRESETS.TITLE' | translate }}</h3>
+                <p class="section-subtitle">Configurations prédéfinies pour différents types de données</p>
+              </div>
+              
+              <div class="preset-cards-grid">
+                <div class="preset-card-modern"
+                     *ngFor="let preset of presets"
+                     [class.selected]="selectedPreset === preset.id"
+                     (click)="applyPreset(preset.id)">
+                  <div class="preset-header">
+                    <div class="preset-icon">
+                      <mat-icon>{{ preset.icon }}</mat-icon>
+                    </div>
+                    <div class="preset-selector">
+                      <div class="radio-button" [class.checked]="selectedPreset === preset.id">
+                        <mat-icon>check</mat-icon>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="preset-content">
+                    <h4>{{ preset.name | translate }}</h4>
+                    <p>{{ preset.description | translate }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Configuration avancée -->
+            <div class="advanced-config-modern">
+              <div class="section-header">
+                <h3>{{ 'ML_STUDIO.PREPROCESSING.ADVANCED_OPTIONS' | translate }}</h3>
+                <button class="toggle-btn" 
+                        (click)="showAdvancedOptions = !showAdvancedOptions"
+                        [class.active]="showAdvancedOptions">
+                  <mat-icon>{{ showAdvancedOptions ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  <span>{{ showAdvancedOptions ? 'Masquer' : 'Afficher' }} les options</span>
+                </button>
+              </div>
+              
+              <div class="advanced-options-grid" *ngIf="showAdvancedOptions" [@slideInRight]>
+                <div class="option-card">
+                  <div class="option-header">
+                    <mat-icon>healing</mat-icon>
+                    <h4>{{ 'ML_STUDIO.PREPROCESSING.MISSING_VALUES' | translate }}</h4>
+                  </div>
+                  <div class="option-content">
+                    <div class="modern-form-field">
+                      <label class="modern-label">{{ 'ML_STUDIO.PREPROCESSING.STRATEGY' | translate }}</label>
+                      <div class="select-wrapper">
+                        <select class="modern-select" formControlName="missingValueStrategy">
+                          <option value="drop">{{ 'ML_STUDIO.PREPROCESSING.DROP' | translate }}</option>
+                          <option value="mean">{{ 'ML_STUDIO.PREPROCESSING.MEAN' | translate }}</option>
+                          <option value="median">{{ 'ML_STUDIO.PREPROCESSING.MEDIAN' | translate }}</option>
+                          <option value="forward_fill">{{ 'ML_STUDIO.PREPROCESSING.FORWARD_FILL' | translate }}</option>
+                        </select>
+                        <mat-icon class="select-arrow">expand_more</mat-icon>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="option-card">
+                  <div class="option-header">
+                    <mat-icon>tune</mat-icon>
+                    <h4>{{ 'ML_STUDIO.PREPROCESSING.FEATURE_ENGINEERING' | translate }}</h4>
+                  </div>
+                  <div class="option-content">
+                    <div class="toggle-field">
+                      <label class="toggle-label">
+                        <input type="checkbox" formControlName="featureScaling" class="modern-toggle">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">{{ 'ML_STUDIO.PREPROCESSING.SCALING' | translate }}</span>
+                      </label>
+                    </div>
+                    
+                    <div class="modern-form-field">
+                      <label class="modern-label">{{ 'ML_STUDIO.PREPROCESSING.ENCODING' | translate }}</label>
+                      <div class="select-wrapper">
+                        <select class="modern-select" formControlName="encoding">
+                          <option value="onehot">One-Hot Encoding</option>
+                          <option value="label">Label Encoding</option>
+                        </select>
+                        <mat-icon class="select-arrow">expand_more</mat-icon>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="option-card">
+                  <div class="option-header">
+                    <mat-icon>filter_alt</mat-icon>
+                    <h4>{{ 'ML_STUDIO.PREPROCESSING.OUTLIERS' | translate }}</h4>
+                  </div>
+                  <div class="option-content">
+                    <div class="toggle-field">
+                      <label class="toggle-label">
+                        <input type="checkbox" formControlName="removeOutliers" class="modern-toggle">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">{{ 'ML_STUDIO.PREPROCESSING.REMOVE_OUTLIERS' | translate }}</span>
+                      </label>
+                    </div>
+                    
+                    <div class="modern-form-field" *ngIf="configForm.get('removeOutliers')?.value">
+                      <label class="modern-label">{{ 'ML_STUDIO.PREPROCESSING.THRESHOLD' | translate }}</label>
+                      <input type="number" 
+                             class="modern-input" 
+                             formControlName="outlierThreshold" 
+                             step="0.1"
+                             placeholder="2.0">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 3: Sélection de l'algorithme -->
+        <div class="modern-step-card" *ngIf="currentStep === 3" [@slideInRight]>
+          <div class="step-header-modern">
+            <div class="step-icon-container">
+              <mat-icon class="step-icon">psychology</mat-icon>
+            </div>
+            <div class="step-header-content">
+              <h2 class="step-title">{{ 'ML_STUDIO.ALGORITHM.TITLE' | translate }}</h2>
+              <p class="step-description">{{ 'ML_STUDIO.ALGORITHM.DESCRIPTION' | translate }}</p>
+            </div>
+          </div>
+          
+          <div class="step-body-modern">
+            <div class="algorithms-grid-modern">
+              <div class="algorithm-card-modern"
+                   *ngFor="let algo of getFilteredAlgorithms()"
+                   [class.selected]="selectedAlgorithm?.name === algo.name"
+                   (click)="onAlgorithmSelect(algo)"
+                   [@fadeIn]>
+                
+                <div class="algorithm-header-modern">
+                  <div class="algorithm-icon-modern">
+                    <mat-icon>{{ algo.name === 'decision_tree' ? 'account_tree' : 'forest' }}</mat-icon>
+                  </div>
+                  <div class="algorithm-badge" *ngIf="algo.name === 'random_forest'">
+                    <span>Recommandé</span>
+                  </div>
+                  <div class="selection-indicator-modern" *ngIf="selectedAlgorithm?.name === algo.name">
+                    <mat-icon>check_circle</mat-icon>
+                  </div>
+                </div>
+                
+                <div class="algorithm-content-modern">
+                  <h3>{{ algo.display_name }}</h3>
+                  <p>{{ algo.description }}</p>
+                  
+                  <div class="algorithm-features-modern">
+                    <div class="feature-item" *ngIf="algo.supports_classification">
+                      <mat-icon>category</mat-icon>
+                      <span>Classification</span>
+                    </div>
+                    <div class="feature-item" *ngIf="algo.supports_regression">
+                      <mat-icon>show_chart</mat-icon>
+                      <span>Régression</span>
+                    </div>
+                  </div>
+                  
+                  <div class="algorithm-characteristics-modern">
+                    <div class="characteristic-modern">
+                      <mat-icon>speed</mat-icon>
+                      <span>{{ algo.name === 'decision_tree' ? 'Rapide' : 'Performant' }}</span>
+                    </div>
+                    <div class="characteristic-modern">
+                      <mat-icon>insights</mat-icon>
+                      <span>{{ algo.name === 'decision_tree' ? 'Interprétable' : 'Haute précision' }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="algorithm-use-cases-modern">
+                    <h4>{{ 'ML_STUDIO.ALGORITHM.USE_CASES' | translate }}</h4>
+                    <div class="use-cases-tags">
+                      <span class="use-case-tag" *ngFor="let useCase of getAlgorithmUseCases(algo)">
+                        {{ useCase }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 4: Configuration des hyperparamètres -->
+        <div class="modern-step-card" *ngIf="currentStep === 4" [@slideInRight]>
+          <div class="step-header-modern">
+            <div class="step-icon-container">
+              <mat-icon class="step-icon">settings</mat-icon>
+            </div>
+            <div class="step-header-content">
+              <h2 class="step-title">{{ 'ML_STUDIO.HYPERPARAMETERS.TITLE' | translate }}</h2>
+              <p class="step-description">{{ 'ML_STUDIO.HYPERPARAMETERS.DESCRIPTION' | translate }}</p>
+            </div>
+          </div>
+          
+          <div class="step-body-modern">
+            <!-- Algorithme sélectionné -->
+            <div class="selected-algorithm-info" *ngIf="selectedAlgorithm">
+              <div class="algo-info-card">
+                <div class="algo-info-icon">
+                  <mat-icon>{{ selectedAlgorithm.name === 'decision_tree' ? 'account_tree' : 'forest' }}</mat-icon>
+                </div>
+                <div class="algo-info-content">
+                  <h3>{{ selectedAlgorithm.display_name }}</h3>
+                  <p>Configuration des paramètres pour optimiser les performances</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Grille des paramètres -->
+            <div class="hyperparameters-grid-modern" formGroupName="hyperparameters">
+              <div class="param-card-modern" 
+                   *ngFor="let param of selectedAlgorithm?.hyperparameters | keyvalue"
+                   [@fadeIn]>
+                <div class="param-header-modern">
+                  <div class="param-title-container">
+                    <h4>{{ param.key | titlecase }}</h4>
+                    <mat-icon class="help-icon-modern" 
+                             matTooltip="{{ param.value.description }}"
+                             matTooltipPosition="above">
+                      help_outline
+                    </mat-icon>
+                  </div>
+                  <div class="param-value-display" *ngIf="getHyperparameterType(param.value) === 'number'">
+                    {{ configForm.get('hyperparameters.' + param.key)?.value }}
+                  </div>
+                </div>
+                
+                <div class="param-control-modern" [ngSwitch]="getHyperparameterType(param.value)">
+                  <!-- Slider moderne pour les nombres -->
+                  <div *ngSwitchCase="'number'" class="number-param-modern">
+                    <div class="modern-slider">
+                      <input type="range" 
+                             class="slider" 
+                             [formControlName]="param.key"
+                             [min]="param.value.min || 1"
+                             [max]="param.value.max || 100"
+                             step="1">
+                      <div class="slider-track">
+                        <div class="slider-progress" 
+                             [style.width.%]="((configForm.get('hyperparameters.' + param.key)?.value - (param.value.min || 1)) / ((param.value.max || 100) - (param.value.min || 1))) * 100"></div>
+                      </div>
+                      <div class="slider-labels">
+                        <span>{{ param.value.min || 1 }}</span>
+                        <span>{{ param.value.max || 100 }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Select moderne pour les options -->
+                  <div *ngSwitchCase="'select'" class="select-param-modern">
+                    <div class="select-wrapper">
+                      <select class="modern-select" [formControlName]="param.key">
+                        <option *ngFor="let option of param.value.options" [value]="option">
+                          {{ option }}
+                        </option>
+                      </select>
+                      <mat-icon class="select-arrow">expand_more</mat-icon>
+                    </div>
+                  </div>
+                  
+                  <!-- Toggle moderne pour les booléens -->
+                  <div *ngSwitchCase="'boolean'" class="boolean-param-modern">
+                    <div class="toggle-field">
+                      <label class="toggle-label">
+                        <input type="checkbox" [formControlName]="param.key" class="modern-toggle">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">{{ param.value.description }}</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Résumé de configuration moderne -->
+            <div class="config-summary-modern">
+              <div class="summary-header">
+                <h3>{{ 'ML_STUDIO.SUMMARY.TITLE' | translate }}</h3>
+                <mat-icon>summarize</mat-icon>
+              </div>
+              
+              <div class="summary-cards">
+                <div class="summary-card">
+                  <div class="summary-icon">
+                    <mat-icon>storage</mat-icon>
+                  </div>
+                  <div class="summary-content">
+                    <span class="summary-label">{{ 'ML_STUDIO.SUMMARY.DATASET' | translate }}</span>
+                    <span class="summary-value">{{ dataset?.dataset_name }}</span>
+                  </div>
+                </div>
+                
+                <div class="summary-card">
+                  <div class="summary-icon">
+                    <mat-icon>psychology</mat-icon>
+                  </div>
+                  <div class="summary-content">
+                    <span class="summary-label">{{ 'ML_STUDIO.SUMMARY.ALGORITHM' | translate }}</span>
+                    <span class="summary-value">{{ selectedAlgorithm?.display_name }}</span>
+                  </div>
+                </div>
+                
+                <div class="summary-card">
+                  <div class="summary-icon">
+                    <mat-icon>target</mat-icon>
+                  </div>
+                  <div class="summary-content">
+                    <span class="summary-label">{{ 'ML_STUDIO.SUMMARY.TARGET' | translate }}</span>
+                    <span class="summary-value">{{ configForm.get('targetColumn')?.value }}</span>
+                  </div>
+                </div>
+                
+                <div class="summary-card">
+                  <div class="summary-icon">
+                    <mat-icon>category</mat-icon>
+                  </div>
+                  <div class="summary-content">
+                    <span class="summary-label">{{ 'ML_STUDIO.SUMMARY.TASK' | translate }}</span>
+                    <span class="summary-value">{{ ('ML_STUDIO.DATA_CONFIG.' + configForm.get('taskType')?.value?.toUpperCase()) | translate }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Navigation moderne flottante -->
+  <nav class="modern-studio-navigation">
+    <div class="navigation-container">
+      <div class="nav-left">
+        <button class="modern-nav-btn secondary" 
+                (click)="previousStep()" 
+                [disabled]="currentStep === 1">
+          <mat-icon>chevron_left</mat-icon>
+          <span>{{ 'ML_STUDIO.ACTIONS.PREVIOUS' | translate }}</span>
+        </button>
+      </div>
+
+      <div class="nav-center">
+        <div class="step-dots-navigation">
+          <div *ngFor="let step of [1,2,3,4]; let i = index" 
+               class="step-dot-nav"
+               [class.active]="currentStep === step"
+               [class.completed]="currentStep > step">
+            <span class="dot-number">{{ step }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <button class="modern-nav-btn ghost" routerLink="../">
+          <mat-icon>close</mat-icon>
+          <span>{{ 'ML_STUDIO.ACTIONS.CANCEL' | translate }}</span>
         </button>
         
-        <div class="footer-right">
-          <button mat-button color="warn" routerLink="../">
-            {{ 'ML_STUDIO.ACTIONS.CANCEL' | translate }}
-          </button>
-          
-          <button mat-raised-button 
-                  color="primary"
-                  *ngIf="currentStep < totalSteps"
-                  (click)="nextStep()"
-                  [disabled]="!canProceed()">
-            {{ 'ML_STUDIO.ACTIONS.NEXT' | translate }}
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
-          
-          <button mat-raised-button 
-                  color="accent"
-                  *ngIf="currentStep === totalSteps"
-                  (click)="startTraining()"
-                  [disabled]="!configForm.valid || isTraining"
-                  class="launch-button">
-            <mat-icon>rocket_launch</mat-icon>
-            {{ 'ML_STUDIO.ACTIONS.START_TRAINING' | translate }}
-          </button>
-        </div>
+        <button *ngIf="currentStep < totalSteps" 
+                class="modern-nav-btn primary" 
+                (click)="nextStep()"
+                [disabled]="!canProceed()">
+          <span>{{ 'ML_STUDIO.ACTIONS.NEXT' | translate }}</span>
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        
+        <button *ngIf="currentStep === totalSteps" 
+                class="modern-nav-btn launch" 
+                (click)="startTraining()"
+                [disabled]="!configForm.valid || isTraining">
+          <mat-icon>rocket_launch</mat-icon>
+          <span>{{ 'ML_STUDIO.ACTIONS.START_TRAINING' | translate }}</span>
+        </button>
       </div>
     </div>
-  </div>
+  </nav>
 
-  <!-- Overlay d'entraînement -->
-  <div class="training-overlay" *ngIf="isTraining" [@fadeIn]>
-    <div class="training-modal">
-      <div class="training-animation">
-        <div class="neural-network">
-          <div class="node" *ngFor="let i of [1,2,3,4,5,6,7,8]"></div>
-          <div class="connection" *ngFor="let i of [1,2,3,4,5,6]"></div>
+  <!-- Overlay d'entraînement moderne -->
+  <div class="modern-training-overlay" *ngIf="isTraining" [@fadeIn]>
+    <div class="training-modal-modern">
+      <!-- Animation sophistiquée -->
+      <div class="training-animation-modern">
+        <div class="ai-brain">
+          <div class="brain-core">
+            <div class="neural-pulse"></div>
+            <div class="data-flows">
+              <div class="flow-line" *ngFor="let i of [1,2,3,4,5,6]" [style.animation-delay.s]="i * 0.2"></div>
+            </div>
+          </div>
+          <div class="processing-nodes">
+            <div class="node" *ngFor="let i of [1,2,3,4,5,6,7,8]" [style.animation-delay.s]="i * 0.15"></div>
+          </div>
         </div>
       </div>
       
-      <h2>{{ 'ML_STUDIO.TRAINING.IN_PROGRESS' | translate }}</h2>
-      <p>{{ trainingStatus | translate }}</p>
-      
-      <mat-progress-bar 
-        mode="determinate" 
-        [value]="trainingProgress"
-        color="accent">
-      </mat-progress-bar>
-      
-      <div class="progress-label">{{ trainingProgress }}%</div>
-      
-      <div class="training-insights">
-        <div class="insight" [@fadeIn] *ngIf="trainingProgress > 20">
-          <mat-icon>check_circle</mat-icon>
-          <span>{{ 'ML_STUDIO.TRAINING.DATA_LOADED' | translate }}</span>
+      <!-- Contenu moderne -->
+      <div class="training-content-modern">
+        <h2>{{ 'ML_STUDIO.TRAINING.IN_PROGRESS' | translate }}</h2>
+        <p class="training-status">{{ trainingStatus | translate }}</p>
+        
+        <!-- Barre de progression moderne -->
+        <div class="modern-progress">
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="trainingProgress"></div>
+          </div>
+          <div class="progress-percentage">{{ trainingProgress }}%</div>
         </div>
-        <div class="insight" [@fadeIn] *ngIf="trainingProgress > 40">
-          <mat-icon>check_circle</mat-icon>
-          <span>{{ 'ML_STUDIO.TRAINING.PREPROCESSING_DONE' | translate }}</span>
+        
+        <!-- Insights d'entraînement -->
+        <div class="training-insights-modern">
+          <div class="insight-modern" 
+               *ngIf="trainingProgress > 20"
+               [@fadeIn]>
+            <div class="insight-icon completed">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <span>{{ 'ML_STUDIO.TRAINING.DATA_LOADED' | translate }}</span>
+          </div>
+          
+          <div class="insight-modern" 
+               *ngIf="trainingProgress > 40"
+               [@fadeIn]>
+            <div class="insight-icon completed">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <span>{{ 'ML_STUDIO.TRAINING.PREPROCESSING_DONE' | translate }}</span>
+          </div>
+          
+          <div class="insight-modern" 
+               *ngIf="trainingProgress > 60"
+               [@fadeIn]>
+            <div class="insight-icon" [class.completed]="trainingProgress > 80">
+              <mat-icon>{{ trainingProgress > 80 ? 'check_circle' : 'autorenew' }}</mat-icon>
+            </div>
+            <span>Entraînement du modèle en cours...</span>
+          </div>
+          
+          <div class="insight-modern" 
+               *ngIf="trainingProgress > 80"
+               [@fadeIn]>
+            <div class="insight-icon completed">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <span>{{ 'ML_STUDIO.TRAINING.MODEL_TRAINED' | translate }}</span>
+          </div>
         </div>
-        <div class="insight" [@fadeIn] *ngIf="trainingProgress > 80">
-          <mat-icon>check_circle</mat-icon>
-          <span>{{ 'ML_STUDIO.TRAINING.MODEL_TRAINED' | translate }}</span>
+        
+        <!-- ETA et statistiques -->
+        <div class="training-stats">
+          <div class="stat-item">
+            <mat-icon>schedule</mat-icon>
+            <span>Temps estimé: {{ Math.max(0, Math.round((100 - trainingProgress) * 2)) }}s</span>
+          </div>
+          <div class="stat-item">
+            <mat-icon>memory</mat-icon>
+            <span>Utilisation CPU: {{ Math.min(95, 40 + trainingProgress / 2) }}%</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
+  </div> <!-- Fermeture studio-main-layout -->
 </div>

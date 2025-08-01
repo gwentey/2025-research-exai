@@ -51,20 +51,20 @@
   .custom-filter-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 8px 6px 12px;
-    background: rgba(25, 118, 210, 0.1);
-    color: #1976d2;
-    border-radius: 16px;
-    border: 1px solid rgba(25, 118, 210, 0.2);
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm) var(--space-xs) var(--space-md);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary);
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
     
     &:hover {
-      background: rgba(25, 118, 210, 0.15);
+      background: rgba(var(--color-primary-rgb), 0.15);
       transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-md);
     }
     
     .chip-icon {
@@ -168,16 +168,17 @@
 }
 
 .filters-modal {
-  background: white;
-  border-radius: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   max-width: 1200px; // Beaucoup plus large
   width: 95%;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
-  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  // Ombres prononcées comme demandé dans le plan
+  box-shadow: var(--shadow-2xl);
+  animation: modalSlideIn var(--transition-slow) var(--ease-out);
 
   .modal-header {
     display: flex;

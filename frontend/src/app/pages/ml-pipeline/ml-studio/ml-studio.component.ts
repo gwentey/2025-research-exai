@@ -95,6 +95,9 @@ Chart.register(...registerables);
 export class MlStudioComponent implements OnInit {
   @ViewChild('dataQualityChart') dataQualityChartRef!: ElementRef;
   
+  // Expose Math to template
+  Math = Math;
+  
   projectId: string = '';
   datasetId: string = '';
   dataset: DatasetDetailView | null = null;

@@ -29,46 +29,50 @@
       <!-- Navigation Steps -->
       <nav class="wizard-nav">
         <div class="nav-section">
-          <div class="section-title">Assistant ML</div>
           <div class="nav-steps">
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 1" [class.completed]="getCurrentStepNumber() > 1">
-              <div class="step-icon">
-                <mat-icon>{{ getCurrentStepNumber() > 1 ? 'check' : 'dataset' }}</mat-icon>
+              <div class="step-indicator">
+                <span class="step-number">1</span>
               </div>
-              <div class="step-text">Sélection du Dataset</div>
-              <div class="step-number">1</div>
+              <div class="step-content">
+                <div class="step-title">Dataset</div>
+              </div>
             </a>
             
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 2" [class.completed]="getCurrentStepNumber() > 2">
-              <div class="step-icon">
-                <mat-icon>{{ getCurrentStepNumber() > 2 ? 'check' : 'tune' }}</mat-icon>
+              <div class="step-indicator">
+                <span class="step-number">2</span>
               </div>
-              <div class="step-text">Configuration</div>
-              <div class="step-number">2</div>
+              <div class="step-content">
+                <div class="step-title">Configuration</div>
+              </div>
             </a>
             
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 3" [class.completed]="getCurrentStepNumber() > 3">
-              <div class="step-icon">
-                <mat-icon>{{ getCurrentStepNumber() > 3 ? 'check' : 'smart_toy' }}</mat-icon>
+              <div class="step-indicator">
+                <span class="step-number">3</span>
               </div>
-              <div class="step-text">Algorithme</div>
-              <div class="step-number">3</div>
+              <div class="step-content">
+                <div class="step-title">Algorithme</div>
+              </div>
             </a>
             
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 4" [class.completed]="getCurrentStepNumber() > 4">
-              <div class="step-icon">
-                <mat-icon>{{ getCurrentStepNumber() > 4 ? 'check' : 'settings' }}</mat-icon>
-            </div>
-              <div class="step-text">Paramètres</div>
-              <div class="step-number">4</div>
+              <div class="step-indicator">
+                <span class="step-number">4</span>
+              </div>
+              <div class="step-content">
+                <div class="step-title">Paramètres</div>
+              </div>
             </a>
             
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 5" [class.completed]="experimentResults">
-              <div class="step-icon">
-                <mat-icon>{{ experimentResults ? 'check' : 'rocket_launch' }}</mat-icon>
+              <div class="step-indicator">
+                <span class="step-number">5</span>
               </div>
-              <div class="step-text">Entraînement</div>
-              <div class="step-number">5</div>
+              <div class="step-content">
+                <div class="step-title">Entraînement</div>
+              </div>
             </a>
           </div>
         </div>
@@ -694,22 +698,93 @@
 
                 <!-- Progression de l'entraînement -->
                 <div *ngIf="isTraining" class="modern-card text-center">
-                  <div class="loading-spinner"></div>
-                  <h3>Entraînement en cours...</h3>
-                  <div class="progress-bar">
-                    <div class="progress-fill" [style.width.%]="trainingProgress"></div>
+                  <div class="training-header">
+                    <div class="modern-spinner spinner-primary"></div>
+                    <h3>Entraînement en cours...</h3>
+                    <div class="modern-progress progress-lg">
+                      <div class="progress-fill" [style.width.%]="trainingProgress"></div>
+                    </div>
+                    <p><strong>{{ trainingProgress }}%</strong> complété</p>
                   </div>
-                  <p>{{ trainingProgress }}% complété</p>
+                  
+                  <!-- Console de logs moderne -->
+                  <div class="training-logs-section">
+                    <div class="logs-header">
+                      <h4>
+                        <mat-icon>terminal</mat-icon>
+                        Logs d'entraînement
+                      </h4>
+                      <div class="logs-controls">
+                        <button class="modern-btn btn-ghost btn-sm" (click)="clearLogs()" [disabled]="trainingLogs.length === 0">
+                          <mat-icon>clear_all</mat-icon>
+                          Effacer
+                        </button>
+                        <button class="modern-btn btn-ghost btn-sm" (click)="toggleAutoScroll()">
+                          <mat-icon>{{ autoScrollLogs ? 'pause' : 'play_arrow' }}</mat-icon>
+                          Auto-scroll
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="modern-console" #logsContainer>
+                      <div *ngFor="let log of trainingLogs; trackBy: trackLogFn" 
+                           class="console-line" 
+                           [ngClass]="log.level"
+                           [@fadeInUp]>
+                        <span class="timestamp">{{ log.timestamp | date:'HH:mm:ss.SSS' }}</span>
+                        <span class="log-level">[{{ log.level.toUpperCase() }}]</span>
+                        <span class="log-message">{{ log.message }}</span>
+                      </div>
+                      
+                      <div *ngIf="trainingLogs.length === 0" class="console-line info">
+                        <span class="timestamp">{{ getCurrentTimestamp() }}</span>
+                        <span class="log-level">[INFO]</span>
+                        <span class="log-message">Démarrage de l'entraînement...</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Résultats -->
-                <div *ngIf="experimentResults" class="modern-card">
-                  <h3>Résultats de l'entraînement</h3>
-                  <div class="flex gap-lg">
-                    <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="text-center">
-                      <div style="font-size: 1.5rem; font-weight: bold;">{{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%</div>
-                      <div style="font-size: 0.875rem; color: var(--text-tertiary);">{{ metric | titlecase }}</div>
+                <div *ngIf="experimentResults" class="modern-card elevated">
+                  <div class="results-header">
+                    <div class="success-icon">
+                      <mat-icon>check_circle</mat-icon>
                     </div>
+                    <h3>Résultats de l'entraînement</h3>
+                    <p>Votre modèle a été entraîné avec succès !</p>
+                  </div>
+                  
+                  <div class="metrics-grid">
+                    <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="metric-card">
+                      <div class="metric-icon">
+                        <mat-icon>{{ getMetricIcon(metric) }}</mat-icon>
+                      </div>
+                      <div class="metric-content">
+                        <div class="metric-value">{{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%</div>
+                        <div class="metric-label">{{ getMetricLabel(metric) }}</div>
+                        
+                        <!-- Barre de progression pour chaque métrique -->
+                        <div class="metric-progress">
+                          <div class="modern-progress progress-sm" 
+                               [ngClass]="getMetricProgressClass(metric)">
+                            <div class="progress-fill" 
+                                 [style.width.%]="experimentResults.metrics[metric] * 100"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="results-actions">
+                    <button class="modern-btn btn-secondary" (click)="downloadModel()">
+                      <mat-icon>download</mat-icon>
+                      Télécharger le modèle
+                    </button>
+                    <button class="modern-btn btn-ghost" (click)="viewDetailedResults()">
+                      <mat-icon>analytics</mat-icon>
+                      Voir les détails
+                    </button>
                   </div>
                 </div>
               </div>

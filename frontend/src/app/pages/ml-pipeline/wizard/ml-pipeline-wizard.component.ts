@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
@@ -25,6 +25,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs/operators';
 import { Chart, registerables } from 'chart.js';
 import { trigger, transition, style, animate } from '@angular/animations';
+
+// Interface pour les logs de training
+interface TrainingLog {
+  timestamp: Date;
+  level: 'info' | 'warning' | 'error' | 'success';
+  message: string;
+}
 
 Chart.register(...registerables);
 
@@ -74,8 +81,9 @@ Chart.register(...registerables);
     ])
   ]
 })
-export class MlPipelineWizardComponent implements OnInit, AfterViewInit {
+export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('stepper') stepper!: MatStepper;
+  @ViewChild('logsContainer') logsContainer!: ElementRef;
   
   // Forms for each step
   datasetForm!: FormGroup;
@@ -99,6 +107,11 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit {
   isLoading = true;
   isTraining = false;
   trainingProgress = 0;
+  
+  // Training logs
+  trainingLogs: TrainingLog[] = [];
+  autoScrollLogs = true;
+  private logSimulationTimer: any;
   
   // Step titles and descriptions
   private stepTitles = [
@@ -269,44 +282,6 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit {
       
       this.hyperparametersForm = this.fb.group(controls);
     }
-  }
-  
-  startTraining() {
-    if (!this.isFormValid()) {
-      return;
-    }
-    
-    this.isTraining = true;
-    this.trainingProgress = 0;
-    
-    const experimentData = {
-      project_id: this.projectId,
-      dataset_id: this.datasetId,
-      algorithm: this.algorithmForm.value.algorithm,
-      hyperparameters: this.hyperparametersForm.value,
-      preprocessing_config: {
-        target_column: this.dataQualityForm.value.targetColumn,
-        task_type: this.dataQualityForm.value.taskType,
-        missing_values: {
-          strategy: this.dataQualityForm.value.missingValueStrategy
-        },
-        scaling: this.dataQualityForm.value.featureScaling,
-        encoding: this.dataQualityForm.value.categoricalEncoding,
-        test_size: this.dataQualityForm.value.testSize / 100
-      }
-    };
-    
-    this.mlPipelineService.createExperiment(experimentData)
-      .subscribe({
-        next: (experiment) => {
-          this.experimentId = experiment.id;
-          this.pollTrainingStatus();
-        },
-        error: (error) => {
-          console.error('Error starting training:', error);
-          this.isTraining = false;
-        }
-      });
   }
   
   pollTrainingStatus() {
@@ -524,6 +499,203 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit {
       'neural_network': 'device_hub'
     };
     return iconMap[algorithmName] || 'smart_toy';
+  }
+  
+  // ==============================================
+  // NOUVELLES MÉTHODES POUR LES LOGS ET MÉTRIQUES
+  // ==============================================
+  
+  // Gestion des logs de training
+  addTrainingLog(level: TrainingLog['level'], message: string): void {
+    const log: TrainingLog = {
+      timestamp: new Date(),
+      level,
+      message
+    };
+    
+    this.trainingLogs.push(log);
+    
+    // Limiter le nombre de logs pour éviter les problèmes de performance
+    if (this.trainingLogs.length > 100) {
+      this.trainingLogs = this.trainingLogs.slice(-100);
+    }
+    
+    // Auto-scroll vers le bas si activé
+    if (this.autoScrollLogs) {
+      setTimeout(() => this.scrollLogsToBottom(), 50);
+    }
+    
+    this.cdr.detectChanges();
+  }
+  
+  private scrollLogsToBottom(): void {
+    if (this.logsContainer) {
+      const element = this.logsContainer.nativeElement;
+      element.scrollTop = element.scrollHeight;
+    }
+  }
+  
+  clearLogs(): void {
+    this.trainingLogs = [];
+    this.cdr.detectChanges();
+  }
+  
+  toggleAutoScroll(): void {
+    this.autoScrollLogs = !this.autoScrollLogs;
+    if (this.autoScrollLogs) {
+      this.scrollLogsToBottom();
+    }
+  }
+  
+  getCurrentTimestamp(): string {
+    return new Date().toLocaleTimeString('fr-FR', { 
+      hour12: false, 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+  }
+  
+  trackLogFn(index: number, log: TrainingLog): string {
+    return `${log.timestamp.getTime()}-${index}`;
+  }
+  
+  // Simulation de logs pendant l'entraînement
+  private simulateTrainingLogs(): void {
+    const logMessages = [
+      { level: 'info' as const, message: 'Chargement des données d\'entraînement...' },
+      { level: 'info' as const, message: 'Preprocessing des variables catégorielles...' },
+      { level: 'info' as const, message: 'Normalisation des features numériques...' },
+      { level: 'info' as const, message: 'Division train/test (80%/20%)...' },
+      { level: 'info' as const, message: 'Initialisation de l\'algorithme...' },
+      { level: 'info' as const, message: 'Début de l\'entraînement...' },
+      { level: 'info' as const, message: 'Epoch 1/10 - Loss: 0.8543' },
+      { level: 'info' as const, message: 'Epoch 2/10 - Loss: 0.7234' },
+      { level: 'warning' as const, message: 'Convergence lente détectée' },
+      { level: 'info' as const, message: 'Epoch 3/10 - Loss: 0.6891' },
+      { level: 'info' as const, message: 'Epoch 4/10 - Loss: 0.6234' },
+      { level: 'info' as const, message: 'Validation - Accuracy: 78.5%' },
+      { level: 'info' as const, message: 'Epoch 5/10 - Loss: 0.5987' },
+      { level: 'success' as const, message: 'Amélioration des performances détectée' },
+      { level: 'info' as const, message: 'Sauvegarde du checkpoint...' },
+      { level: 'info' as const, message: 'Entraînement terminé avec succès!' }
+    ];
+    
+    let messageIndex = 0;
+    this.logSimulationTimer = setInterval(() => {
+      if (messageIndex < logMessages.length && this.isTraining) {
+        const logMessage = logMessages[messageIndex];
+        this.addTrainingLog(logMessage.level, logMessage.message);
+        messageIndex++;
+      } else {
+        clearInterval(this.logSimulationTimer);
+      }
+    }, 800); // Un nouveau log toutes les 800ms
+  }
+  
+  // Méthodes pour les métriques
+  getMetricIcon(metric: string): string {
+    const iconMap: { [key: string]: string } = {
+      'accuracy': 'target',
+      'precision': 'precision_manufacturing',
+      'recall': 'search',
+      'f1_score': 'balance',
+      'roc_auc': 'trending_up',
+      'mse': 'straighten',
+      'mae': 'linear_scale',
+      'r2_score': 'analytics'
+    };
+    return iconMap[metric] || 'assessment';
+  }
+  
+  getMetricLabel(metric: string): string {
+    const labelMap: { [key: string]: string } = {
+      'accuracy': 'Précision',
+      'precision': 'Précision',
+      'recall': 'Rappel',
+      'f1_score': 'Score F1',
+      'roc_auc': 'AUC-ROC',
+      'mse': 'Erreur quadratique',
+      'mae': 'Erreur absolue',
+      'r2_score': 'Coefficient R²'
+    };
+    return labelMap[metric] || metric.charAt(0).toUpperCase() + metric.slice(1);
+  }
+  
+  getMetricProgressClass(metric: string): string {
+    // Retourne une classe CSS basée sur la performance de la métrique
+    if (!this.experimentResults?.metrics[metric]) return '';
+    
+    const value = this.experimentResults.metrics[metric];
+    
+    if (value >= 0.9) return 'progress-success';
+    if (value >= 0.8) return 'progress-warning';
+    return 'progress-danger';
+  }
+  
+  // Nouvelles méthodes pour les actions des résultats
+  downloadModel(): void {
+    // TODO: Implémenter le téléchargement du modèle
+    this.addTrainingLog('info', 'Téléchargement du modèle initié...');
+  }
+  
+  viewDetailedResults(): void {
+    // TODO: Naviguer vers une page détaillée des résultats
+    this.router.navigate(['/ml-pipeline/results', this.experimentId]);
+  }
+  
+  // Nouvelle implémentation de startTraining avec simulation des logs
+  startTraining() {
+    if (!this.isFormValid()) {
+      return;
+    }
+    
+    this.isTraining = true;
+    this.trainingProgress = 0;
+    this.trainingLogs = []; // Reset des logs
+    
+    // Démarrer la simulation des logs
+    this.simulateTrainingLogs();
+    
+    const experimentData = {
+      project_id: this.projectId,
+      dataset_id: this.datasetId,
+      algorithm: this.algorithmForm.value.algorithm,
+      hyperparameters: this.hyperparametersForm.value,
+      preprocessing_config: {
+        target_column: this.dataQualityForm.value.targetColumn,
+        task_type: this.dataQualityForm.value.taskType,
+        missing_values: {
+          strategy: this.dataQualityForm.value.missingValueStrategy
+        },
+        scaling: this.dataQualityForm.value.featureScaling,
+        encoding: this.dataQualityForm.value.categoricalEncoding,
+        test_size: this.dataQualityForm.value.testSize / 100
+      }
+    };
+    
+    this.mlPipelineService.createExperiment(experimentData)
+      .subscribe({
+        next: (experiment) => {
+          this.experimentId = experiment.id;
+          this.pollTrainingStatus();
+        },
+        error: (error) => {
+          console.error('Error starting training:', error);
+          this.addTrainingLog('error', 'Erreur lors du démarrage de l\'entraînement');
+          this.isTraining = false;
+          if (this.logSimulationTimer) {
+            clearInterval(this.logSimulationTimer);
+          }
+        }
+      });
+  }
+  
+  // Cleanup lors de la destruction du composant
+  ngOnDestroy() {
+    if (this.logSimulationTimer) {
+      clearInterval(this.logSimulationTimer);
+    }
   }
   
   objectKeys = Object.keys;
