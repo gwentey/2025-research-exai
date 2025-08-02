@@ -1,0 +1,218 @@
+= Guide : Séparation du nettoyage et de la configuration
+:toc:
+:toclevels: 3
+
+== Problème actuel
+
+Actuellement, l'étape "Configuration des données" mélange plusieurs concepts :
+
+* ❌ Variable cible (objectif de prédiction)
+* ❌ Type de tâche (classification/régression)
+* ❌ Nettoyage des données (valeurs manquantes)
+* ❌ Division train/test
+* ❌ Normalisation et encodage
+
+C'est confus pour les utilisateurs non-techniques !
+
+== Solution : Séparation claire
+
+=== Nouvelle structure
+
+[cols="1,2,3"]
+|===
+| Étape | Nom | Contenu UNIQUE
+
+| 2
+| Nettoyage des données
+| • Détection valeurs manquantes
+• Stratégies de remplacement
+• Détection outliers
+
+| 3
+| Configuration du modèle
+| • Variable cible
+• Type de tâche
+• Split train/test
+• Normalisation
+• Encodage
+|===
+
+== Implémentation
+
+=== 1. Remplacer l'étape 2 actuelle
+
+Dans `ml-pipeline-wizard.component.html`, remplacer toute l'étape 2 par :
+
+[source,html]
+----
+<!-- ÉTAPE 2: NETTOYAGE DES DONNÉES (UNIQUEMENT) -->
+<mat-step [stepControl]="dataCleaningForm">
+  <form [formGroup]="dataCleaningForm">
+    <div class="step-container animate-fade-in-up">
+      <div class="step-header">
+        <div class="step-icon">
+          <mat-icon>cleaning_services</mat-icon>
+        </div>
+        <h2 class="step-title">Nettoyage des Données</h2>
+        <p class="step-description">Détectons et corrigeons les problèmes dans votre dataset</p>
+      </div>
+      
+      <!-- Contenu du fichier step2-cleaning-only.html -->
+    </div>
+  </form>
+</mat-step>
+----
+
+=== 2. Modifier l'étape 3
+
+Remplacer l'étape 3 actuelle "Configuration du Modèle" par le contenu de `step3-model-config.html`.
+
+=== 3. Mettre à jour les FormGroups
+
+Dans `ml-pipeline-wizard.component.ts` :
+
+[source,typescript]
+----
+initializeForms() {
+  // Étape 2: UNIQUEMENT nettoyage
+  this.dataCleaningForm = this.fb.group({
+    analysisCompleted: [false, Validators.requiredTrue],
+    cleaningStrategy: ['auto'], // 'auto' ou 'manual'
+    columnStrategies: [{}], // Stratégies par colonne
+    outlierDetection: [true]
+  });
+  
+  // Étape 3: Configuration du modèle (tout le reste)
+  this.dataQualityForm = this.fb.group({
+    // Objectif
+    targetColumn: ['', Validators.required],
+    taskType: ['classification', Validators.required],
+    
+    // Division
+    testSize: [20, [Validators.min(10), Validators.max(40)]],
+    
+    // Préparation finale
+    featureScaling: [true],
+    scalingMethod: ['standard'],
+    categoricalEncoding: ['onehot']
+  });
+}
+----
+
+=== 4. Ajouter les méthodes nécessaires
+
+[source,typescript]
+----
+// Pour l'étape 2 - Nettoyage
+analyzeDataQuality() {
+  this.isAnalyzingData = true;
+  
+  this.mlPipelineService.analyzeDataQuality({
+    dataset_id: this.datasetId,
+    sample_size: 10000
+  }).subscribe(result => {
+    this.dataQualityAnalysis = result;
+    this.processAnalysisForCleaning(result);
+    this.isAnalyzingData = false;
+  });
+}
+
+processAnalysisForCleaning(analysis: any) {
+  this.columnsAnalysis = [];
+  
+  // Extraire uniquement les infos de nettoyage
+  const missingData = analysis.missing_data_analysis?.columns_with_missing || {};
+  
+  for (const [columnName, info] of Object.entries(missingData)) {
+    this.columnsAnalysis.push({
+      name: columnName,
+      type: info.data_type,
+      missingPercentage: info.missing_percentage,
+      missingCount: info.missing_count,
+      recommendedStrategy: info.recommended_strategy.strategy,
+      selectedStrategy: info.recommended_strategy.strategy
+    });
+  }
+}
+
+// Helpers pour l'affichage
+getColumnsWithIssues(): any[] {
+  return this.columnsAnalysis.filter(col => col.missingPercentage > 0);
+}
+
+getActionIcon(strategy: string): string {
+  const icons = {
+    'drop': 'delete',
+    'mean': 'functions',
+    'median': 'equalizer',
+    'mode': 'bar_chart',
+    'forward_fill': 'arrow_forward'
+  };
+  return icons[strategy] || 'build';
+}
+
+getActionTitle(strategy: string): string {
+  const titles = {
+    'drop': 'Supprimer la colonne',
+    'mean': 'Remplacer par la moyenne',
+    'median': 'Remplacer par la médiane',
+    'mode': 'Remplacer par la valeur la plus fréquente',
+    'forward_fill': 'Propagation avant'
+  };
+  return titles[strategy] || strategy;
+}
+----
+
+=== 5. Ajouter les styles
+
+Inclure le contenu de `cleaning-and-config-steps.scss` dans le fichier SCSS du wizard.
+
+== Bénéfices de la séparation
+
+=== Pour l'utilisateur
+
+* ✅ **Clarté** : Une étape = un objectif clair
+* ✅ **Progression logique** : Nettoyer → Configurer → Entraîner
+* ✅ **Moins intimidant** : Petites étapes digestes
+
+=== Pour le développement
+
+* ✅ **Modularité** : Code mieux organisé
+* ✅ **Maintenance** : Plus facile à modifier
+* ✅ **Testabilité** : Chaque étape testable indépendamment
+
+== Flux utilisateur final
+
+[plantuml]
+----
+@startuml
+start
+:Étape 1: Sélection dataset;
+:Étape 2: NETTOYAGE UNIQUEMENT;
+note right
+  - Analyse qualité
+  - Valeurs manquantes
+  - Outliers
+  - Pas de variable cible !
+end note
+:Étape 3: CONFIGURATION MODÈLE;
+note right
+  - Variable cible
+  - Type de tâche
+  - Split données
+  - Normalisation
+end note
+:Étape 4: Algorithme;
+:Étape 5: Hyperparamètres;
+:Étape 6: Entraînement;
+stop
+@enduml
+----
+
+== Points d'attention
+
+1. **Variable cible** : Maintenant dans l'étape 3, pas 2 !
+2. **Nettoyage** : Se concentre UNIQUEMENT sur la qualité des données
+3. **Configuration** : Regroupe tous les choix liés au modèle ML
+
+Cette séparation rend le processus beaucoup plus clair et guidé pour les utilisateurs non-techniques.

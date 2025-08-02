@@ -1,0 +1,319 @@
+= Guide d'intégration : Nouvelle étape de nettoyage dans le wizard ML
+:toc:
+:toclevels: 3
+:icons: font
+
+== Vue d'ensemble
+
+Ce guide explique comment intégrer la nouvelle étape de nettoyage des données directement dans le wizard ML Pipeline, conformément aux exigences :
+
+* Étape dédiée uniquement au nettoyage
+* Explications claires pour les non-experts  
+* Interface simple avec option "Auto-Fix Magique"
+* Possibilité de personnalisation manuelle
+
+== Structure proposée
+
+=== Organisation des étapes
+
+[cols="1,3,3"]
+|===
+| Étape | Nom | Responsabilité
+
+| 1
+| Sélection du Dataset
+| Confirmer le choix du dataset
+
+| 2
+| **Nettoyage des données** ⭐
+| Analyser et corriger les problèmes de qualité
+
+| 3
+| Configuration du modèle
+| Choisir la variable cible et le type de tâche
+
+| 4
+| Choix de l'algorithme
+| Sélectionner l'algorithme ML
+
+| 5
+| Hyperparamètres
+| Ajuster les paramètres
+
+| 6
+| Entraînement
+| Lancer et suivre l'entraînement
+|===
+
+== Implémentation de l'étape 2
+
+=== 1. Structure HTML
+
+L'étape de nettoyage comprend 3 états principaux :
+
+==== État initial : Éducation
+[source,html]
+----
+<!-- Explications pédagogiques sur le nettoyage -->
+<div class="pre-analysis-state">
+  <!-- Introduction : pourquoi nettoyer -->
+  <div class="education-intro">
+    <h3>🎯 Pourquoi nettoyer les données ?</h3>
+    <p>80% du travail en IA = préparer les données</p>
+  </div>
+  
+  <!-- Problèmes courants illustrés -->
+  <div class="problem-cards">
+    <!-- Cartes visuelles pour chaque type de problème -->
+  </div>
+  
+  <!-- Solutions expliquées simplement -->
+  <div class="solution-strategies">
+    <!-- 3 stratégies : Suppression, Imputation, Interpolation -->
+  </div>
+  
+  <!-- Call to action -->
+  <button (click)="analyzeDataQuality()">
+    Lancer l'analyse automatique
+  </button>
+</div>
+----
+
+==== État analyse : Feedback visuel
+[source,html]
+----
+<div class="analyzing-state">
+  <mat-spinner></mat-spinner>
+  <h3>🔍 Analyse en cours...</h3>
+  <!-- Étapes de progression -->
+</div>
+----
+
+==== État résultats : Actions et personnalisation
+[source,html]
+----
+<div class="analysis-results-state">
+  <!-- Score de qualité global -->
+  <div class="quality-overview">
+    <div class="score-card">92/100</div>
+    <div class="stats-cards"><!-- Stats --></div>
+  </div>
+  
+  <!-- Bouton Auto-Fix principal -->
+  <button class="auto-fix-button" (click)="applyAutoFix()">
+    ✨ Appliquer toutes les recommandations
+  </button>
+  
+  <!-- Détails par colonne avec personnalisation -->
+  <mat-tab-group>
+    <mat-tab label="Problèmes détectés">
+      <!-- Colonnes avec issues -->
+    </mat-tab>
+    <mat-tab label="Colonnes propres">
+      <!-- Colonnes OK -->
+    </mat-tab>
+  </mat-tab-group>
+</div>
+----
+
+=== 2. Logique TypeScript
+
+==== Analyse de qualité avec cache
+[source,typescript]
+----
+analyzeDataQuality() {
+  this.isAnalyzingData = true;
+  
+  this.mlPipelineService.analyzeDataQuality({
+    dataset_id: this.datasetId,
+    force_refresh: false  // Utilise le cache
+  }).subscribe(
+    analysis => {
+      this.dataQualityAnalysis = analysis;
+      this.processAnalysisResults(analysis);
+      this.isAnalyzingData = false;
+    }
+  );
+}
+
+processAnalysisResults(analysis: any) {
+  // Transformer les résultats pour l'affichage
+  this.columnsAnalysis = [];
+  
+  Object.entries(analysis.missing_data_analysis.columns_with_missing)
+    .forEach(([columnName, info]: [string, any]) => {
+      this.columnsAnalysis.push({
+        name: columnName,
+        type: this.getColumnType(info),
+        missingPercentage: info.missing_percentage,
+        missingCount: info.missing_count,
+        totalCount: this.getTotalRows(),
+        recommendedStrategy: info.recommended_strategy.strategy,
+        recommendationReason: info.recommended_strategy.reason,
+        selectedStrategy: info.recommended_strategy.strategy // Par défaut
+      });
+    });
+}
+----
+
+==== Application automatique des recommandations
+[source,typescript]
+----
+applyAutoFixRecommendations() {
+  // Animation de traitement
+  this.isProcessing = true;
+  
+  // Appliquer toutes les stratégies recommandées
+  this.columnsAnalysis.forEach(column => {
+    column.selectedStrategy = column.recommendedStrategy;
+  });
+  
+  // Sauvegarder la configuration
+  this.dataCleaningForm.patchValue({
+    columnStrategies: this.buildStrategiesConfig(),
+    autoFixApplied: true,
+    analysisCompleted: true
+  });
+  
+  // Feedback visuel
+  setTimeout(() => {
+    this.isProcessing = false;
+    this.showSuccessMessage = true;
+  }, 1000);
+}
+----
+
+=== 3. Styles SCSS
+
+Le design suit une approche moderne et accessible :
+
+[source,scss]
+----
+// Palette de couleurs pour la sévérité
+.critical { background: #ffebee; color: #c62828; }
+.high { background: #ffe0b2; color: #e65100; }
+.medium { background: #fff9c4; color: #f57f17; }
+.low { background: #dcedc8; color: #33691e; }
+
+// Cartes de problèmes avec hover effect
+.problem-card {
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+}
+
+// Bouton Auto-Fix proéminent
+.auto-fix-button {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+----
+
+== Flux utilisateur optimal
+
+[plantuml]
+----
+@startuml
+start
+:Utilisateur arrive à l'étape 2;
+:Affichage des explications pédagogiques;
+:Clic sur "Lancer l'analyse";
+:Animation d'analyse (5-10s);
+:Affichage des résultats avec score;
+if (Auto-Fix?) then (oui)
+  :Application automatique;
+  :Confirmation visuelle;
+else (non)
+  :Personnalisation manuelle;
+  :Sélection par colonne;
+endif
+:Validation et passage étape 3;
+stop
+@enduml
+----
+
+== Points clés de l'UX
+
+=== Pédagogie intégrée
+* Explications visuelles des problèmes
+* Exemples concrets (Âge: 999 ans)
+* Impact clairement expliqué
+
+=== Simplicité d'usage
+* Un seul bouton principal : Auto-Fix
+* Personnalisation cachée par défaut
+* Progression claire et guidée
+
+=== Feedback constant
+* Animations pendant l'analyse
+* Score de qualité visuel
+* Confirmation des actions
+
+== Migration depuis l'ancienne version
+
+Pour migrer depuis l'ancienne version où le nettoyage était mélangé avec la configuration :
+
+1. **Séparer les FormGroups**
+   - `dataCleaningForm` : uniquement nettoyage
+   - `dataQualityForm` : variable cible + config modèle
+
+2. **Déplacer les contrôles**
+   - Variable cible → Étape 3
+   - Type de tâche → Étape 3
+   - Scaling/Encoding → Appliqués après nettoyage
+
+3. **Simplifier l'interface**
+   - Retirer les options expertes par défaut
+   - Ajouter un mode "avancé" optionnel
+
+== Exemple d'utilisation
+
+[source,typescript]
+----
+// Composant wizard principal
+export class MlPipelineWizardComponent {
+  
+  // État de l'étape de nettoyage
+  dataQualityAnalysis: any = null;
+  columnsAnalysis: ColumnAnalysis[] = [];
+  isAnalyzingData = false;
+  
+  // Méthode principale
+  analyzeDataQuality() {
+    this.isAnalyzingData = true;
+    
+    this.mlPipelineService.analyzeDataQuality({
+      dataset_id: this.datasetId,
+      sample_size: 10000
+    }).subscribe(
+      result => {
+        this.dataQualityAnalysis = result;
+        this.generateColumnsAnalysis(result);
+        this.isAnalyzingData = false;
+      }
+    );
+  }
+  
+  // Validation de l'étape
+  isDataCleaningComplete(): boolean {
+    return this.dataCleaningForm.get('analysisCompleted')?.value === true;
+  }
+}
+----
+
+== Résultat attendu
+
+L'implémentation de cette nouvelle étape permet :
+
+* ✅ **Clarté** : Une étape = une fonction
+* ✅ **Accessibilité** : Explications pour non-experts
+* ✅ **Performance** : Cache des analyses
+* ✅ **Flexibilité** : Auto ou manuel
+* ✅ **Modernité** : Design actuel et animations
+
+Cette approche rend le nettoyage des données accessible à tous, tout en gardant la puissance nécessaire pour les utilisateurs avancés.

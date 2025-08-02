@@ -1,0 +1,47 @@
+<div class="credits-indicator" [class]="'size-' + size">
+  <!-- Indicateur circulaire -->
+  <div class="credits-container">
+    <svg class="progress-ring" [attr.width]="(radius + 6) * 2" [attr.height]="(radius + 6) * 2">
+      <!-- Cercle de fond -->
+      <circle
+        class="progress-ring-background"
+        [attr.cx]="radius + 6"
+        [attr.cy]="radius + 6"
+        [attr.r]="radius"
+        fill="transparent">
+      </circle>
+      
+      <!-- Cercle de progression -->
+      <circle
+        class="progress-ring-progress no-animation"
+        [class]="getColorClass()"
+        [attr.cx]="radius + 6"
+        [attr.cy]="radius + 6"
+        [attr.r]="radius"
+        fill="transparent"
+        [attr.stroke-dasharray]="circumference"
+        [attr.stroke-dashoffset]="strokeDashoffset">
+      </circle>
+    </svg>
+    
+    <!-- Cercle vide sans contenu central -->
+    
+    <!-- Icône d'information -->
+    <button 
+      *ngIf="showInfo"
+      class="info-button"
+      mat-icon-button
+      [matTooltip]="getTooltipMessage()"
+      matTooltipPosition="above"
+      type="button"
+      aria-label="Information sur les crédits">
+      <mat-icon class="info-icon">help_outline</mat-icon>
+    </button>
+  </div>
+  
+  <!-- Informations texte à côté du cercle -->
+  <div class="credits-info" *ngIf="showLabel || showInfo">
+    <div class="credits-text">{{ remaining }}</div>
+    <div class="credits-label">crédits</div>
+  </div>
+</div>

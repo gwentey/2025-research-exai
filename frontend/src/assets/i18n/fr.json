@@ -394,6 +394,13 @@
       "VERIFIED": "Vérifié",
       "ACTIVE": "Actif"
     },
+    "CREDITS": {
+      "TITLE": "Crédits disponibles",
+      "DESCRIPTION": "Vos crédits pour l'entraînement ML",
+      "ML_USAGE": "Utilisés pour créer et entraîner vos modèles d'IA",
+      "REMAINING": "crédits restants",
+      "REFILL_BUTTON": "Recharger les crédits"
+    },
     "PERSONAL_INFO": {
       "TITLE": "Informations Personnelles",
       "EMAIL": "Adresse E-mail",
@@ -1224,5 +1231,46 @@
     "RUNNING_COUNT": "En cours d'exécution",
     "AVG_ACCURACY": "Précision moyenne",
     "SUCCESS_RATE": "Taux de réussite"
+  },
+  "CREDITS_REFILL": {
+    "TITLE": "Recharge de crédits",
+    "CURRENT_BALANCE": "Solde actuel",
+    "CURRENT_STATUS": "Statut actuel",
+    "CREDITS": "crédits",
+    "LOADING": "Récupération en cours...",
+    "HOW_IT_WORKS": {
+      "TITLE": "Comment ça fonctionne",
+      "FREQUENCY": {
+        "TITLE": "Récupération tous les 30 jours",
+        "DESC": "Vous pouvez récupérer 10 crédits gratuits toutes les 30 jours."
+      },
+      "LIMIT": {
+        "TITLE": "Plafond de 10 crédits",
+        "DESC": "Le nombre maximum de crédits est de 10, même si vous n'avez pas tout utilisé."
+      },
+      "USAGE": {
+        "TITLE": "Utilisation pour l'IA",
+        "DESC": "Chaque crédit vous permet de créer et d'entraîner un modèle d'intelligence artificielle."
+      }
+    },
+    "AVAILABLE": {
+      "MESSAGE": "Vous pouvez récupérer vos crédits maintenant !",
+      "BUTTON": "Récupérer 10 crédits"
+    },
+    "WAITING": {
+      "MESSAGE": "Vous devez attendre avant de pouvoir récupérer de nouveaux crédits.",
+      "DAYS_REMAINING": "jour(s) restant(s)",
+      "NEXT_CLAIM": "Prochaine récupération possible le"
+    },
+    "INFO": {
+      "TITLE": "Informations utiles",
+      "DESCRIPTION": "Les crédits sont essentiels pour utiliser notre plateforme d'intelligence artificielle. Voici quelques conseils pour optimiser leur utilisation.",
+      "TIPS": {
+        "TITLE": "Conseils d'utilisation :",
+        "TIP1": "Planifiez vos projets IA pour optimiser l'usage de vos crédits",
+        "TIP2": "Les modèles plus complexes consomment plus de crédits",
+        "TIP3": "Sauvegardez vos modèles réussis pour éviter de les recréer"
+      }
+    }
   }
 }

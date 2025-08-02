@@ -1,0 +1,332 @@
+.credits-refill-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  
+  .page-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+    
+    .back-button {
+      color: #6b7280;
+      
+      &:hover {
+        color: #374151;
+        background-color: rgba(107, 114, 128, 0.1);
+      }
+    }
+    
+    .page-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #111827;
+    }
+  }
+  
+  .refill-card {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      
+      .title-icon {
+        color: #3b82f6;
+        font-size: 24px;
+      }
+    }
+    
+    .current-credits-section {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 32px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      
+      .credits-display {
+        flex-shrink: 0;
+      }
+      
+      .credits-status {
+        flex: 1;
+        
+        .status-text {
+          margin: 0;
+          font-size: 16px;
+          color: #374151;
+          line-height: 1.5;
+        }
+      }
+    }
+    
+    .explanation-section {
+      margin-bottom: 32px;
+      
+      .section-title {
+        margin: 0 0 20px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+      }
+      
+      .explanation-points {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        
+        .point {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          padding: 16px;
+          background-color: #f9fafb;
+          border-radius: 8px;
+          border-left: 4px solid #3b82f6;
+          
+          .point-icon {
+            color: #3b82f6;
+            font-size: 24px;
+            margin-top: 2px;
+            flex-shrink: 0;
+          }
+          
+          .point-content {
+            flex: 1;
+            
+            h4 {
+              margin: 0 0 8px 0;
+              font-size: 14px;
+              font-weight: 600;
+              color: #111827;
+            }
+            
+            p {
+              margin: 0;
+              font-size: 13px;
+              color: #6b7280;
+              line-height: 1.4;
+            }
+          }
+        }
+      }
+    }
+    
+    .action-section {
+      .can-claim {
+        text-align: center;
+        padding: 24px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+        border-radius: 8px;
+        border: 1px solid #bbf7d0;
+        
+        .claim-info {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 20px;
+          
+          .success-icon {
+            color: #059669;
+            font-size: 48px;
+            width: 48px;
+            height: 48px;
+          }
+          
+          .claim-message {
+            margin: 0;
+            font-size: 16px;
+            color: #065f46;
+            font-weight: 500;
+          }
+        }
+        
+        .claim-button {
+          font-size: 16px;
+          padding: 12px 32px;
+          height: auto;
+          font-weight: 600;
+          
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+      
+      .must-wait {
+        text-align: center;
+        padding: 24px;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border-radius: 8px;
+        border: 1px solid #fcd34d;
+        
+        .wait-info {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          
+          .warning-icon {
+            color: #d97706;
+            font-size: 48px;
+            width: 48px;
+            height: 48px;
+            margin-bottom: 8px;
+          }
+          
+          .wait-message {
+            margin: 0;
+            font-size: 16px;
+            color: #92400e;
+            font-weight: 500;
+          }
+          
+          .wait-details {
+            margin: 0;
+            font-size: 18px;
+            color: #b45309;
+          }
+          
+          .next-claim {
+            margin: 0;
+            font-size: 14px;
+            color: #92400e;
+          }
+        }
+      }
+      
+      .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 24px;
+        
+        .loading-text {
+          margin: 0;
+          font-size: 14px;
+          color: #6b7280;
+        }
+      }
+    }
+  }
+  
+  .info-card {
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    
+    .info-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      
+      .info-icon {
+        color: #6b7280;
+        font-size: 20px;
+      }
+    }
+    
+    .info-content {
+      p {
+        margin: 0 0 16px 0;
+        font-size: 14px;
+        color: #6b7280;
+        line-height: 1.5;
+      }
+      
+      .tips {
+        h4 {
+          margin: 0 0 12px 0;
+          font-size: 14px;
+          font-weight: 600;
+          color: #374151;
+        }
+        
+        ul {
+          margin: 0;
+          padding-left: 20px;
+          
+          li {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.4;
+            
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .credits-refill-page {
+    padding: 16px;
+    
+    .page-header {
+      margin-bottom: 20px;
+      
+      .page-title {
+        font-size: 20px;
+      }
+    }
+    
+    .refill-card {
+      .current-credits-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+      
+      .explanation-section {
+        .explanation-points {
+          .point {
+            .point-content {
+              h4 {
+                font-size: 13px;
+              }
+              
+              p {
+                font-size: 12px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Styles pour les snackbars
+:host ::ng-deep {
+  .success-snackbar {
+    background-color: #10b981 !important;
+    color: white !important;
+  }
+  
+  .warning-snackbar {
+    background-color: #f59e0b !important;
+    color: white !important;
+  }
+}

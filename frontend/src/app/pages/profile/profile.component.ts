@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from '../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
 import { UserRead, UserUpdate, PasswordUpdate, AccountDeletionRequest } from '../../models/auth.models';
+import { CreditsIndicatorComponent } from '../../components/credits-indicator/credits-indicator.component';
 
 @Component({
   selector: 'app-profile',
@@ -17,9 +18,11 @@ import { UserRead, UserUpdate, PasswordUpdate, AccountDeletionRequest } from '..
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
+    RouterModule,
     MaterialModule,
     TablerIconsModule,
-    TranslateModule
+    TranslateModule,
+    CreditsIndicatorComponent
   ],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
@@ -425,5 +428,12 @@ export class ProfileComponent implements OnInit {
         this.showError(this.translateService.instant('PROFILE.DELETE_ACCOUNT.ERROR'));
       }
     });
+  }
+
+  /**
+   * Retourne le nombre de crédits de l'utilisateur actuel
+   */
+  getUserCredits(): number {
+    return this.currentUser?.credits ?? 0;
   }
 } 

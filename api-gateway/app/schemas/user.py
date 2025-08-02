@@ -2,6 +2,7 @@ import uuid
 from fastapi_users import schemas
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, validator
+from datetime import datetime
 
 # Modèle Pydantic pour les comptes OAuth
 class OAuthAccountRead(BaseModel):
@@ -23,6 +24,9 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     education_level: Optional[str] = None
     age: Optional[int] = None
     ai_familiarity: Optional[int] = None
+    # Système de crédits
+    credits: int
+    date_claim: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -53,7 +57,9 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
             oauth_accounts=oauth_accounts_data,
             education_level=user.education_level,
             age=user.age,
-            ai_familiarity=user.ai_familiarity
+            ai_familiarity=user.ai_familiarity,
+            credits=user.credits,
+            date_claim=user.date_claim
         )
 
 # Schéma Pydantic pour la création d'un utilisateur
@@ -70,6 +76,8 @@ class UserCreate(schemas.BaseUserCreate):
     education_level: Optional[str] = None
     age: Optional[int] = None
     ai_familiarity: Optional[int] = None
+    # Système de crédits
+    credits: Optional[int] = 10
     
     class Config:
         json_schema_extra = {
@@ -80,7 +88,8 @@ class UserCreate(schemas.BaseUserCreate):
                 "picture": "string",
                 "given_name": "string",
                 "family_name": "string",
-                "locale": "string"
+                "locale": "string",
+                "credits": 10
             }
         }
 
@@ -96,6 +105,9 @@ class UserUpdate(schemas.BaseUserUpdate):
     education_level: Optional[str] = None
     age: Optional[int] = None
     ai_familiarity: Optional[int] = None
+    # Système de crédits
+    credits: Optional[int] = None
+    date_claim: Optional[datetime] = None
 
 # Schéma spécifique pour la mise à jour du profil (sans mot de passe)
 class UserProfileUpdate(BaseModel):
@@ -107,6 +119,9 @@ class UserProfileUpdate(BaseModel):
     education_level: Optional[str] = None
     age: Optional[int] = None
     ai_familiarity: Optional[int] = None
+    # Système de crédits
+    credits: Optional[int] = None
+    date_claim: Optional[datetime] = None
 
     class Config:
         json_schema_extra = {

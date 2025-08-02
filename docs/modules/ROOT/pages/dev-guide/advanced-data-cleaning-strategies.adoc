@@ -1,0 +1,556 @@
+= Stratégies Avancées de Nettoyage de Données Multi-Colonnes
+:description: Guide complet des 3 approches principales pour le nettoyage intelligent des données
+:keywords: nettoyage, données, imputation, interpolation, suppression, KNN, MICE, outliers
+:page-status: stable
+
+[.summary]
+Ce guide détaille les trois approches principales pour nettoyer intelligemment les données dans IBIS-X : **Suppression**, **Imputation**, et **Interpolation**. Le système analyse automatiquement chaque colonne et recommande la stratégie optimale.
+
+== Vue d'ensemble des stratégies
+
+=== 🗑️ SUPPRESSION (Deletion)
+
+La suppression est recommandée quand les données sont trop corrompues pour être récupérées de manière fiable.
+
+[cols="3,2,5", options="header"]
+|===
+| Méthode | Seuil | Description
+
+| `drop_columns`
+| >70% missing
+| Supprime les colonnes avec trop de données manquantes
+
+| `drop_rows`
+| Configurable
+| Supprime les lignes incomplètes (attention à la perte d'information)
+
+| `drop_outliers`
+| Basé sur IQR/Z-score
+| Supprime les valeurs aberrantes détectées
+|===
+
+[IMPORTANT]
+====
+La suppression peut entraîner une perte significative de données. Utilisez cette approche uniquement quand :
+
+* Plus de 70% des valeurs sont manquantes
+* La colonne ne contient que du bruit
+* Vous avez suffisamment de données restantes
+====
+
+=== 🔧 IMPUTATION (Imputation)
+
+L'imputation remplace les valeurs manquantes par des estimations basées sur les données existantes.
+
+==== Imputation Simple (15-40% missing)
+
+[cols="3,3,4", options="header"]
+|===
+| Méthode | Type de données | Utilisation
+
+| `mean`
+| Numériques normales
+| Distribution gaussienne, pas d'outliers extrêmes
+
+| `median`
+| Numériques asymétriques
+| Données avec outliers, distributions biaisées
+
+| `mode`
+| Catégorielles
+| Variables textuelles, étiquettes
+
+| `constant`
+| Tous types
+| Valeur par défaut (0, "Unknown", etc.)
+|===
+
+==== Imputation Avancée (40-70% missing)
+
+[cols="3,3,4", options="header"]
+|===
+| Méthode | Algorithme | Avantages
+
+| `knn`
+| K-Nearest Neighbors
+| • Considère la similarité entre lignes +
+• Précis pour données complexes +
+• Gère les corrélations
+
+| `iterative`
+| MICE (Multiple Imputation)
+| • Modélise les dépendances entre colonnes +
+• Maximum de précision +
+• Gère les patterns complexes
+
+| `regression`
+| Régression linéaire/logistique
+| • Utilise les autres variables comme prédicteurs +
+• Expliquable et interprétable
+|===
+
+[source,python]
+----
+# Exemple de configuration d'imputation KNN
+{
+  "strategy": "knn",
+  "knn_neighbors": 5,  # Nombre de voisins à considérer
+  "weights": "distance"  # Pondération par distance
+}
+
+# Exemple de configuration d'imputation iterative
+{
+  "strategy": "iterative", 
+  "max_iter": 10,  # Nombre d'itérations max
+  "random_state": 42  # Pour la reproductibilité
+}
+----
+
+=== 📈 INTERPOLATION (Interpolation)
+
+L'interpolation est spécialement conçue pour les données temporelles ou séquentielles.
+
+[cols="3,3,4", options="header"]
+|===
+| Méthode | Type de données | Description
+
+| `linear`
+| Séries temporelles
+| Interpolation linéaire entre points adjacents
+
+| `polynomial`
+| Données courbes
+| Ajustement polynomial d'ordre supérieur
+
+| `spline`
+| Données lisses
+| Splines cubiques pour transitions douces
+
+| `forward_fill`
+| Séquentielles
+| Propage la dernière valeur valide
+
+| `backward_fill`
+| Séquentielles
+| Utilise la prochaine valeur valide
+|===
+
+== Règles de Décision Automatique
+
+Le système IBIS-X utilise une logique intelligente pour choisir automatiquement la meilleure stratégie :
+
+[source,yaml]
+----
+Analyse de Colonne:
+  Pourcentage Missing > 70%:
+    → SUPPRESSION (drop_column)
+    
+  Pourcentage Missing 40-70%:
+    Si Catégorielle:
+      → IMPUTATION (mode + unknown_category)
+    Si Numérique:
+      → IMPUTATION AVANCÉE (knn → iterative)
+      
+  Pourcentage Missing 15-40%:
+    Si Temporelle:
+      → INTERPOLATION (linear → forward_fill)
+    Si Catégorielle:
+      → IMPUTATION (mode)
+    Si Numérique Normale:
+      → IMPUTATION (mean → knn)
+    Si Numérique Asymétrique:
+      → IMPUTATION (median → knn)
+      
+  Pourcentage Missing < 15%:
+    → IMPUTATION SIMPLE (mean/median/mode)
+----
+
+== Gestion Multi-Colonnes
+
+=== Ordre d'Exécution Optimal
+
+Le système applique les stratégies dans un ordre spécifique pour maximiser l'efficacité :
+
+. **Phase 1 : Suppression** - Colonnes trop corrompues
+. **Phase 2 : Imputation Avancée** - KNN et Iterative
+. **Phase 3 : Imputation Simple** - Mean, Median, Mode  
+. **Phase 4 : Interpolation** - Données temporelles
+. **Phase 5 : Encoding & Scaling** - Préparation finale
+
+[source,python]
+----
+# Exemple de plan d'exécution automatique
+execution_plan = {
+  "phase_1_suppression": ["corrupted_column"],
+  "phase_2_advanced": ["income", "credit_score"], 
+  "phase_3_simple": ["age", "category"],
+  "phase_4_interpolation": ["timestamp"],
+  "phase_5_scaling": ["all_numeric_columns"]
+}
+----
+
+=== Coordination entre Fichiers
+
+Pour des projets avec plusieurs fichiers CSV, le système maintient la cohérence :
+
+[cols="2,3,3", options="header"]
+|===
+| Fichier | Colonnes Problématiques | Stratégies Appliquées
+
+| `customers.csv`
+| age (10% missing) +
+income (45% missing)
+| age → median +
+income → knn
+
+| `transactions.csv`
+| amount (8% missing) +
+timestamp (12% missing)
+| amount → median +
+timestamp → linear_interpolation
+
+| `products.csv`
+| price (85% missing) +
+category (80% missing)
+| price → SUPPRESSION +
+category → SUPPRESSION
+|===
+
+== Détection et Traitement des Outliers
+
+=== Méthodes de Détection
+
+[cols="2,3,3,2", options="header"]
+|===
+| Méthode | Principe | Avantages | Inconvénients
+
+| **IQR**
+| Q3 + 1.5×IQR
+| • Robuste +
+• Non-paramétrique
+| • Peut être conservateur
+
+| **Z-Score**
+| |z| > seuil
+| • Simple +
+• Paramétrable
+| • Sensible à la distribution
+
+| **Isolation Forest**
+| Algorithme ML
+| • Détecte patterns complexes +
+• Multivarié
+| • Plus complexe à interpréter
+|===
+
+[source,python]
+----
+# Configuration de détection d'outliers
+outlier_config = {
+  "method": "iqr",           # ou "zscore", "isolation"
+  "threshold": 3.0,          # Pour z-score
+  "contamination": 0.1,      # Pour isolation forest
+  "action": "cap"            # "remove", "cap", "transform"
+}
+----
+
+=== Actions sur les Outliers
+
+* **Remove** : Supprime les outliers (attention à la perte de données)
+* **Cap** : Limite aux valeurs seuils (winsorization)
+* **Transform** : Transformation logarithmique ou autre
+
+== Scaling et Normalisation
+
+=== Méthodes de Scaling
+
+[cols="2,3,3,2", options="header"]
+|===
+| Méthode | Formule | Utilisation | Robustesse
+
+| **StandardScaler**
+| (x - μ) / σ
+| Distribution normale
+| ⭐⭐
+
+| **MinMaxScaler**
+| (x - min) / (max - min)
+| Bornes connues
+| ⭐
+
+| **RobustScaler**
+| (x - médiane) / IQR
+| Avec outliers
+| ⭐⭐⭐
+
+| **QuantileUniform**
+| CDF transformation
+| Distribution arbitraire
+| ⭐⭐⭐
+|===
+
+[CAUTION]
+====
+**Ordre Important** : Appliquez toujours le scaling APRÈS le nettoyage des données manquantes et des outliers.
+
+```
+Données Brutes → Nettoyage Missing → Outliers → Scaling → ML Model
+```
+====
+
+== Interface Utilisateur
+
+=== Toggle IA Recommandations
+
+L'interface propose deux modes :
+
+[tabs]
+====
+Mode Automatique (IA)::
++
+--
+* L'IA analyse automatiquement chaque colonne
+* Recommande les meilleures stratégies
+* Applique les configurations optimales
+* Badge "IA" pour indiquer l'assistance intelligente
+--
+
+Mode Manuel::
++
+--
+* L'utilisateur choisit les stratégies manuellement
+* Accès aux paramètres avancés
+* Explications détaillées pour chaque choix
+* Warnings pour les configurations risquées
+--
+====
+
+=== Tooltips et Aide Contextuelle
+
+Chaque option dispose d'explications intégrées :
+
+* **Tooltips** : Explication courte au survol
+* **Cards d'explication** : Détails avec pros/cons
+* **Box d'aide** : Guide complet des 3 approches
+* **Indicateurs visuels** : Complexité et recommandations
+
+=== Analyse de Qualité en Temps Réel
+
+L'interface affiche :
+
+* **Score de qualité** (0-100) avec code couleur
+* **Niveau de sévérité** (none, low, medium, high, critical)
+* **Issues principales** identifiées automatiquement
+* **Recommandations spécifiques** par colonne
+
+== Exemples Pratiques
+
+=== Dataset E-commerce
+
+[source,yaml]
+----
+Dataset: commandes_ecommerce.csv
+Problèmes identifiés:
+  - client_age: 8% missing → median imputation
+  - prix_panier: 12% missing → mean imputation  
+  - code_promo: 65% missing → mode + "AUCUN"
+  - commentaire_client: 95% missing → SUPPRESSION
+  - date_commande: 3% missing → linear interpolation
+
+Plan d'exécution:
+  1. Supprimer: commentaire_client
+  2. Imputer: code_promo (mode + "AUCUN")
+  3. Imputer: prix_panier (mean), client_age (median)
+  4. Interpoler: date_commande (linear)
+  5. Scaler: prix_panier, client_age (standard)
+----
+
+=== Dataset IoT Capteurs
+
+[source,yaml]
+----
+Dataset: capteurs_temperature.csv
+Problèmes identifiés:
+  - temperature: 15% missing → linear interpolation
+  - humidite: 18% missing → linear interpolation  
+  - capteur_id: 0% missing → aucune action
+  - batterie: 22% missing → forward_fill
+  - status: 45% missing → mode imputation
+
+Spécificités temporelles:
+  - Interpolation privilégiée (données séquentielles)
+  - Forward fill pour batterie (valeur persiste)
+  - Détection d'outliers activée (pannes capteurs)
+----
+
+== Monitoring et Logs
+
+=== Métriques de Qualité
+
+Le système suit automatiquement :
+
+* **Avant/Après** : Pourcentages de missing values
+* **Colonnes supprimées** : Impact sur la dimensionnalité
+* **Stratégies appliquées** : Audit trail complet
+* **Temps d'exécution** : Performance par méthode
+
+=== Logs d'Exécution
+
+[source,log]
+----
+[INFO] Début analyse qualité dataset: ecommerce_data.csv
+[INFO] 4 colonnes analysées, 3 problèmes détectés
+[WARN] commentaire_client: 95% missing → SUPPRESSION recommandée
+[INFO] code_promo: 65% missing → Mode + Unknown recommandé
+[INFO] Exécution phase 1: Suppression (1 colonne)
+[INFO] Exécution phase 2: Imputation avancée (1 colonne) 
+[INFO] Exécution phase 3: Imputation simple (2 colonnes)
+[INFO] Nettoyage terminé: 3/4 colonnes conservées
+[SUCCESS] Dataset prêt pour l'entraînement ML
+----
+
+== Bonnes Pratiques
+
+=== Do ✅
+
+* **Analyser d'abord** : Comprendre la nature des données manquantes
+* **Tester plusieurs stratégies** : Comparer les performances
+* **Documenter les choix** : Traçabilité des décisions
+* **Valider les résultats** : Vérifier la cohérence post-nettoyage
+
+=== Don't ❌
+
+* **Suppression systématique** : Éviter la perte d'information
+* **Imputation aveugle** : Ne pas ignorer la distribution des données
+* **Outliers ignorés** : Peuvent révéler des insights importants
+* **Scaling avant nettoyage** : L'ordre des opérations compte
+
+=== Cas d'Usage Avancés
+
+==== Données Déséquilibrées
+
+Pour des datasets avec classes rares :
+
+[source,python]
+----
+# Stratégie préservant les classes minoritaires
+strategy = {
+  "missing_values": "knn",  # Préserve les patterns locaux
+  "outliers": "cap",        # Évite la suppression
+  "scaling": "robust"       # Résistant aux déséquilibres
+}
+----
+
+==== Données Haute Dimensionnalité
+
+Pour de nombreuses colonnes :
+
+[source,python]
+----
+# Optimisation pour performance
+strategy = {
+  "missing_threshold": 0.5,    # Plus permissif
+  "knn_neighbors": 3,          # Moins de voisins
+  "max_iterations": 5,         # Convergence rapide
+  "parallel": True             # Traitement parallèle
+}
+----
+
+==== Données Temporelles
+
+Pour séries chronologiques :
+
+[source,python]
+----
+# Préservation de la continuité temporelle
+strategy = {
+  "method": "interpolation",
+  "interpolation_type": "linear",
+  "fill_method": "forward",
+  "limit": 3  # Max 3 valeurs consécutives
+}
+----
+
+== Résolution de Problèmes
+
+=== Erreurs Communes
+
+[cols="3,4,3", options="header"]
+|===
+| Problème | Cause | Solution
+
+| OutOfMemoryError
+| Dataset trop volumineux pour KNN/Iterative
+| • Réduire sample_size +
+• Utiliser imputation simple +
+• Traitement par chunks
+
+| Convergence échouée
+| Iterative imputation ne converge pas
+| • Augmenter max_iter +
+• Réduire la tolerance +
+• Fallback vers KNN
+
+| Colonnes corrompues
+| Détection automatique échoue
+| • Vérifier types de données +
+• Forcer la suppression manuelle +
+• Nettoyer en amont
+|===
+
+=== Optimisation Performance
+
+* **Échantillonnage** : Tester sur un subset d'abord
+* **Parallélisation** : Utiliser tous les cœurs disponibles  
+* **Cache stratégies** : Réutiliser les modèles entraînés
+* **Profiling** : Identifier les goulots d'étranglement
+
+== Intégration API
+
+=== Endpoints Disponibles
+
+[source,http]
+----
+POST /data-quality/analyze
+{
+  "dataset_id": "string",
+  "target_column": "string",
+  "sample_size": 5000
+}
+
+POST /data-quality/suggest-strategy  
+{
+  "dataset_id": "string",
+  "columns": ["col1", "col2"],
+  "preferences": {
+    "max_missing_threshold": 0.7,
+    "prefer_simple_methods": false
+  }
+}
+----
+
+=== Réponses Structurées
+
+[source,json]
+----
+{
+  "data_quality_score": 78,
+  "severity_level": "medium", 
+  "recommendations": {
+    "age": {
+      "strategy": "median",
+      "confidence": 0.9,
+      "explanation": "Distribution asymétrique détectée"
+    },
+    "income": {
+      "strategy": "knn", 
+      "confidence": 0.7,
+      "explanation": "45% missing, corrélé avec âge"
+    }
+  },
+  "execution_plan": ["income", "age"],
+  "estimated_duration": "30 seconds"
+}
+----
+
+Cette documentation fournit une base complète pour comprendre et utiliser efficacement le système de nettoyage intelligent d'IBIS-X. Le système s'adapte automatiquement aux spécificités de vos données tout en vous laissant la possibilité de personnaliser les stratégies selon vos besoins.

@@ -1,0 +1,406 @@
+.data-cleaning-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Section vue d'ensemble
+.overview-section {
+  margin-bottom: 24px;
+  
+  .quality-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    
+    .quality-header {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-bottom: 24px;
+      
+      .quality-score {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        &.excellent { 
+          .score-icon { color: #4caf50; }
+          .score-value { color: #4caf50; }
+        }
+        &.good { 
+          .score-icon { color: #2196f3; }
+          .score-value { color: #2196f3; }
+        }
+        &.fair { 
+          .score-icon { color: #ff9800; }
+          .score-value { color: #ff9800; }
+        }
+        &.poor { 
+          .score-icon { color: #f44336; }
+          .score-value { color: #f44336; }
+        }
+        
+        .score-icon {
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+        }
+        
+        .score-details {
+          display: flex;
+          flex-direction: column;
+          
+          .score-value {
+            font-size: 32px;
+            font-weight: 700;
+          }
+          
+          .score-label {
+            font-size: 14px;
+            color: rgba(0,0,0,0.6);
+          }
+        }
+      }
+      
+      .quality-stats {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        
+        .stat {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          background: rgba(255,255,255,0.8);
+          border-radius: 20px;
+          
+          &.has-issues {
+            background: rgba(255,152,0,0.1);
+            color: #f57c00;
+          }
+          
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+    }
+    
+    .quick-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      
+      .auto-fix-button {
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+}
+
+// Sélecteur de vue
+.view-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+  
+  button {
+    border-radius: 0;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    
+    &.active {
+      border-bottom-color: var(--mdc-theme-primary);
+      color: var(--mdc-theme-primary);
+    }
+    
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+// Zone de contenu
+.content-area {
+  min-height: 400px;
+}
+
+// Vue d'ensemble
+.overview-content {
+  .critical-section {
+    margin-bottom: 24px;
+    
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f44336;
+      margin-bottom: 16px;
+    }
+    
+    .issues-list {
+      display: grid;
+      gap: 12px;
+      
+      .issue-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        
+        &.critical {
+          background: rgba(244,67,54,0.1);
+          border-left: 4px solid #f44336;
+        }
+        
+        mat-icon {
+          color: #f44336;
+        }
+        
+        .issue-details {
+          strong {
+            display: block;
+            margin-bottom: 4px;
+          }
+          
+          span {
+            color: rgba(0,0,0,0.6);
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+  
+  .distribution-card {
+    .distribution-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      height: 200px;
+      padding: 20px 0;
+      
+      .column-bar {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        
+        .bar-container {
+          flex: 1;
+          width: 100%;
+          display: flex;
+          align-items: flex-end;
+          
+          .bar {
+            width: 100%;
+            background: #2196f3;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+            
+            &.critical { background: #f44336; }
+            &.high { background: #ff5722; }
+            &.medium { background: #ff9800; }
+            &.low { background: #ffc107; }
+            &.none { background: #4caf50; }
+          }
+        }
+        
+        .column-name {
+          margin-top: 8px;
+          font-size: 12px;
+          text-align: center;
+          transform: rotate(-45deg);
+          transform-origin: center;
+          white-space: nowrap;
+          max-width: 100px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+}
+
+// Vue colonnes
+.columns-content {
+  .columns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    
+    .column-card {
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      }
+      
+      &.has-issues {
+        border: 2px solid rgba(255,152,0,0.3);
+      }
+      
+      .missing-indicator {
+        margin: 16px 0;
+        
+        .missing-stats {
+          margin-top: 8px;
+          font-size: 14px;
+          color: rgba(0,0,0,0.6);
+        }
+      }
+      
+      .outlier-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 12px 0;
+        padding: 8px;
+        background: rgba(156,39,176,0.1);
+        border-radius: 4px;
+        
+        mat-icon {
+          color: #9c27b0;
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+      
+      .recommendation {
+        margin: 16px 0;
+        
+        .recommendation-reason {
+          margin-top: 8px;
+          font-size: 13px;
+          color: rgba(0,0,0,0.6);
+          font-style: italic;
+        }
+      }
+      
+      .strategy-select {
+        width: 100%;
+        margin-top: 16px;
+      }
+    }
+  }
+}
+
+// Vue stratégies
+.strategies-content {
+  .impact-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(33,150,243,0.1);
+    border-radius: 8px;
+    margin-bottom: 24px;
+    
+    mat-icon {
+      color: #2196f3;
+    }
+  }
+  
+  .strategies-table {
+    overflow-x: auto;
+    
+    .strategies-matrix {
+      width: 100%;
+      
+      .column-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          color: rgba(0,0,0,0.6);
+        }
+      }
+      
+      .strategy-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+  }
+}
+
+// Options avancées
+.advanced-panel {
+  margin-top: 24px;
+  
+  .advanced-form {
+    padding: 16px;
+    
+    .form-row {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      flex-wrap: wrap;
+      
+      mat-form-field {
+        flex: 1;
+        min-width: 200px;
+      }
+    }
+  }
+}
+
+// Overlay de chargement
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  
+  p {
+    margin-top: 16px;
+    font-size: 16px;
+    color: rgba(0,0,0,0.6);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .quality-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .quick-actions {
+    flex-direction: column;
+    width: 100%;
+    
+    button {
+      width: 100%;
+    }
+  }
+  
+  .columns-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -6,4 +6,9 @@ export const PROFILE_ROUTES: Routes = [
     loadComponent: () => 
       import('./profile.component').then(c => c.ProfileComponent),
   },
+  {
+    path: 'credits-refill',
+    loadComponent: () => 
+      import('./credits-refill/credits-refill.component').then(c => c.CreditsRefillComponent),
+  },
 ]; 

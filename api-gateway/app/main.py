@@ -758,6 +758,43 @@ async def delete_user_account(
     finally:
         await session.close()
 
+@app.post("/users/me/claim-credits", tags=["users"])
+async def claim_user_credits(
+    current_user: UserModel = Depends(current_active_user),
+    user_manager: UserManager = Depends(get_user_manager)
+):
+    """
+    Permet à l'utilisateur de récupérer des crédits (10 maximum, tous les 30 jours).
+    
+    Retourne les détails du claim avec le statut :
+    - success: true si le claim a réussi
+    - success: false si l'utilisateur doit attendre
+    """
+    try:
+        result = await user_manager.claim_credits(current_user)
+        
+        if result["success"]:
+            logger.info(f"Claim de crédits réussi pour l'utilisateur {current_user.id}")
+            return JSONResponse(
+                status_code=200,
+                content=result
+            )
+        else:
+            logger.info(f"Claim de crédits refusé pour l'utilisateur {current_user.id}: {result['message']}")
+            return JSONResponse(
+                status_code=400,
+                content=result
+            )
+    except HTTPException:
+        # Re-lever les HTTPException telles quelles
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors du claim de crédits pour {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Erreur lors de la récupération des crédits"
+        )
+
 # Auth routes (login, logout)
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),

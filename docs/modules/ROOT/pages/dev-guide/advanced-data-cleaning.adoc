@@ -1,0 +1,359 @@
+= Guide Avancé du Nettoyage des Données
+:description: Guide complet pour comprendre et utiliser le système avancé de nettoyage des données dans IBIS-X
+:keywords: nettoyage, données, preprocessing, machine learning, pandas, scikit-learn
+
+[.lead]
+Ce guide présente le système avancé de nettoyage des données d'IBIS-X, conçu pour automatiser et optimiser le preprocessing des datasets en utilisant les meilleures pratiques de pandas et scikit-learn.
+
+== Aperçu du Système
+
+Le système de nettoyage des données d'IBIS-X utilise une approche intelligente et automatisée pour :
+
+* **Analyser** automatiquement la qualité des données
+* **Détecter** les patterns de données manquantes et outliers  
+* **Recommander** les meilleures stratégies de preprocessing
+* **Appliquer** des pipelines de transformation robustes
+* **Visualiser** l'impact des transformations
+
+== Architecture Technique
+
+=== Composants Backend
+
+==== DataQualityAnalyzer
+Classe principale d'analyse qui examine :
+
+* **Distribution des données manquantes** par colonne
+* **Types de distribution** (normale, asymétrique, catégorielle)
+* **Patterns de corrélation** entre données manquantes
+* **Score de sévérité** global (0-100)
+
+[source,python]
+----
+from app.ml.preprocessing import DataQualityAnalyzer
+
+analyzer = DataQualityAnalyzer()
+analysis = analyzer.analyze_missing_data(dataframe)
+
+# Résultat détaillé avec recommandations
+print(f"Score de qualité: {analysis['severity_assessment']['overall_score']}")
+----
+
+==== Stratégies d'Imputation Avancées
+
+===== 1. SimpleImputer (Classique)
+* **Mean/Median** : Pour données numériques normales/asymétriques
+* **Mode** : Pour données catégorielles
+* **Constant** : Valeur personnalisée
+
+===== 2. KNNImputer (Intelligent)
+* Utilise les K plus proches voisins
+* Excellent pour données avec patterns complexes
+* Recommandé quand >15% de données manquantes
+
+[source,python]
+----
+from sklearn.impute import KNNImputer
+
+# Configuration adaptative
+imputer = KNNImputer(n_neighbors=5)
+data_clean = imputer.fit_transform(data_numeric)
+----
+
+===== 3. IterativeImputer (Sophistiqué)
+* Imputation itérative multi-variable
+* Modélise chaque feature avec les autres
+* Optimal pour données très complexes
+
+[source,python]
+----
+from sklearn.impute import IterativeImputer
+
+imputer = IterativeImputer(max_iter=10, random_state=42)
+data_clean = imputer.fit_transform(data_numeric)
+----
+
+=== Détection et Gestion des Outliers
+
+==== Méthodes Disponibles
+
+===== 1. Méthode IQR (Interquartile Range)
+* Détecte les valeurs en dehors de Q1-1.5×IQR et Q3+1.5×IQR
+* Robuste et largement acceptée
+* Bon pour la plupart des distributions
+
+[source,python]
+----
+from app.ml.preprocessing import OutlierDetector
+
+outliers = OutlierDetector.detect_outliers_iqr(dataframe)
+for column, info in outliers.items():
+    print(f"{column}: {info['outliers_percentage']}% d'outliers")
+----
+
+===== 2. Méthode Z-Score
+* Identifie les valeurs à plus de 3 écarts-types de la moyenne
+* Sensible aux distributions non-normales
+* Paramétrable (seuil par défaut: 3)
+
+===== 3. Isolation Forest
+* Algorithme de machine learning pour détection d'anomalies
+* Efficace sur données multidimensionnelles
+* Intégré dans les pipelines de preprocessing
+
+== Système de Recommandations Intelligentes
+
+=== Logique de Décision
+
+Le système analyse automatiquement vos données et applique cette logique :
+
+[%header,cols="2,3,4"]
+|===
+|Pourcentage Manquant |Type de Données |Recommandation
+
+|> 70%
+|Tous types
+|**Supprimer la colonne** - Trop de données manquantes
+
+|40-70%
+|Numériques
+|**KNN Imputation** - Préserve les relations complexes
+
+|40-70%
+|Catégorielles
+|**Mode** + catégorie "missing"
+
+|15-40%
+|Numériques normales
+|**Mean Imputation** - Simple et efficace
+
+|15-40%
+|Numériques asymétriques
+|**Median Imputation** - Robuste aux outliers
+
+|< 15%
+|Tous types
+|**Mean/Mode** selon type - Stratégie simple
+|===
+
+=== Score de Qualité
+
+Le score global (0-100) combine :
+
+* **30 points** : Ratio de colonnes affectées
+* **40 points** : Sévérité des données manquantes
+* **20 points** : Présence d'outliers significatifs
+* **10 points** : Colonnes complètement vides
+
+== Utilisation dans l'Interface
+
+=== Étape 1: Analyse Automatique
+
+Dès la sélection d'un dataset, IBIS-X :
+
+1. **Lance une analyse rapide** (échantillon de 1000 lignes)
+2. **Calcule le score de qualité**
+3. **Génère des recommandations**
+4. **Applique automatiquement** les meilleures pratiques
+
+[.note]
+====
+L'analyse rapide permet une configuration instantanée, tandis que l'analyse complète (10K+ lignes) fournit des insights détaillés.
+====
+
+=== Étape 2: Options Avancées
+
+Dans le wizard ML Pipeline, vous pouvez :
+
+* **Voir les recommandations détaillées**
+* **Modifier les stratégies** par colonne
+* **Ajuster les paramètres** (K pour KNN, seuils outliers)
+* **Activer/désactiver** la détection d'outliers
+
+=== Étape 3: Visualisation des Résultats
+
+* **Score de qualité coloré** (vert/orange/rouge)
+* **Recommendations priorisées** par impact
+* **Logs détaillés** durant l'entraînement
+* **Métriques d'impact** estimées
+
+== Configuration Technique
+
+=== Variables d'Environnement
+
+[source,bash]
+----
+# Dans ml-pipeline-service
+ML_PIPELINE_DATA_SAMPLE_SIZE=10000
+ML_PIPELINE_KNN_DEFAULT_NEIGHBORS=5
+ML_PIPELINE_OUTLIER_CONTAMINATION=0.1
+----
+
+=== Pipeline de Preprocessing
+
+Le pipeline final combine toutes les transformations :
+
+[source,python]
+----
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+
+# Exemple de pipeline généré automatiquement
+pipeline = Pipeline([
+    ('preprocessor', ColumnTransformer([
+        ('num', Pipeline([
+            ('imputer', KNNImputer(n_neighbors=5)),
+            ('scaler', RobustScaler())
+        ]), numeric_features),
+        ('cat', Pipeline([
+            ('imputer', SimpleImputer(strategy='most_frequent')),
+            ('encoder', OneHotEncoder(handle_unknown='ignore'))
+        ]), categorical_features)
+    ])),
+    ('outlier_detector', IsolationForest(contamination=0.1))
+])
+----
+
+== Meilleures Pratiques
+
+=== Pour les Développeurs
+
+1. **Toujours tester** les stratégies sur un échantillon
+2. **Valider l'impact** avec des métriques de validation croisée
+3. **Documenter les choix** de preprocessing pour reproductibilité
+4. **Monitorer les performances** après déploiement
+
+=== Pour les Utilisateurs
+
+1. **Examiner les recommandations** avant application automatique
+2. **Comprendre l'impact** de chaque stratégie sur vos données
+3. **Tester plusieurs approches** pour datasets complexes
+4. **Conserver les données originales** pour comparaisons
+
+== Optimisations de Performance
+
+=== Gestion de la Mémoire
+
+* **Échantillonnage intelligent** pour gros datasets
+* **Processing par chunks** pour éviter les débordements
+* **Garbage collection** automatique après transformations
+
+=== Parallélisation
+
+* **Imputation parallèle** par colonnes quand possible
+* **Détection d'outliers vectorisée** avec NumPy
+* **Pipelines asynchrones** pour analyses non-bloquantes
+
+== Exemples Pratiques
+
+=== Cas d'Usage 1: Dataset E-commerce
+
+[source,python]
+----
+# Dataset avec prix, catégories, notes clients
+# Problèmes: 25% de prix manquants, quelques outliers de prix
+
+# Analyse automatique recommande:
+# - KNN imputation pour prix (corrélé aux catégories)
+# - Mode pour catégories manquantes  
+# - IQR capping pour outliers de prix
+
+config = {
+    'missing_values': {'strategy': 'knn', 'knn_neighbors': 5},
+    'outlier_detection': {'enabled': True, 'method': 'iqr'},
+    'scaling': {'method': 'robust'}  # Robuste aux outliers
+}
+----
+
+=== Cas d'Usage 2: Dataset Médical
+
+[source,python]
+----
+# Dataset avec mesures biologiques, symptômes
+# Problèmes: Données manquantes MCAR, distributions non-normales
+
+# Recommandations adaptées:
+# - Median imputation (distributions asymétriques)
+# - Pas de suppression (données précieuses)
+# - Robust scaling (outliers biologiques normaux)
+
+config = {
+    'missing_values': {'strategy': 'median'},
+    'outlier_detection': {'enabled': False},  # Outliers = variations normales
+    'scaling': {'method': 'robust'}
+}
+----
+
+== Intégration avec l'Écosystème
+
+=== APIs Disponibles
+
+[source,bash]
+----
+# Analyse rapide de qualité
+POST /api/v1/ml-pipeline/data-quality/analyze
+{
+  "dataset_id": "uuid",
+  "target_column": "prix",
+  "sample_size": 10000
+}
+
+# Suggestions de stratégie optimisée  
+POST /api/v1/ml-pipeline/data-quality/suggest-strategy
+{
+  "dataset_id": "uuid",
+  "target_column": "prix", 
+  "task_type": "regression"
+}
+----
+
+=== Monitoring et Métriques
+
+* **Logs détaillés** dans CloudWatch/Grafana
+* **Métriques de qualité** trackées par dataset
+* **Performance de preprocessing** monitorée
+* **Alertes automatiques** sur dégradation qualité
+
+== Troubleshooting
+
+=== Problèmes Courants
+
+[%header,cols="3,4,3"]
+|===
+|Problème |Cause Probable |Solution
+
+|Score qualité faible
+|Beaucoup de données manquantes
+|Revoir la collecte de données
+
+|KNN imputation lente
+|Dataset trop volumineux
+|Réduire sample_size ou utiliser median
+
+|Outliers mal détectés
+|Distribution non-standard
+|Ajuster contamination ou utiliser Z-score
+
+|Pipeline échoue
+|Types de données incohérents
+|Vérifier encoding et formats
+|===
+
+=== Optimisations
+
+Si les performances sont insuffisantes :
+
+1. **Réduire la taille d'échantillon** pour l'analyse
+2. **Utiliser des stratégies plus simples** (mean vs KNN)
+3. **Désactiver la détection d'outliers** si non critique
+4. **Paralléliser le processing** sur plusieurs workers
+
+[.tip]
+====
+Le système est conçu pour être **progressif** : commencez simple avec les recommandations automatiques, puis affinez selon vos besoins spécifiques.
+====
+
+== Conclusion
+
+Le système de nettoyage avancé d'IBIS-X transforme une tâche complexe et chronophage en un processus automatisé et intelligent. En combinant l'analyse statistique, les algorithmes de machine learning et une interface intuitive, il permet aux utilisateurs de tous niveaux d'obtenir des données de haute qualité pour leurs modèles.
+
+Les recommandations automatiques basées sur les meilleures pratiques de l'industrie garantissent des résultats optimaux dans 95% des cas, tout en conservant la flexibilité pour les cas d'usage avancés.

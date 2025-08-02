@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment'; // Importer l'environnement
 // Importer les nouvelles interfaces
-import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData, AccountDeletionRequest, AccountDeletionResponse } from '../models/auth.models';
+import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData, AccountDeletionRequest, AccountDeletionResponse, ClaimCreditsResponse } from '../models/auth.models';
 
 // Utiliser une constante comme constante
 const AUTH_TOKEN_KEY = 'ibis_x_access_token';
@@ -366,6 +366,36 @@ export class AuthService {
         console.log("deleteAccount - Succès, compte supprimé:", response);
         // Supprimer immédiatement le token local après suppression réussie
         this.logout();
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère des crédits pour l'utilisateur (10 maximum, tous les 30 jours).
+   * @returns Observable avec la réponse ClaimCreditsResponse
+   */
+  claimCredits(): Observable<ClaimCreditsResponse> {
+    const token = this.getToken();
+    if (!token) {
+      console.error("claimCredits - Aucun token disponible");
+      return throwError(() => new Error('Aucun token d\'authentification disponible'));
+    }
+
+    console.log("claimCredits - Début de la requête de claim de crédits");
+    
+    return this.http.post<ClaimCreditsResponse>(`${environment.apiUrl}/users/me/claim-credits`, {}, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap(response => {
+        if (response.success) {
+          console.log("claimCredits - Succès, crédits récupérés:", response);
+        } else {
+          console.log("claimCredits - Refusé:", response.message);
+        }
       }),
       catchError(this.handleError)
     );

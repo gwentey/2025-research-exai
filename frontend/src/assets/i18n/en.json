@@ -384,6 +384,13 @@
   },
   "PROFILE": {
     "TITLE": "User Profile",
+    "CREDITS": {
+      "TITLE": "Available Credits",
+      "DESCRIPTION": "Your credits for ML training",
+      "ML_USAGE": "Used to create and train your AI models",
+      "REMAINING": "credits remaining",
+      "REFILL_BUTTON": "Refill Credits"
+    },
     "SUBTITLE": "Manage your personal information and preferences",
     "BACK_TO_DASHBOARD": "Back to Dashboard",
     "CHANGE_PHOTO": "Change Photo",
@@ -1203,5 +1210,46 @@
     "RUNNING_COUNT": "Running experiments",
     "AVG_ACCURACY": "Average accuracy",
     "SUCCESS_RATE": "Success rate"
+  },
+  "CREDITS_REFILL": {
+    "TITLE": "Credits Refill",
+    "CURRENT_BALANCE": "Current Balance",
+    "CURRENT_STATUS": "Current status",
+    "CREDITS": "credits",
+    "LOADING": "Claiming in progress...",
+    "HOW_IT_WORKS": {
+      "TITLE": "How it works",
+      "FREQUENCY": {
+        "TITLE": "Claim every 30 days",
+        "DESC": "You can claim 10 free credits every 30 days."
+      },
+      "LIMIT": {
+        "TITLE": "10 credits maximum",
+        "DESC": "The maximum number of credits is 10, even if you haven't used them all."
+      },
+      "USAGE": {
+        "TITLE": "Used for AI",
+        "DESC": "Each credit allows you to create and train an artificial intelligence model."
+      }
+    },
+    "AVAILABLE": {
+      "MESSAGE": "You can claim your credits now!",
+      "BUTTON": "Claim 10 Credits"
+    },
+    "WAITING": {
+      "MESSAGE": "You must wait before you can claim new credits.",
+      "DAYS_REMAINING": "day(s) remaining",
+      "NEXT_CLAIM": "Next claim available on"
+    },
+    "INFO": {
+      "TITLE": "Useful Information",
+      "DESCRIPTION": "Credits are essential for using our artificial intelligence platform. Here are some tips to optimize their usage.",
+      "TIPS": {
+        "TITLE": "Usage tips:",
+        "TIP1": "Plan your AI projects to optimize your credit usage",
+        "TIP2": "More complex models consume more credits",
+        "TIP3": "Save your successful models to avoid recreating them"
+      }
+    }
   }
 }

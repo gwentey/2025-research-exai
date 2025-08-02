@@ -95,6 +95,48 @@
             </mat-card-content>
           </mat-card>
 
+          <!-- Carte des crédits -->
+          <mat-card class="cardWithShadow m-b-24" *ngIf="currentUser">
+            <mat-card-header class="p-24 p-b-12">
+              <mat-card-title class="f-s-18 f-w-600 d-flex align-items-center">
+                <i-tabler name="coins" class="icon-20 m-r-8 text-primary"></i-tabler>
+                {{ 'PROFILE.CREDITS.TITLE' | translate }}
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="p-24 p-t-12">
+              <div class="d-flex align-items-center justify-content-between">
+                <!-- Indicateur de crédits à gauche -->
+                <div class="credits-display-left">
+                  <app-credits-indicator 
+                    [remaining]="getUserCredits()"
+                    [total]="10"
+                    size="large"
+                    [showInfo]="true"
+                    [showLabel]="true">
+                  </app-credits-indicator>
+                </div>
+                
+                <!-- Informations à droite -->
+                <div class="credits-info-right">
+                  <p class="text-muted m-b-4 f-s-12 f-w-500">
+                    {{ 'PROFILE.CREDITS.DESCRIPTION' | translate }}
+                  </p>
+                  <p class="text-body f-s-11 f-w-400 m-b-12">
+                    {{ 'PROFILE.CREDITS.ML_USAGE' | translate }}
+                  </p>
+                  <button mat-raised-button 
+                          color="primary" 
+                          class="credits-refill-button"
+                          [routerLink]="['/profile/credits-refill']"
+                          type="button">
+                    <mat-icon class="m-r-4">refresh</mat-icon>
+                    {{ 'PROFILE.CREDITS.REFILL_BUTTON' | translate }}
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
           <!-- Section de suppression de compte - DANGER ZONE -->
           <mat-card class="cardWithShadow danger-card">
             <mat-card-header class="p-24 p-b-0">

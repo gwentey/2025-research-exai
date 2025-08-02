@@ -193,4 +193,93 @@
 // Couleurs des icônes
 .text-danger {
   color: #f44336 !important;
+}
+
+// Styles pour l'affichage des crédits dans le profil
+.credits-display-left {
+  flex-shrink: 0;
+}
+
+.credits-info-right {
+  flex: 1;
+  padding-left: 16px;
+  
+  p {
+    margin: 0;
+    line-height: 1.3;
+    
+    &:first-child {
+      margin-bottom: 4px;
+    }
+  }
+  
+  .credits-refill-button {
+    font-size: 12px;
+    padding: 8px 16px;
+    height: auto;
+    line-height: 1.2;
+    
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// Responsive pour l'affichage des crédits
+@media (max-width: 768px) {
+  .d-flex.align-items-center.justify-content-between {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px;
+    
+    .credits-display-left {
+      order: 1;
+    }
+    
+    .credits-info-right {
+      order: 2;
+      padding-left: 0;
+      text-align: center;
+    }
+  }
+}
+
+// Amélioration de l'affichage des crédits avec le composant credits-indicator
+app-credits-indicator {
+  ::ng-deep {
+    .credits-indicator {
+      &.size-large {
+        --circle-size: 56px;
+        --font-size-number: 16px;
+        --font-size-label: 12px;
+      }
+    }
+    
+    .progress-ring-progress {
+      &.high {
+        stroke: #10b981;
+      }
+      &.medium {
+        stroke: #f59e0b;  
+      }
+      &.low {
+        stroke: #ef4444;
+      }
+    }
+    
+    .progress-ring-background {
+      stroke: #e2e8f0;
+    }
+    
+    .credits-number, .credits-text {
+      color: #0f172a;
+      font-weight: 600;
+    }
+    
+    .credits-label {
+      color: #64748b;
+    }
+  }
 } 

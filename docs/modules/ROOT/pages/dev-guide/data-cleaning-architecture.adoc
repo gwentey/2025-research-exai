@@ -1,0 +1,259 @@
+= Architecture du Système de Nettoyage des Données
+:toc:
+:toclevels: 3
+:icons: font
+:source-highlighter: highlight.js
+
+== Vue d'ensemble
+
+Le système de nettoyage des données d'IBIS-X a été conçu pour offrir une expérience utilisateur claire et guidée, permettant aux non-experts de préparer efficacement leurs données pour l'apprentissage automatique.
+
+== Architecture en 3 couches
+
+=== 1. Frontend - Interface utilisateur intuitive
+
+Le composant `DataCleaningComponent` offre trois vues distinctes :
+
+==== Vue d'ensemble
+* Score de qualité global avec indicateurs visuels
+* Statistiques des problèmes détectés
+* Bouton "Auto-Fix Magique" pour appliquer automatiquement les recommandations
+
+==== Analyse par colonne
+* Cartes détaillées pour chaque colonne avec problèmes
+* Visualisation des données manquantes et outliers
+* Sélection manuelle des stratégies de nettoyage
+* Recommandations contextuelles avec explications
+
+==== Vue stratégies
+* Tableau récapitulatif des actions appliquées
+* Estimation de l'impact sur le dataset
+* Possibilité d'ajuster finement les choix
+
+=== 2. Backend - API et logique métier
+
+==== Endpoints principaux
+
+[source,python]
+----
+# Analyse de qualité avec cache
+POST /data-quality/analyze
+{
+  "dataset_id": "uuid",
+  "target_column": "optional",
+  "sample_size": 10000,
+  "force_refresh": false
+}
+
+# Suggestion de stratégie optimisée
+POST /data-quality/suggest-strategy
+{
+  "dataset_id": "uuid",
+  "target_column": "column_name",
+  "task_type": "classification|regression"
+}
+----
+
+==== Système de cache
+
+* Les analyses sont stockées en base de données pour éviter les recalculs
+* Expiration automatique après 7 jours
+* Possibilité de forcer une nouvelle analyse avec `force_refresh`
+
+=== 3. Base de données - Stockage persistant
+
+==== Table `data_quality_analyses`
+
+[source,sql]
+----
+CREATE TABLE data_quality_analyses (
+    id UUID PRIMARY KEY,
+    dataset_id UUID NOT NULL,
+    dataset_version VARCHAR(50),
+    analysis_data JSONB NOT NULL,
+    column_strategies JSONB,
+    quality_score INTEGER NOT NULL,
+    total_rows INTEGER NOT NULL,
+    total_columns INTEGER NOT NULL,
+    analysis_duration_seconds FLOAT,
+    created_at TIMESTAMP WITH TIME ZONE,
+    expires_at TIMESTAMP WITH TIME ZONE
+);
+----
+
+== Stratégies de nettoyage disponibles
+
+=== Valeurs manquantes
+
+[cols="1,2,1,3"]
+|===
+| Stratégie | Description | Complexité | Cas d'usage
+
+| `drop`
+| Suppression des lignes/colonnes
+| Simple
+| Données très corrompues (>75% manquant)
+
+| `mean`
+| Remplacement par la moyenne
+| Simple
+| Variables numériques continues
+
+| `median`
+| Remplacement par la médiane
+| Simple
+| Variables numériques avec outliers
+
+| `mode`
+| Remplacement par le mode
+| Simple
+| Variables catégorielles
+
+| `forward_fill`
+| Propagation avant
+| Intermédiaire
+| Séries temporelles
+
+| `backward_fill`
+| Propagation arrière
+| Intermédiaire
+| Séries temporelles
+
+| `interpolate`
+| Interpolation linéaire
+| Avancé
+| Données séquentielles
+
+| `knn`
+| K-Nearest Neighbors
+| Avancé
+| Relations complexes entre variables
+
+| `iterative`
+| Imputation itérative
+| Avancé
+| Dépendances multivariées
+|===
+
+=== Outliers
+
+[cols="1,3,3"]
+|===
+| Méthode | Description | Application
+
+| `keep`
+| Conservation des outliers
+| Données authentiques importantes
+
+| `cap`
+| Plafonnement aux limites IQR
+| Réduction de l'impact sans perte
+
+| `remove`
+| Suppression complète
+| Erreurs de mesure évidentes
+
+| `transform`
+| Transformation (log, sqrt)
+| Normalisation de distribution
+|===
+
+== Algorithme de recommandation
+
+L'algorithme analyse chaque colonne selon plusieurs critères :
+
+[source,python]
+----
+def recommend_strategy(column_analysis):
+    missing_pct = column_analysis['missing_percentage']
+    is_categorical = column_analysis['is_categorical']
+    distribution = column_analysis['distribution']
+    
+    # Logique de décision
+    if missing_pct > 75:
+        return 'drop', "Trop de données manquantes"
+    elif missing_pct > 30:
+        if is_categorical:
+            return 'mode_with_unknown', "Catégorielle avec beaucoup de missing"
+        else:
+            return 'knn', "Numérique avec patterns complexes"
+    elif missing_pct > 10:
+        if distribution == 'temporal':
+            return 'interpolate', "Données temporelles"
+        elif is_categorical:
+            return 'mode', "Catégorielle standard"
+        else:
+            return 'median', "Numérique robuste"
+    else:
+        return 'median' if not is_categorical else 'mode', "Peu de missing"
+----
+
+== Workflow utilisateur
+
+[plantuml]
+----
+@startuml
+start
+:Sélection du dataset;
+:Lancement de l'analyse de qualité;
+if (Cache disponible?) then (oui)
+  :Chargement depuis le cache;
+else (non)
+  :Analyse complète du dataset;
+  :Sauvegarde en cache;
+endif
+:Affichage des résultats;
+if (Auto-fix?) then (oui)
+  :Application des recommandations;
+else (non)
+  :Personnalisation manuelle;
+endif
+:Validation des stratégies;
+:Passage à l'étape suivante;
+stop
+@enduml
+----
+
+== Performance et optimisations
+
+=== Échantillonnage intelligent
+* Analyse sur 10 000 lignes par défaut
+* Représentativité garantie par échantillonnage stratifié
+* Possibilité d'ajuster la taille selon les besoins
+
+=== Calculs parallélisés
+* Analyse multi-colonnes en parallèle
+* Détection d'outliers optimisée avec numpy
+* Cache des résultats intermédiaires
+
+=== Interface réactive
+* Chargement progressif des résultats
+* Animations fluides pour les transitions
+* Mise à jour en temps réel des stratégies
+
+== Intégration dans le pipeline ML
+
+Le système de nettoyage s'intègre parfaitement dans le workflow global :
+
+1. **Étape 1** : Sélection du dataset
+2. **Étape 2** : _Nettoyage des données_ (nouvelle étape dédiée)
+3. **Étape 3** : Configuration du modèle (choix de la variable cible)
+4. **Étape 4** : Sélection de l'algorithme
+5. **Étape 5** : Réglage des hyperparamètres
+6. **Étape 6** : Entraînement
+
+Cette séparation claire permet :
+* Une meilleure compréhension du processus
+* Des décisions plus éclairées
+* Une réduction significative des erreurs
+* Une amélioration de la qualité des modèles
+
+== Extensibilité future
+
+Le système a été conçu pour être facilement extensible :
+
+* Ajout de nouvelles stratégies de nettoyage
+* Support de types de données spécialisés (images, texte)
+* Intégration d'algorithmes de détection d'anomalies avancés
+* Export des stratégies pour réutilisation
+* Versioning des configurations de nettoyage

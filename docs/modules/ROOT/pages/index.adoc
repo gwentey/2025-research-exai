@@ -112,6 +112,8 @@ xref:development/azure-deployment.adoc[Déploiement Manuel →]
 * xref:dev-guide/dataset-management-guide.adoc[Gestion des Datasets]
 * xref:dev-guide/object-storage-implementation.adoc[Stockage d'Objets]
 * xref:dev-guide/auto-dataset-initialization.adoc[Auto-initialisation]
+* xref:dev-guide/advanced-data-cleaning.adoc[Nettoyage Avancé des Données]
+* xref:dev-guide/advanced-data-cleaning-strategies.adoc[Stratégies Multi-Colonnes & Interface]
 --
 
 [.card]

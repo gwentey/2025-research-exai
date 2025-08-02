@@ -39,6 +39,8 @@ export interface SignupData {
   education_level: string | null;
   age: number | null;
   ai_familiarity: number | null;
+  credits?: number | null;
+  date_claim?: string | null;  // ISO date string
 }
 
 /**
@@ -60,6 +62,8 @@ export interface UserRead {
   education_level?: string;
   age?: number;
   ai_familiarity?: number;
+  credits?: number;
+  date_claim?: string;  // ISO date string
 }
 
 /**
@@ -81,6 +85,8 @@ export interface UserUpdate {
   education_level?: string | null;
   age?: number | null;
   ai_familiarity?: number | null;
+  credits?: number | null;
+  date_claim?: string | null;  // ISO date string
 }
 
 /**
@@ -120,6 +126,18 @@ export interface AccountDeletionRequest {
 export interface AccountDeletionResponse {
   message: string;
   success: boolean;
+}
+
+/**
+ * Interface pour la réponse du claim de crédits.
+ */
+export interface ClaimCreditsResponse {
+  success: boolean;
+  message: string;
+  credits_gained?: number;
+  total_credits?: number;
+  next_claim_date?: string;  // ISO date string
+  days_remaining?: number;
 }
 
 /**

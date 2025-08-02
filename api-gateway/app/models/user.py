@@ -1,9 +1,10 @@
 import uuid
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
-from sqlalchemy import UUID as SQLAlchemyUUID, text, String, Boolean, ForeignKey, SmallInteger # Importer ForeignKey
+from sqlalchemy import UUID as SQLAlchemyUUID, text, String, Boolean, ForeignKey, SmallInteger, DateTime # Importer ForeignKey
 from sqlalchemy.dialects.postgresql import UUID # Assurez-vous que UUID is importé
 from typing import List, Optional
+from datetime import datetime
 from ..db import Base # Un seul niveau pour remonter de models à api_gateway
 
 # Define a local Base for models in this module (and potentially others in app/models)
@@ -60,6 +61,10 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     education_level: Mapped[Optional[str]] = mapped_column(String(length=50), nullable=True)
     age: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
     ai_familiarity: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
+    
+    # Système de crédits
+    credits: Mapped[int] = mapped_column(SmallInteger, default=10, server_default=text('10'), nullable=False)
+    date_claim: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     
     # Relation avec les comptes OAuth
     oauth_accounts: Mapped[List[OAuthAccount]] = relationship(

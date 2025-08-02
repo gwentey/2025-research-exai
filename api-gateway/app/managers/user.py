@@ -2,6 +2,7 @@ import uuid
 import logging
 import traceback
 from typing import Optional, Union, Dict, Any
+from datetime import datetime, timedelta
 
 from fastapi import Request, HTTPException
 from fastapi_users import BaseUserManager, UUIDIDMixin
@@ -76,8 +77,20 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         """
         Callback exécuté après l'inscription réussie d'un utilisateur.
         Peut être utilisé pour envoyer un email de bienvenue, etc.
+        Assure aussi que l'utilisateur a ses crédits initialisés.
         """
         logger.info(f"L'utilisateur {user.id} s'est inscrit.")
+        
+        # Vérifier et initialiser les crédits si nécessaire
+        if user.credits is None or user.credits == 0:
+            try:
+                user.credits = 10
+                await self.user_db.update(user, {"credits": 10})
+                logger.info(f"Crédits initialisés à 10 pour l'utilisateur {user.id}")
+            except Exception as e:
+                logger.error(f"Erreur lors de l'initialisation des crédits pour {user.id}: {str(e)}")
+        else:
+            logger.info(f"L'utilisateur {user.id} a déjà {user.credits} crédits")
 
     async def on_after_forgot_password(
         self, user: User, token: str, request: Optional[Request] = None
@@ -113,4 +126,53 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         """
         Callback exécuté après la mise à jour d'un utilisateur.
         """
-        logger.info(f"L'utilisateur {user.id} a été mis à jour.") 
+        logger.info(f"L'utilisateur {user.id} a été mis à jour.")
+    
+    async def claim_credits(self, user: User) -> Dict[str, Any]:
+        """
+        Permet à un utilisateur de récupérer des crédits (10 maximum, tous les 30 jours).
+        
+        Returns:
+            Dict avec le statut et les détails du claim
+        """
+        try:
+            now = datetime.utcnow()
+            
+            # Vérifier si l'utilisateur peut claim des crédits
+            if user.date_claim is not None:
+                days_since_last_claim = (now - user.date_claim).days
+                if days_since_last_claim < 30:
+                    days_remaining = 30 - days_since_last_claim
+                    logger.info(f"L'utilisateur {user.id} doit attendre {days_remaining} jours avant le prochain claim")
+                    return {
+                        "success": False,
+                        "message": f"Vous devez attendre {days_remaining} jour(s) avant de pouvoir récupérer des crédits.",
+                        "days_remaining": days_remaining,
+                        "next_claim_date": user.date_claim + timedelta(days=30)
+                    }
+            
+            # L'utilisateur peut claim des crédits
+            old_credits = user.credits
+            user.credits = 10  # Plafonné à 10, même si l'utilisateur en avait moins
+            user.date_claim = now
+            
+            # Mettre à jour en base de données
+            await self.user_db.update(user, {"credits": 10, "date_claim": now})
+            
+            credits_gained = user.credits - old_credits
+            logger.info(f"L'utilisateur {user.id} a récupéré {credits_gained} crédits (total: {user.credits})")
+            
+            return {
+                "success": True,
+                "message": "Crédits récupérés avec succès !",
+                "credits_gained": credits_gained,
+                "total_credits": user.credits,
+                "next_claim_date": now + timedelta(days=30)
+            }
+            
+        except Exception as e:
+            logger.error(f"Erreur lors du claim de crédits pour {user.id}: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur lors de la récupération des crédits: {str(e)}"
+            ) 

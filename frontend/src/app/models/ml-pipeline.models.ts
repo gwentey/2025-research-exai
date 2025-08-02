@@ -107,4 +107,114 @@ export interface ModelArtifact {
   created_at: string;
   size_bytes: number;
   format: string;
+}
+
+// Nouveaux modèles pour l'analyse de qualité des données
+export interface DataQualityAnalysisRequest {
+  dataset_id: string;
+  target_column?: string;
+  sample_size?: number;
+}
+
+export interface ColumnMissingInfo {
+  missing_count: number;
+  missing_percentage: number;
+  data_type: string;
+  unique_values: number;
+  is_categorical: boolean;
+  distribution_type: string;
+  recommended_strategy: {
+    primary_strategy: string;
+    alternative_strategies: string[];
+    explanation: string;
+    confidence: number;
+  };
+}
+
+export interface MissingDataAnalysis {
+  total_rows: number;
+  total_columns: number;
+  columns_with_missing: { [key: string]: ColumnMissingInfo };
+  missing_patterns: {
+    completely_missing_rows: number;
+    completely_missing_columns: string[];
+    correlated_missing: any[];
+  };
+  severity_assessment: {
+    overall_score: number;
+    level: 'none' | 'low' | 'medium' | 'high' | 'critical';
+    main_issues: string[];
+    action_required: boolean;
+  };
+}
+
+export interface OutlierInfo {
+  method: string;
+  outliers_count: number;
+  outliers_percentage: number;
+  threshold?: number;
+  lower_bound?: number;
+  upper_bound?: number;
+  max_zscore?: number;
+}
+
+export interface OutliersAnalysis {
+  iqr_method: { [key: string]: OutlierInfo };
+  zscore_method: { [key: string]: OutlierInfo };
+}
+
+export interface PreprocessingRecommendations {
+  priority_actions: Array<{
+    action: string;
+    priority: string;
+    description: string;
+  }>;
+  missing_values_strategy: { [key: string]: any };
+  outlier_handling: {
+    affected_columns?: string[];
+    recommended_methods?: string[];
+    explanation?: string;
+  };
+  feature_engineering: string[];
+  scaling_recommendation: string;
+  encoding_recommendation: string;
+}
+
+export interface DataQualityAnalysis {
+  dataset_overview: {
+    total_rows: number;
+    total_columns: number;
+    memory_usage_mb: number;
+    target_column?: string;
+  };
+  column_types: {
+    numeric: string[];
+    categorical: string[];
+    datetime: string[];
+  };
+  missing_data_analysis: MissingDataAnalysis;
+  outliers_analysis: OutliersAnalysis;
+  data_quality_score: number;
+  preprocessing_recommendations: PreprocessingRecommendations;
+}
+
+export interface PreprocessingStrategyRequest {
+  dataset_id: string;
+  target_column: string;
+  task_type: 'classification' | 'regression';
+  custom_config?: any;
+}
+
+export interface PreprocessingStrategy {
+  missing_values: { [key: string]: string };
+  outlier_handling: { [key: string]: string };
+  scaling_method: string;
+  encoding_method: string;
+  feature_selection?: string[];
+  estimated_impact: {
+    expected_improvement: string;
+    training_time_factor: number;
+    data_retention_rate: number;
+    confidence_score: number;
+  };
 } 
