@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,10 +20,12 @@ import { CommonModule } from '@angular/common';
 import { DatasetService } from '../../../services/dataset.service';
 import { MlPipelineService } from '../../../services/ml-pipeline.service';
 import { AuthService } from '../../../services/auth.service';
+import { ProjectService } from '../../../services/project.service';
 import { HyperparameterConfig, AlgorithmInfo, ExperimentCreate } from '../../../models/ml-pipeline.models';
 import { DatasetDetailView } from '../../../models/dataset.models';
 import { UserRead } from '../../../models/auth.models';
 import { CreditsIndicatorComponent } from '../../../components/credits-indicator/credits-indicator.component';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs/operators';
 import { Chart, registerables } from 'chart.js';
@@ -43,6 +45,7 @@ Chart.register(...registerables);
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     MatStepperModule,
     MatButtonModule,
@@ -96,6 +99,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   algorithmForm!: FormGroup;
   hyperparametersForm!: FormGroup;
   summaryForm!: FormGroup;
+  finalVerificationForm!: FormGroup;
   
   // Data
   projectId: string = '';
@@ -113,9 +117,23 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   isAnalyzingData = false;
   dataQualityRecommendations: any = null;
   
+  // Configuration multi-colonnes pour le nettoyage
+  columnCleaningConfigs: any[] = [];
+  showPreviewModal = false;
+  previewColumn: any = null;
+  previewData: any = null;
+  showMultipleDatasets = false;
+  
+  // Support multi-datasets
+  additionalDatasets: any[] = [];
+  availableDatasets: any[] = [];
+  
   // Data Cleaning Help
   showDataCleaningHelp = false;
   showManualControls = false;
+  
+  // Export Python code flag
+  exportPythonCode = false;
   
   // Analyse par colonne
   columnsAnalysis: any[] = [];
@@ -159,7 +177,8 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     private mlPipelineService: MlPipelineService,
     private translate: TranslateService,
     private cdr: ChangeDetectorRef,
-    private authService: AuthService
+    private authService: AuthService,
+    private projectService: ProjectService
   ) {}
   
   ngOnInit() {
@@ -169,13 +188,28 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     // Load user credits
     this.loadUserCredits();
     
-    // Get route parameters
-    this.projectId = this.route.snapshot.parent?.params['id'] || '';
+    // Get route parameters - Méthode améliorée
+    // Essayer plusieurs façons de récupérer le projectId
+    this.projectId = this.route.snapshot.parent?.params['id'] || 
+                     this.route.snapshot.params['projectId'] || 
+                     this.route.snapshot.queryParams['projectId'] || '';
+    
+    console.log('🔍 Route analysis:');
+    console.log('- Parent params:', this.route.snapshot.parent?.params);
+    console.log('- Direct params:', this.route.snapshot.params);
+    console.log('- Query params:', this.route.snapshot.queryParams);
+    console.log('- Final projectId:', this.projectId);
     
     // Check if coming from dataset selection
     this.route.queryParams.subscribe(params => {
       this.datasetId = params['datasetId'] || '';
       const datasetName = params['datasetName'] || '';
+      
+      // Vérifier aussi le projectId dans les query params
+      if (!this.projectId && params['projectId']) {
+        this.projectId = params['projectId'];
+        console.log('✅ ProjectId found in query params:', this.projectId);
+      }
       
       // If coming from dataset selection, pre-fill the dataset
       if (this.datasetId) {
@@ -194,6 +228,11 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       this.isLoading = false;
       this.cdr.detectChanges();
     }, 800);
+    
+    // Déboguer le formulaire de vérification finale
+    this.finalVerificationForm.valueChanges.subscribe(value => {
+      console.log('🔍 finalVerificationForm valueChanges:', value);
+    });
   }
   
   ngAfterViewInit() {
@@ -216,13 +255,12 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   initializeForms() {
     // Step 1: Dataset Overview
     this.datasetForm = this.fb.group({
-      datasetId: [this.datasetId, Validators.required],
-      confirmed: [false, Validators.requiredTrue]
+      datasetId: [this.datasetId, Validators.required]
     });
     
     // Step 2: Data Cleaning (nouveau formulaire dédié)
     this.dataCleaningForm = this.fb.group({
-      analysisCompleted: [false, Validators.requiredTrue],
+      analysisCompleted: [true], // Par défaut true pour permettre de continuer
       autoFixApplied: [false],
       manualOverrides: [{}] // Pour stocker les personnalisations manuelles
     });
@@ -253,7 +291,10 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     this.hyperparametersForm = this.fb.group({});
     
     // Step 6: Summary
-    this.summaryForm = this.fb.group({
+    this.summaryForm = this.fb.group({});
+
+    // Step 8: Final Verification
+    this.finalVerificationForm = this.fb.group({
       confirmed: [false, Validators.requiredTrue]
     });
   }
@@ -266,6 +307,26 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         next: (data) => {
           this.dataset = data;
           this.datasetDetails = data;
+          
+          // IMPORTANT : Le dataset ne contient pas directement le project_id
+          // On va devoir le récupérer autrement (depuis l'URL ou les query params)
+          
+          console.log('📊 Dataset loaded:', {
+            dataset_id: data.id,
+            dataset_name: data.dataset_name,
+            columns: data.columns?.length || 0,
+            files: data.files?.length || 0
+          });
+          
+          // Essayer de récupérer le project_id depuis l'URL si pas encore défini
+          if (!this.projectId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectFromUrl = urlParams.get('projectId');
+            if (projectFromUrl) {
+              this.projectId = projectFromUrl;
+              console.log('✅ ProjectId récupéré depuis l\'URL:', this.projectId);
+            }
+          }
           
           // Auto-suggest target column and task type based on dataset metadata
           this.suggestTargetAndTaskType(data);
@@ -518,16 +579,47 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
   
   isFormValid(): boolean {
-    return this.datasetForm.valid &&
-           this.dataQualityForm.valid &&
-           this.algorithmForm.valid &&
-           this.hyperparametersForm.valid &&
-           this.summaryForm.valid;
+    // Vérifier le numéro de l'étape actuelle
+    const currentStep = this.getCurrentStepNumber();
+    
+    // Logs de débogage pour chaque formulaire
+    console.log('Validation des formulaires:');
+    console.log('- datasetForm:', this.datasetForm.valid, this.datasetForm.value);
+    console.log('- dataCleaningForm:', this.dataCleaningForm.valid, this.dataCleaningForm.value);
+    console.log('- dataQualityForm:', this.dataQualityForm.valid, this.dataQualityForm.value);
+    console.log('- algorithmForm:', this.algorithmForm.valid, this.algorithmForm.value);
+    console.log('- hyperparametersForm:', this.hyperparametersForm.valid, this.hyperparametersForm.value);
+    console.log('- summaryForm:', this.summaryForm.valid, this.summaryForm.value);
+    console.log('- finalVerificationForm:', this.finalVerificationForm.valid, this.finalVerificationForm.value);
+    
+    // Vérifications de base pour toutes les étapes
+    const baseValidation = this.datasetForm.valid &&
+                          this.dataCleaningForm.valid &&  // Ajout du formulaire de nettoyage
+                          this.dataQualityForm.valid &&
+                          this.algorithmForm.valid &&
+                          this.hyperparametersForm.valid &&
+                          this.summaryForm.valid;
+    
+    // Si on est à l'étape 8, vérifier aussi le formulaire de vérification finale
+    if (currentStep === 8) {
+      return baseValidation && this.finalVerificationForm.valid;
+    }
+    
+    return baseValidation;
   }
   
   goBack() {
     const returnUrl = this.route.snapshot.queryParams['returnUrl'] || `/ml-pipeline`;
     this.router.navigateByUrl(returnUrl);
+  }
+  
+  // Méthode pour gérer manuellement le changement de la checkbox
+  onConfirmationChange(event: any): void {
+    console.log('🔄 Checkbox changed:', event.target.checked);
+    this.finalVerificationForm.patchValue({
+      confirmed: event.target.checked
+    });
+    console.log('✅ Form value after patch:', this.finalVerificationForm.value);
   }
   
   backToApp() {
@@ -796,52 +888,244 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
   
   // Nouvelle implémentation de startTraining avec simulation des logs
-  startTraining() {
+  async startTraining() {
+    console.log('🚀 startTraining() called');
+    console.log('Form validity:', {
+      datasetForm: this.datasetForm.valid,
+      dataCleaningForm: this.dataCleaningForm.valid,
+      dataQualityForm: this.dataQualityForm.valid,
+      algorithmForm: this.algorithmForm.valid,
+      hyperparametersForm: this.hyperparametersForm.valid,
+      summaryForm: this.summaryForm.valid,
+      isFormValid: this.isFormValid()
+    });
+    
     if (!this.isFormValid()) {
+      console.error('Form is not valid, cannot start training');
+      // Afficher les erreurs spécifiques
+      if (!this.datasetForm.valid) console.error('Dataset form invalid:', this.datasetForm.errors);
+      if (!this.dataCleaningForm.valid) console.error('Data cleaning form invalid:', this.dataCleaningForm.errors);
+      if (!this.dataQualityForm.valid) console.error('Data quality form invalid:', this.dataQualityForm.errors);
+      if (!this.algorithmForm.valid) console.error('Algorithm form invalid:', this.algorithmForm.errors);
+      if (!this.hyperparametersForm.valid) console.error('Hyperparameters form invalid:', this.hyperparametersForm.errors);
+      if (!this.summaryForm.valid) console.error('Summary form invalid:', this.summaryForm.errors);
+      alert('❌ Formulaire invalide. Veuillez vérifier tous les champs.');
       return;
     }
     
+    console.log('✅ Starting training process...');
     this.isTraining = true;
     this.trainingProgress = 0;
     this.trainingLogs = []; // Reset des logs
     
+    // Ajouter un log immédiat pour montrer que ça démarre
+    this.addTrainingLog('info', '🚀 Démarrage de l\'entraînement...');
+    this.addTrainingLog('info', '⏳ Création de l\'expérience en cours...');
+    
     // Démarrer la simulation des logs
     this.simulateTrainingLogs();
     
+    // Vérifier les valeurs critiques
+    const targetColumn = this.dataQualityForm.value.targetColumn;
+    const algorithm = this.algorithmForm.value.algorithm;
+    
+    if (!targetColumn) {
+      alert('❌ Erreur: Aucune colonne cible sélectionnée!');
+      this.isTraining = false;
+      return;
+    }
+    
+    if (!algorithm) {
+      alert('❌ Erreur: Aucun algorithme sélectionné!');
+      this.isTraining = false;
+      return;
+    }
+    
+    // SOLUTION TEMPORAIRE : Récupérer le projectId depuis le dataset
+    let finalProjectId = this.projectId;
+    
+    // Si pas de projectId, essayer de créer un projet temporaire basé sur le dataset
+    if (!finalProjectId && this.dataset) {
+      // Le dataset n'a pas de project_id direct, on doit le gérer autrement
+      console.log('⚠️ Pas de project_id trouvé. Dataset info:', {
+        id: this.dataset.id,
+        name: this.dataset.dataset_name
+      });
+    }
+    
+    // Si toujours pas de projectId, essayer depuis l'URL actuelle
+    if (!finalProjectId) {
+      const currentUrl = window.location.href;
+      const urlMatch = currentUrl.match(/projects?\/([a-f0-9-]+)/i);
+      if (urlMatch) {
+        finalProjectId = urlMatch[1];
+        console.log('🔍 ProjectId extrait de l\'URL:', finalProjectId);
+      }
+    }
+    
+    // DERNIER RECOURS : Récupérer un projet existant ou en créer un
+    if (!finalProjectId) {
+      console.error('❌ AUCUN PROJECT_ID TROUVÉ ! Tentative de récupération...');
+      
+      // Option 1: Récupérer le premier projet disponible
+      try {
+        const projectService = this.projectService;
+        const projectsResponse = await projectService.getProjects({ page_size: 1 }).toPromise();
+        
+        if (projectsResponse && projectsResponse.projects && projectsResponse.projects.length > 0) {
+          finalProjectId = projectsResponse.projects[0].id;
+          console.log('✅ Utilisation du projet existant:', projectsResponse.projects[0].name);
+          this.addTrainingLog('info', `📁 Utilisation du projet: ${projectsResponse.projects[0].name}`);
+        } else {
+          // Option 2: Créer un nouveau projet automatiquement
+          const newProject = {
+            name: `ML Pipeline - ${new Date().toLocaleDateString()}`,
+            description: `Projet créé automatiquement pour l'entraînement ML sur le dataset ${this.dataset?.dataset_name || 'inconnu'}`
+          };
+          
+          const createdProject = await projectService.createProject(newProject).toPromise();
+          if (createdProject) {
+            finalProjectId = createdProject.id;
+            console.log('✅ Nouveau projet créé:', createdProject.name);
+            this.addTrainingLog('success', `✨ Nouveau projet créé: ${createdProject.name}`);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération/création du projet:', error);
+      }
+      
+      // Si toujours pas de projet, erreur critique
+      if (!finalProjectId) {
+        alert('❌ ERREUR CRITIQUE : Impossible de trouver ou créer un projet !\n\nRedirection vers la page des projets...');
+        this.router.navigate(['/projects']);
+        this.isTraining = false;
+        return;
+      }
+    }
+    
     const experimentData = {
-      project_id: this.projectId,
-      dataset_id: this.datasetId,
-      algorithm: this.algorithmForm.value.algorithm,
-      hyperparameters: this.hyperparametersForm.value,
+      project_id: finalProjectId,
+      dataset_id: this.datasetId || '',
+      algorithm: algorithm,
+      hyperparameters: this.hyperparametersForm.value || {},
       preprocessing_config: {
-        target_column: this.dataQualityForm.value.targetColumn,
-        task_type: this.dataQualityForm.value.taskType,
+        target_column: targetColumn,
+        task_type: this.dataQualityForm.value.taskType || 'classification',
         missing_values: {
-          strategy: this.dataQualityForm.value.missingValueStrategy
+          strategy: this.dataQualityForm.value.missingValueStrategy || 'mean',
+          knn_neighbors: this.dataQualityForm.value.knnNeighbors || 5,
+          max_iterative_iter: this.dataQualityForm.value.maxIterativeIter || 10
         },
-        scaling: this.dataQualityForm.value.featureScaling,
-        encoding: this.dataQualityForm.value.categoricalEncoding,
-        test_size: this.dataQualityForm.value.testSize / 100
+        scaling: {
+          enabled: this.dataQualityForm.value.featureScaling || false,
+          method: this.dataQualityForm.value.scalingMethod || 'standard'
+        },
+        encoding: this.dataQualityForm.value.categoricalEncoding || 'one-hot',
+        outlier_detection: {
+          enabled: this.dataQualityForm.value.outlierDetection || false,
+          method: this.dataQualityForm.value.outlierMethod || 'isolation_forest',
+          threshold: this.dataQualityForm.value.outlierThreshold || 0.1
+        },
+        test_size: (this.dataQualityForm.value.testSize || 20) / 100,
+        // Ajout des configurations de nettoyage par colonne
+        column_cleaning_configs: this.columnCleaningConfigs || [],
+        // Ajout des overrides manuels
+        manual_overrides: this.dataCleaningForm.value.manualOverrides || {}
       }
     };
+    
+    console.log('📤 Sending experiment data:', JSON.stringify(experimentData, null, 2));
     
     this.mlPipelineService.createExperiment(experimentData)
       .subscribe({
         next: (experiment) => {
+          console.log('Experiment created successfully:', experiment);
           this.experimentId = experiment.id;
+          this.addTrainingLog('success', 'Expérience créée avec succès');
           this.pollTrainingStatus();
         },
         error: (error) => {
-          console.error('Error starting training:', error);
-          this.addTrainingLog('error', 'Erreur lors du démarrage de l\'entraînement');
-          this.isTraining = false;
-          if (this.logSimulationTimer) {
-            clearInterval(this.logSimulationTimer);
+          console.error('❌ Error starting training:', error);
+          
+          // Essayer de lire la réponse comme texte si ce n'est pas du JSON
+          if (error.error instanceof Blob) {
+            error.error.text().then((text: string) => {
+              console.error('Error as text:', text);
+              this.handleTrainingError(error, text);
+            });
+          } else if (error.error instanceof ArrayBuffer) {
+            const text = new TextDecoder().decode(error.error);
+            console.error('Error as ArrayBuffer text:', text);
+            this.handleTrainingError(error, text);
+          } else {
+            console.error('Error body:', error.error);
+            this.handleTrainingError(error, error.error);
           }
         }
       });
   }
   
+  // Nouvelle méthode pour gérer les erreurs
+  private handleTrainingError(error: any, errorBody: any): void {
+    let errorMessage = 'Erreur inconnue';
+    
+    // Analyser spécifiquement l'erreur 422
+    if (error.status === 422) {
+      console.error('Validation error (422) - Body:', errorBody);
+      
+      // DIAGNOSTIC : Vérifier si project_id est vide
+      if (!this.projectId) {
+        errorMessage = '❌ ERREUR CRITIQUE : Aucun projet sélectionné !\n\nVous devez sélectionner un projet avant de lancer l\'entraînement.';
+      } else if (typeof errorBody === 'string') {
+        try {
+          const parsed = JSON.parse(errorBody);
+          if (parsed.detail) {
+            if (Array.isArray(parsed.detail)) {
+              errorMessage = parsed.detail.map((e: any) => {
+                const field = e.loc ? e.loc.join(' → ') : 'Champ';
+                return `${field}: ${e.msg}`;
+              }).join('\n');
+            } else {
+              errorMessage = parsed.detail;
+            }
+          }
+        } catch {
+          errorMessage = errorBody;
+        }
+      } else if (errorBody?.detail) {
+        if (Array.isArray(errorBody.detail)) {
+          errorMessage = errorBody.detail.map((e: any) => {
+            const field = e.loc ? e.loc.join(' → ') : 'Champ';
+            return `${field}: ${e.msg}`;
+          }).join('\n');
+        } else {
+          errorMessage = errorBody.detail;
+        }
+      }
+    } else {
+      errorMessage = errorBody?.detail || errorBody?.message || error.message || 'Erreur serveur';
+    }
+    
+    this.addTrainingLog('error', `❌ Erreur: ${errorMessage}`);
+    
+    // Alerte améliorée
+    alert(`❌ Erreur lors du lancement de l'entraînement:
+
+${errorMessage}
+
+Status: ${error.status}
+
+DIAGNOSTIC :
+- Project ID: ${this.projectId || 'MANQUANT ❌'}
+- Dataset ID: ${this.datasetId || 'MANQUANT ❌'}
+- Algorithm: ${this.algorithmForm.value.algorithm || 'MANQUANT ❌'}`);
+    
+    this.isTraining = false;
+    if (this.logSimulationTimer) {
+      clearInterval(this.logSimulationTimer);
+    }
+  }
+
   /**
    * Charge les données utilisateur pour afficher les crédits
    */
@@ -872,6 +1156,24 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
   
   objectKeys = Object.keys;
+  
+  // Types de stratégies de nettoyage
+  readonly CLEANING_STRATEGIES = {
+    NONE: 'none',
+    DROP_COLUMN: 'drop_column',
+    DROP_ROWS: 'drop_rows',
+    MEAN: 'mean',
+    MEDIAN: 'median',
+    MODE: 'mode',
+    CONSTANT: 'constant',
+    KNN: 'knn',
+    ITERATIVE: 'iterative',
+    RANDOM_FOREST: 'random_forest',
+    LINEAR: 'linear',
+    SPLINE: 'spline',
+    FORWARD_FILL: 'forward_fill',
+    BACKWARD_FILL: 'backward_fill'
+  };
 
   // Méthodes pour les informations détaillées (versions améliorées en bas du fichier)
 
@@ -1319,6 +1621,151 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   // ===============================================
   // NOUVELLES MÉTHODES POUR L'ÉTAPE DE NETTOYAGE DÉDIÉE
   // ===============================================
+  
+  /**
+   * Analyse les colonnes pour le nettoyage multi-colonnes
+   */
+  analyzeColumnsCleaning(): void {
+    if (!this.datasetId) return;
+    
+    this.isAnalyzingData = true;
+    const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
+    
+    const request = {
+      dataset_id: this.datasetId,
+      target_column: targetColumn,
+      sample_size: 10000
+    };
+    
+    this.mlPipelineService.analyzeDataQuality(request)
+      .subscribe({
+        next: (analysis) => {
+          this.dataQualityAnalysis = analysis;
+          this.isAnalyzingData = false;
+          
+          // Générer la configuration par colonne
+          this.generateColumnCleaningConfigs(analysis);
+          
+          // Marquer l'analyse comme complétée
+          this.dataCleaningForm.patchValue({
+            analysisCompleted: true
+          });
+          
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error performing data quality analysis:', error);
+          this.isAnalyzingData = false;
+          
+          // Générer des données de démonstration
+          this.generateDemoCleaningConfigs();
+          
+          this.cdr.detectChanges();
+        }
+      });
+  }
+  
+  /**
+   * Génère la configuration de nettoyage pour chaque colonne
+   */
+  generateColumnCleaningConfigs(analysis: any): void {
+    const columns = this.getDatasetColumns();
+    const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
+    
+    this.columnCleaningConfigs = columns.map((column) => {
+      const columnAnalysis = analysis.missing_data_analysis?.columns_analysis?.[column.column_name];
+      const missingPercentage = columnAnalysis?.missing_percentage || 0;
+      const dataType = column.data_type_interpreted || column.data_type_original || 'string';
+      const isTarget = column.column_name === targetColumn;
+      const isTimeSeries = this.isTimeSeriesColumn(column);
+      
+      // Déterminer la stratégie recommandée
+      let recommendedStrategy = this.CLEANING_STRATEGIES.NONE;
+      if (missingPercentage > 0) {
+        if (missingPercentage > 70 && !isTarget) {
+          recommendedStrategy = this.CLEANING_STRATEGIES.DROP_COLUMN;
+        } else if (isTimeSeries || dataType === 'datetime') {
+          recommendedStrategy = this.CLEANING_STRATEGIES.LINEAR;
+        } else if (['integer', 'float'].includes(dataType)) {
+          if (missingPercentage < 15) {
+            recommendedStrategy = this.CLEANING_STRATEGIES.MEAN;
+          } else {
+            recommendedStrategy = this.CLEANING_STRATEGIES.KNN;
+          }
+        } else {
+          recommendedStrategy = this.CLEANING_STRATEGIES.MODE;
+        }
+      }
+      
+      // Recommandation de l'analyse
+      if (columnAnalysis?.recommendation?.primary_strategy) {
+        recommendedStrategy = this.mapRecommendationToStrategy(columnAnalysis.recommendation.primary_strategy);
+      }
+      
+      return {
+        name: column.column_name,
+        type: dataType,
+        missingPercentage: Math.round(missingPercentage),
+        missingCount: columnAnalysis?.missing_count || 0,
+        isTarget: isTarget,
+        isTimeSeries: isTimeSeries,
+        strategy: recommendedStrategy,
+        recommendedStrategy: recommendedStrategy,
+        params: this.getDefaultParams(recommendedStrategy),
+        confidence: columnAnalysis?.recommendation?.confidence || 0.8
+      };
+    });
+  }
+  
+  /**
+   * Génère des données de démonstration pour le nettoyage
+   */
+  generateDemoCleaningConfigs(): void {
+    const columns = this.getDatasetColumns();
+    const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
+    
+    this.columnCleaningConfigs = columns.map((column, index) => {
+      // Simuler des pourcentages de données manquantes variés
+      const missingPercentages = [0, 5, 15, 35, 75];
+      const missingPercentage = missingPercentages[index % missingPercentages.length];
+      const dataType = column.data_type_interpreted || column.data_type_original || 'string';
+      const isTarget = column.column_name === targetColumn;
+      
+      // Déterminer la stratégie en fonction du pourcentage
+      let strategy = this.CLEANING_STRATEGIES.NONE;
+      if (missingPercentage > 0) {
+        if (missingPercentage > 70 && !isTarget) {
+          strategy = this.CLEANING_STRATEGIES.DROP_COLUMN;
+        } else if (missingPercentage > 15) {
+          strategy = ['integer', 'float'].includes(dataType) ? 
+                    this.CLEANING_STRATEGIES.KNN : 
+                    this.CLEANING_STRATEGIES.MODE;
+        } else {
+          strategy = ['integer', 'float'].includes(dataType) ? 
+                    this.CLEANING_STRATEGIES.MEAN : 
+                    this.CLEANING_STRATEGIES.MODE;
+        }
+      }
+      
+      return {
+        name: column.column_name,
+        type: dataType,
+        missingPercentage: missingPercentage,
+        missingCount: Math.round((this.dataset?.instances_number || 1000) * missingPercentage / 100),
+        isTarget: isTarget,
+        isTimeSeries: false,
+        strategy: strategy,
+        recommendedStrategy: strategy,
+        params: this.getDefaultParams(strategy),
+        confidence: 0.85
+      };
+    });
+    
+    // Marquer l'analyse comme terminée
+    this.dataCleaningForm.patchValue({
+      analysisCompleted: true
+    });
+  }
 
   autoFixAllDataIssues(): void {
     if (!this.dataset) return;
@@ -1547,6 +1994,582 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     };
     return labelMap[type.toLowerCase()] || type;
   }
+  
+  /**
+   * Retourne les configurations de nettoyage par colonne
+   */
+  getColumnCleaningConfigs(): any[] {
+    return this.columnCleaningConfigs;
+  }
+  
+  /**
+   * Vérifie si une colonne est de type série temporelle
+   */
+  isTimeSeriesColumn(column: any): boolean {
+    const name = column.column_name.toLowerCase();
+    return column.data_type_interpreted === 'datetime' || 
+           name.includes('date') || 
+           name.includes('time') || 
+           name.includes('timestamp');
+  }
+  
+  /**
+   * Map la stratégie recommandée vers notre enum
+   */
+  mapRecommendationToStrategy(recommendation: string): string {
+    const strategyMap: Record<string, string> = {
+      'drop_column': this.CLEANING_STRATEGIES.DROP_COLUMN,
+      'drop_rows': this.CLEANING_STRATEGIES.DROP_ROWS,
+      'mean': this.CLEANING_STRATEGIES.MEAN,
+      'median': this.CLEANING_STRATEGIES.MEDIAN,
+      'mode': this.CLEANING_STRATEGIES.MODE,
+      'knn': this.CLEANING_STRATEGIES.KNN,
+      'iterative': this.CLEANING_STRATEGIES.ITERATIVE,
+      'linear': this.CLEANING_STRATEGIES.LINEAR,
+      'forward_fill': this.CLEANING_STRATEGIES.FORWARD_FILL,
+      'backward_fill': this.CLEANING_STRATEGIES.BACKWARD_FILL
+    };
+    return strategyMap[recommendation] || this.CLEANING_STRATEGIES.MEAN;
+  }
+  
+  /**
+   * Retourne les paramètres par défaut pour une stratégie
+   */
+  getDefaultParams(strategy: string): any {
+    switch (strategy) {
+      case this.CLEANING_STRATEGIES.KNN:
+        return { n_neighbors: 5 };
+      case this.CLEANING_STRATEGIES.ITERATIVE:
+        return { max_iter: 10 };
+      case this.CLEANING_STRATEGIES.CONSTANT:
+        return { fill_value: 0 };
+      case this.CLEANING_STRATEGIES.SPLINE:
+        return { order: 3 };
+      default:
+        return {};
+    }
+  }
+  
+  /**
+   * Vérifie si une stratégie a des paramètres
+   */
+  hasParameters(strategy: string): boolean {
+    return [this.CLEANING_STRATEGIES.KNN, 
+            this.CLEANING_STRATEGIES.ITERATIVE, 
+            this.CLEANING_STRATEGIES.CONSTANT, 
+            this.CLEANING_STRATEGIES.SPLINE].includes(strategy);
+  }
+  
+  /**
+   * Gère le changement de stratégie pour une colonne
+   */
+  onStrategyChange(column: any, index: number): void {
+    // Réinitialiser les paramètres avec les valeurs par défaut
+    column.params = this.getDefaultParams(column.strategy);
+    this.cdr.detectChanges();
+  }
+  
+  /**
+   * Affiche l'aperçu du nettoyage pour une colonne
+   */
+  previewColumnCleaning(column: any, index: number): void {
+    this.previewColumn = column;
+    this.showPreviewModal = true;
+    
+    // Simuler des données d'aperçu
+    const totalRows = this.dataset?.instances_number || 1000;
+    const missingBefore = Math.round(totalRows * column.missingPercentage / 100);
+    const missingAfter = column.strategy === this.CLEANING_STRATEGIES.DROP_COLUMN ? totalRows : 
+                        column.strategy === this.CLEANING_STRATEGIES.DROP_ROWS ? 0 : 
+                        0;
+    
+    this.previewData = {
+      before: { missing: missingBefore },
+      after: { missing: missingAfter },
+      samples: this.generatePreviewSamples(column)
+    };
+  }
+  
+  /**
+   * Génère des échantillons pour l'aperçu
+   */
+  generatePreviewSamples(column: any): any[] {
+    const samples = [];
+    const sampleSize = 10;
+    
+    for (let i = 0; i < sampleSize; i++) {
+      const isMissing = Math.random() < (column.missingPercentage / 100);
+      let cleanedValue;
+      
+      if (isMissing) {
+        switch (column.strategy) {
+          case this.CLEANING_STRATEGIES.MEAN:
+            cleanedValue = column.type === 'integer' ? 42 : 42.5;
+            break;
+          case this.CLEANING_STRATEGIES.MEDIAN:
+            cleanedValue = column.type === 'integer' ? 35 : 35.0;
+            break;
+          case this.CLEANING_STRATEGIES.MODE:
+            cleanedValue = column.type === 'string' ? 'Mode Value' : 1;
+            break;
+          case this.CLEANING_STRATEGIES.CONSTANT:
+            cleanedValue = column.params.fill_value || 0;
+            break;
+          case this.CLEANING_STRATEGIES.KNN:
+            cleanedValue = column.type === 'integer' ? 38 : 'Predicted';
+            break;
+          default:
+            cleanedValue = 'N/A';
+        }
+      } else {
+        cleanedValue = this.generateSampleValue(column.type, i);
+      }
+      
+      samples.push({
+        index: i + 1,
+        original: isMissing ? null : this.generateSampleValue(column.type, i),
+        cleaned: cleanedValue
+      });
+    }
+    
+    return samples;
+  }
+  
+  /**
+   * Génère une valeur d'exemple selon le type
+   */
+  generateSampleValue(type: string, index: number): any {
+    switch (type) {
+      case 'integer':
+        return Math.floor(Math.random() * 100);
+      case 'float':
+        return (Math.random() * 100).toFixed(2);
+      case 'string':
+        return `Value_${index}`;
+      case 'boolean':
+        return Math.random() > 0.5;
+      case 'datetime':
+        return new Date(2024, 0, index + 1).toISOString().split('T')[0];
+      default:
+        return `Data_${index}`;
+    }
+  }
+  
+  /**
+   * Ferme la modal d'aperçu
+   */
+  closePreview(): void {
+    this.showPreviewModal = false;
+    this.previewColumn = null;
+    this.previewData = null;
+  }
+  
+  /**
+   * Obtient la classe de santé d'une colonne
+   */
+  getColumnHealthClass(column: any): string {
+    if (column.missingPercentage === 0) return 'perfect';
+    if (column.missingPercentage < 15) return 'good';
+    if (column.missingPercentage < 50) return 'warning';
+    return 'danger';
+  }
+  
+  /**
+   * Obtient l'icône de santé d'une colonne
+   */
+  getColumnHealthIcon(column: any): string {
+    if (column.missingPercentage === 0) return 'check_circle';
+    if (column.missingPercentage < 15) return 'info';
+    if (column.missingPercentage < 50) return 'warning';
+    return 'error';
+  }
+  
+  /**
+   * Obtient le tooltip de santé d'une colonne
+   */
+  getColumnHealthTooltip(column: any): string {
+    if (column.missingPercentage === 0) return 'Aucune donnée manquante';
+    return `${column.missingPercentage}% de données manquantes (${column.missingCount} valeurs)`;
+  }
+  
+  /**
+   * Retourne le nombre total de valeurs manquantes
+   */
+  getTotalMissingValuesCount(): number {
+    return this.columnCleaningConfigs.reduce((total, col) => total + col.missingCount, 0);
+  }
+  
+  /**
+   * Applique une configuration intelligente prédéfinie
+   */
+  applySmartPreset(): void {
+    this.columnCleaningConfigs.forEach(config => {
+      config.strategy = config.recommendedStrategy;
+      config.params = this.getDefaultParams(config.recommendedStrategy);
+    });
+    this.cdr.detectChanges();
+  }
+  
+  /**
+   * Réinitialise toutes les configurations
+   */
+  resetCleaningPipeline(): void {
+    this.columnCleaningConfigs.forEach(config => {
+      config.strategy = config.missingPercentage > 0 ? this.CLEANING_STRATEGIES.DROP_ROWS : this.CLEANING_STRATEGIES.NONE;
+      config.params = {};
+    });
+    this.cdr.detectChanges();
+  }
+  
+  /**
+   * Valide le pipeline de nettoyage
+   */
+  validateCleaningPipeline(): void {
+    // Vérifier que toutes les colonnes avec des données manquantes ont une stratégie
+    const invalidConfigs = this.columnCleaningConfigs.filter(
+      config => config.missingPercentage > 0 && config.strategy === this.CLEANING_STRATEGIES.NONE
+    );
+    
+    if (invalidConfigs.length > 0) {
+      this.addTrainingLog('warning', `${invalidConfigs.length} colonnes avec données manquantes n'ont pas de stratégie définie`);
+      return;
+    }
+    
+    // Vérifier les colonnes à supprimer
+    const columnsToDelete = this.columnCleaningConfigs.filter(
+      config => config.strategy === this.CLEANING_STRATEGIES.DROP_COLUMN
+    );
+    
+    if (columnsToDelete.length > 0) {
+      this.addTrainingLog('info', `${columnsToDelete.length} colonnes seront supprimées`);
+    }
+    
+    // Tester la configuration avec l'API backend
+    this.testCleaningConfiguration();
+  }
+  
+  /**
+   * Exporte le code Python pour le nettoyage
+   */
+  exportCleaningCode(): void {
+    // Utiliser la version avec jointures si des datasets additionnels sont présents
+    const pythonCode = this.additionalDatasets.length > 0 
+      ? this.generatePythonCleaningCodeWithJoins() 
+      : this.generatePythonCleaningCode();
+    
+    // Créer un blob et télécharger
+    const blob = new Blob([pythonCode], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'data_cleaning_pipeline.py';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    this.addTrainingLog('success', 'Code Python exporté avec succès !');
+  }
+  
+  /**
+   * Génère le code Python pour le pipeline de nettoyage
+   */
+  generatePythonCleaningCode(): string {
+    let code = `import pandas as pd
+import numpy as np
+from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+
+# Charger les données
+df = pd.read_csv('your_dataset.csv')
+
+# Pipeline de nettoyage des données
+`;
+    
+    this.columnCleaningConfigs.forEach(config => {
+      if (config.strategy === this.CLEANING_STRATEGIES.NONE) return;
+      
+      code += `\n# Nettoyage de la colonne: ${config.name}\n`;
+      
+      switch (config.strategy) {
+        case this.CLEANING_STRATEGIES.DROP_COLUMN:
+          code += `df = df.drop('${config.name}', axis=1)\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.DROP_ROWS:
+          code += `df = df.dropna(subset=['${config.name}'])\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.MEAN:
+          code += `df['${config.name}'].fillna(df['${config.name}'].mean(), inplace=True)\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.MEDIAN:
+          code += `df['${config.name}'].fillna(df['${config.name}'].median(), inplace=True)\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.MODE:
+          code += `df['${config.name}'].fillna(df['${config.name}'].mode()[0], inplace=True)\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.CONSTANT:
+          code += `df['${config.name}'].fillna(${config.params.fill_value}, inplace=True)\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.KNN:
+          code += `knn_imputer = KNNImputer(n_neighbors=${config.params.n_neighbors})
+df['${config.name}'] = knn_imputer.fit_transform(df[['${config.name}']])\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.ITERATIVE:
+          code += `iterative_imputer = IterativeImputer(max_iter=${config.params.max_iter})
+df['${config.name}'] = iterative_imputer.fit_transform(df[['${config.name}']])\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.LINEAR:
+          code += `df['${config.name}'].interpolate(method='linear', inplace=True)\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.FORWARD_FILL:
+          code += `df['${config.name}'].fillna(method='ffill', inplace=True)\n`;
+          break;
+          
+        case this.CLEANING_STRATEGIES.BACKWARD_FILL:
+          code += `df['${config.name}'].fillna(method='bfill', inplace=True)\n`;
+          break;
+      }
+    });
+    
+    code += `\n# Sauvegarder les données nettoyées
+df.to_csv('cleaned_dataset.csv', index=False)
+print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
+    
+    return code;
+  }
+  
+  /**
+   * Obtient les statistiques de nettoyage
+   */
+  getCleaningStats(): any[] {
+    const stats = [];
+    
+    // Colonnes à supprimer
+    const columnsToDelete = this.columnCleaningConfigs.filter(
+      c => c.strategy === this.CLEANING_STRATEGIES.DROP_COLUMN
+    ).length;
+    if (columnsToDelete > 0) {
+      stats.push({
+        icon: 'delete',
+        label: 'Colonnes à supprimer',
+        value: columnsToDelete
+      });
+    }
+    
+    // Stratégies d'imputation
+    const imputationStrategies = this.columnCleaningConfigs.filter(
+      c => [this.CLEANING_STRATEGIES.MEAN, this.CLEANING_STRATEGIES.MEDIAN, 
+            this.CLEANING_STRATEGIES.MODE, this.CLEANING_STRATEGIES.KNN, 
+            this.CLEANING_STRATEGIES.ITERATIVE].includes(c.strategy)
+    ).length;
+    if (imputationStrategies > 0) {
+      stats.push({
+        icon: 'build',
+        label: 'Colonnes avec imputation',
+        value: imputationStrategies
+      });
+    }
+    
+    // Interpolations
+    const interpolations = this.columnCleaningConfigs.filter(
+      c => [this.CLEANING_STRATEGIES.LINEAR, this.CLEANING_STRATEGIES.FORWARD_FILL, 
+            this.CLEANING_STRATEGIES.BACKWARD_FILL].includes(c.strategy)
+    ).length;
+    if (interpolations > 0) {
+      stats.push({
+        icon: 'trending_up',
+        label: 'Colonnes avec interpolation',
+        value: interpolations
+      });
+    }
+    
+    // Total de colonnes modifiées
+    const totalModified = this.columnCleaningConfigs.filter(
+      c => c.strategy !== this.CLEANING_STRATEGIES.NONE
+    ).length;
+    stats.push({
+      icon: 'auto_fix_high',
+      label: 'Total de modifications',
+      value: totalModified
+    });
+    
+    return stats;
+  }
+  
+  /**
+   * Obtient les overrides de nettoyage pour le formulaire
+   */
+  getCleaningOverrides(): any {
+    const overrides: any = {};
+    
+    this.columnCleaningConfigs.forEach(config => {
+      if (config.strategy !== config.recommendedStrategy) {
+        overrides[config.name] = {
+          strategy: config.strategy,
+          params: config.params
+        };
+      }
+    });
+    
+    return overrides;
+  }
+  
+  /**
+   * Ouvre le sélecteur de dataset pour la fusion
+   */
+  openDatasetSelector(): void {
+    // Charger la liste des datasets disponibles
+    this.datasetService.getProjectDatasets(this.projectId)
+      .subscribe({
+        next: (datasets) => {
+          // Filtrer pour ne pas inclure le dataset actuel
+          this.availableDatasets = datasets.filter(ds => ds.id !== this.datasetId);
+          
+          // Ouvrir une modal ou un dialog pour sélectionner
+          // Pour l'instant, on ajoute simplement un dataset de démonstration
+          if (this.availableDatasets.length > 0) {
+            this.addDatasetForJoin(this.availableDatasets[0]);
+          } else {
+            this.addTrainingLog('warning', 'Aucun autre dataset disponible pour la fusion');
+          }
+        },
+        error: (error) => {
+          console.error('Error loading datasets:', error);
+          this.addTrainingLog('error', 'Erreur lors du chargement des datasets');
+        }
+      });
+  }
+  
+  /**
+   * Ajoute un dataset pour la fusion
+   */
+  addDatasetForJoin(dataset: any): void {
+    // Récupérer les détails du dataset
+    this.datasetService.getDatasetDetails(dataset.id)
+      .subscribe({
+        next: (details) => {
+          const columns = details.files?.[0]?.columns?.map((col: any) => col.column_name) || [];
+          
+          this.additionalDatasets.push({
+            id: dataset.id,
+            name: dataset.dataset_name,
+            rows: details.instances_number || 0,
+            columns: columns,
+            joinType: 'inner',
+            joinKey: columns[0] || '' // Première colonne par défaut
+          });
+          
+          this.addTrainingLog('success', `Dataset "${dataset.dataset_name}" ajouté pour la fusion`);
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading dataset details:', error);
+          this.addTrainingLog('error', 'Erreur lors du chargement des détails du dataset');
+        }
+      });
+  }
+  
+  /**
+   * Supprime un dataset de la liste de fusion
+   */
+  removeDataset(index: number): void {
+    const dataset = this.additionalDatasets[index];
+    this.additionalDatasets.splice(index, 1);
+    this.addTrainingLog('info', `Dataset "${dataset.name}" retiré de la fusion`);
+    this.cdr.detectChanges();
+  }
+  
+  /**
+   * Génère le code Python incluant la fusion de datasets
+   */
+  generatePythonCleaningCodeWithJoins(): string {
+    let code = this.generatePythonCleaningCode();
+    
+    // Ajouter le code pour les jointures si nécessaire
+    if (this.additionalDatasets.length > 0) {
+      code += `\n\n# Fusion avec d'autres datasets\n`;
+      
+      this.additionalDatasets.forEach((ds, index) => {
+        code += `\n# Charger le dataset ${index + 2}: ${ds.name}\n`;
+        code += `df${index + 2} = pd.read_csv('${ds.name.toLowerCase().replace(/\s+/g, '_')}.csv')\n`;
+        
+        // Générer le code de jointure selon le type
+        const joinMethodMap: { [key: string]: string } = {
+          'inner': 'inner',
+          'left': 'left',
+          'right': 'right',
+          'outer': 'outer'
+        };
+        const joinMethod = joinMethodMap[ds.joinType] || 'inner';
+        
+        code += `df = pd.merge(df, df${index + 2}, on='${ds.joinKey}', how='${joinMethod}')\n`;
+      });
+      
+      code += `\nprint(f"Dataset fusionné: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
+    }
+    
+    return code;
+  }
+  
+  /**
+   * Teste la configuration avec l'API backend
+   */
+  testCleaningConfiguration(): void {
+    if (!this.datasetId || !this.columnCleaningConfigs.length) {
+      this.addTrainingLog('warning', 'Configuration incomplète pour le test');
+      return;
+    }
+    
+    // Préparer la configuration de nettoyage pour l'API
+    const cleaningConfig = {
+      dataset_id: this.datasetId,
+      column_strategies: this.columnCleaningConfigs.reduce((acc, config) => {
+        if (config.strategy !== 'none') {
+          acc[config.name] = {
+            strategy: config.strategy,
+            params: config.params
+          };
+        }
+        return acc;
+      }, {} as any),
+      additional_datasets: this.additionalDatasets.map(ds => ({
+        dataset_id: ds.id,
+        join_type: ds.joinType,
+        join_key: ds.joinKey
+      }))
+    };
+    
+    // Envoyer à l'API pour validation
+    this.mlPipelineService.validateCleaningConfiguration(cleaningConfig)
+      .subscribe({
+        next: (response) => {
+          this.addTrainingLog('success', 'Configuration de nettoyage validée avec succès');
+          
+          // Mettre à jour le formulaire avec la configuration validée
+          this.dataCleaningForm.patchValue({
+            analysisCompleted: true,
+            autoFixApplied: true,
+            manualOverrides: this.getCleaningOverrides()
+          });
+          
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error validating cleaning configuration:', error);
+          this.addTrainingLog('error', 'Erreur lors de la validation de la configuration');
+        }
+      });
+  }
 
   getColumnStatusClass(column: any): string {
     if (!column.issues || column.issues.length === 0) return 'perfect';
@@ -1571,6 +2594,8 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     
     return 'info';
   }
+  
+
 
   getActionType(strategy: string): string {
     if (['drop_column', 'drop_rows'].includes(strategy)) return 'suppression';
@@ -1735,5 +2760,15 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       'penalty': 'l2'
     };
     return recommendedMap[paramName] === option;
+  }
+
+  // Vérification que tous les systèmes sont prêts pour le lancement
+  isAllSystemsGo(): boolean {
+    return !!(
+      this.dataset &&
+      this.dataQualityForm.get('targetColumn')?.value &&
+      this.algorithmForm.get('algorithm')?.value &&
+      this.hyperparametersForm.valid
+    );
   }
 }

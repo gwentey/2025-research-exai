@@ -146,4 +146,14 @@ export class MlPipelineService {
     
     return throwError(() => new Error(errorMessage));
   }
+  
+  /**
+   * Validate a cleaning configuration
+   */
+  validateCleaningConfiguration(config: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/cleaning/validate`, config)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 } 

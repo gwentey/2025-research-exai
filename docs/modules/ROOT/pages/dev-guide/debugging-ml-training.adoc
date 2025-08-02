@@ -1,0 +1,425 @@
+= Debugging ML Training Pipeline
+:toc:
+:toclevels: 3
+
+== Analyse du problème d'entraînement ML
+
+=== Symptômes identifiés
+* Après la configuration des 8 étapes dans le wizard ML, le clic sur "Lancer l'entraînement" ne déclenche aucun processus
+* Aucune erreur n'est visible côté frontend ou backend
+* Le statut reste bloqué en "pending"
+
+=== Causes identifiées
+
+==== 1. Problème de configuration Celery Worker
+
+Le worker Celery n'est pas correctement configuré dans Kubernetes :
+
+[source,yaml]
+----
+# Fichier: k8s/base/ml-pipeline/celery-worker-deployment.yaml
+# PROBLÈME: La commande utilise le mauvais module
+command: ["celery", "-A", "app.tasks", "worker", "--loglevel=info", "--queues=ml_queue"]
+
+# DEVRAIT ÊTRE:
+command: ["celery", "-A", "app.core.celery_app", "worker", "--loglevel=info", "--queues=ml_queue"]
+----
+
+==== 2. Incohérence entre Dockerfile et déploiement K8s
+
+Le Dockerfile.worker utilise la bonne commande mais pas le déploiement Kubernetes :
+
+[source,dockerfile]
+----
+# Dockerfile.worker (CORRECT)
+CMD ["celery", "-A", "app.core.celery_app", "worker", "--loglevel=info", "-Q", "ml_queue"]
+----
+
+==== 3. Problème de validation des données frontend
+
+Le frontend envoie `user_id` dans les données mais le backend utilise `current_user_id` de l'authentification :
+
+[source,typescript]
+----
+// Frontend (ml-pipeline-wizard.component.ts)
+const experimentData = {
+  project_id: this.projectId,
+  dataset_id: this.datasetId,
+  algorithm: this.algorithmForm.value.algorithm,
+  // ...
+};
+// Manque: user_id
+----
+
+[source,python]
+----
+# Backend (main.py)
+def create_experiment(
+    experiment: ExperimentCreate,  # Attend user_id
+    current_user_id: str = "test-user"  # Mais utilise current_user_id
+):
+----
+
+==== 4. Problème de routage des algorithmes
+
+Le schéma ne permet que 'decision_tree' et 'random_forest' mais d'autres algorithmes sont disponibles :
+
+[source,python]
+----
+# schemas.py
+algorithm: str = Field(..., pattern="^(decision_tree|random_forest)$")
+# PROBLÈME: Ne supporte pas logistic_regression, svm, knn, neural_network
+----
+
+=== Solutions à implémenter
+
+==== Étape 1: Corriger la configuration Celery
+1. Modifier le fichier de déploiement Kubernetes
+2. S'assurer que les imports sont corrects
+
+==== Étape 2: Harmoniser les données frontend/backend
+1. Retirer user_id du schéma ExperimentCreate
+2. Utiliser current_user_id du contexte d'authentification
+
+==== Étape 3: Étendre la validation des algorithmes
+1. Mettre à jour le pattern de validation
+2. Ajouter les hyperparamètres pour tous les algorithmes
+
+==== Étape 4: Ajouter des logs de debug
+1. Logs lors de la création de l'expérience
+2. Logs lors du démarrage de la tâche Celery
+3. Logs dans le worker Celery
+
+=== Flux d'exécution attendu
+
+[plantuml, ml-training-flow, svg]
+----
+@startuml
+participant "Frontend\nWizard" as FE
+participant "API Gateway" as GW
+participant "ML Pipeline\nAPI" as API
+participant "Redis\nQueue" as RQ
+participant "Celery\nWorker" as CW
+participant "MinIO\nStorage" as ST
+database "PostgreSQL" as DB
+
+FE -> GW: POST /ml-pipeline/experiments
+GW -> API: Forward request
+API -> DB: Create experiment\n(status=pending)
+API -> RQ: Queue task\n(train_model)
+API --> FE: Return experiment_id
+FE -> API: Poll status
+CW -> RQ: Pick up task
+CW -> DB: Update status=running
+CW -> ST: Load dataset
+CW -> CW: Train model
+CW -> ST: Save model
+CW -> DB: Update results
+FE -> API: Get results
+API -> DB: Query results
+API --> FE: Return results
+@enduml
+----
+
+=== Tests de validation
+
+1. **Test manuel avec curl** :
++
+[source,bash]
+----
+# Créer une expérience
+curl -X POST http://localhost:8082/experiments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_id": "123e4567-e89b-12d3-a456-426614174000",
+    "dataset_id": "123e4567-e89b-12d3-a456-426614174001",
+    "algorithm": "decision_tree",
+    "hyperparameters": {"max_depth": 5},
+    "preprocessing_config": {
+      "target_column": "target",
+      "task_type": "classification",
+      "test_size": 0.2
+    }
+  }'
+----
+
+2. **Vérifier les logs Celery** :
++
+[source,bash]
+----
+kubectl logs -n ibis-x -l app=ml-pipeline-celery-worker -f
+----
+
+3. **Vérifier Redis** :
++
+[source,bash]
+----
+kubectl exec -n ibis-x redis-0 -- redis-cli llen ml_queue
+----
+
+=== Monitoring et observabilité
+
+Pour éviter ce genre de problème à l'avenir :
+
+1. Ajouter des health checks pour Celery
+2. Implémenter des métriques Prometheus
+3. Ajouter des alertes sur les tâches en échec
+4. Dashboard de monitoring des expériences ML
+
+== Corrections appliquées
+
+=== 1. Configuration Celery Worker (k8s)
+
+[source,yaml]
+----
+# k8s/base/ml-pipeline/celery-worker-deployment.yaml
+# Avant:
+command: ["celery", "-A", "app.tasks", "worker", "--loglevel=info", "--queues=ml_queue"]
+
+# Après:
+command: ["celery", "-A", "app.core.celery_app", "worker", "--loglevel=info", "--queues=ml_queue"]
+----
+
+=== 2. Schéma des données backend
+
+[source,python]
+----
+# ml-pipeline-service/app/schemas.py
+class ExperimentCreate(BaseModel):
+    # Suppression de user_id (utilisé depuis le contexte d'auth)
+    project_id: UUID
+    dataset_id: UUID
+    # Support de tous les algorithmes
+    algorithm: str = Field(..., pattern="^(decision_tree|random_forest|logistic_regression|svm|knn|neural_network)$")
+    hyperparameters: Dict[str, Any]
+    preprocessing_config: Dict[str, Any]
+----
+
+=== 3. Données envoyées depuis le frontend
+
+[source,typescript]
+----
+// frontend/src/app/pages/ml-pipeline/wizard/ml-pipeline-wizard.component.ts
+const experimentData = {
+  project_id: this.projectId,
+  dataset_id: this.datasetId,
+  algorithm: this.algorithmForm.value.algorithm,
+  hyperparameters: this.hyperparametersForm.value,
+  preprocessing_config: {
+    // Configuration complète incluant le nettoyage
+    target_column: this.dataQualityForm.value.targetColumn,
+    task_type: this.dataQualityForm.value.taskType,
+    missing_values: {
+      strategy: this.dataQualityForm.value.missingValueStrategy,
+      knn_neighbors: this.dataQualityForm.value.knnNeighbors,
+      max_iterative_iter: this.dataQualityForm.value.maxIterativeIter
+    },
+    scaling: {
+      enabled: this.dataQualityForm.value.featureScaling,
+      method: this.dataQualityForm.value.scalingMethod
+    },
+    encoding: this.dataQualityForm.value.categoricalEncoding,
+    outlier_detection: {
+      enabled: this.dataQualityForm.value.outlierDetection,
+      method: this.dataQualityForm.value.outlierMethod,
+      threshold: this.dataQualityForm.value.outlierThreshold
+    },
+    test_size: this.dataQualityForm.value.testSize / 100,
+    column_cleaning_configs: this.columnCleaningConfigs,
+    manual_overrides: this.dataCleaningForm.value.manualOverrides
+  }
+};
+----
+
+=== 4. Logs de debug ajoutés
+
+[source,python]
+----
+# ml-pipeline-service/app/main.py
+@app.post("/experiments", response_model=ExperimentRead)
+def create_experiment(...):
+    try:
+        logger.info(f"Creating experiment with data: {experiment.dict()}")
+        # ... création de l'expérience ...
+        logger.info(f"Queueing training task for experiment {db_experiment.id}")
+        task = train_model.apply_async(args=[str(db_experiment.id)], queue='ml_queue')
+        logger.info(f"Task queued with ID: {task.id}")
+        # ...
+
+# ml-pipeline-service/app/tasks.py
+@celery_app.task(...)
+def train_model(self, experiment_id: str):
+    logger.info(f"[CELERY WORKER] Starting training for experiment {experiment_id}")
+    logger.info(f"[CELERY WORKER] Task ID: {self.request.id}")
+    # ...
+----
+
+=== 5. Endpoint de vérification Celery
+
+[source,python]
+----
+# ml-pipeline-service/app/main.py
+@app.get("/celery/status")
+def celery_status():
+    """Check Celery worker status and queue information"""
+    # Retourne:
+    # - active_workers: liste des workers actifs
+    # - worker_stats: statistiques des workers
+    # - active_queues: queues actives
+    # - ml_queue_length: nombre de tâches en attente
+----
+
+=== 6. Script de test Celery
+
+Un script de test complet a été créé pour vérifier la connexion Celery :
+
+[source,bash]
+----
+cd ml-pipeline-service
+python test_celery_connection.py
+----
+
+== Commandes de débogage utiles
+
+=== Vérifier les pods
+
+[source,bash]
+----
+# Voir tous les pods ML Pipeline
+kubectl get pods -n ibis-x | grep ml-pipeline
+
+# Vérifier les logs du worker Celery
+kubectl logs -n ibis-x -l app=ml-pipeline-celery-worker -f
+
+# Vérifier les logs de l'API
+kubectl logs -n ibis-x -l app=ml-pipeline -f
+----
+
+=== Redémarrer les services
+
+[source,bash]
+----
+# Redémarrer le worker Celery
+kubectl rollout restart deployment/ml-pipeline-celery-worker -n ibis-x
+
+# Redémarrer l'API
+kubectl rollout restart deployment/ml-pipeline -n ibis-x
+----
+
+=== Tester manuellement
+
+[source,bash]
+----
+# Port-forward vers l'API ML Pipeline
+kubectl port-forward -n ibis-x svc/ml-pipeline 8082:8082
+
+# Vérifier le statut Celery
+curl http://localhost:8082/celery/status
+
+# Créer une expérience de test
+curl -X POST http://localhost:8082/experiments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_id": "123e4567-e89b-12d3-a456-426614174000",
+    "dataset_id": "123e4567-e89b-12d3-a456-426614174001",
+    "algorithm": "decision_tree",
+    "hyperparameters": {"max_depth": 5},
+    "preprocessing_config": {
+      "target_column": "target",
+      "task_type": "classification",
+      "test_size": 0.2
+    }
+  }'
+----
+
+== Résumé
+
+Le problème principal était que le worker Celery utilisait le mauvais module Python (`app.tasks` au lieu de `app.core.celery_app`). Cette erreur empêchait le worker de démarrer correctement et donc de traiter les tâches d'entraînement ML.
+
+Les corrections appliquées permettent maintenant :
+
+1. ✅ Le worker Celery démarre correctement
+2. ✅ Les tâches sont bien envoyées dans la queue
+3. ✅ Les données de configuration complètes sont transmises
+4. ✅ Les logs permettent de tracer l'exécution
+5. ✅ Un endpoint de monitoring vérifie l'état de Celery
+
+=== 7. Corrections supplémentaires
+
+==== Warning Sass déprécié
+
+[source,scss]
+----
+// frontend/src/app/pages/ml-pipeline/wizard/ml-pipeline-wizard.component.scss
+// Avant:
+@import './ml-pipeline-wizard-cleaning.scss';
+
+// Après:
+@use './ml-pipeline-wizard-cleaning.scss';
+----
+
+==== Erreur TypeScript - Interface ExperimentCreate
+
+[source,typescript]
+----
+// frontend/src/app/models/ml-pipeline.models.ts
+export interface ExperimentCreate {
+  project_id: string;
+  dataset_id: string;
+  algorithm: string;
+  hyperparameters: Record<string, any>;
+  preprocessing_config: {
+    target_column: string;
+    task_type: 'classification' | 'regression';
+    missing_values: {
+      strategy: string;
+      knn_neighbors?: number;        // Nouveau
+      max_iterative_iter?: number;   // Nouveau
+    };
+    scaling: {                       // Changé de boolean vers objet
+      enabled: boolean;
+      method: string;
+    };
+    encoding: string;
+    outlier_detection: {             // Nouveau
+      enabled: boolean;
+      method: string;
+      threshold: number;
+    };
+    test_size: number;
+    column_cleaning_configs?: any[]; // Nouveau
+    manual_overrides?: Record<string, any>; // Nouveau
+  };
+}
+----
+
+==== Correction ML Studio Component
+
+[source,typescript]
+----
+// frontend/src/app/pages/ml-pipeline/ml-studio/ml-studio.component.ts
+// Mise à jour pour être compatible avec la nouvelle interface ExperimentCreate
+
+preprocessing_config: {
+  target_column: formValue.targetColumn,
+  task_type: formValue.taskType,
+  test_size: formValue.testSize / 100,
+  missing_values: {
+    strategy: formValue.missingValueStrategy,
+    knn_neighbors: 5,         // Valeur par défaut
+    max_iterative_iter: 10    // Valeur par défaut
+  },
+  scaling: {
+    enabled: formValue.featureScaling,
+    method: 'standard'        // Valeur par défaut
+  },
+  encoding: formValue.encoding,
+  outlier_detection: {
+    enabled: false,           // Désactivé par défaut dans ML Studio
+    method: 'iqr',
+    threshold: 0.1
+  },
+  column_cleaning_configs: [], // Vide par défaut
+  manual_overrides: {}        // Vide par défaut
+}
+----

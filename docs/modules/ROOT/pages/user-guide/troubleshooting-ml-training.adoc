@@ -1,0 +1,169 @@
+= Guide de dépannage - Entraînement ML
+:toc:
+:toclevels: 3
+
+== Problème : Le bouton "Lancer l'entraînement" ne fonctionne pas
+
+=== Symptômes
+* Clic sur le bouton "Lancer l'entraînement" sans aucune réaction
+* Pas de message d'erreur visible
+* L'entraînement ne démarre pas
+
+=== Causes possibles et solutions
+
+==== 1. Vérifier la console du navigateur
+
+Ouvrez la console de développement de votre navigateur (F12) et vérifiez les messages :
+
+[source,bash]
+----
+# Chrome/Edge : F12 > Console
+# Firefox : Ctrl+Shift+K
+# Safari : Cmd+Option+C
+----
+
+Recherchez les messages suivants :
+* `startTraining() called` - Confirme que le clic est détecté
+* `Form validity:` - Montre l'état de chaque formulaire
+* Messages d'erreur spécifiques
+
+==== 2. Validation des formulaires
+
+Le bouton ne fonctionnera que si TOUS les formulaires sont valides :
+
+[cols="1,3", options="header"]
+|===
+|Formulaire|Vérifications
+
+|Dataset
+|✓ Dataset sélectionné
+✓ Case "Je confirme" cochée
+
+|Data Cleaning
+|✓ Analyse complétée (automatique)
+
+|Data Quality
+|✓ Variable cible sélectionnée
+✓ Type de tâche défini
+✓ Tous les paramètres remplis
+
+|Algorithm
+|✓ Algorithme sélectionné
+
+|Hyperparameters
+|✓ Tous les paramètres dans les limites
+
+|Summary
+|✓ Case de confirmation cochée
+|===
+
+==== 3. Vérifier les services backend
+
+[source,bash]
+----
+# Vérifier que l'API ML Pipeline est accessible
+kubectl port-forward -n ibis-x svc/ml-pipeline 8082:8082
+
+# Tester l'endpoint
+curl http://localhost:8082/health
+
+# Vérifier le statut Celery
+curl http://localhost:8082/celery/status
+----
+
+==== 4. Vérifier les workers Celery
+
+[source,bash]
+----
+# Vérifier les pods Celery
+kubectl get pods -n ibis-x | grep celery
+
+# Vérifier les logs
+kubectl logs -n ibis-x -l app=ml-pipeline-celery-worker -f
+----
+
+=== Actions correctives appliquées
+
+==== Ajout de logs de debug
+
+Les modifications suivantes ont été apportées pour faciliter le débogage :
+
+1. **Logs détaillés dans startTraining()** :
+   - Affichage de l'état de chaque formulaire
+   - Messages d'erreur spécifiques pour chaque formulaire invalide
+   - Logs des données envoyées au backend
+
+2. **Bouton désactivé visuellement** :
+   - Le bouton est maintenant désactivé si les conditions ne sont pas remplies
+   - Ajout d'un attribut `[disabled]` pour un feedback visuel
+
+3. **Formulaire Data Cleaning** :
+   - Changé la valeur par défaut de `analysisCompleted` à `true`
+   - Permet de continuer sans bloquer sur cette étape
+
+=== Procédure de test rapide
+
+1. **Ouvrir la console du navigateur** (F12)
+
+2. **Naviguer jusqu'à l'étape 8**
+
+3. **Cocher la case de confirmation**
+
+4. **Cliquer sur "Lancer l'entraînement"**
+
+5. **Vérifier les logs dans la console** :
+   - Si `Form is not valid` apparaît, vérifier quel formulaire est invalide
+   - Si `Sending experiment data` apparaît, vérifier la réponse du serveur
+
+=== Commandes utiles pour le débogage
+
+[source,bash]
+----
+# Redémarrer tous les services ML Pipeline
+kubectl rollout restart deployment/ml-pipeline -n ibis-x
+kubectl rollout restart deployment/ml-pipeline-celery-worker -n ibis-x
+
+# Vérifier Redis
+kubectl exec -n ibis-x redis-0 -- redis-cli ping
+
+# Voir les tâches en attente
+kubectl exec -n ibis-x redis-0 -- redis-cli llen ml_queue
+
+# Nettoyer le cache du navigateur
+# Chrome : Ctrl+Shift+Delete
+# Firefox : Ctrl+Shift+Delete
+# Edge : Ctrl+Shift+Delete
+----
+
+=== Si le problème persiste
+
+1. **Vérifier les logs du backend** :
+   ```bash
+   kubectl logs -n ibis-x -l app=ml-pipeline --tail=100
+   ```
+
+2. **Tester avec curl directement** :
+   ```bash
+   curl -X POST http://localhost:8082/experiments \
+     -H "Content-Type: application/json" \
+     -d '{
+       "project_id": "123e4567-e89b-12d3-a456-426614174000",
+       "dataset_id": "123e4567-e89b-12d3-a456-426614174001",
+       "algorithm": "decision_tree",
+       "hyperparameters": {"max_depth": 5},
+       "preprocessing_config": {
+         "target_column": "target",
+         "task_type": "classification",
+         "test_size": 0.2,
+         "missing_values": {"strategy": "mean"},
+         "scaling": {"enabled": true, "method": "standard"},
+         "encoding": "onehot",
+         "outlier_detection": {"enabled": false, "method": "iqr", "threshold": 0.1}
+       }
+     }'
+   ```
+
+3. **Signaler le problème** avec :
+   - Les logs de la console du navigateur
+   - La réponse de l'endpoint `/celery/status`
+   - Les logs des pods Kubernetes

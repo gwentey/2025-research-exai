@@ -4,10 +4,9 @@ from datetime import datetime
 from uuid import UUID
 
 class ExperimentCreate(BaseModel):
-    user_id: UUID
     project_id: UUID
     dataset_id: UUID
-    algorithm: str = Field(..., pattern="^(decision_tree|random_forest)$")
+    algorithm: str = Field(..., pattern="^(decision_tree|random_forest|logistic_regression|svm|knn|neural_network)$")
     hyperparameters: Dict[str, Any]
     preprocessing_config: Dict[str, Any]
     
@@ -19,6 +18,14 @@ class ExperimentCreate(BaseModel):
             allowed_params = {'criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf', 'max_features'}
         elif algorithm == 'random_forest':
             allowed_params = {'n_estimators', 'max_depth', 'min_samples_split', 'bootstrap', 'max_features'}
+        elif algorithm == 'logistic_regression':
+            allowed_params = {'penalty', 'C', 'solver', 'max_iter'}
+        elif algorithm == 'svm':
+            allowed_params = {'kernel', 'C', 'gamma', 'degree'}
+        elif algorithm == 'knn':
+            allowed_params = {'n_neighbors', 'weights', 'algorithm', 'metric'}
+        elif algorithm == 'neural_network':
+            allowed_params = {'hidden_layer_sizes', 'activation', 'solver', 'alpha', 'learning_rate', 'max_iter'}
         else:
             return v
         

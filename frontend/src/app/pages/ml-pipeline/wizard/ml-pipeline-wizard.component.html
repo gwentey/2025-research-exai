@@ -225,7 +225,7 @@
               </form>
             </mat-step>
             
-          <!-- ÉTAPE 2: NETTOYAGE INTELLIGENT DES DONNÉES -->
+          <!-- ÉTAPE 2: NETTOYAGE INTELLIGENT DES DONNÉES MULTI-COLONNES -->
           <mat-step>
             <form [formGroup]="dataCleaningForm">
               <div class="step-container animate-fade-in-up">
@@ -236,8 +236,8 @@
                       <mat-icon>cleaning_services</mat-icon>
                     </div>
                     <div class="header-text">
-                      <h2 class="step-title">Nettoyage des données</h2>
-                      <p class="step-subtitle">Identifiez et corrigez les problèmes dans votre dataset</p>
+                      <h2 class="step-title">Nettoyage Intelligent des Données</h2>
+                      <p class="step-subtitle">Configurez une stratégie de nettoyage spécifique pour chaque colonne</p>
                     </div>
                   </div>
                 </div>
@@ -626,201 +626,7 @@
                   </div>
                 </div>
 
-                <!-- Résultats de l'analyse -->
-                <div class="analysis-results" *ngIf="dataQualityAnalysis && !isAnalyzingData">
-                  
-                  <!-- Score global de qualité -->
-                  <div class="quality-overview-card">
-                    <div class="quality-header">
-                      <mat-icon>assessment</mat-icon>
-                      <h3>Rapport de Qualité des Données</h3>
-                    </div>
-                    <div class="quality-metrics">
-                      <div class="metric-card score-card">
-                        <div class="metric-value" [class]="getDataQualityScoreColor(dataQualityAnalysis.data_quality_score)">
-                          {{ dataQualityAnalysis.data_quality_score }}/100
-                        </div>
-                        <div class="metric-label">Score de Qualité</div>
-                      </div>
-                      <div class="metric-card">
-                        <div class="metric-value">{{ dataQualityAnalysis.dataset_overview.total_columns }}</div>
-                        <div class="metric-label">Colonnes Analysées</div>
-                      </div>
-                      <div class="metric-card">
-                        <div class="metric-value">{{ dataQualityAnalysis.dataset_overview.total_rows | number }}</div>
-                        <div class="metric-label">Lignes de Données</div>
-                      </div>
-                      <div class="metric-card">
-                        <div class="metric-value severity-badge" [class]="dataQualityAnalysis.missing_data_analysis.severity_assessment.level">
-                          {{ dataQualityAnalysis.missing_data_analysis.severity_assessment.level | titlecase }}
-                        </div>
-                        <div class="metric-label">Sévérité des Problèmes</div>
-                      </div>
-                    </div>
-                  </div>
 
-                  <!-- Analyse par colonne -->
-                  <div class="columns-analysis">
-                    <div class="section-header">
-                      <mat-icon>view_column</mat-icon>
-                      <h3>Analyse Détaillée par Colonne</h3>
-                      <div class="analysis-summary">
-                        {{ getColumnsWithIssuesCount() }} colonne(s) nécessitent une attention
-                      </div>
-                    </div>
-
-                    <div class="columns-grid">
-                      <div class="column-card" 
-                           *ngFor="let column of getColumnsAnalysis()" 
-                           [class]="getColumnSeverityClass(column)">
-                        
-                        <!-- En-tête de colonne -->
-                        <div class="column-header">
-                          <div class="column-info">
-                            <h4 class="column-name">{{ column.name }}</h4>
-                            <div class="column-type">
-                              <mat-icon>{{ getColumnTypeIcon(column.type) }}</mat-icon>
-                              <span>{{ getColumnTypeLabel(column.type) }}</span>
-                            </div>
-                          </div>
-                          <div class="column-status">
-                            <mat-icon class="status-icon" [class]="getColumnStatusClass(column)">
-                              {{ getColumnStatusIcon(column) }}
-                            </mat-icon>
-                          </div>
-                        </div>
-
-                        <!-- Problèmes détectés -->
-                        <div class="column-issues" *ngIf="column.issues && column.issues.length > 0">
-                          <h5>🚨 Problèmes Détectés :</h5>
-                          <div class="issue-item" *ngFor="let issue of column.issues">
-                            <mat-icon class="issue-icon" [class]="issue.severity">{{ issue.icon }}</mat-icon>
-                            <div class="issue-content">
-                              <div class="issue-title">{{ issue.title }}</div>
-                              <div class="issue-description">{{ issue.description }}</div>
-                              <div class="issue-stats" *ngIf="issue.stats">
-                                <span class="stat" *ngFor="let stat of issue.stats">{{ stat }}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- Colonne parfaite -->
-                        <div class="column-perfect" *ngIf="!column.issues || column.issues.length === 0">
-                          <mat-icon class="perfect-icon">check_circle</mat-icon>
-                          <div class="perfect-message">
-                            <strong>✨ Colonne Parfaite !</strong>
-                            <p>Aucun problème détecté. Cette colonne est prête pour l'IA.</p>
-                          </div>
-                        </div>
-
-                        <!-- Solution recommandée -->
-                        <div class="column-solution" *ngIf="column.recommendedAction">
-                          <h5>💡 Solution Recommandée :</h5>
-                          <div class="solution-card" [class]="column.recommendedAction.type">
-                            <mat-icon class="solution-icon">{{ column.recommendedAction.icon }}</mat-icon>
-                            <div class="solution-content">
-                              <div class="solution-title">{{ column.recommendedAction.title }}</div>
-                              <div class="solution-description">{{ column.recommendedAction.description }}</div>
-                              <div class="solution-confidence">
-                                <div class="confidence-bar">
-                                  <div class="confidence-fill" [style.width.%]="column.recommendedAction.confidence * 100"></div>
-                                </div>
-                                <span class="confidence-text">{{ (column.recommendedAction.confidence * 100) | number:'1.0-0' }}% de confiance</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- Actions alternatives -->
-                        <div class="alternative-actions" *ngIf="column.alternativeActions && column.alternativeActions.length > 0">
-                          <details class="alternatives-collapsible">
-                            <summary>Autres options disponibles ({{ column.alternativeActions.length }})</summary>
-                            <div class="alternative-item" *ngFor="let action of column.alternativeActions">
-                              <mat-icon class="alt-icon">{{ action.icon }}</mat-icon>
-                              <div class="alt-content">
-                                <span class="alt-title">{{ action.title }}</span>
-                                <span class="alt-description">{{ action.description }}</span>
-                              </div>
-                            </div>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Résumé des actions automatiques -->
-                  <div class="auto-actions-summary" *ngIf="hasAutoFixActions()">
-                    <div class="summary-header">
-                      <mat-icon>auto_awesome</mat-icon>
-                      <h3>Actions Automatiques Prévues</h3>
-                    </div>
-                    <div class="actions-preview">
-                      <div class="action-category" *ngFor="let category of getAutoFixCategories()">
-                        <div class="category-header">
-                          <mat-icon>{{ category.icon }}</mat-icon>
-                          <h4>{{ category.title }}</h4>
-                          <span class="category-count">{{ category.columns.length }} colonne(s)</span>
-                        </div>
-                        <div class="category-columns">
-                          <div class="column-tag" *ngFor="let col of category.columns">{{ col }}</div>
-                        </div>
-                        <div class="category-description">{{ category.description }}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Contrôles manuels (si l'utilisateur veut personnaliser) -->
-                  <div class="manual-controls" *ngIf="showManualControls">
-                    <div class="manual-header">
-                      <mat-icon>settings</mat-icon>
-                      <h3>Contrôles Manuels Avancés</h3>
-                      <button type="button" class="btn-hide-manual" (click)="showManualControls = false">
-                        <mat-icon>expand_less</mat-icon>
-                        Masquer
-                      </button>
-                    </div>
-                    <!-- Ici on peut mettre les anciens contrôles pour les experts -->
-                  </div>
-
-                  <!-- Bouton pour afficher les contrôles manuels -->
-                  <div class="show-manual-controls" *ngIf="!showManualControls">
-                    <button type="button" class="btn-show-manual" (click)="showManualControls = true">
-                      <mat-icon>settings</mat-icon>
-                      Personnaliser les paramètres (Expert)
-                    </button>
-                  </div>
-                </div>
-
-                <!-- État initial : pas encore d'analyse -->
-                <div class="no-analysis" *ngIf="!dataQualityAnalysis && !isAnalyzingData">
-                  <div class="welcome-card">
-                    <div class="welcome-icon">
-                      <mat-icon>psychology</mat-icon>
-                    </div>
-                    <h3>🎯 Prêt pour l'Analyse IA</h3>
-                    <p>Notre intelligence artificielle va analyser chaque colonne de vos données et détecter automatiquement :</p>
-                    <div class="detection-list">
-                      <div class="detection-item">
-                        <mat-icon>search</mat-icon>
-                        <span><strong>Données manquantes</strong> - Localisation et pourcentages précis</span>
-                      </div>
-                      <div class="detection-item">
-                        <mat-icon>warning</mat-icon>
-                        <span><strong>Valeurs aberrantes</strong> - Outliers et anomalies</span>
-                      </div>
-                      <div class="detection-item">
-                        <mat-icon>analytics</mat-icon>
-                        <span><strong>Types de données</strong> - Classification automatique</span>
-                      </div>
-                      <div class="detection-item">
-                        <mat-icon>auto_fix_high</mat-icon>
-                        <span><strong>Solutions optimales</strong> - Recommandations personnalisées</span>
-                      </div>
-                    </div>
-                    <p class="cta-text">Cliquez sur <strong>"✨ AUTO-FIX MAGIQUE"</strong> pour commencer !</p>
-                  </div>
-                </div>
 
                 <!-- Navigation -->
                 <div class="step-navigation">
@@ -830,7 +636,8 @@
                   </button>
                   <button mat-button 
                           matStepperNext 
-                          class="btn-primary">
+                          class="btn-primary"
+                          [disabled]="!isDataCleaningComplete()">
                     <span>Continuer</span>
                     <mat-icon>arrow_forward</mat-icon>
                   </button>
@@ -1250,6 +1057,7 @@
               </div>
             </div>
 
+            
             <!-- ÉTAPE 2: Nettoyage des données -->
             <div *ngSwitchCase="2" class="modern-step-card">
               <div class="card-header">
@@ -1262,7 +1070,7 @@
                 </div>
               </div>
               
-              <div class="step-body" [formGroup]="dataQualityForm">
+              <div class="step-body">
                 <!-- Guide d'introduction -->
                 <div class="info-card gradient-border">
                   <div class="info-header">
@@ -1274,257 +1082,459 @@
                     <div class="info-tips">
                       <div class="tip">
                         <mat-icon>tips_and_updates</mat-icon>
-                        <span><strong>Astuce :</strong> Utilisez les recommandations automatiques de l'IA - elles analysent chaque colonne et choisissent la meilleure stratégie de nettoyage.</span>
+                        <span><strong>Astuce :</strong> Notre IA analyse individuellement chaque colonne et choisit la meilleure stratégie de nettoyage.</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div class="configuration-sections">
-                  <!-- Section unique : Nettoyage Intelligent des Données -->
-                  <div class="config-section data-cleaning-section">
-                    <div class="section-header">
-                      <mat-icon>auto_fix_high</mat-icon>
-                      <h3>Nettoyage Intelligent des Données</h3>
-                      <button type="button" class="help-button" (click)="toggleDataCleaningHelp()" matTooltip="Guide complet du nettoyage de données">
-                        <mat-icon>help_outline</mat-icon>
-                      </button>
+                <!-- État initial : pas encore d'analyse -->
+                <div class="no-analysis" *ngIf="!dataQualityAnalysis && !isAnalyzingData">
+                  <div class="welcome-card">
+                    <div class="welcome-icon">
+                      <mat-icon>psychology</mat-icon>
+                    </div>
+                    <h3>🎯 Analyse Multi-Colonnes Avancée</h3>
+                    <p>Notre intelligence artificielle va analyser <strong>individuellement chaque colonne</strong> et vous proposer une stratégie de nettoyage personnalisée :</p>
+                    <div class="detection-list">
+                      <div class="detection-item">
+                        <mat-icon>view_column</mat-icon>
+                        <span><strong>Analyse par colonne</strong> - Chaque colonne aura sa propre stratégie</span>
+                      </div>
+                      <div class="detection-item">
+                        <mat-icon>auto_fix_high</mat-icon>
+                        <span><strong>Stratégies multiples</strong> - Suppression, Imputation, Interpolation selon le contexte</span>
+                      </div>
+                      <div class="detection-item">
+                        <mat-icon>tune</mat-icon>
+                        <span><strong>Paramètres ajustables</strong> - Configurez finement chaque méthode</span>
+                      </div>
+                      <div class="detection-item">
+                        <mat-icon>visibility</mat-icon>
+                        <span><strong>Aperçu en temps réel</strong> - Visualisez l'effet avant d'appliquer</span>
+                      </div>
                     </div>
 
-                    <!-- Box d'aide avancée -->
-                    <div class="data-cleaning-help-box" *ngIf="showDataCleaningHelp">
-                      <div class="help-header">
-                        <h4>🧹 Guide du Nettoyage de Données Multi-Colonnes</h4>
-                        <button type="button" (click)="toggleDataCleaningHelp()" class="close-help">
-                          <mat-icon>close</mat-icon>
+                  </div>
+                  
+                  <!-- Bouton d'action central -->
+                  <div class="action-button-container">
+                    <button type="button" 
+                            class="btn-primary btn-lg btn-auto-fix"
+                            (click)="analyzeColumnsCleaning()">
+                      <mat-icon>auto_awesome</mat-icon>
+                      <span>✨ ANALYSER LES COLONNES</span>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Interface granulaire de nettoyage par colonne -->
+                <div class="analysis-results" *ngIf="dataQualityAnalysis && !isAnalyzingData">
+                  
+                  <!-- Vue d'ensemble de la qualité des données -->
+                  <div class="quality-overview-card">
+                    <div class="quality-header">
+                      <mat-icon>dashboard</mat-icon>
+                      <h3>Vue d'ensemble du Dataset</h3>
+                    </div>
+                    <div class="quality-metrics">
+                      <div class="metric-card score-card">
+                        <div class="metric-value" [class]="getDataQualityScoreColor(dataQualityAnalysis.data_quality_score)">
+                          {{ dataQualityAnalysis.data_quality_score }}/100
+                        </div>
+                        <div class="metric-label">Score de Qualité</div>
+                      </div>
+                      <div class="metric-card">
+                        <div class="metric-value">{{ getColumnsWithIssuesCount() }}</div>
+                        <div class="metric-label">Colonnes à Nettoyer</div>
+                      </div>
+                      <div class="metric-card">
+                        <div class="metric-value">{{ dataQualityAnalysis.dataset_overview.total_rows | number }}</div>
+                        <div class="metric-label">Lignes Totales</div>
+                      </div>
+                      <div class="metric-card">
+                        <div class="metric-value">{{ getTotalMissingValuesCount() | number }}</div>
+                        <div class="metric-label">Valeurs Manquantes</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Pipeline de nettoyage personnalisé -->
+                  <div class="cleaning-pipeline-section">
+                    <div class="section-header">
+                      <mat-icon>build_circle</mat-icon>
+                      <h3>Pipeline de Nettoyage Multi-Colonnes</h3>
+                      <div class="header-actions">
+                        <button type="button" class="btn-preset modern-btn btn-secondary" (click)="applySmartPreset()">
+                          <mat-icon>auto_awesome</mat-icon>
+                          Configuration Intelligente
+                        </button>
+                        <button type="button" class="btn-reset modern-btn btn-ghost" (click)="resetCleaningPipeline()">
+                          <mat-icon>refresh</mat-icon>
+                          Réinitialiser
                         </button>
                       </div>
-                      <div class="help-content">
-                        <div class="help-strategies">
-                          <div class="strategy-card">
-                            <div class="strategy-icon">🗑️</div>
-                            <h5>SUPPRESSION</h5>
-                            <p><strong>Quand :</strong> >70% de données manquantes</p>
-                            <p><strong>Méthodes :</strong> Supprimer colonnes/lignes corrompues</p>
-                          </div>
-                          <div class="strategy-card">
-                            <div class="strategy-icon">🔧</div>
-                            <h5>IMPUTATION</h5>
-                            <p><strong>Quand :</strong> 15-70% de données manquantes</p>
-                            <p><strong>Méthodes :</strong> Mean, Médiane, Mode, KNN, Iterative</p>
-                          </div>
-                          <div class="strategy-card">
-                            <div class="strategy-icon">📈</div>
-                            <h5>INTERPOLATION</h5>
-                            <p><strong>Quand :</strong> Données temporelles/séquentielles</p>
-                            <p><strong>Méthodes :</strong> Linéaire, Forward-fill, Polynomial</p>
-                          </div>
-                        </div>
-                        <div class="help-decision-tree">
-                          <h6>🎯 Règles de Décision Automatique</h6>
-                          <ul>
-                            <li><strong>Données Catégorielles :</strong> Mode → Mode + "Unknown" → KNN</li>
-                            <li><strong>Données Numériques Normales :</strong> Moyenne → KNN → Iterative</li>
-                            <li><strong>Données Asymétriques :</strong> Médiane → KNN → Iterative</li>
-                            <li><strong>Données Temporelles :</strong> Interpolation linéaire → Forward-fill</li>
-                          </ul>
+                    </div>
+
+                    <!-- Table de configuration du nettoyage -->
+                    <div class="cleaning-configuration-table">
+                      <table class="columns-table modern-table">
+                        <thead>
+                          <tr>
+                            <th class="col-name">
+                              <mat-icon>view_column</mat-icon>
+                              Colonne
+                            </th>
+                            <th class="col-type">
+                              <mat-icon>category</mat-icon>
+                              Type
+                            </th>
+                            <th class="col-missing">
+                              <mat-icon>warning</mat-icon>
+                              Manquant
+                            </th>
+                            <th class="col-strategy">
+                              <mat-icon>cleaning_services</mat-icon>
+                              Stratégie de Nettoyage
+                            </th>
+                            <th class="col-params">
+                              <mat-icon>tune</mat-icon>
+                              Paramètres
+                            </th>
+                            <th class="col-preview">
+                              <mat-icon>visibility</mat-icon>
+                              Aperçu
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let column of getColumnCleaningConfigs(); let i = index" 
+                              class="column-row"
+                              [class.has-issues]="column.missingPercentage > 0"
+                              [class.critical]="column.missingPercentage > 70">
+                            
+                            <!-- Nom de la colonne -->
+                            <td class="col-name">
+                              <div class="column-name-cell">
+                                <mat-icon class="type-icon">{{ getColumnTypeIcon(column.type) }}</mat-icon>
+                                <span class="column-name">{{ column.name }}</span>
+                                <mat-icon class="status-icon" 
+                                          [class]="getColumnHealthClass(column)"
+                                          [matTooltip]="getColumnHealthTooltip(column)">
+                                  {{ getColumnHealthIcon(column) }}
+                                </mat-icon>
+                              </div>
+                            </td>
+                            
+                            <!-- Type de données -->
+                            <td class="col-type">
+                              <span class="type-badge" [class]="column.type">
+                                {{ getColumnTypeLabel(column.type) }}
+                              </span>
+                            </td>
+                            
+                            <!-- Pourcentage manquant -->
+                            <td class="col-missing">
+                              <div class="missing-info" *ngIf="column.missingPercentage > 0">
+                                <div class="missing-bar">
+                                  <div class="missing-fill" 
+                                       [style.width.%]="column.missingPercentage"
+                                       [class.low]="column.missingPercentage < 15"
+                                       [class.medium]="column.missingPercentage >= 15 && column.missingPercentage < 70"
+                                       [class.high]="column.missingPercentage >= 70">
+                                  </div>
+                                </div>
+                                <span class="missing-text">{{ column.missingPercentage }}%</span>
+                              </div>
+                              <div class="no-missing" *ngIf="column.missingPercentage === 0">
+                                <mat-icon>check_circle</mat-icon>
+                                <span>Complet</span>
+                              </div>
+                            </td>
+                            
+                            <!-- Sélection de stratégie -->
+                            <td class="col-strategy">
+                              <div class="strategy-container">
+                                <select class="strategy-select form-select" 
+                                        [(ngModel)]="column.strategy"
+                                        [ngModelOptions]="{standalone: true}"
+                                        (change)="onStrategyChange(column, i)"
+                                        [class.recommended]="column.strategy === column.recommendedStrategy">
+                                  
+                                  <!-- Pas de nettoyage nécessaire -->
+                                  <optgroup label="✅ OK" *ngIf="column.missingPercentage === 0">
+                                    <option value="none">Aucune action</option>
+                                  </optgroup>
+                                  
+                                  <!-- Suppression -->
+                                  <optgroup label="🗑️ SUPPRESSION" *ngIf="column.missingPercentage > 0">
+                                    <option value="drop_column" 
+                                            [disabled]="column.isTarget">
+                                      Supprimer colonne
+                                    </option>
+                                    <option value="drop_rows">
+                                      Supprimer lignes
+                                    </option>
+                                  </optgroup>
+                                  
+                                  <!-- Imputation simple -->
+                                  <optgroup label="🔧 SIMPLE" *ngIf="column.missingPercentage > 0 && column.missingPercentage < 70">
+                                    <option value="mean" 
+                                            *ngIf="['integer', 'float'].includes(column.type)">
+                                      Moyenne
+                                    </option>
+                                    <option value="median" 
+                                            *ngIf="['integer', 'float'].includes(column.type)">
+                                      Médiane
+                                    </option>
+                                    <option value="mode">
+                                      Mode
+                                    </option>
+                                    <option value="constant">
+                                      Constante
+                                    </option>
+                                  </optgroup>
+                                  
+                                  <!-- Imputation avancée -->
+                                  <optgroup label="🎯 AVANCÉ" *ngIf="column.missingPercentage > 0 && column.missingPercentage < 70">
+                                    <option value="knn">
+                                      KNN
+                                    </option>
+                                    <option value="iterative">
+                                      MICE
+                                    </option>
+                                    <option value="random_forest" *ngIf="['integer', 'float'].includes(column.type)">
+                                      Random Forest
+                                    </option>
+                                  </optgroup>
+                                  
+                                  <!-- Interpolation (pour données temporelles) -->
+                                  <optgroup label="📈 INTERPOLATION" *ngIf="column.missingPercentage > 0 && (column.isTimeSeries || column.type === 'datetime')">
+                                    <option value="linear">
+                                      Linéaire
+                                    </option>
+                                    <option value="spline">
+                                      Spline
+                                    </option>
+                                    <option value="forward_fill">
+                                      Forward Fill
+                                    </option>
+                                    <option value="backward_fill">
+                                      Backward Fill
+                                    </option>
+                                  </optgroup>
+                                </select>
+                                
+                                <!-- Badge de recommandation -->
+                                <span class="recommendation-badge" 
+                                      *ngIf="column.strategy === column.recommendedStrategy"
+                                      matTooltip="Stratégie recommandée par l'IA">
+                                  <mat-icon>auto_awesome</mat-icon>
+                                  IA
+                                </span>
+                              </div>
+                            </td>
+                            
+                            <!-- Paramètres spécifiques -->
+                            <td class="col-params">
+                              <div class="params-container">
+                                <!-- Paramètres pour KNN -->
+                                <div class="param-group" *ngIf="column.strategy === 'knn'">
+                                  <label>Voisins:</label>
+                                  <input type="number" 
+                                         [(ngModel)]="column.params.n_neighbors" 
+                                         [ngModelOptions]="{standalone: true}"
+                                         min="1" max="20" 
+                                         class="param-input form-input">
+                                </div>
+                                
+                                <!-- Paramètres pour constante -->
+                                <div class="param-group" *ngIf="column.strategy === 'constant'">
+                                  <label>Valeur:</label>
+                                  <input type="text" 
+                                         [(ngModel)]="column.params.fill_value" 
+                                         [ngModelOptions]="{standalone: true}"
+                                         placeholder="Ex: 0, 'Unknown'"
+                                         class="param-input form-input">
+                                </div>
+                                
+                                <!-- Paramètres pour iterative -->
+                                <div class="param-group" *ngIf="column.strategy === 'iterative'">
+                                  <label>Itérations:</label>
+                                  <input type="number" 
+                                         [(ngModel)]="column.params.max_iter" 
+                                         [ngModelOptions]="{standalone: true}"
+                                         min="5" max="50" 
+                                         class="param-input form-input">
+                                </div>
+                                
+                                <!-- Paramètres pour spline -->
+                                <div class="param-group" *ngIf="column.strategy === 'spline'">
+                                  <label>Ordre:</label>
+                                  <select [(ngModel)]="column.params.order" 
+                                          [ngModelOptions]="{standalone: true}"
+                                          class="param-select form-select">
+                                    <option value="1">Linéaire</option>
+                                    <option value="2">Quadratique</option>
+                                    <option value="3">Cubique</option>
+                                  </select>
+                                </div>
+                                
+                                <!-- Pas de paramètres -->
+                                <div class="no-params" *ngIf="!hasParameters(column.strategy)">
+                                  <span class="text-muted">Aucun paramètre</span>
+                                </div>
+                              </div>
+                            </td>
+                            
+                            <!-- Aperçu de l'effet -->
+                            <td class="col-preview">
+                              <button type="button" 
+                                      class="btn-preview modern-btn btn-sm btn-ghost"
+                                      (click)="previewColumnCleaning(column, i)"
+                                      [disabled]="column.strategy === 'none'">
+                                <mat-icon>visibility</mat-icon>
+                                <span>Aperçu</span>
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <!-- Résumé des stratégies appliquées -->
+                    <div class="strategies-summary modern-card">
+                      <h4>Résumé du Pipeline de Nettoyage</h4>
+                      <div class="summary-stats">
+                        <div class="stat-item" *ngFor="let stat of getCleaningStats()">
+                          <mat-icon>{{ stat.icon }}</mat-icon>
+                          <span class="stat-label">{{ stat.label }}:</span>
+                          <span class="stat-value">{{ stat.value }}</span>
                         </div>
                       </div>
                     </div>
-
-                    <!-- Analyse de qualité des données (si disponible) -->
-                    <div class="data-quality-analysis" *ngIf="dataQualityAnalysis">
-                      <div class="quality-score-card">
-                        <div class="score-header">
-                          <mat-icon>assessment</mat-icon>
-                          <h4>Analyse de Qualité</h4>
-                        </div>
-                        <div class="score-display">
-                          <div class="score-circle" [class]="getDataQualityScoreColor(dataQualityAnalysis.data_quality_score)">
-                            <span class="score-value">{{ dataQualityAnalysis.data_quality_score }}</span>
-                            <span class="score-label">/ 100</span>
-                          </div>
-                          <div class="score-details">
-                            <div class="severity-badge" [class]="dataQualityAnalysis.missing_data_analysis.severity_assessment.level">
-                              <mat-icon>{{ getSeverityLevelIcon(dataQualityAnalysis.missing_data_analysis.severity_assessment.level) }}</mat-icon>
-                              {{ dataQualityAnalysis.missing_data_analysis.severity_assessment.level | titlecase }}
-                            </div>
-                            <p class="score-description">
-                              {{ dataQualityAnalysis.missing_data_analysis.severity_assessment.main_issues?.join(', ') || 'Bonne qualité des données' }}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                  </div>
+                  
+                  <!-- Section de gestion des datasets multiples -->
+                  <div class="multiple-datasets-section" *ngIf="showMultipleDatasets">
+                    <div class="section-header">
+                      <mat-icon>join_inner</mat-icon>
+                      <h3>Fusion de Datasets</h3>
+                      <button type="button" class="btn-toggle-datasets modern-btn btn-sm btn-ghost" 
+                              (click)="showMultipleDatasets = false">
+                        <mat-icon>close</mat-icon>
+                      </button>
                     </div>
-
-                    <!-- Configuration principale -->
-                    <div class="form-group">
-                      <div class="form-label-with-tooltip">
-                        <label class="form-label">Stratégie de nettoyage</label>
-                        <span class="tooltip-trigger" matTooltip="Notre IA analyse automatiquement vos données et recommande la meilleure stratégie pour chaque colonne">
-                          <mat-icon>info</mat-icon>
-                        </span>
+                    <div class="datasets-join-config">
+                      <p class="info-text">
+                        <mat-icon>info</mat-icon>
+                        Vous pouvez croiser plusieurs datasets en définissant des clés de jointure
+                      </p>
+                      
+                      <!-- Liste des datasets ajoutés -->
+                      <div class="joined-datasets-list" *ngIf="additionalDatasets.length > 0">
+                        <div class="joined-dataset-item" *ngFor="let ds of additionalDatasets; let i = index">
+                          <div class="dataset-info">
+                            <mat-icon>dataset</mat-icon>
+                            <span class="dataset-name">{{ ds.name }}</span>
+                            <span class="dataset-rows">({{ ds.rows | number }} lignes)</span>
+                          </div>
+                          <div class="join-config">
+                            <label>Type de jointure:</label>
+                            <select [(ngModel)]="ds.joinType" [ngModelOptions]="{standalone: true}" class="form-select">
+                              <option value="inner">INNER JOIN</option>
+                              <option value="left">LEFT JOIN</option>
+                              <option value="right">RIGHT JOIN</option>
+                              <option value="outer">OUTER JOIN</option>
+                            </select>
+                            <label>Clé de jointure:</label>
+                            <select [(ngModel)]="ds.joinKey" [ngModelOptions]="{standalone: true}" class="form-select">
+                              <option *ngFor="let col of ds.columns" [value]="col">{{ col }}</option>
+                            </select>
+                            <button type="button" class="btn-remove" (click)="removeDataset(i)">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                       
-                      <!-- Toggle moderne pour utiliser les recommandations automatiques -->
-                      <div class="recommendation-toggle-modern">
-                        <div class="toggle-header">
-                          <mat-slide-toggle formControlName="useRecommendations" color="primary">
-                            <span class="toggle-text">
-                              Utiliser les recommandations automatiques 
-                              <span class="pro-badge">IA</span>
-                            </span>
-                          </mat-slide-toggle>
+                      <button type="button" class="btn-add-dataset modern-btn btn-secondary" 
+                              (click)="openDatasetSelector()">
+                        <mat-icon>add</mat-icon>
+                        Ajouter un dataset
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Actions globales -->
+                  <div class="global-actions">
+                    <button type="button" class="btn-show-multi modern-btn btn-ghost" 
+                            (click)="showMultipleDatasets = !showMultipleDatasets"
+                            *ngIf="!showMultipleDatasets">
+                      <mat-icon>join_inner</mat-icon>
+                      Fusionner des datasets
+                    </button>
+                    <button type="button" class="btn-validate modern-btn btn-primary" (click)="validateCleaningPipeline()">
+                      <mat-icon>check_circle</mat-icon>
+                      Valider la Configuration
+                    </button>
+                    <button type="button" class="btn-export modern-btn btn-secondary" (click)="exportCleaningCode()">
+                      <mat-icon>code</mat-icon>
+                      Exporter en Python
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Modal de prévisualisation -->
+                <div class="preview-modal-overlay" *ngIf="showPreviewModal" (click)="closePreview()">
+                  <div class="preview-modal modern-card" (click)="$event.stopPropagation()">
+                    <div class="modal-header">
+                      <h3>Aperçu du nettoyage : {{ previewColumn?.name }}</h3>
+                      <button type="button" class="btn-close" (click)="closePreview()">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="preview-stats">
+                        <div class="stat">
+                          <span>Avant:</span>
+                          <strong>{{ previewData?.before?.missing }} valeurs manquantes</strong>
                         </div>
-                        <p class="form-description">
-                          <mat-icon>auto_awesome</mat-icon>
-                          L'IA analyse chaque colonne et choisit automatiquement la meilleure méthode
-                        </p>
-                      </div>
-
-                      <!-- Configuration manuelle si recommendations désactivées -->
-                      <div class="manual-config" *ngIf="!dataQualityForm.get('useRecommendations')?.value">
-                        <label class="form-label">Méthode principale</label>
-                      <select class="form-input form-select" formControlName="missingValueStrategy">
-                          <optgroup label="🗑️ SUPPRESSION">
-                        <option value="drop">Supprimer les lignes incomplètes</option>
-                          </optgroup>
-                          <optgroup label="🔧 IMPUTATION SIMPLE">
-                            <option value="mean">Moyenne (données normales)</option>
-                            <option value="median">Médiane (données asymétriques)</option>
-                            <option value="mode">Mode (données catégorielles)</option>
-                          </optgroup>
-                          <optgroup label="🔧 IMPUTATION AVANCÉE">
-                            <option value="knn">KNN - K-Nearest Neighbors</option>
-                            <option value="iterative">Iterative (MICE)</option>
-                          </optgroup>
-                          <optgroup label="📈 INTERPOLATION">
-                            <option value="forward_fill">Forward Fill (temporel)</option>
-                            <option value="linear">Interpolation Linéaire</option>
-                          </optgroup>
-                      </select>
-
-                        <!-- Paramètres avancés -->
-                        <div class="advanced-params" *ngIf="isAdvancedStrategy()">
-                          <div class="param-group" *ngIf="dataQualityForm.get('missingValueStrategy')?.value === 'knn'">
-                            <label class="form-label">Nombre de voisins KNN</label>
-                            <input type="number" class="form-input" formControlName="knnNeighbors" min="3" max="20" />
-                            <p class="param-description">Plus le nombre est élevé, plus l'imputation est lisse</p>
-                          </div>
-                          
-                          <div class="param-group" *ngIf="dataQualityForm.get('missingValueStrategy')?.value === 'iterative'">
-                            <label class="form-label">Iterations maximales</label>
-                            <input type="number" class="form-input" formControlName="maxIterativeIter" min="5" max="50" />
-                            <p class="param-description">Nombre d'itérations pour converger vers la meilleure imputation</p>
-                          </div>
+                        <div class="stat">
+                          <span>Après:</span>
+                          <strong>{{ previewData?.after?.missing }} valeurs manquantes</strong>
                         </div>
                       </div>
-
-                      <!-- Explications dynamiques basées sur la stratégie sélectionnée -->
-                      <div class="strategy-explanation">
-                        <div *ngIf="getSelectedStrategy() === 'drop'" class="explanation-card warning">
-                          <mat-icon>warning</mat-icon>
-                          <div class="explanation-content">
-                            <h5>⚠️ Suppression de lignes</h5>
-                            <p>Supprime toutes les lignes avec des données manquantes. <strong>Attention :</strong> peut réduire significativement votre dataset.</p>
-                            <div class="pros-cons">
-                              <div class="pros">✅ Simple et rapide</div>
-                              <div class="cons">❌ Perte potentielle de données importantes</div>
-                        </div>
-                          </div>
-                        </div>
-
-                        <div *ngIf="getSelectedStrategy() === 'mean'" class="explanation-card success">
-                          <mat-icon>calculate</mat-icon>
-                          <div class="explanation-content">
-                            <h5>📊 Imputation par la moyenne</h5>
-                            <p>Remplace les valeurs manquantes par la moyenne de la colonne. <strong>Idéal pour :</strong> données numériques avec distribution normale.</p>
-                            <div class="pros-cons">
-                              <div class="pros">✅ Préserve la moyenne originale</div>
-                              <div class="cons">❌ Sensible aux valeurs extrêmes</div>
-                        </div>
-                          </div>
-                        </div>
-
-                        <div *ngIf="getSelectedStrategy() === 'median'" class="explanation-card success">
-                          <mat-icon>align_horizontal_center</mat-icon>
-                          <div class="explanation-content">
-                            <h5>📈 Imputation par la médiane</h5>
-                            <p>Remplace les valeurs manquantes par la médiane (valeur du milieu). <strong>Idéal pour :</strong> données avec des valeurs extrêmes ou asymétriques.</p>
-                            <div class="pros-cons">
-                              <div class="pros">✅ Robuste aux outliers</div>
-                              <div class="pros">✅ Préserve la distribution</div>
-                        </div>
-                        </div>
-                        </div>
-
-                        <div *ngIf="getSelectedStrategy() === 'knn'" class="explanation-card premium">
-                          <mat-icon>group</mat-icon>
-                          <div class="explanation-content">
-                            <h5>🎯 Imputation KNN (Avancée)</h5>
-                            <p>Utilise les valeurs des lignes similaires pour prédire les valeurs manquantes. <strong>Intelligent :</strong> tient compte des relations entre colonnes.</p>
-                            <div class="pros-cons">
-                              <div class="pros">✅ Très précis pour données complexes</div>
-                              <div class="pros">✅ Considère les corrélations</div>
-                              <div class="cons">⚠️ Plus lent sur gros datasets</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div *ngIf="getSelectedStrategy() === 'iterative'" class="explanation-card premium">
-                          <mat-icon>refresh</mat-icon>
-                          <div class="explanation-content">
-                            <h5>🔄 Imputation Iterative (Très Avancée)</h5>
-                            <p>Méthode MICE qui modélise chaque colonne manquante en fonction des autres. <strong>Le plus sophistiqué :</strong> gère les dépendances complexes.</p>
-                            <div class="pros-cons">
-                              <div class="pros">✅ Maximum de précision</div>
-                              <div class="pros">✅ Gère les patterns complexes</div>
-                              <div class="cons">⚠️ Nécessite plus de ressources</div>
-                            </div>
-                          </div>
-                        </div>
+                      <div class="preview-samples">
+                        <h4>Échantillon de données</h4>
+                        <table class="sample-table">
+                          <thead>
+                            <tr>
+                              <th>Index</th>
+                              <th>Valeur Originale</th>
+                              <th>Valeur Nettoyée</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let sample of previewData?.samples">
+                              <td>{{ sample.index }}</td>
+                              <td class="original-value" [class.missing]="sample.original === null">
+                                {{ sample.original ?? 'NaN' }}
+                              </td>
+                              <td class="cleaned-value" [class.imputed]="sample.original === null">
+                                {{ sample.cleaned }}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </div>
-
-                    <!-- Options de détection d'outliers -->
-                    <div class="form-group outlier-section">
-                      <div class="form-label-with-tooltip">
-                        <label class="form-label">Détection des valeurs aberrantes</label>
-                        <span class="tooltip-trigger" matTooltip="Identifie et traite automatiquement les valeurs anormalement élevées ou basses">
-                          <mat-icon>info</mat-icon>
-                        </span>
-                      </div>
-                      
-                      <label class="toggle-label">
-                        <input type="checkbox" formControlName="outlierDetection" />
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-text">Activer la détection d'outliers</span>
-                      </label>
-
-                      <div class="outlier-config" *ngIf="dataQualityForm.get('outlierDetection')?.value">
-                        <div class="form-group">
-                          <label class="form-label">Méthode de détection</label>
-                          <select class="form-input form-select" formControlName="outlierMethod">
-                            <option value="iqr">IQR - Interquartile Range (recommandé)</option>
-                            <option value="zscore">Z-Score - Écart-type</option>
-                            <option value="isolation">Isolation Forest (ML)</option>
-                          </select>
-                        </div>
-                        
-                        <div class="form-group" *ngIf="dataQualityForm.get('outlierMethod')?.value === 'zscore'">
-                          <label class="form-label">Seuil Z-Score: {{ dataQualityForm.get('outlierThreshold')?.value }}</label>
-                          <input type="range" class="form-input" formControlName="outlierThreshold" min="2" max="4" step="0.5" />
-                          <p class="param-description">Plus le seuil est bas, plus on détecte d'outliers</p>
-                        </div>
-                      </div>
-                    </div>
-
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- ÉTAPE 3: Configuration du modèle -->
+<!-- ÉTAPE 3: Configuration du modèle -->
             <div *ngSwitchCase="3" class="modern-step-card">
               <div class="card-header">
                 <div class="icon-container">
@@ -2339,88 +2349,169 @@
                     </div>
                   </div>
 
-                  <!-- Résumé détaillé de la configuration -->
-                  <div class="configuration-summary">
-                    <h3>
-                      <mat-icon>checklist</mat-icon>
-                      Résumé de votre configuration
-                    </h3>
-                    <div class="summary-grid">
-                      <div class="summary-item">
-                        <div class="item-icon">
-                          <mat-icon>dataset</mat-icon>
+                  <!-- Résumé moderne et élégant de la configuration -->
+                  <div class="modern-summary">
+                    <!-- Header professionnel -->
+                    <div class="summary-header">
+                      <div class="header-icon">
+                        <mat-icon>checklist</mat-icon>
+                      </div>
+                      <div class="header-content">
+                        <h3>Configuration prête</h3>
+                        <p>Vérifiez vos paramètres avant de lancer l'entraînement</p>
+                      </div>
+                    </div>
+
+                    <!-- Grille des paramètres -->
+                    <div class="config-grid">
+                      <!-- Dataset -->
+                      <div class="config-card">
+                        <div class="card-header">
+                          <div class="card-icon dataset">
+                            <mat-icon>dataset</mat-icon>
+                          </div>
+                          <div class="card-title">
+                            <h4>Dataset</h4>
+                            <span class="card-status verified">Sélectionné</span>
+                          </div>
                         </div>
-                        <div class="item-content">
-                          <h4>Dataset</h4>
-                          <p>{{ dataset?.dataset_name }}</p>
-                          <span class="item-detail">{{ dataset?.instances_number | number }} lignes × {{ dataset?.features_number }} colonnes</span>
+                        <div class="card-content">
+                          <div class="data-name">{{ dataset?.dataset_name }}</div>
+                          <div class="data-info">
+                            <span class="info-item">
+                              <strong>{{ dataset?.instances_number | number }}</strong> lignes
+                            </span>
+                            <span class="info-separator">•</span>
+                            <span class="info-item">
+                              <strong>{{ dataset?.features_number }}</strong> colonnes
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div class="summary-item">
-                        <div class="item-icon">
-                          <mat-icon>smart_toy</mat-icon>
+
+                      <!-- Algorithm -->
+                      <div class="config-card">
+                        <div class="card-header">
+                          <div class="card-icon algorithm">
+                            <mat-icon>smart_toy</mat-icon>
+                          </div>
+                          <div class="card-title">
+                            <h4>Algorithme</h4>
+                            <span class="card-status verified">Configuré</span>
+                          </div>
                         </div>
-                        <div class="item-content">
-                          <h4>Algorithme</h4>
-                          <p>{{ selectedAlgorithm?.display_name }}</p>
-                          <span class="item-detail">{{ dataQualityForm.get('taskType')?.value === 'classification' ? 'Classification' : 'Régression' }}</span>
+                        <div class="card-content">
+                          <div class="data-name">{{ selectedAlgorithm?.display_name }}</div>
+                          <div class="data-info">
+                            <span class="task-type">
+                              {{ dataQualityForm.get('taskType')?.value === 'classification' ? 'Classification' : 'Régression' }}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div class="summary-item">
-                        <div class="item-icon">
-                          <mat-icon>target</mat-icon>
+
+                      <!-- Target -->
+                      <div class="config-card">
+                        <div class="card-header">
+                          <div class="card-icon target">
+                            <mat-icon>target</mat-icon>
+                          </div>
+                          <div class="card-title">
+                            <h4>Variable cible</h4>
+                            <span class="card-status verified">Définie</span>
+                          </div>
                         </div>
-                        <div class="item-content">
-                          <h4>Variable cible</h4>
-                          <p>{{ dataQualityForm.get('targetColumn')?.value }}</p>
-                          <span class="item-detail">Colonne à prédire</span>
+                        <div class="card-content">
+                          <div class="data-name">{{ dataQualityForm.get('targetColumn')?.value }}</div>
+                          <div class="data-info">
+                            <span class="target-description">Colonne à prédire</span>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div class="summary-item">
-                        <div class="item-icon">
-                          <mat-icon>pie_chart</mat-icon>
+
+                      <!-- Data Split -->
+                      <div class="config-card">
+                        <div class="card-header">
+                          <div class="card-icon split">
+                            <mat-icon>pie_chart</mat-icon>
+                          </div>
+                          <div class="card-title">
+                            <h4>Division des données</h4>
+                            <span class="card-status verified">Optimisée</span>
+                          </div>
                         </div>
-                        <div class="item-content">
-                          <h4>Division des données</h4>
-                          <p>{{ 100 - (dataQualityForm.get('testSize')?.value || 20) }}% / {{ dataQualityForm.get('testSize')?.value || 20 }}%</p>
-                          <span class="item-detail">Entraînement / Test</span>
+                        <div class="card-content">
+                          <div class="data-name">{{ 100 - (dataQualityForm.get('testSize')?.value || 20) }}% / {{ dataQualityForm.get('testSize')?.value || 20 }}%</div>
+                          <div class="data-info">
+                            <div class="split-bar">
+                              <div class="split-train" [style.width.%]="100 - (dataQualityForm.get('testSize')?.value || 20)">
+                                <span>Entraînement</span>
+                              </div>
+                              <div class="split-test" [style.width.%]="dataQualityForm.get('testSize')?.value || 20">
+                                <span>Test</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    
-                    <!-- Checklist de vérification -->
-                    <div class="pre-launch-checklist">
-                      <h4>
+
+                    <!-- Status final avec validation -->
+                    <div class="final-validation">
+                      <div class="validation-header">
                         <mat-icon>fact_check</mat-icon>
-                        Vérification finale
-                      </h4>
-                      <div class="checklist-items">
-                        <div class="checklist-item" [class.checked]="dataset">
-                          <mat-icon>{{ dataset ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                          <span>Dataset sélectionné et vérifié</span>
+                        <h4>Vérification finale</h4>
+                        <div class="overall-status" [class.ready]="isAllSystemsGo()">
+                          {{ isAllSystemsGo() ? 'Prêt à lancer' : 'Configuration incomplète' }}
                         </div>
-                        <div class="checklist-item" [class.checked]="dataQualityForm.get('targetColumn')?.value">
-                          <mat-icon>{{ dataQualityForm.get('targetColumn')?.value ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                          <span>Variable cible définie</span>
+                      </div>
+
+                      <div class="validation-items">
+                        <div class="validation-item" [class.validated]="dataset">
+                          <div class="validation-check">
+                            <mat-icon>{{ dataset ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                          </div>
+                          <span class="validation-text">Dataset sélectionné</span>
                         </div>
-                        <div class="checklist-item" [class.checked]="algorithmForm.get('algorithm')?.value">
-                          <mat-icon>{{ algorithmForm.get('algorithm')?.value ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                          <span>Algorithme sélectionné</span>
+
+                        <div class="validation-item" [class.validated]="dataQualityForm.get('targetColumn')?.value">
+                          <div class="validation-check">
+                            <mat-icon>{{ dataQualityForm.get('targetColumn')?.value ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                          </div>
+                          <span class="validation-text">Variable cible choisie</span>
                         </div>
-                        <div class="checklist-item" [class.checked]="hyperparametersForm.valid">
-                          <mat-icon>{{ hyperparametersForm.valid ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                          <span>Paramètres configurés</span>
+
+                        <div class="validation-item" [class.validated]="algorithmForm.get('algorithm')?.value">
+                          <div class="validation-check">
+                            <mat-icon>{{ algorithmForm.get('algorithm')?.value ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                          </div>
+                          <span class="validation-text">Algorithme sélectionné</span>
+                        </div>
+
+                        <div class="validation-item" [class.validated]="hyperparametersForm.valid">
+                          <div class="validation-check">
+                            <mat-icon>{{ hyperparametersForm.valid ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                          </div>
+                          <span class="validation-text">Paramètres configurés</span>
+                        </div>
+                      </div>
+
+                      <!-- Message de confirmation -->
+                      <div class="ready-message" *ngIf="isAllSystemsGo()">
+                        <div class="message-icon">
+                          <mat-icon>rocket_launch</mat-icon>
+                        </div>
+                        <div class="message-content">
+                          <h5>Configuration validée !</h5>
+                          <p>Votre modèle est prêt pour l'entraînement</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div class="form-group launch-confirmation" [formGroup]="summaryForm">
+                  <div class="form-group launch-confirmation" [formGroup]="finalVerificationForm">
                     <label class="form-label checkbox-label">
-                      <input type="checkbox" formControlName="confirmed">
+                      <input type="checkbox" formControlName="confirmed" (change)="onConfirmationChange($event)">
                       Je comprends que cette opération consommera 1 crédit et je souhaite lancer l'entraînement
                     </label>
                   </div>
@@ -2557,7 +2648,8 @@
               
               <button *ngIf="getCurrentStepNumber() === 8 && !isTraining && !experimentResults" 
                       class="modern-nav-button launch" 
-                (click)="startTraining()">
+                      [disabled]="!isFormValid() || !finalVerificationForm.value.confirmed"
+                      (click)="startTraining()">
                 <mat-icon>rocket_launch</mat-icon>
                 <span>Lancer l'entraînement</span>
               </button>

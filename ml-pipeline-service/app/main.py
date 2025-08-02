@@ -59,6 +59,49 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
+@app.get("/celery/status")
+def celery_status():
+    """Check Celery worker status and queue information"""
+    try:
+        from app.core.celery_app import celery_app
+        
+        # Inspect workers
+        inspector = celery_app.control.inspect()
+        active_workers = inspector.active()
+        stats = inspector.stats()
+        queues = inspector.active_queues()
+        
+        # Count tasks in queue
+        import redis
+        from app.core.config import settings
+        
+        redis_url = settings.CELERY_BROKER_URL
+        if redis_url.startswith('redis://'):
+            parts = redis_url.replace('redis://', '').split(':')
+            host = parts[0]
+            port_db = parts[1].split('/')
+            port = int(port_db[0])
+            db = int(port_db[1]) if len(port_db) > 1 else 0
+            
+            r = redis.Redis(host=host, port=port, db=db)
+            queue_length = r.llen('ml_queue')
+        else:
+            queue_length = -1
+        
+        return {
+            "celery_status": "connected",
+            "active_workers": list(active_workers.keys()) if active_workers else [],
+            "worker_stats": stats,
+            "active_queues": queues,
+            "ml_queue_length": queue_length
+        }
+    except Exception as e:
+        logger.error(f"Error checking Celery status: {str(e)}")
+        return {
+            "celery_status": "error",
+            "error": str(e)
+        }
+
 @app.post("/experiments", response_model=ExperimentRead)
 def create_experiment(
     experiment: ExperimentCreate,
@@ -67,6 +110,8 @@ def create_experiment(
 ):
     """Create a new ML experiment and queue training task"""
     try:
+        logger.info(f"Creating experiment with data: {experiment.dict()}")
+        
         # Create experiment record in database
         db_experiment = Experiment(
             user_id=current_user_id,
@@ -82,19 +127,25 @@ def create_experiment(
         db.commit()
         db.refresh(db_experiment)
         
+        logger.info(f"Created experiment in DB with ID: {db_experiment.id}")
+        
         # Queue training task
+        logger.info(f"Queueing training task for experiment {db_experiment.id}")
         task = train_model.apply_async(
             args=[str(db_experiment.id)],
             queue='ml_queue'
         )
         
+        logger.info(f"Task queued with ID: {task.id}")
+        
         # Update experiment with task ID
         db_experiment.task_id = task.id
         db.commit()
         
+        logger.info(f"Successfully created experiment {db_experiment.id} with task {task.id}")
         return db_experiment
     except Exception as e:
-        logger.error(f"Error creating experiment: {str(e)}")
+        logger.error(f"Error creating experiment: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error creating experiment: {str(e)}"

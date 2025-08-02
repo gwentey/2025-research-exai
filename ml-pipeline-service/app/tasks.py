@@ -46,7 +46,8 @@ def train_model(self, experiment_id: str):
     Returns:
         dict: Training results
     """
-    logger.info(f"Starting training for experiment {experiment_id}")
+    logger.info(f"[CELERY WORKER] Starting training for experiment {experiment_id}")
+    logger.info(f"[CELERY WORKER] Task ID: {self.request.id}")
     
     try:
         # Get experiment from database

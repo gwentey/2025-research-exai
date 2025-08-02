@@ -41,10 +41,22 @@ export interface ExperimentCreate {
     task_type: 'classification' | 'regression';
     missing_values: {
       strategy: string;
+      knn_neighbors?: number;
+      max_iterative_iter?: number;
     };
-    scaling: boolean;
+    scaling: {
+      enabled: boolean;
+      method: string;
+    };
     encoding: string;
+    outlier_detection: {
+      enabled: boolean;
+      method: string;
+      threshold: number;
+    };
     test_size: number;
+    column_cleaning_configs?: any[];
+    manual_overrides?: Record<string, any>;
   };
 }
 

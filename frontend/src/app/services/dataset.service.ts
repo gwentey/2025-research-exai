@@ -486,4 +486,16 @@ export class DatasetService {
     console.error('Erreur du service Dataset:', error);
     return throwError(() => new Error(errorMessage));
   }
+  
+  /**
+   * Récupère tous les datasets d'un projet
+   * @param projectId - ID du projet
+   * @returns Observable avec la liste des datasets du projet
+   */
+  getProjectDatasets(projectId: string): Observable<any[]> {
+    const params = { project_id: projectId };
+    return this.http.get<any[]>(`${this.baseUrl}/project/${projectId}`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
 } 

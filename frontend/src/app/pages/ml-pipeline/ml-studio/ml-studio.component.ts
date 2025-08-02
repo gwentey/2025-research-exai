@@ -401,10 +401,22 @@ export class MlStudioComponent implements OnInit {
         task_type: formValue.taskType,
         test_size: formValue.testSize / 100,
         missing_values: {
-          strategy: formValue.missingValueStrategy
+          strategy: formValue.missingValueStrategy,
+          knn_neighbors: 5,  // Valeur par défaut
+          max_iterative_iter: 10  // Valeur par défaut
         },
-        scaling: formValue.featureScaling,
-        encoding: formValue.encoding
+        scaling: {
+          enabled: formValue.featureScaling,
+          method: 'standard'  // Valeur par défaut
+        },
+        encoding: formValue.encoding,
+        outlier_detection: {
+          enabled: false,  // Désactivé par défaut dans ML Studio
+          method: 'iqr',
+          threshold: 0.1
+        },
+        column_cleaning_configs: [],  // Vide par défaut
+        manual_overrides: {}  // Vide par défaut
       }
     };
     
