@@ -63,15 +63,56 @@ def train_model(self, experiment_id: str):
         # Initialize storage client
         storage_client = get_storage_client()
         
-        # Download dataset
-        logger.info(f"Downloading dataset {experiment.dataset_id}")
-        dataset_path = f"datasets/{experiment.dataset_id}/data.parquet"
+        # Load dataset using the new method that works with real datasets
+        logger.info(f"Loading dataset {experiment.dataset_id}")
         
-        # Read data from storage
-        data_buffer = io.BytesIO()
-        storage_client.download_file(dataset_path, data_buffer)
-        data_buffer.seek(0)
-        df = pd.read_parquet(data_buffer)
+        try:
+            # Try to get dataset info from service-selection first
+            import requests
+            service_selection_url = os.environ.get("SERVICE_SELECTION_URL", "http://service-selection-service.ibis-x.svc.cluster.local")
+            response = requests.get(f"{service_selection_url}/datasets/{experiment.dataset_id}", timeout=10)
+            
+            if response.status_code == 200:
+                dataset_info = response.json()
+                storage_path = dataset_info.get('storage_path', f'ibis-x-datasets/{experiment.dataset_id}')
+                
+                # Find main data file
+                files = dataset_info.get('files', [])
+                main_file = None
+                
+                for file_info in files:
+                    if file_info.get('format') == 'parquet' and file_info.get('logical_role') in ['data_file', 'training_data', None]:
+                        main_file = file_info
+                        break
+                
+                if not main_file and files:
+                    main_file = files[0]
+                
+                if main_file:
+                    object_path = f"{storage_path.rstrip('/')}/{main_file['file_name_in_storage']}"
+                    logger.info(f"Loading dataset from: {object_path}")
+                    
+                    # Download file data
+                    file_data = storage_client.download_file(object_path)
+                    data_buffer = io.BytesIO(file_data)
+                    df = pd.read_parquet(data_buffer)
+                else:
+                    raise Exception("No suitable data file found")
+            else:
+                # Fallback to old path structure
+                logger.warning(f"Could not get dataset info from service-selection, trying fallback path")
+                dataset_path = f"ibis-x-datasets/{experiment.dataset_id}/data.parquet"
+                file_data = storage_client.download_file(dataset_path)
+                data_buffer = io.BytesIO(file_data)
+                df = pd.read_parquet(data_buffer)
+                
+        except Exception as e:
+            logger.error(f"Error loading dataset: {str(e)}")
+            # Final fallback - try the old path
+            dataset_path = f"datasets/{experiment.dataset_id}/data.parquet"
+            file_data = storage_client.download_file(dataset_path)
+            data_buffer = io.BytesIO(file_data)
+            df = pd.read_parquet(data_buffer)
         
         logger.info(f"Dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
         

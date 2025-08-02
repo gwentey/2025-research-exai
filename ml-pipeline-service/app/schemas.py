@@ -93,4 +93,82 @@ class AlgorithmInfo(BaseModel):
     description: str
     supports_classification: bool
     supports_regression: bool
-    hyperparameters: Dict[str, Dict[str, Any]] 
+    hyperparameters: Dict[str, Dict[str, Any]]
+
+# Schemas pour l'analyse de qualité des données
+class DataQualityAnalysisRequest(BaseModel):
+    dataset_id: str
+    target_column: Optional[str] = None
+    sample_size: Optional[int] = 10000  # Pour les gros datasets
+    force_refresh: Optional[bool] = False  # Pour forcer une nouvelle analyse même si cache existe
+
+class ColumnMissingInfo(BaseModel):
+    missing_count: int
+    missing_percentage: float
+    data_type: str
+    unique_values: int
+    is_categorical: bool
+    distribution_type: str
+    recommended_strategy: Dict[str, Any]
+
+class MissingDataAnalysis(BaseModel):
+    total_rows: int
+    total_columns: int
+    columns_with_missing: Dict[str, ColumnMissingInfo]
+    missing_patterns: Dict[str, Any]
+    severity_assessment: Dict[str, Any]
+
+class OutlierInfo(BaseModel):
+    method: str
+    outliers_count: int
+    outliers_percentage: float
+    threshold: Optional[float] = None
+    lower_bound: Optional[float] = None
+    upper_bound: Optional[float] = None
+    max_zscore: Optional[float] = None
+
+class OutliersAnalysis(BaseModel):
+    iqr_method: Dict[str, OutlierInfo]
+    zscore_method: Dict[str, OutlierInfo]
+
+class DatasetOverview(BaseModel):
+    total_rows: int
+    total_columns: int
+    memory_usage_mb: float
+    target_column: Optional[str] = None
+
+class ColumnTypes(BaseModel):
+    numeric: List[str]
+    categorical: List[str]
+    datetime: List[str]
+
+class PreprocessingRecommendations(BaseModel):
+    priority_actions: List[Dict[str, Any]]
+    missing_values_strategy: Dict[str, Dict[str, Any]]
+    outlier_handling: Dict[str, Any]
+    feature_engineering: List[str]
+    scaling_recommendation: str
+    encoding_recommendation: str
+
+class DataQualityAnalysis(BaseModel):
+    dataset_overview: DatasetOverview
+    column_types: ColumnTypes
+    missing_data_analysis: MissingDataAnalysis
+    outliers_analysis: OutliersAnalysis
+    data_quality_score: int
+    preprocessing_recommendations: PreprocessingRecommendations
+
+# Schema pour les suggestions de stratégies
+class PreprocessingStrategyRequest(BaseModel):
+    dataset_id: str
+    target_column: str
+    task_type: str = Field(..., pattern="^(classification|regression)$")
+    custom_config: Optional[Dict[str, Any]] = None
+
+class PreprocessingStrategy(BaseModel):
+    missing_values: Dict[str, str]  # column -> strategy
+    outlier_handling: Dict[str, str]  # column -> method
+    scaling_method: str
+    encoding_method: str
+    feature_selection: Optional[List[str]] = None
+    estimated_impact: Dict[str, Any] 

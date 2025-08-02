@@ -47,4 +47,35 @@ class Experiment(Base):
     
     # === TIMESTAMPS ===
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True)
-    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow) 
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class DataQualityAnalysis(Base):
+    """
+    Cache des analyses de qualité des données pour éviter de recalculer à chaque fois.
+    
+    Cette table stocke :
+    - L'analyse complète des données manquantes et outliers
+    - Les stratégies recommandées par colonne
+    - Un score de qualité global
+    """
+    __tablename__ = "data_quality_analyses"
+    
+    # === IDENTIFICATION ===
+    id = Column(PostgreSQLUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    dataset_id = Column(PostgreSQLUUID(as_uuid=True), nullable=False, index=True)
+    dataset_version = Column(String(50), nullable=True)  # Hash ou version pour invalider le cache
+    
+    # === ANALYSE ===
+    analysis_data = Column(JSONB, nullable=False)  # Analyse complète sérialisée
+    column_strategies = Column(JSONB, nullable=True)  # Stratégies recommandées {column: {strategy, reason}}
+    quality_score = Column(Integer, nullable=False)  # Score de 0 à 100
+    
+    # === MÉTADONNÉES ===
+    total_rows = Column(Integer, nullable=False)
+    total_columns = Column(Integer, nullable=False)
+    analysis_duration_seconds = Column(Float, nullable=True)
+    
+    # === TIMESTAMPS ===
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)  # Pour gérer l'expiration du cache 
