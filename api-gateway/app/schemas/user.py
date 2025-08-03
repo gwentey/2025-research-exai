@@ -3,6 +3,13 @@ from fastapi_users import schemas
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, validator
 from datetime import datetime
+from enum import Enum
+
+# Enum pour les rôles utilisateur
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    CONTRIBUTOR = "contributor"
+    USER = "user"
 
 # Modèle Pydantic pour les comptes OAuth
 class OAuthAccountRead(BaseModel):
@@ -27,6 +34,8 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     # Système de crédits
     credits: int
     date_claim: Optional[datetime] = None
+    # Système de rôles
+    role: UserRole = UserRole.USER
 
     class Config:
         from_attributes = True
@@ -59,7 +68,8 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
             age=user.age,
             ai_familiarity=user.ai_familiarity,
             credits=user.credits,
-            date_claim=user.date_claim
+            date_claim=user.date_claim,
+            role=user.role
         )
 
 # Schéma Pydantic pour la création d'un utilisateur
@@ -78,6 +88,8 @@ class UserCreate(schemas.BaseUserCreate):
     ai_familiarity: Optional[int] = None
     # Système de crédits
     credits: Optional[int] = 10
+    # Système de rôles (seuls les admins peuvent assigner des rôles lors de la création)
+    role: Optional[UserRole] = UserRole.USER
     
     class Config:
         json_schema_extra = {
@@ -108,6 +120,8 @@ class UserUpdate(schemas.BaseUserUpdate):
     # Système de crédits
     credits: Optional[int] = None
     date_claim: Optional[datetime] = None
+    # Système de rôles (modification restreinte aux admins)
+    role: Optional[UserRole] = None
 
 # Schéma spécifique pour la mise à jour du profil (sans mot de passe)
 class UserProfileUpdate(BaseModel):
@@ -122,6 +136,8 @@ class UserProfileUpdate(BaseModel):
     # Système de crédits
     credits: Optional[int] = None
     date_claim: Optional[datetime] = None
+    # Système de rôles (modification restreinte aux admins)
+    role: Optional[UserRole] = None
 
     class Config:
         json_schema_extra = {

@@ -64,6 +64,7 @@ export interface UserRead {
   ai_familiarity?: number;
   credits?: number;
   date_claim?: string;  // ISO date string
+  role?: string; // Rôle de l'utilisateur (admin, contributor, user)
 }
 
 /**
@@ -87,6 +88,7 @@ export interface UserUpdate {
   ai_familiarity?: number | null;
   credits?: number | null;
   date_claim?: string | null;  // ISO date string
+  role?: string | null; // Rôle de l'utilisateur (modification restreinte aux admins)
 }
 
 /**

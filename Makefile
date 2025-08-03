@@ -4,14 +4,16 @@
 NAMESPACE ?= ibis-x
 TIMEOUT ?= 300s
 
-# Couleurs pour l'affichage (désactivées sur Windows)
-ifeq ($(OS),Windows_NT)
+# Couleurs pour l'affichage (détection Git Bash)
+ifeq ($(findstring MINGW, $(shell uname -s 2>/dev/null || echo unknown)),MINGW)
+    # Git Bash détecté - couleurs désactivées pour éviter les codes ANSI
     GREEN := 
     RED := 
     YELLOW := 
     BLUE := 
     NC := 
 else
+    # Terminal standard - couleurs activées
     GREEN := \033[32m
     RED := \033[31m
     YELLOW := \033[33m
@@ -30,12 +32,12 @@ help: ## Affiche cette aide
 	@echo "$(BLUE)IBIS-X - Commandes Make disponibles$(NC)"
 	@echo ""
 	@echo "$(YELLOW)COMMANDE RECOMMANDEE POUR LE DEVELOPPEMENT :$(NC)"
-	@echo "  $(GREEN)make dev$(NC)          - Lance l'application complete ULTRA-RAPIDE avec datasets"
+	@echo "  $(GREEN)make dev$(NC)          - Lance l'application complete UUID (upload datasets via interface)"
 	@echo ""
 	@echo "$(BLUE)PRINCIPALES COMMANDES :$(NC)"
-	@echo "  $(GREEN)dev$(NC)                Installation complete + datasets + port-forwards AUTO"
+	@echo "  $(GREEN)dev$(NC)                Installation complete + système UUID + port-forwards AUTO"
 	@echo "  $(GREEN)dev-no-data$(NC)        Installation SANS datasets (tests uniquement)"
-	@echo "  $(GREEN)quick-dev$(NC)          Deploiement rapide + datasets"
+	@echo "  $(GREEN)quick-dev$(NC)          Deploiement rapide (upload datasets manuellement)"
 	@echo "  $(GREEN)stop$(NC)               Arrete l'application"
 	@echo "  $(GREEN)clean$(NC)              Nettoyage complet"
 	@echo "  $(GREEN)logs$(NC)               Logs + port-forwards automatiques avec Skaffold"
@@ -44,8 +46,10 @@ help: ## Affiche cette aide
 	@echo "  $(GREEN)healthcheck$(NC)                Verifie l'etat des services"
 	@echo "  $(GREEN)start-portforwards-simple$(NC) Commandes manuelles (si besoin)"
 	@echo ""
-	@echo "$(YELLOW)RETOUR A L'ANCIEN SYSTEME: 'make dev' gere tout automatiquement !$(NC)"
-	@echo "$(YELLOW)Les port-forwards sont maintenant geres par Skaffold en mode dev !$(NC)"
+	@echo "$(YELLOW)NOUVEAU SYSTEME UUID - SECURISE ET MAINTENABLE :$(NC)"
+	@echo "$(YELLOW)• Upload datasets via: http://localhost:8080/datasets$(NC)"
+	@echo "$(YELLOW)• Fichiers stockés avec UUID (sécurisé, évite collisions)$(NC)"
+	@echo "$(YELLOW)• Import Kaggle automatique DESACTIVE (upload manuel recommandé)$(NC)"
 
 check-prerequisites: ## Vérifie que tous les outils requis sont installés
 	@echo "Verification des prerequis..."
@@ -215,37 +219,42 @@ wait-migrations: ## Attend que les migrations se terminent (jobs déjà déploy�
 
 migrate: wait-services migrate-jobs ## Lance les migrations (attend les services puis lance les jobs)
 
-init-data: check-kaggle-credentials ## Initialise les VRAIS datasets depuis Kaggle (obligatoire)
-	@echo "$(BLUE)Initialisation des VRAIS datasets depuis Kaggle...$(NC)"
-	@echo "$(YELLOW)IMPORTANT: Cette operation va telecharger les vrais datasets depuis Kaggle$(NC)"
-	@echo "$(YELLOW)Cela peut prendre plusieurs minutes selon votre connexion internet$(NC)"
-	@echo "$(YELLOW)Suppression de l'ancien job Kaggle...$(NC)"
-	-@kubectl delete job kaggle-dataset-import-job -n $(NAMESPACE) 2>$(NULL)
-	@echo "$(YELLOW)Lancement du job d'import Kaggle...$(NC)"
-	@kubectl apply -f k8s/base/jobs/kaggle-dataset-import-job.yaml -n $(NAMESPACE)
-	@echo "$(YELLOW)Attente de la completion de l'import Kaggle (max 30 minutes)...$(NC)"
-	@kubectl wait --for=condition=complete job/kaggle-dataset-import-job -n $(NAMESPACE) --timeout=1800s
-	@echo "$(YELLOW)Si le job a echoue, verifiez les logs avec: kubectl logs -n $(NAMESPACE) job/kaggle-dataset-import-job$(NC)"
-	@echo "$(GREEN)✅ VRAIS datasets importes avec succes depuis Kaggle !$(NC)"
-	@echo ""
-	@echo "$(GREEN)🚀🚀🚀 IBIS-X EST MAINTENANT PRET AVEC LES VRAIS DATASETS ! 🚀🚀🚀$(NC)"
-	@echo "$(GREEN)✅ Frontend:$(NC) http://localhost:8080"
-	@echo "$(GREEN)✅ API Gateway:$(NC) http://localhost:9000/docs"
-	@echo "$(GREEN)✅ Toutes les migrations et vrais datasets sont termines !$(NC)"
+# init-data: DÉSACTIVÉ - Import Kaggle automatique remplacé par upload UUID via interface
+# Utilisez l'interface web http://localhost:8080/datasets pour uploader des datasets
+# Les fichiers sont automatiquement stockés avec des UUID pour la sécurité
+#
+# init-data: check-kaggle-credentials ## Initialise les VRAIS datasets depuis Kaggle (obligatoire)
+#	@echo "$(BLUE)Initialisation des VRAIS datasets depuis Kaggle...$(NC)"
+#	@echo "$(YELLOW)IMPORTANT: Cette operation va telecharger les vrais datasets depuis Kaggle$(NC)"
+#	@echo "$(YELLOW)Cela peut prendre plusieurs minutes selon votre connexion internet$(NC)"
+#	@echo "$(YELLOW)Suppression de l'ancien job Kaggle...$(NC)"
+#	-@kubectl delete job kaggle-dataset-import-job -n $(NAMESPACE) 2>$(NULL)
+#	@echo "$(YELLOW)Lancement du job d'import Kaggle...$(NC)"
+#	@kubectl apply -f k8s/base/jobs/kaggle-dataset-import-job.yaml -n $(NAMESPACE)
+#	@echo "$(YELLOW)Attente de la completion de l'import Kaggle (max 30 minutes)...$(NC)"
+#	@kubectl wait --for=condition=complete job/kaggle-dataset-import-job -n $(NAMESPACE) --timeout=1800s
+#	@echo "$(YELLOW)Si le job a echoue, verifiez les logs avec: kubectl logs -n $(NAMESPACE) job/kaggle-dataset-import-job$(NC)"
+#	@echo "$(GREEN)✅ VRAIS datasets importes avec succes depuis Kaggle !$(NC)"
+#	@echo ""
+#	@echo "$(GREEN)🚀🚀🚀 IBIS-X EST MAINTENANT PRET AVEC LES VRAIS DATASETS ! 🚀🚀🚀$(NC)"
+#	@echo "$(GREEN)✅ Frontend:$(NC) http://localhost:8080"
+#	@echo "$(GREEN)✅ API Gateway:$(NC) http://localhost:9000/docs"
+#	@echo "$(GREEN)✅ Toutes les migrations et vrais datasets sont termines !$(NC)"
 
 # init-data-job: OBSOLÈTE - Utilisait les fausses données via init_datasets.py
 # Utiliser 'make init-data' qui utilise les VRAIS datasets Kaggle
 
-dev: clean-namespace check-prerequisites update-secrets start-minikube create-namespace docker-env deploy wait-services wait-migrations init-data show-access dev-logs ## Installation complète avec VRAIS DATASETS - COMMANDE UNIQUE RECOMMANDÉE
+dev: clean-namespace check-prerequisites update-secrets start-minikube create-namespace docker-env deploy wait-services wait-migrations show-access dev-logs ## Installation complète UUID - Upload datasets via interface utilisateur
 
-dev-logs: ## Lance les port-forwards et reste avec les logs (target interne pour dev)
+dev-logs: stop-portforwards ## Lance les port-forwards et reste avec les logs (target interne pour dev)
 	@echo ""
 	@echo "$(BLUE)🚀 LANCEMENT DES LOGS EN TEMPS REEL AVEC PORT-FORWARDS$(NC)"
+	@echo "$(YELLOW)Nettoyage des anciens port-forwards...$(NC)"
 	@echo "$(YELLOW)Lancement des port-forwards...$(NC)"
 	@kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
 	@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
 	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:6701 > /dev/null 2>&1 &
-	@powershell.exe -Command "Start-Sleep -Seconds 3"
+	@powershell.exe -Command "Start-Sleep -Seconds 5"
 	@echo "$(GREEN)✅ Port-forwards actifs !$(NC)"
 	@echo ""
 	@echo "$(GREEN)🌐 Application accessible sur :$(NC)"
@@ -255,8 +264,26 @@ dev-logs: ## Lance les port-forwards et reste avec les logs (target interne pour
 	@echo "  $(GREEN)► MinIO Console: http://localhost:6701$(NC)"
 	@echo ""
 	@echo "$(YELLOW)📋 === LOGS EN TEMPS REEL - Appuyez sur Ctrl+C pour TOUT arrêter ====$(NC)"
+	@echo "$(BLUE)🔗 Services surveillés: Frontend, API Gateway, Service Selection, ML Pipeline, Workers$(NC)"
 	@echo ""
-	@kubectl logs -f deployment/api-gateway -n $(NAMESPACE) --prefix=true
+	@echo "$(YELLOW)💡 ASTUCE: Si Ctrl+C ne nettoie pas tout, tapez: make clean-logs$(NC)"
+	@echo ""
+	@bash -c ' \
+		cleanup() { \
+			echo; \
+			echo "🛑 Ctrl+C détecté - Nettoyage en cours..."; \
+			taskkill /F /IM kubectl.exe 2>/dev/null || pkill -f "kubectl.*logs" || true; \
+			echo "✅ Processus kubectl nettoyés"; \
+			exit 0; \
+		}; \
+		trap cleanup INT; \
+		kubectl logs -f deployment/api-gateway -n $(NAMESPACE) --prefix=true & \
+		kubectl logs -f deployment/frontend -n $(NAMESPACE) --prefix=true & \
+		kubectl logs -f deployment/service-selection -n $(NAMESPACE) --prefix=true & \
+		kubectl logs -f deployment/ml-pipeline -n $(NAMESPACE) --prefix=true & \
+		kubectl logs -f deployment/ml-pipeline-celery-worker -n $(NAMESPACE) --prefix=true & \
+		wait \
+	'
 
 clean-namespace: ## Nettoie le namespace avant de démarrer
 	@echo "$(BLUE)Nettoyage du namespace ibis-x...$(NC)"
@@ -334,11 +361,15 @@ quick-logs: ## Affiche les logs dans le même terminal (Ctrl+C pour arrêter)
 	@kubectl logs -f deployment/api-gateway -n $(NAMESPACE) --prefix=true --since=30s
 
 stop-portforwards: ## Arrête tous les port forwards actifs PROPREMENT 
-	@echo "$(BLUE)Arret de tous les port forwards...$(NC)"
+	@echo "$(BLUE)Arret de tous les port forwards et logs...$(NC)"
 	@echo "$(YELLOW)Arret des processus kubectl en arriere-plan...$(NC)"
 	-@taskkill /F /IM "kubectl.exe" 2>$(NULL) || echo ""
 	@powershell.exe -Command "Start-Sleep -Seconds 2"
-	@echo "$(GREEN)✓ Tous les port forwards arretes$(NC)"
+	@echo "$(GREEN)✓ Tous les port forwards et logs arretes$(NC)"
+
+clean-logs: stop-portforwards ## Nettoie tous les processus kubectl qui traînent (équivalent ancien Ctrl+C)
+	@echo "$(BLUE)🧹 Nettoyage des processus kubectl orphelins...$(NC)"
+	@echo "$(GREEN)✅ Tous les logs et port-forwards arrêtés proprement$(NC)"
 
 restart-portforwards: ## Redémarre automatiquement les port forwards de manière ultra-robuste
 	@echo "$(BLUE)Redemarrage ultra-robuste des port forwards...$(NC)"

@@ -384,7 +384,7 @@
                                      (click)="onFileChange(i)" 
                                      [class.selected]="i === selectedFileIndex">
                         <mat-icon matListItemIcon>description</mat-icon>
-                        <div matListItemTitle>{{ file.file_name_in_storage }}</div>
+                        <div matListItemTitle>{{ file.original_filename }}</div>
                         <div matListItemLine>
                           {{ file.description || 'Fichier de données' }} • 
                           {{ formatFileSize(file.size_bytes) }} • 

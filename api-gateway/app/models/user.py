@@ -1,7 +1,7 @@
 import uuid
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
-from sqlalchemy import UUID as SQLAlchemyUUID, text, String, Boolean, ForeignKey, SmallInteger, DateTime # Importer ForeignKey
+from sqlalchemy import UUID as SQLAlchemyUUID, text, String, Boolean, ForeignKey, SmallInteger, DateTime, event
 from sqlalchemy.dialects.postgresql import UUID # Assurez-vous que UUID is importé
 from typing import List, Optional
 from datetime import datetime
@@ -66,6 +66,9 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     credits: Mapped[int] = mapped_column(SmallInteger, default=10, server_default=text('10'), nullable=False)
     date_claim: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     
+    # Système de rôles
+    role: Mapped[str] = mapped_column(String(length=20), default='user', server_default=text("'user'"), nullable=False)
+    
     # Relation avec les comptes OAuth
     oauth_accounts: Mapped[List[OAuthAccount]] = relationship(
         "OAuthAccount",
@@ -73,9 +76,40 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
         cascade="all, delete-orphan",
         lazy="joined",
     )
-
-    # Vous pouvez ajouter ici des colonnes spécifiques à votre application
-    # Par exemple:
-    # first_name: Mapped[str] = mapped_column(nullable=True)
-    # last_name: Mapped[str] = mapped_column(nullable=True)
-    pass 
+    
+    # is_superuser : propriété calculée basée sur role (plus de colonne DB)
+    @property
+    def is_superuser(self) -> bool:
+        """
+        Propriété calculée pour FastAPI-users.
+        Un utilisateur est superuser s'il a le rôle 'admin'.
+        Single source of truth : role
+        """
+        return self.role == "admin"
+    
+    @is_superuser.setter  
+    def is_superuser(self, value: bool) -> None:
+        """
+        Setter pour compatibilité FastAPI-users.
+        Modifie le role en conséquence.
+        """
+        if value:
+            self.role = "admin"
+        else:
+            # Si on retire le statut superuser et que l'utilisateur était admin
+            if self.role == "admin":
+                self.role = "user"
+    
+    def __init__(self, **kwargs):
+        """
+        Constructeur simplifié. 
+        Si is_superuser est fourni, on convertit vers role pour cohérence.
+        """
+        # Si is_superuser est fourni, on convertit vers role (single source of truth)
+        if 'is_superuser' in kwargs and 'role' not in kwargs:
+            kwargs['role'] = 'admin' if kwargs['is_superuser'] else 'user'
+        
+        # Retirer is_superuser des kwargs car c'est maintenant une propriété calculée
+        kwargs.pop('is_superuser', None)
+        
+        super().__init__(**kwargs)

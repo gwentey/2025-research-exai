@@ -13,10 +13,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, Observable } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { DatasetService } from '../../services/dataset.service';
+import { RoleService } from '../../services/role.service';
 import { Dataset, DatasetFilterCriteria, PaginationParams } from '../../models/dataset.models';
 import { DatasetCardComponent } from './components/dataset-card.component';
 import { DatasetFiltersComponent } from './components/dataset-filters.component';
@@ -57,6 +58,7 @@ interface FilterChip {
 export class DatasetListingComponent implements OnInit, OnDestroy {
   private datasetService = inject(DatasetService);
   private translateService = inject(TranslateService);
+  private roleService = inject(RoleService);
   private router = inject(Router);
   private destroy$ = new Subject<void>();
 
@@ -86,9 +88,15 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
 
   // Affichage
   viewMode: 'grid' | 'list' = 'grid';
+
+  // Permissions
+  canUploadDatasets$: Observable<boolean>;
   currentSort = 'dataset_name';
 
   ngOnInit(): void {
+    // Initialiser les permissions
+    this.canUploadDatasets$ = this.roleService.canUploadDatasets();
+    
     this.loadDatasets();
   }
 
@@ -596,6 +604,25 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
           this.totalDatasets = 0;
         }
       });
+  }
+
+  /**
+   * Ouvre la page d'upload de datasets
+   */
+  uploadDataset(): void {
+    // TODO: Remplacer par la vraie route d'upload quand elle sera créée
+    console.log('Redirection vers upload de dataset');
+    // this.router.navigate(['/datasets/upload']);
+    
+    // Pour l'instant, rediriger vers l'administration pour les admins
+    this.roleService.isAdmin().subscribe(isAdmin => {
+      if (isAdmin) {
+        this.router.navigate(['/admin/datasets']);
+      } else {
+        // Pour les contributeurs, on pourrait avoir une route spécifique
+        console.log('Upload dataset pour contributeur - à implémenter');
+      }
+    });
   }
 
   // Note: Le filtrage côté client a été supprimé.

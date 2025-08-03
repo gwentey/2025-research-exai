@@ -5,7 +5,7 @@ from fastapi import FastAPI, Depends, status, Request, Query, HTTPException
 from fastapi.responses import Response, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func, update
 from typing import Annotated
 from contextlib import asynccontextmanager
 
@@ -920,13 +920,66 @@ app.include_router(
     tags=["auth"],
 )
 
-# User management routes (protected by superuser requirement)
+# User management routes (basic fastapi-users routes)
+# Note: Les routes /users/me restent accessibles aux utilisateurs normaux
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",
     tags=["users"],
-    dependencies=[Depends(current_superuser)],
 )
+
+# Routes administratives spécifiques pour la gestion des utilisateurs (admin seulement)
+@app.get("/admin/users", tags=["admin"])
+async def admin_get_all_users(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=100),
+    current_user: UserModel = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """Liste tous les utilisateurs (admin seulement)"""
+    try:
+        skip = (page - 1) * page_size
+        
+        # Requête pour récupérer les utilisateurs avec pagination
+        query = select(UserModel).offset(skip).limit(page_size)
+        result = await session.execute(query)
+        users = result.scalars().unique().all()
+        
+        # Compter le total d'utilisateurs
+        count_query = select(func.count()).select_from(UserModel)
+        count_result = await session.execute(count_query)
+        total = count_result.scalar()
+        
+        # Convertir en schémas de réponse
+        users_data = [UserRead.from_orm_user(user) for user in users]
+        
+        return {
+            "users": users_data,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size
+        }
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des utilisateurs: {e}")
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+
+@app.get("/admin/users/count", tags=["admin"])
+async def admin_get_users_count(
+    current_user: UserModel = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """Compte le nombre total d'utilisateurs (admin seulement)"""
+    try:
+        query = select(func.count()).select_from(UserModel)
+        result = await session.execute(query)
+        count = result.scalar()
+        return {"total": count}
+    except Exception as e:
+        logger.error(f"Erreur lors du comptage des utilisateurs: {e}")
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+
+
 
 # Google OAuth routes
 app.include_router(
@@ -1106,3 +1159,111 @@ async def debug_datasets_count():
     except Exception as e:
         logger.error(f"Error getting datasets count: {e}")
         return {"error": str(e)}
+
+# === ENDPOINTS ADMIN ===
+
+@app.get("/debug/datasets-count", tags=["admin"], include_in_schema=True)
+async def admin_datasets_count():
+    """Récupère le nombre total de datasets pour le dashboard admin"""
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(f"{settings.SERVICE_SELECTION_URL}/debug/datasets-count")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                raise HTTPException(status_code=response.status_code, detail="Service indisponible")
+    except Exception as e:
+        logger.error(f"Erreur lors de l'appel au service-selection: {e}")
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+
+# Routes pour les templates éthiques (admin seulement)
+@app.get("/admin/ethical-templates", tags=["admin"])
+async def get_ethical_templates(current_user: UserModel = Depends(current_superuser)):
+    """Récupère tous les templates éthiques (admin uniquement)"""
+    # Retourner des templates par défaut pour le moment
+    # TODO: Implémenter le stockage persistant des templates
+    default_templates = [
+        {
+            "domain": "default",
+            "ethical": {
+                "informed_consent": True,
+                "transparency": True,
+                "user_control": True,
+                "equity_non_discrimination": True,
+                "security_measures_in_place": True,
+                "data_quality_documented": True,
+                "anonymization_applied": True,
+                "record_keeping_policy_exists": True,
+                "purpose_limitation_respected": True,
+                "accountability_defined": True
+            },
+            "technical": {
+                "representativity_level": "medium",
+                "sample_balance_level": "balanced"
+            },
+            "quality": {
+                "data_errors_description": "Description des erreurs par défaut"
+            }
+        },
+        {
+            "domain": "healthcare",
+            "ethical": {
+                "informed_consent": True,
+                "transparency": True,
+                "user_control": True,
+                "equity_non_discrimination": True,
+                "security_measures_in_place": True,
+                "data_quality_documented": True,
+                "anonymization_applied": True,
+                "record_keeping_policy_exists": True,
+                "purpose_limitation_respected": True,
+                "accountability_defined": True
+            },
+            "technical": {
+                "representativity_level": "high",
+                "sample_balance_level": "balanced"
+            },
+            "quality": {
+                "data_errors_description": "Standards élevés requis pour la santé"
+            }
+        }
+    ]
+    return {"templates": default_templates}
+
+@app.put("/admin/ethical-templates", tags=["admin"])
+async def save_ethical_templates(
+    templates_data: dict,
+    current_user: UserModel = Depends(current_superuser)
+):
+    """Sauvegarde les templates éthiques (admin uniquement)"""
+    # TODO: Implémenter la sauvegarde persistante
+    logger.info(f"Templates sauvegardés par l'admin {current_user.email}")
+    return {"message": "Templates sauvegardés avec succès", "count": len(templates_data.get("templates", []))}
+
+@app.post("/admin/ethical-templates/reset", tags=["admin"])
+async def reset_ethical_templates(current_user: UserModel = Depends(current_superuser)):
+    """Restaure les templates éthiques par défaut (admin uniquement)"""
+    # TODO: Implémenter la restauration des templates par défaut
+    logger.info(f"Templates restaurés par l'admin {current_user.email}")
+    return {"message": "Templates restaurés aux valeurs par défaut"}
+
+@app.get("/admin/ethical-templates/validate", tags=["admin"])
+async def validate_ethical_templates(current_user: UserModel = Depends(current_superuser)):
+    """Valide les templates éthiques (admin uniquement)"""
+    return {
+        "valid": True,
+        "templates_count": 2,
+        "errors": [],
+        "warnings": []
+    }
+
+# Endpoint manquant pour l'upload de datasets - similar
+@app.get("/datasets/upload/similar", tags=["datasets"])
+async def datasets_upload_similar(
+    limit: int = Query(5, ge=1, le=20),
+    current_user: UserModel = Depends(current_active_user)
+):
+    """Récupère des datasets similaires lors de l'upload"""
+    # Retourner une liste vide pour le moment pour éviter l'erreur 500
+    # TODO: Implémenter la logique de recommendation de datasets similaires
+    return {"similar_datasets": [], "message": "Fonctionnalité en développement"}

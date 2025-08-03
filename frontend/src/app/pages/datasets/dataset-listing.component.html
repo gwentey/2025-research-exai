@@ -308,4 +308,16 @@
       </div>
     </div>
   </div>
+
+  <!-- Bouton flottant d'upload (visible seulement pour ADMIN et CONTRIBUTEUR) -->
+  <button 
+    *ngIf="canUploadDatasets$ | async"
+    mat-fab 
+    color="primary" 
+    class="upload-fab"
+    (click)="uploadDataset()"
+    matTooltip="{{ 'DATASETS.UPLOAD.TOOLTIP' | translate }}"
+    matTooltipPosition="left">
+    <mat-icon>add</mat-icon>
+  </button>
 </div> 

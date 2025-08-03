@@ -63,7 +63,8 @@ export interface Dataset {
 export interface DatasetFile {
   id: string;
   dataset_id: string;
-  file_name_in_storage: string;
+  file_name_in_storage: string;    // UUID + extension (ex: "abc123.parquet")
+  original_filename: string;       // Nom original utilisateur (ex: "iris_dataset.csv")
   logical_role?: string;
   format?: string;
   mime_type?: string;

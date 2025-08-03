@@ -8,7 +8,99 @@
     "ML_PIPELINE": "ML Pipeline",
     "XAI_EXPLANATIONS": "XAI Explanations",
     "PROFILE": "Profile",
-    "HELP": "Help & Support"
+    "HELP": "Help & Support",
+    "ADMINISTRATION": "Administration",
+    "ADMIN_DASHBOARD": "Administration",
+    "DATASET_MANAGEMENT": "Dataset Management",
+    "USER_MANAGEMENT": "User Management",
+    "ETHICAL_TEMPLATES": "Ethical Templates"
+  },
+  "ADMIN": {
+    "DASHBOARD": {
+      "TITLE": "Administration Dashboard",
+      "SUBTITLE": "Overview of your platform and system management",
+      "TOTAL_DATASETS": "Total Datasets",
+      "TOTAL_USERS": "Total Users",
+      "RECENT_UPLOADS": "Recent Uploads",
+      "STORAGE_USED": "Storage Used",
+      "QUICK_ACTIONS": "Quick Actions",
+      "ADMIN_INFO": "Administrator Information",
+      "MANAGE_DATASETS": "Manage Datasets",
+      "MANAGE_USERS": "Manage Users",
+      "ETHICAL_TEMPLATES": "Ethical Templates",
+      "ADD_DATASET": "Add Dataset"
+    },
+    "DATASETS": {
+      "TITLE": "Dataset Management",
+      "SUBTITLE": "Manage all platform datasets",
+      "ADD_DATASET": "Add Dataset",
+      "SEARCH": "Search",
+      "SEARCH_PLACEHOLDER": "Search by name, creator...",
+      "STATUS": "Status",
+      "STATUS_ACTIVE": "Active",
+      "STATUS_PENDING": "Pending",
+      "STATUS_ARCHIVED": "Archived",
+      "DOMAIN": "Domain",
+      "CLEAR_FILTERS": "Clear filters",
+      "DATASETS_LIST": "Datasets List",
+      "DATASETS_FOUND": "datasets found",
+      "TABLE": {
+        "NAME": "Name",
+        "CREATOR": "Creator",
+        "CREATED": "Created Date",
+        "FILES": "Files",
+        "SIZE": "Size",
+        "STATUS": "Status",
+        "ACTIONS": "Actions"
+      },
+      "VIEW_DETAILS": "View details",
+      "EDIT": "Edit",
+      "DELETE": "Delete",
+      "LOADING": "Loading datasets...",
+      "NO_DATASETS": "No datasets found",
+      "NO_DATASETS_MESSAGE": "No datasets match your search criteria.",
+      "ADD_FIRST_DATASET": "Add first dataset"
+    },
+    "USERS": {
+      "TITLE": "User Management",
+      "SUBTITLE": "Manage user accounts and their permissions",
+      "INVITE_USER": "Invite user",
+      "TOTAL_USERS": "Total Users",
+      "ACTIVE_USERS": "Active Users",
+      "ADMIN_USERS": "Administrators",
+      "CONTRIBUTOR_USERS": "Contributors",
+      "SEARCH": "Search",
+      "SEARCH_PLACEHOLDER": "Search by name, email...",
+      "ROLE": "Role",
+      "ROLE_ADMIN": "Administrator",
+      "ROLE_CONTRIBUTOR": "Contributor",
+      "ROLE_USER": "User",
+      "STATUS": "Status",
+      "STATUS_ACTIVE": "Active",
+      "STATUS_INACTIVE": "Inactive",
+      "STATUS_VERIFIED": "Verified",
+      "STATUS_UNVERIFIED": "Unverified",
+      "CLEAR_FILTERS": "Clear filters",
+      "USERS_LIST": "Users List",
+      "USERS_FOUND": "users found",
+      "TABLE": {
+        "USER": "User",
+        "ROLE": "Role",
+        "STATUS": "Status",
+        "CREATED": "Created Date",
+        "LAST_LOGIN": "Last Login",
+        "DATASETS": "Datasets",
+        "ACTIONS": "Actions"
+      },
+      "EDIT_USER": "Edit user",
+      "ACTIVATE": "Activate",
+      "DEACTIVATE": "Deactivate",
+      "DELETE_USER": "Delete user",
+      "NEVER": "Never",
+      "LOADING": "Loading users...",
+      "NO_USERS": "No users found",
+      "NO_USERS_MESSAGE": "No users match your search criteria."
+    }
   },
   "AUTH": {
     "LOGIN": "Login",
@@ -63,7 +155,13 @@
     "LOADING": "Loading...",
     "NEXT": "Next",
     "BACK": "Back",
-    "CANCEL": "Cancel"
+    "CANCEL": "Cancel",
+    "MANAGE": "Manage",
+    "CONFIGURE": "Configure",
+    "VIEW_ALL": "View All",
+    "UPLOAD_NEW": "Upload New",
+    "VIEW_ALL_USERS": "View All Users",
+    "ADD_NEW_USER": "Add New User"
   },
   "DASHBOARD": {
     "TITLE": "IBIS-X Dashboard",
@@ -620,6 +718,11 @@
       "SIZE": "Size",
       "DOMAIN": "Domain",
       "LICENSE": "License"
+    },
+    "UPLOAD": {
+      "TOOLTIP": "Add new dataset",
+      "TITLE": "Upload Dataset",
+      "SUBTITLE": "Add a new dataset"
     }
   },
   "FORMS": {

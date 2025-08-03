@@ -95,40 +95,72 @@ def convert_to_parquet(file_content: bytes, filename: str) -> bytes:
             detail=f"Impossible de convertir le fichier {filename} en Parquet: {str(e)}"
         )
 
-def upload_dataset_files(dataset_id: str, files: List[UploadFile]) -> str:
+def upload_dataset_files(dataset_id: str, files: List[UploadFile]) -> tuple[str, list]:
     """
-    Upload les fichiers d'un dataset vers le stockage d'objets.
+    Upload les fichiers d'un dataset vers le stockage d'objets avec noms UUID.
     
     Args:
         dataset_id: UUID du dataset
         files: Liste des fichiers à uploader
         
     Returns:
-        storage_path: Préfixe du dossier de stockage (ex: 'ibis-x-datasets/uuid/')
+        tuple: (storage_path_prefix, file_metadata_list)
+            - storage_path: Préfixe du dossier de stockage (ex: 'ibis-x-datasets/uuid/')
+            - file_metadata_list: Liste des métadonnées des fichiers uploadés
     """
+    import uuid
+    
     try:
         storage_client = get_storage_client()
         storage_path_prefix = f"ibis-x-datasets/{dataset_id}/"
+        file_metadata_list = []
         
         for file in files:
+            # Générer un UUID unique pour ce fichier
+            file_uuid = str(uuid.uuid4())
+            
             # Lire le contenu du fichier
             file_content = file.file.read()
             file.file.seek(0)  # Reset pour usage ultérieur si nécessaire
             
+            # Déterminer l'extension et le format final
+            original_filename = file.filename
+            file_size = len(file_content)
+            
             # Convertir en Parquet si c'est un CSV
             if file.filename.lower().endswith('.csv'):
                 parquet_content = convert_to_parquet(file_content, file.filename)
-                parquet_filename = file.filename.rsplit('.', 1)[0] + '.parquet'
-                object_path = f"{storage_path_prefix}{parquet_filename}"
-                storage_client.upload_file(parquet_content, object_path)
-                logger.info(f"Fichier uploadé et converti: {file.filename} -> {parquet_filename}")
+                storage_filename = f"{file_uuid}.parquet"
+                final_format = 'parquet'
+                mime_type = 'application/octet-stream'
+                final_content = parquet_content
+                logger.info(f"Fichier converti: {original_filename} -> {storage_filename}")
             else:
                 # Upload direct pour les autres formats
-                object_path = f"{storage_path_prefix}{file.filename}"
-                storage_client.upload_file(file_content, object_path)
-                logger.info(f"Fichier uploadé: {file.filename}")
+                file_extension = original_filename.split('.')[-1].lower() if '.' in original_filename else 'bin'
+                storage_filename = f"{file_uuid}.{file_extension}"
+                final_format = file_extension
+                mime_type = file.content_type or 'application/octet-stream'
+                final_content = file_content
+                logger.info(f"Fichier préparé: {original_filename} -> {storage_filename}")
+            
+            # Upload vers MinIO avec le nom UUID
+            object_path = f"{storage_path_prefix}{storage_filename}"
+            storage_client.upload_file(final_content, object_path)
+            
+            # Ajouter les métadonnées pour la création en base
+            file_metadata_list.append({
+                'file_name_in_storage': storage_filename,
+                'original_filename': original_filename,
+                'format': final_format,
+                'mime_type': mime_type,
+                'size_bytes': file_size,
+                'logical_role': 'data_file'  # Rôle par défaut
+            })
+            
+            logger.info(f"Fichier uploadé avec succès: {original_filename} -> {storage_filename}")
         
-        return storage_path_prefix
+        return storage_path_prefix, file_metadata_list
         
     except StorageClientError as e:
         logger.error(f"Erreur de stockage pour dataset {dataset_id}: {str(e)}")
@@ -822,8 +854,8 @@ def create_dataset(
         # Générer un UUID pour le dataset
         dataset_id = str(uuid.uuid4())
         
-        # Upload des fichiers vers le stockage d'objets
-        storage_path = upload_dataset_files(dataset_id, files)
+        # Upload des fichiers vers le stockage d'objets avec UUID
+        storage_path, file_metadata_list = upload_dataset_files(dataset_id, files)
         
         # Parser les arrays JSON si nécessaires
         domain_list = None
@@ -891,30 +923,16 @@ def create_dataset(
         db.commit()
         db.refresh(db_dataset)
         
-        # Créer les enregistrements DatasetFile
-        for file in files:
-            # Déterminer le format final (converti en Parquet si CSV)
-            if file.filename.lower().endswith('.csv'):
-                final_filename = file.filename.rsplit('.', 1)[0] + '.parquet'
-                file_format = 'parquet'
-                mime_type = 'application/octet-stream'
-            else:
-                final_filename = file.filename
-                file_format = file.filename.split('.')[-1].lower() if '.' in file.filename else 'unknown'
-                mime_type = file.content_type or 'application/octet-stream'
-            
-            # Calculer la taille (approximative pour les fichiers convertis)
-            file.file.seek(0, 2)  # Aller à la fin
-            file_size = file.file.tell()
-            file.file.seek(0)  # Revenir au début
-            
+        # Créer les enregistrements DatasetFile avec métadonnées UUID
+        for file_metadata in file_metadata_list:
             db_file = models.DatasetFile(
                 dataset_id=db_dataset.id,
-                file_name_in_storage=final_filename,
-                logical_role="data_file",  # Rôle par défaut
-                format=file_format,
-                mime_type=mime_type,
-                size_bytes=file_size
+                file_name_in_storage=file_metadata['file_name_in_storage'],    # UUID + extension
+                original_filename=file_metadata['original_filename'],          # Nom original utilisateur
+                logical_role=file_metadata['logical_role'],
+                format=file_metadata['format'],
+                mime_type=file_metadata['mime_type'],
+                size_bytes=file_metadata['size_bytes']
             )
             db.add(db_file)
         
@@ -999,19 +1017,19 @@ def download_dataset_file(
     if not db_dataset.storage_path:
         raise HTTPException(status_code=404, detail="Aucun fichier de stockage associé à ce dataset")
     
-    # Vérifier que le fichier existe dans les métadonnées
+    # Vérifier que le fichier existe dans les métadonnées (recherche par nom original)
     db_file = db.query(models.DatasetFile).filter(
         models.DatasetFile.dataset_id == dataset_id,
-        models.DatasetFile.file_name_in_storage == filename
+        models.DatasetFile.original_filename == filename
     ).first()
     
     if db_file is None:
         raise HTTPException(status_code=404, detail=f"Fichier {filename} non trouvé pour ce dataset")
     
     try:
-        # Télécharger depuis le stockage d'objets
+        # Télécharger depuis le stockage d'objets (utilise le nom UUID)
         storage_client = get_storage_client()
-        object_path = f"{db_dataset.storage_path}{filename}"
+        object_path = f"{db_dataset.storage_path}{db_file.file_name_in_storage}"
         
         file_data = storage_client.download_file(object_path)
         
@@ -1054,12 +1072,13 @@ def list_dataset_files(dataset_id: str, db: Session = Depends(database.get_db)):
     file_list = []
     for file in files:
         file_list.append({
-            "filename": file.file_name_in_storage,
+            "filename": file.original_filename,                                   # Nom original pour l'utilisateur
+            "storage_filename": file.file_name_in_storage,                        # UUID pour référence interne
             "format": file.format,
             "size_bytes": file.size_bytes,
             "logical_role": file.logical_role,
             "mime_type": file.mime_type,
-            "download_url": f"/datasets/{dataset_id}/download/{file.file_name_in_storage}"
+            "download_url": f"/datasets/{dataset_id}/download/{file.original_filename}"  # URL avec nom original
         })
     
     return {

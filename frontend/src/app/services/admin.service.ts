@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Observable, throwError, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { UserRead } from '../models/auth.models';
+import { Dataset } from '../models/dataset.models';
 
 export interface EthicalTemplate {
   domain: string;
@@ -32,6 +34,27 @@ export interface TemplateValidationResult {
   templates_count: number;
   errors: string[];
   warnings: string[];
+}
+
+export interface AdminDashboardStats {
+  total_datasets: number;
+  total_users: number;
+  recent_uploads: number;
+  storage_used: string;
+}
+
+export interface DatasetCountResponse {
+  total_datasets: number;
+  unique_dataset_names: number;
+  status: string;
+}
+
+export interface UsersListResponse {
+  users: UserRead[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 @Injectable({
@@ -140,6 +163,137 @@ export class AdminService {
    */
   getPopularDomains(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/ethical-templates/popular-domains`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // === MÉTHODES POUR LES VRAIES DONNÉES ADMIN ===
+
+  /**
+   * Récupère le nombre total de datasets depuis service-selection
+   */
+  getTotalDatasets(): Observable<number> {
+    return this.http.get<DatasetCountResponse>(`${environment.apiUrl}/debug/datasets-count`).pipe(
+      map(response => response.total_datasets),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère tous les utilisateurs depuis l'API Gateway (admin seulement)
+   */
+  getAllUsers(page: number = 1, pageSize: number = 100): Observable<UsersListResponse> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('page_size', pageSize.toString());
+    
+    return this.http.get<UsersListResponse>(`${environment.apiUrl}/admin/users`, { params }).pipe(
+      catchError((error) => {
+        console.error('Erreur lors du chargement des utilisateurs:', error);
+        return of({
+          users: [],
+          total: 0,
+          page: page,
+          page_size: pageSize,
+          total_pages: 0
+        } as UsersListResponse);
+      })
+    );
+  }
+
+  /**
+   * Récupère le nombre total d'utilisateurs
+   */
+  getTotalUsers(): Observable<number> {
+    return this.http.get<{total: number}>(`${environment.apiUrl}/admin/users/count`).pipe(
+      map(response => response.total),
+      catchError((error) => {
+        console.error('Erreur lors du chargement du nombre d\'utilisateurs:', error);
+        return of(0);
+      })
+    );
+  }
+
+  /**
+   * Récupère tous les datasets depuis service-selection
+   */
+  getAllDatasets(page: number = 1, pageSize: number = 100): Observable<Dataset[]> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('page_size', pageSize.toString());
+    
+    return this.http.get<{datasets: Dataset[], total_count: number}>(`${environment.apiUrl}/datasets`, { params }).pipe(
+      map(response => response.datasets || []),
+      catchError((error) => {
+        console.error('Erreur lors du chargement des datasets:', error);
+        // Retourner un tableau vide en cas d'erreur pour éviter les crashes
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Calcule les uploads récents (datasets créés dans les 30 derniers jours)
+   */
+  getRecentUploads(): Observable<number> {
+    return this.getAllDatasets().pipe(
+      map(datasets => {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        return datasets.filter(dataset => {
+          if (dataset.created_at) {
+            const createdDate = new Date(dataset.created_at);
+            return createdDate >= thirtyDaysAgo;
+          }
+          return false;
+        }).length;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Calcule l'utilisation approximative du stockage
+   */
+  getStorageUsed(): Observable<string> {
+    return this.getAllDatasets().pipe(
+      map(datasets => {
+        // Estimation basée sur le nombre d'instances et de features
+        let totalSizeBytes = 0;
+        
+        datasets.forEach(dataset => {
+          const instances = dataset.instances_number || 0;
+          const features = dataset.features_number || 0;
+          // Estimation : instances * features * 8 bytes (float64) en moyenne
+          const estimatedSize = instances * features * 8;
+          totalSizeBytes += estimatedSize;
+        });
+        
+        // Conversion en unités lisibles
+        if (totalSizeBytes < 1024 * 1024) {
+          return `${Math.round(totalSizeBytes / 1024)} KB`;
+        } else if (totalSizeBytes < 1024 * 1024 * 1024) {
+          return `${(totalSizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+        } else {
+          return `${(totalSizeBytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+        }
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère toutes les statistiques du dashboard en une fois
+   */
+  getDashboardStats(): Observable<AdminDashboardStats> {
+    return this.http.get<any>(`${environment.apiUrl}/debug/datasets-count`).pipe(
+      map(datasetResponse => ({
+        total_datasets: datasetResponse.total_datasets,
+        total_users: 0, // Sera mis à jour par les autres appels
+        recent_uploads: 0, // Sera mis à jour par les autres appels  
+        storage_used: 'Calcul...' // Sera mis à jour par les autres appels
+      })),
       catchError(this.handleError)
     );
   }

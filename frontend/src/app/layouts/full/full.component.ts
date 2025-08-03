@@ -6,8 +6,9 @@ import { CoreService } from 'src/app/services/core.service';
 import { AppSettings } from 'src/app/config';
 import { filter } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
-import { navItems, getTranslatedNavItems } from './vertical/sidebar/sidebar-data';
+import { navItems, getTranslatedNavItems, getTranslatedNavItemsWithRoles } from './vertical/sidebar/sidebar-data';
 import { NavService } from '../../services/nav.service';
+import { RoleService, UserRole } from '../../services/role.service';
 import { TranslateService } from '@ngx-translate/core';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { RouterModule } from '@angular/router';
@@ -206,6 +207,7 @@ export class FullComponent implements OnInit {
     private breakpointObserver: BreakpointObserver,
     private navService: NavService,
     private authService: AuthService,
+    private roleService: RoleService,
     private translate: TranslateService
   ) {
     this.htmlElement = document.querySelector('html')!;
@@ -237,20 +239,26 @@ export class FullComponent implements OnInit {
     // Charger les informations de l'utilisateur connecté
     this.loadUserInfo();
     
-    // Initialiser les navItems traduits
+    // Initialiser les navItems traduits avec rôles
     this.updateNavItems();
     
     // Écouter les changements de langue pour mettre à jour les navItems
     this.translate.onLangChange.subscribe(() => {
       this.updateNavItems();
     });
+    
+    // Écouter les changements de rôle pour mettre à jour les navItems
+    this.roleService.getCurrentRole().subscribe(() => {
+      this.updateNavItems();
+    });
   }
 
   /**
-   * Met à jour les navItems avec les traductions
+   * Met à jour les navItems avec les traductions et les rôles
    */
   private updateNavItems(): void {
-    this.navItems = getTranslatedNavItems(this.translate);
+    const currentRole = this.roleService.getCurrentRoleSync();
+    this.navItems = getTranslatedNavItemsWithRoles(this.translate, currentRole);
   }
 
   /**
@@ -283,12 +291,17 @@ export class FullComponent implements OnInit {
             this.userProfileImage = this.sanitizeGoogleImageUrl(user.picture);
           }
           
-          // Définir le rôle
-          if (user.is_superuser) {
+          // Définir le rôle basé sur le nouveau système
+          if (user.role) {
+            this.userRole = this.roleService.getRoleDisplayName(user.role as UserRole);
+          } else if (user.is_superuser) {
             this.userRole = 'Admin';
           } else {
             this.userRole = 'Utilisateur';
           }
+          
+          // Rafraîchir le rôle dans le RoleService pour déclencher la mise à jour de la navigation
+          this.roleService.refreshCurrentRole();
         },
         error: (error) => {
           console.error('Erreur lors du chargement des informations utilisateur', error);

@@ -317,7 +317,8 @@ class ColumnMetadata(BaseModel):
 
 class DatasetFileMetadata(BaseModel):
     """Schéma pour les métadonnées d'un fichier de dataset"""
-    file_name_in_storage: str = Field(..., description="Nom du fichier dans le stockage")
+    file_name_in_storage: str = Field(..., description="Nom UUID du fichier dans le stockage (ex: abc123.parquet)")
+    original_filename: str = Field(..., description="Nom original du fichier utilisateur (ex: iris_dataset.csv)")
     format: str = Field(..., description="Format du fichier (csv, json, parquet, etc.)")
     size_bytes: int = Field(..., description="Taille du fichier en bytes")
     row_count: int = Field(..., description="Nombre de lignes")

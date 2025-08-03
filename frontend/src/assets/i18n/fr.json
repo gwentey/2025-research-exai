@@ -8,7 +8,99 @@
     "ML_PIPELINE": "Pipeline ML",
     "XAI_EXPLANATIONS": "Explications XAI",
     "PROFILE": "Profil",
-    "HELP": "Aide et Support"
+    "HELP": "Aide et Support",
+    "ADMINISTRATION": "Administration",
+    "ADMIN_DASHBOARD": "Administration",
+    "DATASET_MANAGEMENT": "Gestion Datasets",
+    "USER_MANAGEMENT": "Gestion Utilisateurs",
+    "ETHICAL_TEMPLATES": "Templates Éthiques"
+  },
+  "ADMIN": {
+    "DASHBOARD": {
+      "TITLE": "Tableau de Bord Administration",
+      "SUBTITLE": "Vue d'ensemble de votre plateforme et gestion système",
+      "TOTAL_DATASETS": "Total Datasets",
+      "TOTAL_USERS": "Total Utilisateurs",
+      "RECENT_UPLOADS": "Uploads Récents",
+      "STORAGE_USED": "Stockage Utilisé",
+      "QUICK_ACTIONS": "Actions Rapides",
+      "ADMIN_INFO": "Informations Administrateur",
+      "MANAGE_DATASETS": "Gérer les Datasets",
+      "MANAGE_USERS": "Gérer les Utilisateurs",
+      "ETHICAL_TEMPLATES": "Templates Éthiques",
+      "ADD_DATASET": "Ajouter Dataset"
+    },
+    "DATASETS": {
+      "TITLE": "Gestion des Datasets",
+      "SUBTITLE": "Gérez tous les jeux de données de la plateforme",
+      "ADD_DATASET": "Ajouter un Dataset",
+      "SEARCH": "Rechercher",
+      "SEARCH_PLACEHOLDER": "Rechercher par nom, créateur...",
+      "STATUS": "Statut",
+      "STATUS_ACTIVE": "Actif",
+      "STATUS_PENDING": "En attente",
+      "STATUS_ARCHIVED": "Archivé",
+      "DOMAIN": "Domaine",
+      "CLEAR_FILTERS": "Effacer les filtres",
+      "DATASETS_LIST": "Liste des Datasets",
+      "DATASETS_FOUND": "datasets trouvés",
+      "TABLE": {
+        "NAME": "Nom",
+        "CREATOR": "Créateur",
+        "CREATED": "Date de création",
+        "FILES": "Fichiers",
+        "SIZE": "Taille",
+        "STATUS": "Statut",
+        "ACTIONS": "Actions"
+      },
+      "VIEW_DETAILS": "Voir les détails",
+      "EDIT": "Modifier",
+      "DELETE": "Supprimer",
+      "LOADING": "Chargement des datasets...",
+      "NO_DATASETS": "Aucun dataset trouvé",
+      "NO_DATASETS_MESSAGE": "Aucun dataset ne correspond à vos critères de recherche.",
+      "ADD_FIRST_DATASET": "Ajouter le premier dataset"
+    },
+    "USERS": {
+      "TITLE": "Gestion des Utilisateurs",
+      "SUBTITLE": "Gérez les comptes utilisateurs et leurs permissions",
+      "INVITE_USER": "Inviter un utilisateur",
+      "TOTAL_USERS": "Total Utilisateurs",
+      "ACTIVE_USERS": "Utilisateurs Actifs",
+      "ADMIN_USERS": "Administrateurs",
+      "CONTRIBUTOR_USERS": "Contributeurs",
+      "SEARCH": "Rechercher",
+      "SEARCH_PLACEHOLDER": "Rechercher par nom, email...",
+      "ROLE": "Rôle",
+      "ROLE_ADMIN": "Administrateur",
+      "ROLE_CONTRIBUTOR": "Contributeur",
+      "ROLE_USER": "Utilisateur",
+      "STATUS": "Statut",
+      "STATUS_ACTIVE": "Actif",
+      "STATUS_INACTIVE": "Inactif",
+      "STATUS_VERIFIED": "Vérifié",
+      "STATUS_UNVERIFIED": "Non vérifié",
+      "CLEAR_FILTERS": "Effacer les filtres",
+      "USERS_LIST": "Liste des Utilisateurs",
+      "USERS_FOUND": "utilisateurs trouvés",
+      "TABLE": {
+        "USER": "Utilisateur",
+        "ROLE": "Rôle",
+        "STATUS": "Statut",
+        "CREATED": "Date de création",
+        "LAST_LOGIN": "Dernière connexion",
+        "DATASETS": "Datasets",
+        "ACTIONS": "Actions"
+      },
+      "EDIT_USER": "Modifier l'utilisateur",
+      "ACTIVATE": "Activer",
+      "DEACTIVATE": "Désactiver",
+      "DELETE_USER": "Supprimer l'utilisateur",
+      "NEVER": "Jamais",
+      "LOADING": "Chargement des utilisateurs...",
+      "NO_USERS": "Aucun utilisateur trouvé",
+      "NO_USERS_MESSAGE": "Aucun utilisateur ne correspond à vos critères de recherche."
+    }
   },
   "AUTH": {
     "LOGIN": "Connexion",
@@ -63,7 +155,13 @@
     "LOADING": "Chargement...",
     "NEXT": "Suivant",
     "BACK": "Retour",
-    "CANCEL": "Annuler"
+    "CANCEL": "Annuler",
+    "MANAGE": "Gérer",
+    "CONFIGURE": "Configurer",
+    "VIEW_ALL": "Voir tout",
+    "UPLOAD_NEW": "Télécharger nouveau",
+    "VIEW_ALL_USERS": "Voir tous les utilisateurs",
+    "ADD_NEW_USER": "Ajouter un nouvel utilisateur"
   },
   "DASHBOARD": {
     "TITLE": "Tableau de Bord IBIS-X",
@@ -614,6 +712,11 @@
       "SIZE": "Taille",
       "DOMAIN": "Domaine",
       "LICENSE": "Licence"
+    },
+    "UPLOAD": {
+      "TOOLTIP": "Ajouter un nouveau dataset",
+      "TITLE": "Upload Dataset",
+      "SUBTITLE": "Ajouter un nouveau jeu de données"
     }
   },
   "FORMS": {

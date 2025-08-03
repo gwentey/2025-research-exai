@@ -88,6 +88,10 @@ class DatasetFile(Base):
     
     Un dataset peut avoir plusieurs fichiers (ex: train.csv, test.csv, metadata.json).
     Cette table décrit chaque fichier individuellement.
+    
+    Note sur le stockage:
+    - file_name_in_storage: Nom UUID dans MinIO (ex: "abc123-def456.parquet")
+    - original_filename: Nom original du fichier utilisateur (ex: "iris_dataset.csv")
     """
     __tablename__ = "dataset_files"
 
@@ -98,7 +102,8 @@ class DatasetFile(Base):
     dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False, index=True)
     
     # === PROPRIÉTÉS ===
-    file_name_in_storage = Column(String(255), nullable=False)
+    file_name_in_storage = Column(String(255), nullable=False)  # UUID + extension (ex: "abc123.parquet")
+    original_filename = Column(String(255), nullable=False)     # Nom original du fichier (ex: "iris_dataset.csv")
     logical_role = Column(String(255), nullable=True)  # Ex: "training_data", "test_data", "metadata"
     format = Column(String(50), nullable=True)  # Ex: "csv", "json", "parquet"
     mime_type = Column(String(100), nullable=True)  # Ex: "text/csv", "application/json"
