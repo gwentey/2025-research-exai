@@ -1,0 +1,253 @@
+<div class="ethical-templates-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="title-area">
+      <h1>
+        <mat-icon>settings</mat-icon>
+        Gestion des Templates Éthiques
+      </h1>
+      <p class="subtitle">
+        Configurez les valeurs par défaut des métadonnées éthiques et techniques selon le domaine des datasets.
+      </p>
+    </div>
+
+    <div class="actions-area">
+      <button 
+        mat-stroked-button 
+        (click)="validateTemplates()"
+        [disabled]="isLoading"
+        matTooltip="Vérifier la validité des templates">
+        <mat-icon>check_circle</mat-icon>
+        Valider
+      </button>
+      
+      <button 
+        mat-stroked-button 
+        color="warn" 
+        (click)="resetToDefaults()"
+        [disabled]="isLoading || isSaving"
+        matTooltip="Restaurer les templates par défaut">
+        <mat-icon>restore</mat-icon>
+        Par défaut
+      </button>
+      
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="saveTemplates()"
+        [disabled]="isLoading || isSaving || !templatesForm.valid">
+        <mat-icon *ngIf="!isSaving">save</mat-icon>
+        <mat-progress-spinner 
+          *ngIf="isSaving" 
+          diameter="20" 
+          mode="indeterminate">
+        </mat-progress-spinner>
+        {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <mat-card class="info-panel">
+    <mat-card-content>
+      <div class="info-content">
+        <mat-icon class="info-icon">info</mat-icon>
+        <div class="info-text">
+          <strong>Fonctionnement :</strong> Ces templates sont appliqués automatiquement lors de l'import Kaggle selon le domaine du dataset. 
+          Les valeurs peuvent ensuite être ajustées via l'interface de complétion des métadonnées.
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Chargement des templates...</p>
+  </div>
+
+  <!-- Templates Form -->
+  <form [formGroup]="templatesForm" *ngIf="!isLoading" class="templates-form">
+    <div formArrayName="templates">
+      
+      <!-- Template Cards -->
+      <div 
+        *ngFor="let templateControl of templatesArray.controls; let i = index" 
+        [formGroupName]="i" 
+        class="template-card">
+        
+        <mat-expansion-panel class="template-panel" [expanded]="i === 0">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon [class]="'domain-icon ' + getDomainColor(templateControl.get('domain')?.value)">
+                {{ getDomainIcon(templateControl.get('domain')?.value) }}
+              </mat-icon>
+              <span class="domain-name">{{ templateControl.get('domain')?.value }}</span>
+              <mat-chip 
+                class="status-chip"
+                [class.valid-chip]="templateControl.valid"
+                [class.invalid-chip]="!templateControl.valid">
+                {{ templateControl.valid ? 'Valide' : 'Invalide' }}
+              </mat-chip>
+            </mat-panel-title>
+            <mat-panel-description>
+              Template pour les datasets du domaine {{ templateControl.get('domain')?.value }}
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <div class="template-content">
+            
+            <!-- Domain Name -->
+            <div class="domain-section">
+              <mat-form-field appearance="outline" class="domain-field">
+                <mat-label>Nom du domaine</mat-label>
+                <mat-select formControlName="domain" required>
+                  <mat-option *ngFor="let domain of availableDomains" [value]="domain">
+                    <mat-icon>{{ getDomainIcon(domain) }}</mat-icon>
+                    {{ domain }}
+                  </mat-option>
+                </mat-select>
+                <mat-hint>Identifiant unique du domaine</mat-hint>
+              </mat-form-field>
+
+              <button 
+                mat-icon-button 
+                color="warn" 
+                (click)="removeTemplate(i)"
+                [disabled]="templatesArray.length <= 1"
+                matTooltip="Supprimer ce template">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Ethical Criteria Section -->
+            <div class="criteria-section" formGroupName="ethical">
+              <h3>
+                <mat-icon>verified_user</mat-icon>
+                Critères Éthiques
+              </h3>
+              
+              <div class="ethical-grid">
+                <div 
+                  *ngFor="let field of ['informed_consent', 'transparency', 'user_control', 'equity_non_discrimination', 'security_measures_in_place', 'data_quality_documented', 'anonymization_applied', 'record_keeping_policy_exists', 'purpose_limitation_respected', 'accountability_defined']"
+                  class="ethical-field">
+                  
+                  <mat-slide-toggle 
+                    [formControlName]="field"
+                    [matTooltip]="getEthicalFieldHelp(field)"
+                    matTooltipPosition="below">
+                    {{ getEthicalFieldLabel(field) }}
+                  </mat-slide-toggle>
+                </div>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Technical Characteristics Section -->
+            <div class="criteria-section" formGroupName="technical">
+              <h3>
+                <mat-icon>settings</mat-icon>
+                Caractéristiques Techniques
+              </h3>
+              
+              <div class="technical-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Niveau de représentativité</mat-label>
+                  <mat-select formControlName="representativity_level" required>
+                    <mat-option *ngFor="let level of representativityLevels" [value]="level.value">
+                      {{ level.label }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Représentativité par rapport à la population cible</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Équilibre des échantillons</mat-label>
+                  <mat-select formControlName="sample_balance_level" required>
+                    <mat-option *ngFor="let level of balanceLevels" [value]="level.value">
+                      {{ level.label }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Distribution des classes dans le dataset</mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Quality Description Section -->
+            <div class="criteria-section" formGroupName="quality">
+              <h3>
+                <mat-icon>quality</mat-icon>
+                Description de la Qualité
+              </h3>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description des erreurs de données</mat-label>
+                <textarea 
+                  matInput 
+                  formControlName="data_errors_description"
+                  rows="3"
+                  placeholder="Description des problèmes de qualité typiques pour ce domaine...">
+                </textarea>
+                <mat-hint>Message d'aide pour l'utilisateur lors de la validation</mat-hint>
+              </mat-form-field>
+            </div>
+
+          </div>
+        </mat-expansion-panel>
+      </div>
+
+    </div>
+
+    <!-- Add New Domain Button -->
+    <div class="add-domain-section">
+      <button 
+        mat-stroked-button 
+        color="primary" 
+        (click)="addNewDomain()"
+        [disabled]="isSaving">
+        <mat-icon>add</mat-icon>
+        Ajouter un nouveau domaine
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Help Section -->
+  <mat-card class="help-section">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>help</mat-icon>
+        Guide d'utilisation
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="help-content">
+        <div class="help-item">
+          <strong>1. Modification des templates :</strong>
+          Ajustez les valeurs par défaut selon vos besoins organisationnels et réglementaires.
+        </div>
+        
+        <div class="help-item">
+          <strong>2. Critères éthiques :</strong>
+          Activez les critères obligatoires selon le type de données (ex: santé = anonymisation obligatoire).
+        </div>
+        
+        <div class="help-item">
+          <strong>3. Application automatique :</strong>
+          Ces valeurs sont appliquées lors de l'import Kaggle selon le domaine détecté.
+        </div>
+        
+        <div class="help-item">
+          <strong>4. Validation utilisateur :</strong>
+          L'utilisateur peut ensuite affiner ces valeurs via l'interface de complétion des métadonnées.
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+</div>

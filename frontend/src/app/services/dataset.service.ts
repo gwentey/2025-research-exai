@@ -498,4 +498,42 @@ export class DatasetService {
       catchError(this.handleError)
     );
   }
+
+  // =====================================
+  // MÉTADONNÉES - COMPLETION
+  // =====================================
+
+  /**
+   * Récupère le statut de complétude des métadonnées d'un dataset
+   * @param datasetId - ID du dataset
+   * @returns Observable avec le statut de complétude
+   */
+  getCompletionStatus(datasetId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/metadata/${datasetId}/completion-status`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupère le formulaire de métadonnées pré-rempli pour un dataset
+   * @param datasetId - ID du dataset
+   * @returns Observable avec la structure du formulaire
+   */
+  getMetadataForm(datasetId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/metadata/${datasetId}/metadata-form`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Met à jour les métadonnées d'un dataset
+   * @param datasetId - ID du dataset
+   * @param updates - Objet contenant les mises à jour
+   * @returns Observable avec le résultat de la mise à jour
+   */
+  completeMetadata(datasetId: string, updates: any): Observable<any> {
+    return this.http.put(`${this.baseUrl}/metadata/${datasetId}/complete`, updates).pipe(
+      catchError(this.handleError)
+    );
+  }
 } 

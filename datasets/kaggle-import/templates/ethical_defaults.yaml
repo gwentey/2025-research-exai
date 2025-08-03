@@ -1,0 +1,135 @@
+# Templates éthiques par domaine pour l'import des datasets Kaggle
+# Chaque domaine définit des valeurs par défaut pour les critères éthiques
+
+default:
+  ethical:
+    informed_consent: false
+    transparency: true
+    user_control: false
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: false
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "medium"
+    sample_balance_level: "balanced"
+    missing_values_handling_method: "none"
+  quality:
+    data_errors_description: "À vérifier manuellement"
+
+education:
+  ethical:
+    informed_consent: true
+    transparency: true
+    user_control: false
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: true
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "high"
+    sample_balance_level: "balanced"
+    missing_values_handling_method: "none"
+  quality:
+    data_errors_description: "Données éducatives vérifiées"
+
+healthcare:
+  ethical:
+    informed_consent: true
+    transparency: true
+    user_control: true
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: true
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "high"
+    sample_balance_level: "balanced"
+    missing_values_handling_method: "documented"
+  quality:
+    data_errors_description: "Données de santé conformes RGPD"
+
+social:
+  ethical:
+    informed_consent: true
+    transparency: true
+    user_control: false
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: true
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "medium"
+    sample_balance_level: "balanced"
+    missing_values_handling_method: "none"
+  quality:
+    data_errors_description: "Données sociales anonymisées"
+
+business:
+  ethical:
+    informed_consent: false
+    transparency: true
+    user_control: false
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: true
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "medium"
+    sample_balance_level: "balanced"
+    missing_values_handling_method: "documented"
+  quality:
+    data_errors_description: "Données business agrégées"
+
+finance:
+  ethical:
+    informed_consent: false
+    transparency: true
+    user_control: false
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: true
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "high"
+    sample_balance_level: "balanced"
+    missing_values_handling_method: "documented"
+  quality:
+    data_errors_description: "Données financières sécurisées"
+
+technology:
+  ethical:
+    informed_consent: false
+    transparency: true
+    user_control: false
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: false
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "high"
+    sample_balance_level: "balanced"
+    missing_values_handling_method: "none"
+  quality:
+    data_errors_description: "Données techniques standardisées"

@@ -236,3 +236,6 @@ class Project(Base):
     # === TIMESTAMPS ===
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+

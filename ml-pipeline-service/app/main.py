@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -8,6 +8,7 @@ import logging
 import sys
 import os
 import pandas as pd
+import uuid
 
 from app.core.config import settings
 from app.database import engine, get_db, Base
@@ -50,6 +51,27 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Dependency to extract user_id from X-User-ID header sent by API Gateway
+def get_current_user_id(x_user_id: str = Header(..., alias="X-User-ID")) -> uuid.UUID:
+    """
+    Extract and validate user_id from X-User-ID header sent by API Gateway.
+    API Gateway sends the authenticated user's UUID in this header.
+    """
+    try:
+        # Convert string UUID to UUID object
+        user_uuid = uuid.UUID(x_user_id)
+        return user_uuid
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID format in X-User-ID header"
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid X-User-ID header"
+        )
 
 @app.get("/")
 def read_root():
@@ -106,7 +128,7 @@ def celery_status():
 def create_experiment(
     experiment: ExperimentCreate,
     db: Session = Depends(get_db),
-    current_user_id: str = "test-user"  # This will come from auth in production
+    current_user_id: uuid.UUID = Depends(get_current_user_id)
 ):
     """Create a new ML experiment and queue training task"""
     try:
@@ -304,7 +326,7 @@ def get_user_experiments(
     limit: int = 100,
     project_id: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user_id: str = "test-user"  # This will come from auth in production
+    current_user_id: uuid.UUID = Depends(get_current_user_id)
 ):
     """Get all experiments for the current user"""
     query = db.query(Experiment).filter(Experiment.user_id == current_user_id)
@@ -319,7 +341,7 @@ def get_user_experiments(
 def analyze_data_quality(
     request: DataQualityAnalysisRequest,
     db: Session = Depends(get_db),
-    current_user_id: str = "test-user"  # This will come from auth in production
+    current_user_id: uuid.UUID = Depends(get_current_user_id)
 ):
     """Analyser la qualité des données d'un dataset avec système de cache"""
     import pandas as pd
@@ -386,7 +408,7 @@ def analyze_data_quality(
 @app.post("/data-quality/suggest-strategy", response_model=PreprocessingStrategy)
 def suggest_preprocessing_strategy(
     request: PreprocessingStrategyRequest,
-    current_user_id: str = "test-user"
+    current_user_id: uuid.UUID = Depends(get_current_user_id)
 ):
     """Suggérer une stratégie de preprocessing optimisée"""
     import pandas as pd

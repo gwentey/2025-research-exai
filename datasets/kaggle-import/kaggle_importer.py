@@ -44,6 +44,7 @@ from common.storage_client import get_storage_client
 from database import SessionLocal
 from models import Dataset
 from schemas import DatasetCreate
+from kaggle_metadata_mapper import create_complete_dataset_from_kaggle
 
 # Configuration logging
 logging.basicConfig(
@@ -153,6 +154,39 @@ class KaggleImporter:
         
         with open(cache_path, 'w') as f:
             json.dump(cache_data, f, indent=2)
+    
+    def _get_kaggle_metadata(self, kaggle_ref: str) -> Dict[str, Any]:
+        """Récupère les métadonnées d'un dataset depuis l'API Kaggle."""
+        logger.info(f"📋 Récupération métadonnées Kaggle: {kaggle_ref}")
+        
+        try:
+            # Récupérer les informations du dataset
+            dataset_info = kaggle.api.dataset_view(kaggle_ref)
+            
+            # Extraire les métadonnées pertinentes
+            kaggle_metadata = {
+                'title': dataset_info.title,
+                'subtitle': getattr(dataset_info, 'subtitle', ''),
+                'description': getattr(dataset_info, 'description', ''),
+                'usabilityRating': getattr(dataset_info, 'usabilityRating', 0),
+                'lastUpdated': getattr(dataset_info, 'lastUpdated', ''),
+                'downloadCount': getattr(dataset_info, 'downloadCount', 0),
+                'voteCount': getattr(dataset_info, 'voteCount', 0),
+                'size': getattr(dataset_info, 'size', 0),
+                'licenseText': getattr(dataset_info, 'licenseText', ''),
+                'keywords': getattr(dataset_info, 'keywords', []),
+                'collaborators': getattr(dataset_info, 'collaborators', []),
+                'ownerName': getattr(dataset_info, 'ownerName', ''),
+                'ownerRef': getattr(dataset_info, 'ownerRef', ''),
+            }
+            
+            logger.info(f"✅ Métadonnées Kaggle récupérées: {kaggle_metadata.get('title', 'N/A')}")
+            return kaggle_metadata
+            
+        except Exception as e:
+            logger.warning(f"⚠️ Impossible de récupérer métadonnées Kaggle {kaggle_ref}: {e}")
+            # Retourner un dict vide si échec (pas bloquant)
+            return {}
     
     def _download_kaggle_dataset(self, kaggle_ref: str, temp_dir: Path) -> List[Path]:
         """Télécharge un dataset depuis Kaggle."""
@@ -278,34 +312,39 @@ class KaggleImporter:
             raise
     
     def _save_to_database(self, dataset_config: DatasetConfig, metadata: Dict[str, Any], storage_path: str):
-        """Sauvegarde les métadonnées en base de données."""
+        """Sauvegarde les métadonnées complètes en base de données."""
         logger.info(f"💾 Sauvegarde en BDD: {dataset_config.name}")
         
         try:
             with SessionLocal() as db:
-                # Créer l'objet dataset
-                dataset_create = DatasetCreate(
-                    dataset_name=dataset_config.description,
-                    domain=[dataset_config.domain],
-                    task=[dataset_config.ml_task],
-                    features_number=metadata.get('total_columns', 0),
-                    instances_number=metadata.get('total_rows', 0),
-                    storage_uri=storage_path,
-                    sources=f"https://www.kaggle.com/datasets/{dataset_config.kaggle_ref}",
-                    objective=dataset_config.description
+                # Récupérer les métadonnées Kaggle si disponibles
+                kaggle_metadata = metadata.get('kaggle_metadata', {})
+                
+                # Utiliser le nouveau mapper pour créer un dataset COMPLET (31 champs au lieu de 6)
+                complete_dataset_data = create_complete_dataset_from_kaggle(
+                    dataset_config=dataset_config,
+                    kaggle_metadata=kaggle_metadata,
+                    file_metadata=metadata,
+                    storage_path=storage_path
                 )
                 
-                # Sauvegarder en BDD
-                dataset = Dataset(**dataset_create.model_dump())
+                logger.info(f"✨ Données complètes générées: {len(complete_dataset_data)} champs remplis")
+                
+                # Sauvegarder le dataset complet en BDD
+                dataset = Dataset(**complete_dataset_data)
                 db.add(dataset)
                 db.commit()
                 db.refresh(dataset)
                 
                 logger.info(f"✅ Dataset sauvegardé avec ID: {dataset.id}")
+                logger.info(f"📊 Métadonnées: instances={dataset.instances_number}, features={dataset.features_number}")
+                logger.info(f"⚖️ Éthique: consentement={dataset.informed_consent}, anonymisation={dataset.anonymization_applied}")
+                
                 return dataset.id
                 
         except Exception as e:
             logger.error(f"❌ Erreur sauvegarde BDD {dataset_config.name}: {e}")
+            logger.error(f"   Mapper utilisé: create_complete_dataset_from_kaggle")
             raise
     
     def import_dataset(self, dataset_name: str, force_refresh: bool = False) -> bool:
@@ -330,10 +369,13 @@ class KaggleImporter:
             temp_path = Path(temp_dir)
             
             try:
-                # 1. Télécharger depuis Kaggle
+                # 1. Récupérer métadonnées Kaggle
+                kaggle_metadata = self._get_kaggle_metadata(dataset_config.kaggle_ref)
+                
+                # 2. Télécharger depuis Kaggle
                 csv_files = self._download_kaggle_dataset(dataset_config.kaggle_ref, temp_path)
                 
-                # 2. Analyser les fichiers
+                # 3. Analyser les fichiers
                 files_metadata = []
                 total_rows = 0
                 total_columns = 0
@@ -346,7 +388,7 @@ class KaggleImporter:
                     total_columns = max(total_columns, file_meta.get('columns', 0))
                     total_size_mb += file_meta.get('size_mb', 0.0)
                 
-                # 3. Convertir en Parquet
+                # 4. Convertir en Parquet
                 parquet_dir = temp_path / "parquet"
                 parquet_dir.mkdir()
                 parquet_files = self._convert_to_parquet(csv_files, parquet_dir)
@@ -355,10 +397,10 @@ class KaggleImporter:
                     logger.error(f"❌ Aucun fichier Parquet généré pour {dataset_name}")
                     return False
                 
-                # 4. Upload vers stockage
+                # 5. Upload vers stockage
                 storage_path = self._upload_to_storage(parquet_files, dataset_name)
                 
-                # 5. Préparer métadonnées complètes
+                # 6. Préparer métadonnées complètes (ENRICHIES avec Kaggle)
                 complete_metadata = {
                     'files': files_metadata,
                     'total_rows': total_rows,
@@ -366,13 +408,14 @@ class KaggleImporter:
                     'total_size_mb': total_size_mb,
                     'parquet_files': [f.name for f in parquet_files],
                     'data_types': {},  # TODO: Agréger les types
-                    'kaggle_ref': dataset_config.kaggle_ref
+                    'kaggle_ref': dataset_config.kaggle_ref,
+                    'kaggle_metadata': kaggle_metadata  # ⭐ NOUVELLES MÉTADONNÉES KAGGLE
                 }
                 
-                # 6. Sauvegarder en BDD
+                # 7. Sauvegarder en BDD (avec mapper enrichi)
                 dataset_id = self._save_to_database(dataset_config, complete_metadata, storage_path)
                 
-                # 7. Mettre à jour le cache
+                # 8. Mettre à jour le cache
                 self._update_cache(dataset_name, complete_metadata)
                 
                 logger.info(f"🎉 Import réussi: {dataset_name} (ID: {dataset_id})")

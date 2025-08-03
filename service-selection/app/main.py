@@ -597,13 +597,74 @@ def get_tasks(db: Session = Depends(database.get_db)):
     return schemas.TaskResponse(tasks=sorted_tasks)
 
 # Route générique APRÈS les routes spécifiques
-@app.get("/datasets/{dataset_id}", response_model=schemas.DatasetRead)
+@app.get("/datasets/{dataset_id}", response_model=schemas.DatasetWithFiles)
 def get_dataset(dataset_id: str, db: Session = Depends(database.get_db)):
-    """Récupère les détails d'un dataset spécifique par son ID."""
+    """Récupère les détails d'un dataset spécifique par son ID avec storage_path et files."""
     dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
     if dataset is None:
         raise HTTPException(status_code=404, detail=f"Dataset avec l'ID {dataset_id} non trouvé")
-    return dataset
+    
+    # Récupérer les fichiers associés au dataset
+    files = db.query(models.DatasetFile).filter(models.DatasetFile.dataset_id == dataset_id).all()
+    
+    # Convertir les fichiers au format attendu
+    files_metadata = []
+    for file in files:
+        files_metadata.append(schemas.DatasetFileMetadata(
+            file_name_in_storage=file.file_name_in_storage,
+            format=file.format,
+            size_bytes=file.size_bytes or 0,
+            row_count=file.row_count or 0,
+            description=file.description,
+            columns=[]  # Les colonnes peuvent être ajoutées plus tard si nécessaire
+        ))
+    
+    # Construire la réponse avec storage_path et files
+    return schemas.DatasetWithFiles(
+        id=dataset.id,
+        dataset_name=dataset.dataset_name,
+        year=dataset.year,
+        objective=dataset.objective,
+        access=dataset.access,
+        availability=dataset.availability,
+        num_citations=dataset.num_citations,
+        citation_link=dataset.citation_link,
+        sources=dataset.sources,
+        storage_uri=dataset.storage_uri,
+        storage_path=dataset.storage_path,
+        instances_number=dataset.instances_number,
+        features_description=dataset.features_description,
+        features_number=dataset.features_number,
+        domain=dataset.domain,
+        representativity_description=dataset.representativity_description,
+        representativity_level=dataset.representativity_level,
+        sample_balance_description=dataset.sample_balance_description,
+        sample_balance_level=dataset.sample_balance_level,
+        split=dataset.split,
+        missing_values_description=dataset.missing_values_description,
+        has_missing_values=dataset.has_missing_values,
+        global_missing_percentage=dataset.global_missing_percentage,
+        missing_values_handling_method=dataset.missing_values_handling_method,
+        temporal_factors=dataset.temporal_factors,
+        metadata_provided_with_dataset=dataset.metadata_provided_with_dataset,
+        external_documentation_available=dataset.external_documentation_available,
+        documentation_link=dataset.documentation_link,
+        task=dataset.task,
+        informed_consent=dataset.informed_consent,
+        transparency=dataset.transparency,
+        user_control=dataset.user_control,
+        equity_non_discrimination=dataset.equity_non_discrimination,
+        security_measures_in_place=dataset.security_measures_in_place,
+        data_quality_documented=dataset.data_quality_documented,
+        data_errors_description=dataset.data_errors_description,
+        anonymization_applied=dataset.anonymization_applied,
+        record_keeping_policy_exists=dataset.record_keeping_policy_exists,
+        purpose_limitation_respected=dataset.purpose_limitation_respected,
+        accountability_defined=dataset.accountability_defined,
+        created_at=dataset.created_at,
+        updated_at=dataset.updated_at,
+        files=files_metadata
+    )
 
 
 @app.get("/datasets/{dataset_id}/details", response_model=schemas.DatasetDetailResponse)
@@ -2218,6 +2279,663 @@ def score_datasets(
         logger.info(f"   Meilleur score: {scored_datasets[0].score} ({scored_datasets[0].dataset_name})")
     
     return scored_datasets
+
+
+# =====================================
+# ENDPOINTS MÉTADONNÉES - COMPLETION
+# =====================================
+
+@app.get("/datasets/metadata/{dataset_id}/completion-status")
+def get_completion_status(dataset_id: str, db: Session = Depends(database.get_db)):
+    """
+    Retourne le statut de complétude des métadonnées d'un dataset.
+    
+    Indique quels champs sont vides, lesquels ont des valeurs par défaut,
+    et lesquels nécessitent une validation humaine.
+    """
+    dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset non trouvé")
+    
+    # Champs obligatoires pour la validation
+    required_fields = {
+        'ethical': [
+            'informed_consent',
+            'transparency', 
+            'anonymization_applied',
+            'data_quality_documented'
+        ],
+        'technical': [
+            'instances_number',
+            'features_number',
+            'domain',
+            'task'
+        ],
+        'general': [
+            'dataset_name',
+            'objective',
+            'sources'
+        ]
+    }
+    
+    # Analyser la complétude
+    completion_status = {
+        'overall_completion': 0,
+        'missing_fields': [],
+        'default_values': [],
+        'needs_review': [],
+        'complete_fields': []
+    }
+    
+    total_fields = 0
+    complete_fields = 0
+    
+    # Vérifier chaque catégorie
+    for category, fields in required_fields.items():
+        for field in fields:
+            total_fields += 1
+            value = getattr(dataset, field, None)
+            
+            if value is None or value == '' or value == []:
+                completion_status['missing_fields'].append({
+                    'field': field,
+                    'category': category,
+                    'description': get_field_description(field)
+                })
+            elif is_default_value(field, value):
+                completion_status['default_values'].append({
+                    'field': field,
+                    'category': category,
+                    'value': value,
+                    'description': get_field_description(field)
+                })
+                complete_fields += 0.5  # Demi-point pour valeur par défaut
+            else:
+                completion_status['complete_fields'].append({
+                    'field': field,
+                    'category': category,
+                    'value': value
+                })
+                complete_fields += 1
+    
+    # Champs spéciaux qui nécessitent toujours une révision humaine
+    review_fields = [
+        'informed_consent',
+        'anonymization_applied', 
+        'equity_non_discrimination'
+    ]
+    
+    for field in review_fields:
+        value = getattr(dataset, field, None)
+        if value is not None:
+            completion_status['needs_review'].append({
+                'field': field,
+                'value': value,
+                'reason': 'Validation humaine requise pour ce critère éthique'
+            })
+    
+    completion_status['overall_completion'] = int((complete_fields / total_fields) * 100)
+    
+    return completion_status
+
+
+@app.get("/datasets/metadata/{dataset_id}/metadata-form")
+def get_metadata_form(dataset_id: str, db: Session = Depends(database.get_db)):
+    """
+    Retourne un formulaire pré-rempli pour compléter les métadonnées.
+    
+    Structure le formulaire par sections pour faciliter la saisie.
+    """
+    dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset non trouvé")
+    
+    # Structurer le formulaire par sections
+    form_structure = {
+        'dataset_info': {
+            'title': 'Informations Générales',
+            'fields': [
+                {
+                    'name': 'dataset_name',
+                    'label': 'Nom du Dataset',
+                    'type': 'text',
+                    'required': True,
+                    'current_value': dataset.dataset_name,
+                    'help': 'Nom descriptif et unique du dataset'
+                },
+                {
+                    'name': 'objective',
+                    'label': 'Objectif',
+                    'type': 'textarea',
+                    'required': True,
+                    'current_value': dataset.objective,
+                    'help': 'Description de l\'objectif et du contexte du dataset'
+                },
+                {
+                    'name': 'domain',
+                    'label': 'Domaines',
+                    'type': 'multi-select',
+                    'required': True,
+                    'current_value': dataset.domain or [],
+                    'options': ['education', 'healthcare', 'finance', 'social', 'business', 'technology'],
+                    'help': 'Domaines d\'application (plusieurs possibles)'
+                }
+            ]
+        },
+        'technical_info': {
+            'title': 'Caractéristiques Techniques',
+            'fields': [
+                {
+                    'name': 'representativity_level',
+                    'label': 'Niveau de Représentativité',
+                    'type': 'select',
+                    'current_value': dataset.representativity_level,
+                    'options': ['high', 'medium', 'low', 'unknown'],
+                    'help': 'Dans quelle mesure ce dataset représente la population cible'
+                },
+                {
+                    'name': 'sample_balance_level',
+                    'label': 'Équilibre des Classes',
+                    'type': 'select',
+                    'current_value': dataset.sample_balance_level,
+                    'options': ['balanced', 'moderate', 'imbalanced', 'severely_imbalanced'],
+                    'help': 'Distribution des classes dans le dataset'
+                },
+                {
+                    'name': 'missing_values_handling_method',
+                    'label': 'Traitement des Valeurs Manquantes',
+                    'type': 'select',
+                    'current_value': dataset.missing_values_handling_method,
+                    'options': ['none', 'drop', 'impute_mean', 'impute_median', 'impute_mode', 'forward_fill'],
+                    'help': 'Méthode recommandée pour traiter les valeurs manquantes'
+                }
+            ]
+        },
+        'ethical_criteria': {
+            'title': 'Critères Éthiques (OBLIGATOIRE)',
+            'fields': [
+                {
+                    'name': 'informed_consent',
+                    'label': 'Consentement Éclairé',
+                    'type': 'radio',
+                    'required': True,
+                    'current_value': dataset.informed_consent,
+                    'options': [
+                        {'value': True, 'label': 'Oui - Consentement obtenu'},
+                        {'value': False, 'label': 'Non - Données publiques/anonymes'},
+                        {'value': None, 'label': 'À vérifier'}
+                    ],
+                    'help': 'Les sujets ont-ils donné leur consentement éclairé ?'
+                },
+                {
+                    'name': 'anonymization_applied',
+                    'label': 'Anonymisation Appliquée',
+                    'type': 'radio',
+                    'required': True,
+                    'current_value': dataset.anonymization_applied,
+                    'options': [
+                        {'value': True, 'label': 'Oui - Données anonymisées'},
+                        {'value': False, 'label': 'Non - Identifiants préservés'},
+                        {'value': None, 'label': 'À vérifier'}
+                    ],
+                    'help': 'Les données personnelles ont-elles été anonymisées ?'
+                },
+                {
+                    'name': 'transparency',
+                    'label': 'Transparence',
+                    'type': 'radio',
+                    'required': True,
+                    'current_value': dataset.transparency,
+                    'options': [
+                        {'value': True, 'label': 'Oui - Méthode de collecte documentée'},
+                        {'value': False, 'label': 'Non - Collecte non documentée'},
+                        {'value': None, 'label': 'À vérifier'}
+                    ],
+                    'help': 'La méthode de collecte est-elle transparente et documentée ?'
+                },
+                {
+                    'name': 'equity_non_discrimination',
+                    'label': 'Équité et Non-Discrimination',
+                    'type': 'radio',
+                    'required': True,
+                    'current_value': dataset.equity_non_discrimination,
+                    'options': [
+                        {'value': True, 'label': 'Oui - Pas de biais discriminatoire'},
+                        {'value': False, 'label': 'Non - Biais potentiels identifiés'},
+                        {'value': None, 'label': 'À évaluer'}
+                    ],
+                    'help': 'Le dataset est-il exempt de biais discriminatoires ?'
+                }
+            ]
+        }
+    }
+    
+    return {
+        'dataset_id': dataset_id,
+        'dataset_name': dataset.dataset_name,
+        'form_structure': form_structure,
+        'completion_status': get_completion_status(dataset_id, db)
+    }
+
+
+@app.put("/datasets/metadata/{dataset_id}/complete")
+def complete_metadata(
+    dataset_id: str,
+    updates: dict,
+    db: Session = Depends(database.get_db)
+):
+    """
+    Met à jour les métadonnées d'un dataset.
+    
+    Permet de compléter les champs manquants ou corriger les valeurs existantes.
+    """
+    dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset non trouvé")
+    
+    # Valider que les champs obligatoires sont présents
+    required_ethical_fields = [
+        'informed_consent',
+        'transparency',
+        'anonymization_applied',
+        'equity_non_discrimination'
+    ]
+    
+    for field in required_ethical_fields:
+        if field in updates and updates[field] is None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Le champ éthique '{field}' est obligatoire et ne peut pas être vide"
+            )
+    
+    # Appliquer les mises à jour
+    update_count = 0
+    for field, value in updates.items():
+        if hasattr(dataset, field):
+            setattr(dataset, field, value)
+            update_count += 1
+    
+    db.commit()
+    
+    # Recalculer le statut de complétude
+    new_status = get_completion_status(dataset_id, db)
+    
+    return {
+        'message': f'{update_count} champs mis à jour avec succès',
+        'completion_status': new_status,
+        'dataset_id': dataset_id
+    }
+
+
+def get_field_description(field: str) -> str:
+    """Retourne une description d'aide pour un champ."""
+    descriptions = {
+        'informed_consent': 'Indique si les sujets ont donné leur consentement éclairé pour l\'utilisation des données',
+        'transparency': 'Documente si la méthode de collecte des données est transparente et accessible',
+        'anonymization_applied': 'Précise si des techniques d\'anonymisation ont été appliquées aux données',
+        'data_quality_documented': 'Indique si la qualité des données a été évaluée et documentée',
+        'equity_non_discrimination': 'Évalue si le dataset est exempt de biais discriminatoires',
+        'instances_number': 'Nombre total de lignes/observations dans le dataset',
+        'features_number': 'Nombre total de colonnes/variables dans le dataset',
+        'domain': 'Domaines d\'application du dataset (éducation, santé, finance, etc.)',
+        'task': 'Types de tâches de machine learning possibles (classification, régression, etc.)'
+    }
+    
+    return descriptions.get(field, 'Description non disponible')
+
+
+def is_default_value(field: str, value) -> bool:
+    """Détermine si une valeur est une valeur par défaut qui nécessite validation."""
+    # Valeurs par défaut typiques qui nécessitent révision
+    default_patterns = {
+        'representativity_level': ['medium'],
+        'sample_balance_level': ['balanced', 'moderate'],
+        'informed_consent': [True],  # Vrai par défaut mais doit être vérifié
+        'transparency': [True],
+    }
+    
+    return field in default_patterns and value in default_patterns[field]
+
+
+# =====================================
+# ENDPOINTS ADMIN - TEMPLATES ÉTHIQUES
+# =====================================
+
+@app.get("/admin/ethical-templates")
+def get_ethical_templates():
+    """
+    Récupère tous les templates éthiques depuis le fichier YAML.
+    """
+    try:
+        import yaml
+        from pathlib import Path
+        
+        # Chemin vers le fichier de templates
+        templates_path = Path(__file__).parent.parent.parent / "datasets" / "kaggle-import" / "templates" / "ethical_defaults.yaml"
+        
+        if not templates_path.exists():
+            # Retourner des templates par défaut si le fichier n'existe pas
+            default_templates = _get_default_templates()
+            return {"templates": default_templates}
+        
+        # Charger le fichier YAML
+        with open(templates_path, 'r', encoding='utf-8') as f:
+            yaml_data = yaml.safe_load(f)
+        
+        # Convertir en format API
+        templates = []
+        for domain, config in yaml_data.items():
+            template = {
+                "domain": domain,
+                "ethical": config.get("ethical", {}),
+                "technical": config.get("technical", {}),
+                "quality": config.get("quality", {})
+            }
+            templates.append(template)
+        
+        return {"templates": templates}
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des templates: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des templates: {str(e)}")
+
+
+@app.put("/admin/ethical-templates")
+def save_ethical_templates(request: dict):
+    """
+    Sauvegarde les templates éthiques dans le fichier YAML.
+    """
+    try:
+        import yaml
+        from pathlib import Path
+        
+        templates = request.get("templates", [])
+        
+        # Valider les templates
+        validation_result = _validate_templates(templates)
+        if not validation_result["valid"]:
+            raise HTTPException(
+                status_code=422, 
+                detail=f"Templates invalides: {', '.join(validation_result['errors'])}"
+            )
+        
+        # Convertir en format YAML
+        yaml_data = {}
+        for template in templates:
+            domain = template["domain"]
+            yaml_data[domain] = {
+                "ethical": template["ethical"],
+                "technical": template["technical"],
+                "quality": template["quality"]
+            }
+        
+        # Sauvegarder dans le fichier YAML
+        templates_path = Path(__file__).parent.parent.parent / "datasets" / "kaggle-import" / "templates" / "ethical_defaults.yaml"
+        templates_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(templates_path, 'w', encoding='utf-8') as f:
+            yaml.dump(yaml_data, f, default_flow_style=False, allow_unicode=True, indent=2)
+        
+        logger.info(f"Templates éthiques sauvegardés: {len(templates)} domaines")
+        
+        return {
+            "message": f"Templates sauvegardés avec succès",
+            "templates_count": len(templates),
+            "domains": [t["domain"] for t in templates]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la sauvegarde des templates: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la sauvegarde: {str(e)}")
+
+
+@app.post("/admin/ethical-templates/reset")
+def reset_ethical_templates():
+    """
+    Restaure les templates éthiques par défaut.
+    """
+    try:
+        import yaml
+        from pathlib import Path
+        
+        # Obtenir les templates par défaut
+        default_templates = _get_default_templates_yaml()
+        
+        # Sauvegarder dans le fichier YAML
+        templates_path = Path(__file__).parent.parent.parent / "datasets" / "kaggle-import" / "templates" / "ethical_defaults.yaml"
+        templates_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(templates_path, 'w', encoding='utf-8') as f:
+            f.write(default_templates)
+        
+        logger.info("Templates éthiques restaurés par défaut")
+        
+        return {
+            "message": "Templates restaurés par défaut avec succès",
+            "templates_restored": True
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la restauration des templates: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la restauration: {str(e)}")
+
+
+@app.get("/admin/ethical-templates/validate")
+def validate_ethical_templates():
+    """
+    Valide les templates éthiques actuels.
+    """
+    try:
+        # Récupérer les templates actuels
+        current_templates = get_ethical_templates()
+        templates = current_templates["templates"]
+        
+        # Valider
+        validation_result = _validate_templates(templates)
+        
+        return {
+            "valid": validation_result["valid"],
+            "templates_count": len(templates),
+            "errors": validation_result["errors"],
+            "warnings": validation_result["warnings"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la validation des templates: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la validation: {str(e)}")
+
+
+def _validate_templates(templates: List[dict]) -> dict:
+    """Valide la structure des templates."""
+    errors = []
+    warnings = []
+    
+    required_ethical_fields = [
+        'informed_consent', 'transparency', 'equity_non_discrimination',
+        'security_measures_in_place', 'data_quality_documented',
+        'anonymization_applied', 'record_keeping_policy_exists',
+        'purpose_limitation_respected', 'accountability_defined'
+    ]
+    
+    required_technical_fields = ['representativity_level', 'sample_balance_level']
+    
+    valid_representativity = ['high', 'medium', 'low', 'unknown']
+    valid_balance = ['balanced', 'moderate', 'imbalanced', 'severely_imbalanced']
+    
+    for template in templates:
+        domain = template.get("domain", "unknown")
+        
+        # Vérifier la section éthique
+        if "ethical" not in template:
+            errors.append(f"Template '{domain}': Section 'ethical' manquante")
+        else:
+            ethical = template["ethical"]
+            for field in required_ethical_fields:
+                if field not in ethical:
+                    errors.append(f"Template '{domain}': Champ éthique '{field}' manquant")
+                elif not isinstance(ethical[field], bool):
+                    errors.append(f"Template '{domain}': Champ éthique '{field}' doit être booléen")
+        
+        # Vérifier la section technique
+        if "technical" not in template:
+            errors.append(f"Template '{domain}': Section 'technical' manquante")
+        else:
+            technical = template["technical"]
+            for field in required_technical_fields:
+                if field not in technical:
+                    errors.append(f"Template '{domain}': Champ technique '{field}' manquant")
+            
+            if "representativity_level" in technical and technical["representativity_level"] not in valid_representativity:
+                errors.append(f"Template '{domain}': 'representativity_level' doit être dans {valid_representativity}")
+            
+            if "sample_balance_level" in technical and technical["sample_balance_level"] not in valid_balance:
+                errors.append(f"Template '{domain}': 'sample_balance_level' doit être dans {valid_balance}")
+        
+        # Avertissements
+        if domain == "default" and template.get("ethical", {}).get("informed_consent", False):
+            warnings.append(f"Template '{domain}': Le consentement par défaut devrait probablement être False")
+    
+    return {
+        "valid": len(errors) == 0,
+        "errors": errors,
+        "warnings": warnings
+    }
+
+
+def _get_default_templates() -> List[dict]:
+    """Retourne les templates par défaut au format API."""
+    return [
+        {
+            "domain": "default",
+            "ethical": {
+                "informed_consent": False,
+                "transparency": True,
+                "user_control": False,
+                "equity_non_discrimination": True,
+                "security_measures_in_place": True,
+                "data_quality_documented": True,
+                "anonymization_applied": False,
+                "record_keeping_policy_exists": True,
+                "purpose_limitation_respected": True,
+                "accountability_defined": True
+            },
+            "technical": {
+                "representativity_level": "medium",
+                "sample_balance_level": "moderate"
+            },
+            "quality": {
+                "data_errors_description": "Qualité à vérifier selon la source"
+            }
+        },
+        {
+            "domain": "education",
+            "ethical": {
+                "informed_consent": True,
+                "transparency": True,
+                "user_control": False,
+                "equity_non_discrimination": True,
+                "security_measures_in_place": True,
+                "data_quality_documented": True,
+                "anonymization_applied": True,
+                "record_keeping_policy_exists": True,
+                "purpose_limitation_respected": True,
+                "accountability_defined": True
+            },
+            "technical": {
+                "representativity_level": "high",
+                "sample_balance_level": "balanced"
+            },
+            "quality": {
+                "data_errors_description": "Dataset éducatif - qualité académique attendue"
+            }
+        },
+        {
+            "domain": "healthcare",
+            "ethical": {
+                "informed_consent": True,
+                "transparency": True,
+                "user_control": True,
+                "equity_non_discrimination": True,
+                "security_measures_in_place": True,
+                "data_quality_documented": True,
+                "anonymization_applied": True,
+                "record_keeping_policy_exists": True,
+                "purpose_limitation_respected": True,
+                "accountability_defined": True
+            },
+            "technical": {
+                "representativity_level": "high",
+                "sample_balance_level": "moderate"
+            },
+            "quality": {
+                "data_errors_description": "Dataset santé - qualité médicale vérifiée obligatoire"
+            }
+        }
+    ]
+
+
+def _get_default_templates_yaml() -> str:
+    """Retourne les templates par défaut au format YAML."""
+    return """# Templates de métadonnées éthiques par défaut
+# Générés automatiquement par l'interface d'administration
+
+default:
+  ethical:
+    informed_consent: false
+    transparency: true
+    user_control: false
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: false
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "medium"
+    sample_balance_level: "moderate"
+  quality:
+    data_errors_description: "Qualité à vérifier selon la source"
+
+education:
+  ethical:
+    informed_consent: true
+    transparency: true
+    user_control: false
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: true
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "high"
+    sample_balance_level: "balanced"
+  quality:
+    data_errors_description: "Dataset éducatif - qualité académique attendue"
+
+healthcare:
+  ethical:
+    informed_consent: true
+    transparency: true
+    user_control: true
+    equity_non_discrimination: true
+    security_measures_in_place: true
+    data_quality_documented: true
+    anonymization_applied: true
+    record_keeping_policy_exists: true
+    purpose_limitation_respected: true
+    accountability_defined: true
+  technical:
+    representativity_level: "high"
+    sample_balance_level: "moderate"
+  quality:
+    data_errors_description: "Dataset santé - qualité médicale vérifiée obligatoire"
+"""
+
 
 if __name__ == "__main__":
     import uvicorn

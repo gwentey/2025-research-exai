@@ -50,7 +50,6 @@ resources:
   - jobs/api-gateway-migration-job.yaml
   - jobs/service-selection-migration-job.yaml
   - jobs/ml-pipeline-migration-job.yaml
-  # Job d'initialisation des vrais datasets
-  - jobs/service-selection-data-init-job.yaml 
+  # Job d'initialisation des vrais datasets (OBSOLÈTE - supprimé car utilise les fausses données) 
   # Job d'importation Kaggle (datasets externes)
   - jobs/kaggle-dataset-import-job.yaml 

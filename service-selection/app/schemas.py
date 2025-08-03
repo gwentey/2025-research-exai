@@ -66,6 +66,12 @@ class DatasetRead(DatasetBase):
         from_attributes = True
 
 
+class DatasetWithFiles(DatasetRead):
+    """Schéma pour lire un Dataset avec storage_path et files pour le ml-pipeline"""
+    storage_path: Optional[str] = Field(None, description="Chemin de stockage dans MinIO/Azure")
+    files: List["DatasetFileMetadata"] = Field(default_factory=list, description="Métadonnées des fichiers")
+
+
 class DatasetUpdate(BaseModel):
     """Schéma pour mettre à jour un Dataset"""
     dataset_name: Optional[str] = None
@@ -409,4 +415,8 @@ class DatasetDetailResponse(BaseModel):
 class DatasetSimilarResponse(BaseModel):
     """Schéma pour les datasets similaires"""
     similar_datasets: List[DatasetRead] = Field(..., description="Liste des datasets similaires")
-    similarity_explanation: Dict[str, str] = Field(default_factory=dict, description="Explication des similarités") 
+    similarity_explanation: Dict[str, str] = Field(default_factory=dict, description="Explication des similarités")
+
+
+
+ 

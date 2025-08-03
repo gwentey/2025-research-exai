@@ -6,6 +6,5 @@ spec:
   template:
     spec:
       containers:
-      - name: service-selection-migration
-        image: service-selection:latest
+      - name: migration
         imagePullPolicy: Never 

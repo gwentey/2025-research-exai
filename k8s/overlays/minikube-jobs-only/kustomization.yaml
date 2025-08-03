@@ -8,7 +8,7 @@ resources:
   - api-gateway-migration-job.yaml
   - service-selection-migration-job.yaml
   - ml-pipeline-migration-job.yaml
-  - service-selection-data-init-job.yaml
+
   - kaggle-dataset-import-job.yaml
 
 # Patches spécifiques à Minikube pour les jobs (images locales)

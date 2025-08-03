@@ -54,6 +54,8 @@
 
 * Guides de Données
 ** xref:dev-guide/dataset-management-guide.adoc[Gestion des Datasets]
+** xref:dev-guide/dataset-manifest-system.adoc[🆕 Système de Manifest des Datasets]
+** xref:dev-guide/dataset-import-workflow-v2.adoc[🆕 Workflow d'Import Unifié v2]
 ** xref:dev-guide/auto-dataset-initialization.adoc[Auto-initialisation des Datasets]
 ** xref:dev-guide/object-storage-implementation.adoc[Implémentation Stockage d'Objets]
 ** xref:dev-guide/storage-setup-guide.adoc[Configuration du Stockage]

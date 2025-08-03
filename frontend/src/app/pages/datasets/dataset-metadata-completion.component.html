@@ -1,0 +1,249 @@
+<div class="metadata-completion-container">
+  <!-- Header avec titre et statut -->
+  <div class="header-section">
+    <div class="breadcrumb">
+      <button mat-icon-button (click)="goBackToDetail()" matTooltip="Retour au détail">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>Complétion des Métadonnées</h1>
+    </div>
+    
+    <div class="dataset-info" *ngIf="formStructure">
+      <h2>{{ formStructure.dataset_name }}</h2>
+      <p class="dataset-id">ID: {{ formStructure.dataset_id }}</p>
+    </div>
+  </div>
+
+  <!-- Indicateur de progression global -->
+  <mat-card class="completion-status-card" *ngIf="completionStatus">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>analytics</mat-icon>
+        Statut de Complétude
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="progress-section">
+        <div class="progress-info">
+          <span class="completion-percentage">{{ completionStatus.overall_completion }}%</span>
+          <span class="completion-label">complété</span>
+        </div>
+        <mat-progress-bar 
+          mode="determinate" 
+          [value]="completionStatus.overall_completion"
+          [color]="getCompletionColor(completionStatus.overall_completion)">
+        </mat-progress-bar>
+      </div>
+      
+      <div class="status-chips">
+        <mat-chip-listbox>
+          <mat-chip 
+            *ngIf="completionStatus.missing_fields.length > 0"
+            class="missing-chip">
+            <mat-icon matChipAvatar>error</mat-icon>
+            {{ completionStatus.missing_fields.length }} champs manquants
+          </mat-chip>
+          
+          <mat-chip 
+            *ngIf="completionStatus.default_values.length > 0"
+            class="default-chip">
+            <mat-icon matChipAvatar>warning</mat-icon>
+            {{ completionStatus.default_values.length }} valeurs par défaut
+          </mat-chip>
+          
+          <mat-chip 
+            *ngIf="completionStatus.needs_review.length > 0"
+            class="review-chip">
+            <mat-icon matChipAvatar>visibility</mat-icon>
+            {{ completionStatus.needs_review.length }} à réviser
+          </mat-chip>
+          
+          <mat-chip 
+            *ngIf="completionStatus.complete_fields.length > 0"
+            class="complete-chip">
+            <mat-icon matChipAvatar>check_circle</mat-icon>
+            {{ completionStatus.complete_fields.length }} complets
+          </mat-chip>
+        </mat-chip-listbox>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Formulaire de métadonnées -->
+  <form [formGroup]="metadataForm" (ngSubmit)="saveMetadata()" *ngIf="formStructure && metadataForm">
+    
+    <!-- Section 1: Informations Générales -->
+    <mat-expansion-panel class="form-section" expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>{{ getCategoryIcon('general') }}</mat-icon>
+          {{ formStructure.form_structure.dataset_info.title }}
+        </mat-panel-title>
+        <mat-panel-description>
+          Informations de base sur le dataset
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      
+      <div class="form-fields">
+        <div *ngFor="let field of getFieldsBySection('dataset_info')" class="form-field">
+          
+          <!-- Champ texte -->
+          <mat-form-field *ngIf="field.type === 'text'" appearance="outline">
+            <mat-label>{{ field.label }}</mat-label>
+            <input matInput [formControlName]="field.name" [required]="field.required || false">
+            <mat-hint>{{ field.help }}</mat-hint>
+            <mat-error *ngIf="metadataForm.get(field.name)?.hasError('required')">
+              Ce champ est obligatoire
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Zone de texte -->
+          <mat-form-field *ngIf="field.type === 'textarea'" appearance="outline">
+            <mat-label>{{ field.label }}</mat-label>
+            <textarea matInput [formControlName]="field.name" [required]="field.required || false" rows="3"></textarea>
+            <mat-hint>{{ field.help }}</mat-hint>
+            <mat-error *ngIf="metadataForm.get(field.name)?.hasError('required')">
+              Ce champ est obligatoire
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Sélection multiple -->
+          <mat-form-field *ngIf="field.type === 'multi-select'" appearance="outline">
+            <mat-label>{{ field.label }}</mat-label>
+            <mat-select [formControlName]="field.name" [required]="field.required || false" multiple>
+              <mat-option *ngFor="let option of field.options" [value]="option">
+                {{ option }}
+              </mat-option>
+            </mat-select>
+            <mat-hint>{{ field.help }}</mat-hint>
+            <mat-error *ngIf="metadataForm.get(field.name)?.hasError('required')">
+              Ce champ est obligatoire
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Section 2: Caractéristiques Techniques -->
+    <mat-expansion-panel class="form-section">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>{{ getCategoryIcon('technical') }}</mat-icon>
+          {{ formStructure.form_structure.technical_info.title }}
+        </mat-panel-title>
+        <mat-panel-description>
+          Propriétés techniques et qualité des données
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      
+      <div class="form-fields">
+        <div *ngFor="let field of getFieldsBySection('technical_info')" class="form-field">
+          
+          <!-- Sélection simple -->
+          <mat-form-field *ngIf="field.type === 'select'" appearance="outline">
+            <mat-label>{{ field.label }}</mat-label>
+            <mat-select [formControlName]="field.name" [required]="field.required || false">
+              <mat-option *ngFor="let option of field.options" [value]="option">
+                {{ option }}
+              </mat-option>
+            </mat-select>
+            <mat-hint>{{ field.help }}</mat-hint>
+            <mat-error *ngIf="metadataForm.get(field.name)?.hasError('required')">
+              Ce champ est obligatoire
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Section 3: Critères Éthiques (OBLIGATOIRE) -->
+    <mat-expansion-panel class="form-section ethical-section" expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon class="ethical-icon">{{ getCategoryIcon('ethical') }}</mat-icon>
+          {{ formStructure.form_structure.ethical_criteria.title }}
+          <mat-chip class="required-chip">OBLIGATOIRE</mat-chip>
+        </mat-panel-title>
+        <mat-panel-description>
+          Métadonnées éthiques essentielles pour la conformité
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      
+      <div class="form-fields">
+        <div *ngFor="let field of getFieldsBySection('ethical_criteria')" class="form-field ethical-field">
+          
+          <!-- Boutons radio -->
+          <div *ngIf="field.type === 'radio'" class="radio-field">
+            <label class="field-label">
+              {{ field.label }}
+              <span *ngIf="field.required" class="required-asterisk">*</span>
+            </label>
+            <mat-radio-group [formControlName]="field.name" [required]="field.required || false">
+              <mat-radio-button 
+                *ngFor="let option of field.options" 
+                [value]="option.value"
+                class="radio-option">
+                {{ option.label }}
+              </mat-radio-button>
+            </mat-radio-group>
+            <div class="field-help">{{ field.help }}</div>
+            <mat-error *ngIf="metadataForm.get(field.name)?.hasError('required')" class="error-message">
+              Ce critère éthique est obligatoire
+            </mat-error>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Avertissement éthique -->
+      <mat-card class="ethical-warning">
+        <mat-card-content>
+          <div class="warning-content">
+            <mat-icon class="warning-icon">warning</mat-icon>
+            <div class="warning-text">
+              <strong>Important :</strong> Les critères éthiques sont obligatoires pour assurer la conformité 
+              avec les réglementations de protection des données (RGPD, etc.). 
+              Ces informations sont essentielles pour l'utilisation responsable des datasets.
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-expansion-panel>
+
+    <!-- Actions -->
+    <div class="action-buttons">
+      <button 
+        mat-stroked-button 
+        type="button" 
+        (click)="goBackToDetail()"
+        [disabled]="isSaving">
+        <mat-icon>cancel</mat-icon>
+        Annuler
+      </button>
+      
+      <button 
+        mat-raised-button 
+        color="primary" 
+        type="submit"
+        [disabled]="isSaving || !metadataForm.valid">
+        <mat-icon *ngIf="!isSaving">save</mat-icon>
+        <mat-progress-spinner 
+          *ngIf="isSaving" 
+          diameter="20" 
+          mode="indeterminate">
+        </mat-progress-spinner>
+        {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder les Métadonnées' }}
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Chargement -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Chargement des métadonnées...</p>
+  </div>
+
+</div>

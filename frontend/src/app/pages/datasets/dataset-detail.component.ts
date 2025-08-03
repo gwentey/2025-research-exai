@@ -362,4 +362,11 @@ export class DatasetDetailComponent implements OnInit, OnDestroy {
     // TODO: Implémenter le partage
     console.log('Partage du dataset:', this.datasetId);
   }
+
+  /**
+   * Navigue vers la page de completion des métadonnées
+   */
+  completeMetadata(): void {
+    this.router.navigate(['/datasets', this.datasetId, 'complete-metadata']);
+  }
 } 

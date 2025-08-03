@@ -32,7 +32,7 @@ spec:
         - name: STORAGE_TYPE
           value: "minio"
         - name: MINIO_ENDPOINT
-          value: "minio:9000"
+          value: "http://minio-service:6700"
         - name: MINIO_ACCESS_KEY
           valueFrom:
             secretKeyRef:

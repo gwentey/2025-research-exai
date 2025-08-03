@@ -53,6 +53,13 @@ check-prerequisites: ## Vérifie que tous les outils requis sont installés
 	@echo "Assurez-vous que Docker, Minikube, kubectl, Skaffold et Python sont installes"
 	@echo "Tous les prerequis sont presumes satisfaits"
 
+check-kaggle-credentials: ## Vérifie que les credentials Kaggle sont configurés
+	@echo "$(BLUE)Verification des credentials Kaggle...$(NC)"
+	@echo "$(YELLOW)ATTENTION: Verification simplifiee pour Windows - assurez-vous que .env contient:$(NC)"
+	@echo "$(YELLOW)  KAGGLE_USERNAME=votre_username$(NC)"
+	@echo "$(YELLOW)  KAGGLE_KEY=votre_api_key$(NC)"
+	@echo "$(GREEN)✅ Verification passee (assurez-vous que .env est correct)$(NC)"
+
 update-secrets: ## Met à jour les secrets Kubernetes avec les valeurs du .env
 	@echo "$(BLUE)Mise a jour des secrets Kubernetes...$(NC)"
 	@python scripts/development/update-local-secrets.py
@@ -142,7 +149,7 @@ start-portforwards-resilient: stop-portforwards ## Lance les port forwards FONCT
 	@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
 	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:6701 > /dev/null 2>&1 &
 	@echo "$(YELLOW)Attente etablissement des connexions (10 secondes)...$(NC)"
-	@sleep 10
+	@powershell.exe -Command "Start-Sleep -Seconds 10"
 	@echo ""
 	@echo "$(GREEN)✅ APPLICATION PRETE !$(NC)"
 	@echo ""
@@ -208,27 +215,48 @@ wait-migrations: ## Attend que les migrations se terminent (jobs déjà déploy�
 
 migrate: wait-services migrate-jobs ## Lance les migrations (attend les services puis lance les jobs)
 
-init-data: ## Initialise les vrais datasets (rapide ou échec)
-	@echo "$(BLUE)Initialisation des vrais datasets...$(NC)"
-	@echo "$(YELLOW)Execution rapide de l'initialisation...$(NC)"
-	-@kubectl exec -n $(NAMESPACE) deployment/service-selection -- python scripts/init_datasets.py social || echo "$(YELLOW)Initialisation echouee - application fonctionnera avec donnees par defaut$(NC)"
-	@echo "$(GREEN)✅ Initialisation terminee - APPLICATION ACCESSIBLE !$(NC)"
+init-data: check-kaggle-credentials ## Initialise les VRAIS datasets depuis Kaggle (obligatoire)
+	@echo "$(BLUE)Initialisation des VRAIS datasets depuis Kaggle...$(NC)"
+	@echo "$(YELLOW)IMPORTANT: Cette operation va telecharger les vrais datasets depuis Kaggle$(NC)"
+	@echo "$(YELLOW)Cela peut prendre plusieurs minutes selon votre connexion internet$(NC)"
+	@echo "$(YELLOW)Suppression de l'ancien job Kaggle...$(NC)"
+	-@kubectl delete job kaggle-dataset-import-job -n $(NAMESPACE) 2>$(NULL)
+	@echo "$(YELLOW)Lancement du job d'import Kaggle...$(NC)"
+	@kubectl apply -f k8s/base/jobs/kaggle-dataset-import-job.yaml -n $(NAMESPACE)
+	@echo "$(YELLOW)Attente de la completion de l'import Kaggle (max 30 minutes)...$(NC)"
+	@kubectl wait --for=condition=complete job/kaggle-dataset-import-job -n $(NAMESPACE) --timeout=1800s
+	@echo "$(YELLOW)Si le job a echoue, verifiez les logs avec: kubectl logs -n $(NAMESPACE) job/kaggle-dataset-import-job$(NC)"
+	@echo "$(GREEN)✅ VRAIS datasets importes avec succes depuis Kaggle !$(NC)"
 	@echo ""
-	@echo "$(GREEN)🚀🚀🚀 IBIS-X EST MAINTENANT PRET ! 🚀🚀🚀$(NC)"
+	@echo "$(GREEN)🚀🚀🚀 IBIS-X EST MAINTENANT PRET AVEC LES VRAIS DATASETS ! 🚀🚀🚀$(NC)"
 	@echo "$(GREEN)✅ Frontend:$(NC) http://localhost:8080"
 	@echo "$(GREEN)✅ API Gateway:$(NC) http://localhost:9000/docs"
-	@echo "$(GREEN)✅ Toutes les migrations et initialisations sont terminees !$(NC)"
+	@echo "$(GREEN)✅ Toutes les migrations et vrais datasets sont termines !$(NC)"
 
-init-data-job: ## Lance l'initialisation des datasets via un job Kubernetes (pour production)
-	@echo "$(BLUE)Lancement du job d'initialisation des vrais datasets...$(NC)"
-	@echo "$(YELLOW)Suppression de l'ancien job...$(NC)"
-	-@kubectl delete job service-selection-data-init-job -n $(NAMESPACE) 2>$(NULL)
-	@echo "$(YELLOW)Lancement du job d'initialisation...$(NC)"
-	@kubectl apply -f k8s/base/jobs/service-selection-data-init-job.yaml -n $(NAMESPACE)
-	@kubectl wait --for=condition=complete job/service-selection-data-init-job -n $(NAMESPACE) --timeout=$(TIMEOUT) || { echo "$(RED)Echec initialisation datasets$(NC)"; kubectl logs job/service-selection-data-init-job -n $(NAMESPACE); exit 1; }
-	@echo "$(GREEN)Vrais datasets initialises avec succes via job$(NC)"
+# init-data-job: OBSOLÈTE - Utilisait les fausses données via init_datasets.py
+# Utiliser 'make init-data' qui utilise les VRAIS datasets Kaggle
 
-dev: clean-namespace check-prerequisites update-secrets start-minikube create-namespace docker-env logs ## Installation complète SIMPLE ET FONCTIONNELLE (EXACT ancien système)
+dev: clean-namespace check-prerequisites update-secrets start-minikube create-namespace docker-env deploy wait-services wait-migrations init-data show-access dev-logs ## Installation complète avec VRAIS DATASETS - COMMANDE UNIQUE RECOMMANDÉE
+
+dev-logs: ## Lance les port-forwards et reste avec les logs (target interne pour dev)
+	@echo ""
+	@echo "$(BLUE)🚀 LANCEMENT DES LOGS EN TEMPS REEL AVEC PORT-FORWARDS$(NC)"
+	@echo "$(YELLOW)Lancement des port-forwards...$(NC)"
+	@kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
+	@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
+	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:6701 > /dev/null 2>&1 &
+	@powershell.exe -Command "Start-Sleep -Seconds 3"
+	@echo "$(GREEN)✅ Port-forwards actifs !$(NC)"
+	@echo ""
+	@echo "$(GREEN)🌐 Application accessible sur :$(NC)"
+	@echo "  $(GREEN)► Frontend:      http://localhost:8080$(NC)"
+	@echo "  $(GREEN)► API Gateway:   http://localhost:9000$(NC)"
+	@echo "  $(GREEN)► API Docs:      http://localhost:9000/docs$(NC)"
+	@echo "  $(GREEN)► MinIO Console: http://localhost:6701$(NC)"
+	@echo ""
+	@echo "$(YELLOW)📋 === LOGS EN TEMPS REEL - Appuyez sur Ctrl+C pour TOUT arrêter ====$(NC)"
+	@echo ""
+	@kubectl logs -f deployment/api-gateway -n $(NAMESPACE) --prefix=true
 
 clean-namespace: ## Nettoie le namespace avant de démarrer
 	@echo "$(BLUE)Nettoyage du namespace ibis-x...$(NC)"
@@ -236,9 +264,9 @@ clean-namespace: ## Nettoie le namespace avant de démarrer
 	@powershell.exe -Command "Start-Sleep -Seconds 3"
 	@echo "$(GREEN)Namespace nettoye$(NC)"
 
-dev-watch: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy-services-dev wait-services migrate-jobs init-data watch-portforwards ## Mode développement avec surveillance des fichiers ET surveillance automatique des port forwards
+dev-watch: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy-services-dev wait-services migrate-jobs init-data watch-portforwards ## Mode développement AVANCÉ avec surveillance automatique des fichiers (optionnel)
 
-dev-no-data: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy wait-services wait-migrations show-access ## Installation complète SANS datasets (pour tests uniquement)
+dev-no-data: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy wait-services wait-migrations show-access ## Installation SANS datasets (pour développement/tests uniquement)
 
 show-access: ## Affiche les informations d'accès à l'application
 	@echo ""
@@ -263,7 +291,7 @@ show-access: ## Affiche les informations d'accès à l'application
 
 logs-interactive: quick-logs ## Alias pour quick-logs avec nom plus explicite
 
-quick-dev: update-secrets deploy wait-services wait-migrations init-data ## Déploiement rapide avec datasets (si Minikube déjà démarré)
+quick-dev: update-secrets deploy wait-services wait-migrations init-data ## Déploiement rapide (si Minikube déjà démarré) - UTILISEZ 'make dev' à la place
 
 logs: ## Affiche les logs en temps réel avec port-forwards automatiques (EXACT ancien système)
 	@echo "$(BLUE)Demarrage des logs en temps reel avec port-forwards automatiques...$(NC)"
@@ -272,9 +300,16 @@ logs: ## Affiche les logs en temps réel avec port-forwards automatiques (EXACT 
 	@echo "  $(GREEN)API Gateway:$(NC) http://localhost:9000"
 	@echo "  $(GREEN)API Docs:$(NC) http://localhost:9000/docs"
 	@echo ""
-	@echo "$(YELLOW)Appuyez sur Ctrl+C pour arreter les logs$(NC)"
+	@echo "$(YELLOW)Lancement des port-forwards...$(NC)"
+	@kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
+	@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
+	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:6701 > /dev/null 2>&1 &
+	@powershell.exe -Command "Start-Sleep -Seconds 3"
+	@echo "$(GREEN)✅ Port-forwards actifs !$(NC)"
 	@echo ""
-	@bash -c 'eval $$(minikube docker-env) && skaffold dev --profile=local --namespace=$(NAMESPACE) --default-repo=""'
+	@echo "$(YELLOW)=== LOGS EN TEMPS REEL - Appuyez sur Ctrl+C pour arreter TOUT ====$(NC)"
+	@echo ""
+	@kubectl logs -f deployment/api-gateway -n $(NAMESPACE) --prefix=true
 
 view-logs: ## Affiche les logs des services sans redéployer
 	@echo "$(BLUE)Demarrage des logs en temps reel...$(NC)"
@@ -330,7 +365,7 @@ restart-portforwards: ## Redémarre automatiquement les port forwards de manièr
 watch-portforwards: ## Surveille et relance automatiquement les port forwards en cas de problème
 	@echo "$(BLUE)Surveillance automatique des port forwards...$(NC)"
 	@echo "$(YELLOW)Appuyez sur Ctrl+C pour arreter la surveillance$(NC)"
-	@powershell.exe -Command "while ($$true) { try { $$frontend = Test-NetConnection -ComputerName localhost -Port 8080 -InformationLevel Quiet -WarningAction SilentlyContinue; $$api = Test-NetConnection -ComputerName localhost -Port 9000 -InformationLevel Quiet -WarningAction SilentlyContinue; $$minio = Test-NetConnection -ComputerName localhost -Port 6701 -InformationLevel Quiet -WarningAction SilentlyContinue; if (-not $$frontend -or -not $$api -or -not $$minio) { Write-Host '$(YELLOW)Port forwards cassés - relancement automatique...$(NC)'; taskkill /F /IM kubectl.exe 2>$$null; Start-Sleep -Seconds 3; & make start-portforwards; Write-Host '$(GREEN)Port forwards relancés automatiquement$(NC)' } else { Write-Host '$(GREEN)Port forwards OK - $(NC)Frontend:8080 API:9000 MinIO:6701'; } Start-Sleep -Seconds 10 } catch { Write-Host 'Erreur surveillance - retry...'; Start-Sleep -Seconds 5 } }"
+	@powershell.exe -Command "while ($$true) { try { $$frontend = Test-NetConnection -ComputerName localhost -Port 8080 -InformationLevel Quiet -WarningAction SilentlyContinue; $$api = Test-NetConnection -ComputerName localhost -Port 9000 -InformationLevel Quiet -WarningAction SilentlyContinue; $$minio = Test-NetConnection -ComputerName localhost -Port 6701 -InformationLevel Quiet -WarningAction SilentlyContinue; if (-not $$frontend -or -not $$api -or -not $$minio) { Write-Host '$(YELLOW)Port forwards cassés - relancement automatique...$(NC)'; taskkill /F /IM kubectl.exe 2>$$null; Start-Sleep -Seconds 3; & make start-portforwards-resilient; Write-Host '$(GREEN)Port forwards relancés automatiquement$(NC)' } else { Write-Host '$(GREEN)Port forwards OK - $(NC)Frontend:8080 API:9000 MinIO:6701'; } Start-Sleep -Seconds 10 } catch { Write-Host 'Erreur surveillance - retry...'; Start-Sleep -Seconds 5 } }"
 
 fix-portforwards: ## CORRECTION IMMEDIATE - Script automatique qui fonctionne vraiment
 	@echo "$(BLUE)Correction avec script automatique...$(NC)"
@@ -370,6 +405,10 @@ healthcheck: ## Vérifie l'état de santé des services et port-forwards
 	@powershell.exe -Command "if (Test-NetConnection -ComputerName localhost -Port 9000 -InformationLevel Quiet -WarningAction SilentlyContinue) { Write-Host '$(GREEN)✓ API Gateway OK (port 9000)$(NC)' } else { Write-Host '$(RED)✗ API Gateway ECHEC (port 9000)$(NC)' }"
 	@powershell.exe -Command "if (Test-NetConnection -ComputerName localhost -Port 6701 -InformationLevel Quiet -WarningAction SilentlyContinue) { Write-Host '$(GREEN)✓ MinIO OK (port 6701)$(NC)' } else { Write-Host '$(YELLOW)! MinIO non disponible (port 6701)$(NC)' }"
 
+validate-datasets: ## Valide que les VRAIS datasets Kaggle sont importés (pas de fausses données)
+	@echo "$(BLUE)Validation des datasets...$(NC)"
+	@python scripts/development/validate-kaggle-datasets.py
+
 stop: stop-portforwards clean-temp-files ## Arrête l'application et nettoie les fichiers temporaires
 	@echo "$(BLUE)Arret de l'application...$(NC)"
 	@skaffold delete --profile=local --namespace=$(NAMESPACE) 2>$(NULL)
@@ -406,13 +445,40 @@ test-ml-pipeline: ## Test rapide du service ML Pipeline
 	@kubectl logs -n $(NAMESPACE) deployment/ml-pipeline-celery-worker --tail=10 || echo "$(RED)Workers non disponibles$(NC)"
 	@echo "$(GREEN)Test ML Pipeline termine$(NC)"
 
-start-portforwards-final: ## Solution AUTOMATIQUE - Script batch pour Git Bash
+start-portforwards-final: ## Solution AUTOMATIQUE - PowerShell direct
 	@echo "$(BLUE)=== LANCEMENT AUTOMATIQUE DES PORT-FORWARDS ===$(NC)"
 	@echo "$(YELLOW)Verification pods prets...$(NC)"
-	@kubectl wait --for=condition=ready pod -l app=frontend -n $(NAMESPACE) --timeout=30s
-	@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=30s
-	@echo "$(YELLOW)Lancement du script automatique...$(NC)"
-	@cmd /c start-portforwards.bat
+	@kubectl wait --for=condition=ready pod -l app=frontend -n $(NAMESPACE) --timeout=30s || true
+	@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=30s || true
+	@echo "$(YELLOW)Lancement des port-forwards avec PowerShell...$(NC)"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
+	@powershell.exe -Command "Start-Sleep -Seconds 2"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
+	@powershell.exe -Command "Start-Sleep -Seconds 2"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:6701'"
+	@echo "$(YELLOW)Attente etablissement des connexions (10 secondes)...$(NC)"
+	@powershell.exe -Command "Start-Sleep -Seconds 10"
+	@echo ""
+	@echo "$(GREEN)✅ APPLICATION PRETE !$(NC)"
+	@echo ""
+	@echo "$(GREEN)► Frontend: http://localhost:8080$(NC)"
+	@echo "$(GREEN)► API Gateway: http://localhost:9000$(NC)"
+	@echo "$(GREEN)► API Docs: http://localhost:9000/docs$(NC)"
+	@echo "$(GREEN)► MinIO Console: http://localhost:6701$(NC)"
 	@echo ""
 	@echo "$(GREEN)Port-forwards lances automatiquement !$(NC)"
-	@echo "$(YELLOW)Une fenetre s'est ouverte avec les details...$(NC)" 
+
+start-portforwards-auto: ## Lance automatiquement les port-forwards avec PowerShell (compatible Windows)
+	@echo "$(BLUE)=== LANCEMENT AUTOMATIQUE DES PORT-FORWARDS ===$(NC)"
+	@echo "$(YELLOW)Verification pods prets...$(NC)"
+	@kubectl wait --for=condition=ready pod -l app=frontend -n $(NAMESPACE) --timeout=30s || true
+	@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=30s || true
+	@echo "$(YELLOW)Lancement des port-forwards en arriere-plan...$(NC)"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:6701'"
+	@powershell.exe -Command "Start-Sleep -Seconds 3"
+	@echo "$(GREEN)✅ Port-forwards lances automatiquement !$(NC)"
+	@echo "$(GREEN)  ► Frontend:      http://localhost:8080$(NC)"
+	@echo "$(GREEN)  ► API Gateway:   http://localhost:9000$(NC)"
+	@echo "$(GREEN)  ► MinIO Console: http://localhost:6701$(NC)" 

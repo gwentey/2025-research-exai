@@ -63,6 +63,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./pages/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
       },
+      {
+        path: 'admin',
+        loadChildren: () =>
+          import('./pages/admin/admin.routes').then((m) => m.AdminRoutes),
+      },
     ],
   },
   {

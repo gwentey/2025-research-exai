@@ -1,0 +1,425 @@
+= Système de Manifest pour l'Import des Datasets
+:description: Architecture complète du système de manifest standardisé pour l'import de datasets avec métadonnées éthiques
+:keywords: datasets, manifest, import, métadonnées, éthiques, validation
+:page-layout: docs
+
+[.lead]
+Chaque dataset importé (Kaggle, CSV, ou autre) doit être accompagné d'un **manifest** standardisé qui décrit ses caractéristiques techniques et éthiques.
+
+== Vue d'Ensemble
+
+Le système de manifest garantit que **TOUS** les datasets possèdent les métadonnées nécessaires dès leur importation, éliminant les problèmes de cohérence et de compliance.
+
+== Structure du Manifest
+
+=== Format YAML/JSON Standard
+
+[source,yaml]
+----
+# dataset-manifest.yaml
+version: "1.0"
+
+# Identification
+dataset:
+  name: "Student Performance Analysis"
+  description: "Analysis of student performance with various socio-economic factors"
+  source:
+    type: "kaggle"  # kaggle, csv_upload, api, etc.
+    reference: "spscientist/students-performance-in-exams"
+    url: "https://www.kaggle.com/datasets/spscientist/students-performance-in-exams"
+
+# Structure des fichiers
+files:
+  - filename: "students_performance.csv"
+    role: "main_data"  # main_data, metadata, documentation, etc.
+    format: "csv"
+    encoding: "utf-8"
+    delimiter: ","
+    has_header: true
+    
+  - filename: "data_dictionary.json"
+    role: "metadata"
+    format: "json"
+
+# Caractéristiques techniques
+technical:
+  instances: 1000
+  features: 8
+  target_column: "math_score"
+  ml_tasks: ["regression", "classification"]
+  
+  columns:
+    - name: "gender"
+      type: "categorical"
+      categories: ["male", "female"]
+      missing_rate: 0.0
+      
+    - name: "math_score"
+      type: "numerical"
+      range: [0, 100]
+      missing_rate: 0.02
+
+# Métadonnées éthiques OBLIGATOIRES
+ethical:
+  # Protection des données
+  anonymization_applied: true
+  anonymization_method: "removal of direct identifiers"
+  
+  # Consentement
+  informed_consent: true
+  consent_details: "Data collected with participant consent for educational research"
+  
+  # Transparence
+  transparency: true
+  data_collection_method: "Survey conducted in educational institutions"
+  
+  # Équité
+  equity_non_discrimination: true
+  bias_assessment: "Dataset reviewed for demographic representation"
+  
+  # Sécurité
+  security_measures_in_place: true
+  security_details: "Data stored encrypted, access restricted"
+  
+  # Qualité
+  data_quality_documented: true
+  quality_issues: "Minor missing values in test scores (<2%)"
+  
+  # Responsabilité
+  accountability_defined: true
+  data_owner: "Educational Research Institute"
+  contact: "research@institute.edu"
+
+# Validation
+validation:
+  schema_version: "1.0"
+  validated_at: "2025-01-03T10:00:00Z"
+  validated_by: "system"
+----
+
+== Workflow d'Import Unifié
+
+=== 1. Import Kaggle avec Manifest
+
+[source,python]
+----
+# kaggle_importer_v2.py
+class KaggleImporterV2:
+    def import_dataset(self, kaggle_ref: str, manifest_path: str):
+        # 1. Valider le manifest
+        manifest = self.validate_manifest(manifest_path)
+        
+        # 2. Télécharger depuis Kaggle
+        files = self.download_from_kaggle(kaggle_ref)
+        
+        # 3. Vérifier la cohérence manifest/fichiers
+        self.verify_files_match_manifest(files, manifest)
+        
+        # 4. Créer le dataset avec TOUTES les métadonnées
+        dataset = self.create_dataset_from_manifest(manifest)
+        
+        # 5. Upload des fichiers
+        self.upload_files(dataset.id, files)
+        
+        return dataset
+----
+
+=== 2. Upload Manuel avec Manifest
+
+==== Nouveau endpoint séparé en 2 étapes
+
+[source,python]
+----
+@app.post("/datasets/prepare")
+def prepare_dataset_upload(files: List[UploadFile]):
+    """Étape 1: Analyse les fichiers et génère un manifest template"""
+    manifest_template = analyze_files_and_generate_template(files)
+    return {
+        "session_id": str(uuid.uuid4()),
+        "manifest_template": manifest_template,
+        "files_info": [...]
+    }
+
+@app.post("/datasets/confirm")
+def confirm_dataset_upload(
+    session_id: str,
+    manifest: DatasetManifest,  # Manifest complété par l'utilisateur
+):
+    """Étape 2: Valide et crée le dataset avec le manifest"""
+    # Valider le manifest
+    validate_manifest(manifest)
+    
+    # Créer le dataset
+    dataset = create_dataset_from_manifest(manifest)
+    
+    return dataset
+----
+
+== Validation des Métadonnées
+
+=== Règles de Validation Multi-niveaux
+
+[source,python]
+----
+# manifest_validator.py
+class ManifestValidator:
+    REQUIRED_ETHICAL_FIELDS = [
+        'anonymization_applied',
+        'informed_consent',
+        'transparency',
+        'data_quality_documented'
+    ]
+    
+    def validate(self, manifest: dict) -> ValidationResult:
+        errors = []
+        warnings = []
+        
+        # 1. Vérifier la structure
+        if 'version' not in manifest:
+            errors.append("Missing manifest version")
+            
+        # 2. Vérifier les champs obligatoires
+        for field in self.REQUIRED_ETHICAL_FIELDS:
+            if not manifest.get('ethical', {}).get(field):
+                errors.append(f"Missing required ethical field: {field}")
+        
+        # 3. Vérifier la cohérence
+        if manifest.get('ethical', {}).get('anonymization_applied'):
+            if not manifest.get('ethical', {}).get('anonymization_method'):
+                warnings.append("Anonymization applied but method not specified")
+        
+        return ValidationResult(
+            is_valid=len(errors) == 0,
+            errors=errors,
+            warnings=warnings
+        )
+----
+
+=== Validation Contextuelle par Domaine
+
+[cols="2,3,2", options="header"]
+|===
+|Domaine |Champs Supplémentaires Requis |Justification
+
+|**Santé**
+|`ethical_review_board_approval`, `hipaa_compliance`
+|Réglementations médicales strictes
+
+|**Éducation**
+|`parental_consent`, `ferpa_compliance`
+|Protection des mineurs
+
+|**Finance**
+|`pci_compliance`, `gdpr_compliance`
+|Données sensibles financières
+|===
+
+== Interface Utilisateur
+
+=== 1. Import Kaggle
+
+[source,typescript]
+----
+// Composant Angular pour l'import Kaggle
+export class KaggleImportComponent {
+  async importFromKaggle() {
+    // 1. L'utilisateur entre la référence Kaggle
+    const kaggleRef = this.form.get('kaggleRef').value;
+    
+    // 2. Le système génère un manifest pré-rempli
+    const template = await this.datasetService.generateKaggleManifest(kaggleRef);
+    
+    // 3. L'utilisateur complète les métadonnées éthiques
+    this.showManifestEditor(template);
+    
+    // 4. Validation et import
+    if (this.validateManifest()) {
+      await this.datasetService.importWithManifest(kaggleRef, this.manifest);
+    }
+  }
+}
+----
+
+=== 2. Upload CSV - Workflow en 2 étapes
+
+[source,typescript]
+----
+// Workflow en 2 étapes pour l'upload
+export class DatasetUploadWizard {
+  // Étape 1: Upload des fichiers
+  async uploadFiles(files: File[]) {
+    const response = await this.datasetService.prepareUpload(files);
+    this.sessionId = response.session_id;
+    this.manifestTemplate = response.manifest_template;
+    this.nextStep();
+  }
+  
+  // Étape 2: Édition du manifest
+  editManifest() {
+    // Interface pour compléter les métadonnées
+    // Champs obligatoires clairement marqués
+    // Aide contextuelle pour chaque champ
+  }
+  
+  // Étape 3: Confirmation
+  async confirmUpload() {
+    const dataset = await this.datasetService.confirmUpload(
+      this.sessionId,
+      this.manifest
+    );
+  }
+}
+----
+
+== Modèles de Données
+
+=== DatasetManifest
+
+[source,python]
+----
+class DatasetManifest(Base):
+    """Manifest versionnée pour un dataset."""
+    __tablename__ = "dataset_manifests"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey('datasets.id'), nullable=False)
+    version = Column(String(20), nullable=False)  # ex: "1.0", "1.1"
+    
+    # Contenu du manifest
+    manifest_data = Column(JSON, nullable=False)
+    
+    # Validation
+    is_valid = Column(String(20), default="pending")  # pending, valid, invalid
+    validation_errors = Column(JSON)
+    validation_warnings = Column(JSON)
+    
+    # Audit
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_by = Column(String(255))  # system, user_id, kaggle_import, etc.
+----
+
+=== ManifestTemplate
+
+[source,python]
+----
+class ManifestTemplate(Base):
+    """Templates de manifest pour différents types de datasets."""
+    __tablename__ = "manifest_templates"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), nullable=False, unique=True)
+    description = Column(Text)
+    
+    # Type de template
+    source_type = Column(String(50))  # kaggle, csv_upload, api, etc.
+    domain = Column(String(100))  # education, healthcare, social, etc.
+    
+    # Template data
+    template_data = Column(JSON, nullable=False)
+----
+
+=== DatasetUploadSession
+
+[source,python]
+----
+class DatasetUploadSession(Base):
+    """Session temporaire pour l'upload de datasets en plusieurs étapes."""
+    __tablename__ = "dataset_upload_sessions"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    
+    # État de la session
+    status = Column(String(50), default="preparing")  # preparing, ready, completed, expired
+    
+    # Données temporaires
+    files_metadata = Column(JSON)
+    manifest_draft = Column(JSON)
+    analysis_results = Column(JSON)
+    
+    # Expiration
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    expires_at = Column(DateTime(timezone=True))  # Session expire après 24h
+----
+
+== Avantages du Système de Manifest
+
+[cols="1,3", options="header"]
+|===
+|Avantage |Impact
+
+|**Cohérence Totale**
+|Même processus pour tous les types d'import (Kaggle, CSV, API)
+
+|**Traçabilité Complète**
+|Historique versionnée de toutes les métadonnées
+
+|**Validation Stricte**
+|Impossible d'importer sans métadonnées éthiques complètes
+
+|**Évolutivité**
+|Facile d'ajouter de nouveaux champs ou règles de validation
+
+|**Réutilisabilité**
+|Les manifests peuvent être partagés entre projets
+
+|**Compliance Automatique**
+|Respect automatique des réglementations par domaine
+|===
+
+== Migration des Données Existantes
+
+=== Script de Migration Automatique
+
+[source,python]
+----
+# Script de migration
+def migrate_existing_datasets():
+    for dataset in Dataset.query.all():
+        # Générer un manifest minimal
+        manifest = generate_minimal_manifest(dataset)
+        
+        # Marquer les champs manquants pour révision
+        manifest['ethical']['needs_review'] = True
+        manifest['migration_note'] = 'Auto-generated from legacy data'
+        
+        # Sauvegarder le manifest
+        save_manifest(dataset.id, manifest, version='0.9')
+----
+
+== Configuration Storage Cohérente
+
+[source,yaml]
+----
+# Configuration des chemins standardisés
+storage:
+  structure: "{bucket}/{dataset_id}/"
+  
+  folders:
+    data: "data/"           # Fichiers de données
+    manifests: "manifests/" # Manifests versionnés
+    metadata: "metadata/"   # Métadonnées additionnelles
+    
+  example:
+    - ibis-x-datasets/
+      - 1bde81b1-2ac8-4681-aa96-4de9b04e42e8/
+        - manifests/
+          - manifest-v1.0.yaml
+        - data/
+          - students_performance.parquet
+        - metadata/
+          - data_dictionary.json
+----
+
+== Conclusion
+
+Le système de manifest transforme l'import de datasets d'un processus ad-hoc vers une approche **industrielle et traçable**. 
+
+Chaque dataset possède désormais :
+
+* ✅ **Métadonnées techniques** complètes
+* ✅ **Métadonnées éthiques** validées 
+* ✅ **Traçabilité** versionnée
+* ✅ **Cohérence** garantie
+* ✅ **Compliance** automatique
+
+Ce système garantit que CHAQUE dataset, qu'il vienne de Kaggle ou d'un upload manuel, possède toutes les métadonnées nécessaires dès le départ, évitant ainsi **définitivement** les problèmes de cohérence actuels.
