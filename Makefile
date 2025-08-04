@@ -490,7 +490,7 @@ dev-data: check-kaggle-credentials ## Import automatique des VRAIS datasets Kagg
 		done'
 	
 	@echo "$(YELLOW)Lancement de l'import Kaggle avec structure UUID...$(NC)"
-	@cd datasets/kaggle-import && python main.py $(ARGS)
+	@cd datasets/kaggle-import && python main.py --force-refresh $(ARGS)
 	
 	@echo "$(YELLOW)Validation des datasets importes...$(NC)"
 	@python scripts/development/validate-kaggle-datasets.py
