@@ -65,7 +65,14 @@ class KaggleMetadataMapperV2:
                 **computed_data
             }
             
-            # 4. Merger les métadonnées (priorité : spécifiques > calculées > techniques)
+            # 4. Mapper le dataset_name du JSON vers display_name pour la base de données
+            # Le dataset_name du JSON contient le nom d'affichage
+            if 'dataset_name' in specific_metadata:
+                specific_metadata['display_name'] = specific_metadata['dataset_name']
+                # Remplacer dataset_name par l'identifiant technique
+                specific_metadata['dataset_name'] = dataset_name
+            
+            # 5. Merger les métadonnées (priorité : spécifiques > calculées > techniques)
             final_metadata = {**specific_metadata, **technical_data}
             
             logger.info(f"✅ Métadonnées finales générées ({len(final_metadata)} champs)")
@@ -230,7 +237,8 @@ class KaggleMetadataMapperV2:
         computed_data = self._compute_file_based_metadata(file_metadata)
         
         return {
-            'dataset_name': getattr(dataset_config, 'description', dataset_config.name),
+            'dataset_name': dataset_config.name,
+            'display_name': getattr(dataset_config, 'description', dataset_config.name),
             'objective': getattr(dataset_config, 'description', 'Dataset imported from Kaggle'),
             'access': 'public',
             'availability': 'online',

@@ -10,6 +10,7 @@ export interface Dataset {
   id: string;
   // === IDENTIFICATION & INFORMATIONS GÉNÉRALES ===
   dataset_name: string;
+  display_name: string;
   year?: number;
   objective?: string;
   access?: string;

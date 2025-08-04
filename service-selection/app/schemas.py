@@ -8,6 +8,7 @@ import re
 class DatasetBase(BaseModel):
     """Schéma de base pour un Dataset"""
     dataset_name: str = Field(..., description="Nom du dataset")
+    display_name: str = Field(..., description="Nom d'affichage du dataset")
     year: Optional[int] = Field(None, description="Année du dataset")
     objective: Optional[str] = Field(None, description="Objectif du dataset")
     access: Optional[str] = Field(None, description="Type d'accès")

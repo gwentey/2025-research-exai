@@ -3,7 +3,7 @@
   <div class="card-header">
     <div class="header-content">
       <div class="title-row">
-        <h3 class="dataset-title">{{ dataset.dataset_name }}</h3>
+        <h3 class="dataset-title">{{ dataset.display_name }}</h3>
         <div class="badges">
           <span class="access-badge" [ngClass]="isPublic() ? 'public' : 'private'" 
                 [matTooltip]="isPublic() ? 'Dataset public' : 'Dataset privé'">

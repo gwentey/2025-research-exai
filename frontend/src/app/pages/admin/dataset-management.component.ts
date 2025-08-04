@@ -144,7 +144,7 @@ interface DatasetSummary {
                 </th>
                 <td mat-cell *matCellDef="let dataset">
                   <div class="dataset-name-cell">
-                    <strong>{{ dataset.name }}</strong>
+                    <strong>{{ dataset.dataset_name }}</strong>
                     <div class="dataset-meta">
                       <mat-chip-set>
                         <mat-chip 

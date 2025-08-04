@@ -30,6 +30,7 @@ class Dataset(Base):
     
     # === IDENTIFICATION & INFORMATIONS GÉNÉRALES ===
     dataset_name = Column(String(255), nullable=False, index=True)
+    display_name = Column(String(255), nullable=False, index=True)
     year = Column(Integer, nullable=True)
     objective = Column(Text, nullable=True)
     access = Column(String(100), nullable=True)
