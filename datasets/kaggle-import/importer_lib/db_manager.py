@@ -9,6 +9,8 @@ import logging
 from typing import Dict, Any, List
 from pathlib import Path
 import uuid
+import json
+import numpy as np
 
 from sqlalchemy.orm import Session
 from .database import get_db_session
@@ -18,6 +20,23 @@ logger = logging.getLogger(__name__)
 
 class DatabaseManager:
     """Gère la persistance des métadonnées du dataset en base."""
+
+    def _convert_numpy_types(self, obj: Any) -> Any:
+        """Convertit récursivement les types numpy en types Python pour sérialisation JSON."""
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, dict):
+            return {key: self._convert_numpy_types(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_numpy_types(item) for item in obj]
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        else:
+            return obj
 
     def save_dataset_metadata(
         self,
@@ -32,11 +51,15 @@ class DatabaseManager:
         """
         Sauvegarde l'ensemble des métadonnées pour un dataset et ses fichiers.
         """
-        logger.info(f"Sauvegarde du dataset '{dataset_name}' en base de données (UUID: {dataset_uuid})...")
+        logger.info(f"=== DÉBUT SAUVEGARDE DATASET '{dataset_name}' (UUID: {dataset_uuid}) ===")
+        logger.info(f"Config reçue: {dataset_config}")
+        logger.info(f"Metadata Kaggle: {kaggle_metadata}")
+        logger.info(f"Files metadata: {files_metadata}")
         
         with get_db_session() as db:
             try:
                 # 1. Créer l'enregistrement du Dataset
+                logger.info("=== Étape 1: Création de l'enregistrement Dataset ===")
                 dataset_record = self._create_dataset_record(
                     db,
                     dataset_name,
@@ -46,9 +69,12 @@ class DatabaseManager:
                     dataset_uuid,
                     files_metadata
                 )
+                logger.info(f"Dataset record créé avec ID: {dataset_record.id}")
                 
                 # 2. Créer les enregistrements pour chaque fichier et ses colonnes
+                logger.info("=== Étape 2: Création des enregistrements de fichiers ===")
                 for file_meta in files_metadata:
+                    logger.info(f"Création enregistrement pour fichier: {file_meta}")
                     self._create_file_and_columns_records(
                         db,
                         dataset_record.id,
@@ -56,11 +82,16 @@ class DatabaseManager:
                         file_uuid_mapping
                     )
 
+                logger.info("=== Étape 3: Commit de la transaction ===")
                 db.commit()
-                logger.info(f"Dataset '{dataset_name}' sauvegardé avec succès en base de données.")
+                logger.info(f"✅ SUCCESS: Dataset '{dataset_name}' sauvegardé avec succès en base de données.")
 
             except Exception as e:
-                logger.error(f"Erreur lors de la sauvegarde en base de données pour le dataset '{dataset_name}': {e}")
+                logger.error(f"❌ ERREUR lors de la sauvegarde en base de données pour le dataset '{dataset_name}': {e}")
+                logger.error(f"Type d'erreur: {type(e).__name__}")
+                logger.error(f"Détails de l'erreur: {str(e)}")
+                import traceback
+                logger.error(f"Traceback complet: {traceback.format_exc()}")
                 db.rollback()
                 raise
 
@@ -86,18 +117,30 @@ class DatabaseManager:
             'objective': kaggle_metadata.get('description', dataset_config.get('description', '')),
             'storage_uri': f"https://www.kaggle.com/datasets/{dataset_config.get('kaggle_ref', '')}",
             'domain': dataset_config.get('domain', []),
-            'task': dataset_config.get('ml_task', []),
+            'task': dataset_config.get('ml_task', []),  # 'task' est le bon nom de champ
             'storage_path': storage_path,
             'instances_number': total_rows,
             'features_number': total_features,
-            # 'is_public' n'est pas un champ du modèle Dataset
             **self._extract_ethical_guidelines(dataset_config)
         }
-
-        dataset = Dataset(**dataset_data)
-        db.add(dataset)
-        db.flush() # Pour s'assurer que l'ID est disponible pour les relations
-        return dataset
+        
+        logger.info(f"=== DONNÉES POUR CRÉATION DATASET ===")
+        logger.info(f"dataset_data complet: {dataset_data}")
+        
+        try:
+            dataset = Dataset(**dataset_data)
+            logger.info(f"Objet Dataset SQLAlchemy créé avec succès")
+            db.add(dataset)
+            logger.info(f"Dataset ajouté à la session SQLAlchemy")
+            db.flush() # Pour s'assurer que l'ID est disponible pour les relations
+            logger.info(f"Flush réussi, Dataset ID: {dataset.id}")
+            return dataset
+        except Exception as e:
+            logger.error(f"❌ ERREUR lors de la création du Dataset: {e}")
+            logger.error(f"Type d'erreur: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise
 
     def _create_file_and_columns_records(
         self,
@@ -124,9 +167,13 @@ class DatabaseManager:
         db.flush()
 
         for col_info in file_meta.get('column_details', []):
+            # Nettoyer les stats pour la sérialisation JSON
+            clean_col_info = self._convert_numpy_types(col_info)
+            logger.info(f"Création colonne '{clean_col_info['column_name']}' avec stats: {clean_col_info.get('stats', {})}")
+            
             column_record = FileColumn(
                 dataset_file_id=file_record.id,
-                **col_info
+                **clean_col_info
             )
             db.add(column_record)
 
