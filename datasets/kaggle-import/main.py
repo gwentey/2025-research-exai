@@ -32,6 +32,7 @@ try:
     from importer_lib.file_processor import FileProcessor
     from importer_lib.db_manager import DatabaseManager
     from importer_lib.storage import StorageManager
+    from kaggle_metadata_mapper_v2 import KaggleMetadataMapperV2
 except ImportError as e:
     print(f"Erreur d'importation initiale. Tentative d'ajustement des chemins... Error: {e}")
     # Ajustement dynamique si le script n'est pas lancé comme un module
@@ -91,6 +92,7 @@ class MainImporter:
         self.kaggle_api = KaggleAPI()
         self.file_processor = FileProcessor()
         self.db_manager = DatabaseManager()
+        self.metadata_mapper = KaggleMetadataMapperV2()
 
     def _load_yaml_config(self, path: Path) -> Dict[str, Any]:
         """Charge le fichier de configuration YAML."""
@@ -177,18 +179,56 @@ class MainImporter:
                     object_key = f"{storage_path}/{file_uuid}.parquet"
                     self.storage_manager.upload_file(str(parquet_file), object_key)
 
-                # 6. Sauvegarde en base de données
+                # 6. Génération des métadonnées enrichies avec KaggleMetadataMapper
+                kaggle_metadata = self.kaggle_api.get_metadata(config['kaggle_ref'])
+                
+                # Préparer les métadonnées des fichiers pour le mapper
+                aggregated_file_metadata = {
+                    'total_rows': sum(f.get('row_count', 0) for f in files_metadata),
+                    'total_columns': files_metadata[0].get('column_count', 0) if files_metadata else 0,
+                    'has_missing_values': any(f.get('has_missing_values', False) for f in files_metadata),
+                    'files_count': len(files_metadata),
+                    'column_details': []
+                }
+                
+                # Collecter tous les détails de colonnes
+                for file_meta in files_metadata:
+                    aggregated_file_metadata['column_details'].extend(file_meta.get('column_details', []))
+                
+                # Créer un objet config compatible avec KaggleMetadataMapper
+                class DatasetConfig:
+                    def __init__(self, config_dict, dataset_name):
+                        self.domain = config_dict.get('domain', 'general')
+                        self.ml_task = config_dict.get('ml_task', 'classification')
+                        self.description = config_dict.get('description', '')
+                        self.kaggle_ref = config_dict.get('kaggle_ref', '')
+                        self.name = dataset_name
+                
+                dataset_config_obj = DatasetConfig(config, name)
+                
+                # Générer les métadonnées enrichies
+                enriched_metadata = self.metadata_mapper.map_kaggle_to_dataset(
+                    dataset_config_obj,
+                    kaggle_metadata,
+                    aggregated_file_metadata,
+                    storage_path
+                )
+                
+                logger.info(f"✅ Métadonnées enrichies générées avec {len(enriched_metadata)} champs")
+                
+                # 7. Sauvegarde en base de données avec métadonnées enrichies
                 self.db_manager.save_dataset_metadata(
                     name,
                     config,
-                    self.kaggle_api.get_metadata(config['kaggle_ref']),
+                    kaggle_metadata,
                     files_metadata,
                     storage_path,
                     dataset_uuid,
-                    file_uuid_mapping
+                    file_uuid_mapping,
+                    enriched_metadata
                 )
 
-                # 7. Mise à jour du cache
+                # 8. Mise à jour du cache
                 self.cache_manager.update_cache(name, {'status': 'success'})
                 logger.info(f"--- Importation de '{name}' terminée avec succès (UUID: {dataset_uuid}) ---")
 

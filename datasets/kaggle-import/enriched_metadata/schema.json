@@ -1,0 +1,229 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dataset Enriched Metadata Schema",
+  "description": "Schéma de validation pour les métadonnées enrichies des datasets IBIS-X",
+  "type": "object",
+  "required": ["metadata_version", "dataset_info", "enriched_metadata"],
+  "properties": {
+    "metadata_version": {
+      "type": "string",
+      "description": "Version du schéma de métadonnées",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "dataset_info": {
+      "type": "object",
+      "description": "Informations sur le dataset et sa source",
+      "required": ["name", "source"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nom identifiant du dataset (clé dans kaggle_datasets_config.yaml)"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["kaggle", "github", "manual", "external"],
+          "description": "Source du dataset"
+        },
+        "kaggle_ref": {
+          "type": "string",
+          "description": "Référence Kaggle (ex: username/dataset-name)",
+          "pattern": "^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$"
+        },
+        "external_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL externe si source != kaggle"
+        }
+      }
+    },
+    "enriched_metadata": {
+      "type": "object",
+      "description": "Métadonnées enrichies correspondant au modèle Dataset SQLAlchemy",
+      "required": ["dataset_name"],
+      "properties": {
+        "dataset_name": {
+          "type": "string",
+          "maxLength": 255,
+          "description": "Nom du dataset"
+        },
+        "year": {
+          "type": ["integer", "null"],
+          "minimum": 1900,
+          "maximum": 2100,
+          "description": "Année du dataset"
+        },
+        "objective": {
+          "type": ["string", "null"],
+          "description": "Objectif du dataset"
+        },
+        "access": {
+          "type": ["string", "null"],
+          "maxLength": 100,
+          "enum": ["public", "private", "restricted", "academic", null],
+          "description": "Type d'accès"
+        },
+        "availability": {
+          "type": ["string", "null"],
+          "maxLength": 100,
+          "enum": ["online", "offline", "on_request", "archived", null],
+          "description": "Disponibilité"
+        },
+        "num_citations": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Nombre de citations"
+        },
+        "citation_link": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "description": "Lien vers les citations"
+        },
+        "sources": {
+          "type": ["string", "null"],
+          "description": "Sources"
+        },
+        "storage_uri": {
+          "type": ["string", "null"],
+          "maxLength": 500,
+          "format": "uri",
+          "description": "URI de stockage"
+        },
+        "instances_number": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Nombre d'instances"
+        },
+        "features_description": {
+          "type": ["string", "null"],
+          "description": "Description des features"
+        },
+        "features_number": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Nombre de features"
+        },
+        "domain": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "string",
+            "enum": ["education", "healthcare", "finance", "technology", "business", "social", "environment", "sports", "government", "research"]
+          },
+          "description": "Domaines d'application"
+        },
+        "representativity_description": {
+          "type": ["string", "null"],
+          "description": "Description de la représentativité"
+        },
+        "representativity_level": {
+          "type": ["string", "null"],
+          "maxLength": 50,
+          "enum": ["low", "medium", "high", "excellent", null],
+          "description": "Niveau de représentativité"
+        },
+        "sample_balance_description": {
+          "type": ["string", "null"],
+          "description": "Description de l'équilibre des échantillons"
+        },
+        "sample_balance_level": {
+          "type": ["string", "null"],
+          "maxLength": 50,
+          "enum": ["imbalanced", "moderate", "balanced", "excellent", null],
+          "description": "Niveau d'équilibre des échantillons"
+        },
+        "split": {
+          "type": ["boolean", "null"],
+          "description": "Dataset déjà splité"
+        },
+        "missing_values_description": {
+          "type": ["string", "null"],
+          "description": "Description des valeurs manquantes"
+        },
+        "has_missing_values": {
+          "type": ["boolean", "null"],
+          "description": "Contient des valeurs manquantes"
+        },
+        "global_missing_percentage": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Pourcentage global de valeurs manquantes"
+        },
+        "missing_values_handling_method": {
+          "type": ["string", "null"],
+          "maxLength": 100,
+          "enum": ["none", "remove", "impute", "documented", "handled", null],
+          "description": "Méthode de gestion des valeurs manquantes"
+        },
+        "temporal_factors": {
+          "type": ["boolean", "null"],
+          "description": "Facteurs temporels"
+        },
+        "metadata_provided_with_dataset": {
+          "type": ["boolean", "null"],
+          "description": "Métadonnées fournies avec le dataset"
+        },
+        "external_documentation_available": {
+          "type": ["boolean", "null"],
+          "description": "Documentation externe disponible"
+        },
+        "documentation_link": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "description": "Lien vers la documentation"
+        },
+        "task": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "string",
+            "enum": ["classification", "regression", "clustering", "anomaly_detection", "time_series", "nlp", "computer_vision", "recommendation"]
+          },
+          "description": "Tâches ML"
+        },
+        "informed_consent": {
+          "type": ["boolean", "null"],
+          "description": "Consentement éclairé"
+        },
+        "transparency": {
+          "type": ["boolean", "null"],
+          "description": "Transparence"
+        },
+        "user_control": {
+          "type": ["boolean", "null"],
+          "description": "Contrôle utilisateur"
+        },
+        "equity_non_discrimination": {
+          "type": ["boolean", "null"],
+          "description": "Équité et non-discrimination"
+        },
+        "security_measures_in_place": {
+          "type": ["boolean", "null"],
+          "description": "Mesures de sécurité en place"
+        },
+        "data_quality_documented": {
+          "type": ["boolean", "null"],
+          "description": "Qualité des données documentée"
+        },
+        "data_errors_description": {
+          "type": ["string", "null"],
+          "description": "Description des erreurs de données"
+        },
+        "anonymization_applied": {
+          "type": ["boolean", "null"],
+          "description": "Anonymisation appliquée"
+        },
+        "record_keeping_policy_exists": {
+          "type": ["boolean", "null"],
+          "description": "Politique de conservation des enregistrements"
+        },
+        "purpose_limitation_respected": {
+          "type": ["boolean", "null"],
+          "description": "Limitation d'objectif respectée"
+        },
+        "accountability_defined": {
+          "type": ["boolean", "null"],
+          "description": "Responsabilité définie"
+        }
+      }
+    }
+  }
+}

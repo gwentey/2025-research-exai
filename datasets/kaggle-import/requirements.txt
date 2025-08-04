@@ -13,4 +13,5 @@ asyncio-compat>=0.1.2
 
 # Pour le stockage d'objets (déjà dans common/)
 minio>=7.1.0
-azure-storage-blob>=12.0.0 
+azure-storage-blob>=12.0.0
+jsonschema>=4.0.0 

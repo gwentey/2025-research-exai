@@ -46,7 +46,8 @@ class DatabaseManager:
         files_metadata: List[Dict[str, Any]],
         storage_path: str,
         dataset_uuid: str,
-        file_uuid_mapping: Dict[str, str]
+        file_uuid_mapping: Dict[str, str],
+        enriched_metadata: Dict[str, Any] = None
     ) -> None:
         """
         Sauvegarde l'ensemble des métadonnées pour un dataset et ses fichiers.
@@ -67,7 +68,8 @@ class DatabaseManager:
                     kaggle_metadata,
                     storage_path,
                     dataset_uuid,
-                    files_metadata
+                    files_metadata,
+                    enriched_metadata
                 )
                 logger.info(f"Dataset record créé avec ID: {dataset_record.id}")
                 
@@ -103,7 +105,8 @@ class DatabaseManager:
         kaggle_metadata: Dict[str, Any],
         storage_path: str,
         dataset_uuid: str,
-        files_metadata: List[Dict[str, Any]]
+        files_metadata: List[Dict[str, Any]],
+        enriched_metadata: Dict[str, Any] = None
     ) -> Dataset:
         """Crée l'enregistrement principal pour le Dataset."""
         
@@ -111,18 +114,32 @@ class DatabaseManager:
         # Supposons que le nombre de features est le nombre de colonnes du premier fichier
         total_features = files_metadata[0].get('column_count', 0) if files_metadata else 0
 
-        dataset_data = {
-            'id': dataset_uuid,
-            'dataset_name': dataset_name,
-            'objective': kaggle_metadata.get('description', dataset_config.get('description', '')),
-            'storage_uri': f"https://www.kaggle.com/datasets/{dataset_config.get('kaggle_ref', '')}",
-            'domain': dataset_config.get('domain', []),
-            'task': dataset_config.get('ml_task', []),  # 'task' est le bon nom de champ
-            'storage_path': storage_path,
-            'instances_number': total_rows,
-            'features_number': total_features,
-            **self._extract_ethical_guidelines(dataset_config)
-        }
+        if enriched_metadata:
+            # Utiliser les métadonnées enrichies si disponibles
+            logger.info("Utilisation des métadonnées enrichies du KaggleMetadataMapper")
+            dataset_data = enriched_metadata.copy()
+            dataset_data.update({
+                'id': dataset_uuid,
+                'dataset_name': dataset_name,
+                'storage_path': storage_path,
+                'instances_number': total_rows,
+                'features_number': total_features,
+            })
+        else:
+            # Fallback vers l'ancienne méthode si pas de métadonnées enrichies
+            logger.info("Utilisation des métadonnées basiques (fallback)")
+            dataset_data = {
+                'id': dataset_uuid,
+                'dataset_name': dataset_name,
+                'objective': kaggle_metadata.get('description', dataset_config.get('description', '')),
+                'storage_uri': f"https://www.kaggle.com/datasets/{dataset_config.get('kaggle_ref', '')}",
+                'domain': dataset_config.get('domain', []),
+                'task': dataset_config.get('ml_task', []),  # 'task' est le bon nom de champ
+                'storage_path': storage_path,
+                'instances_number': total_rows,
+                'features_number': total_features,
+                **self._extract_ethical_guidelines(dataset_config)
+            }
         
         logger.info(f"=== DONNÉES POUR CRÉATION DATASET ===")
         logger.info(f"dataset_data complet: {dataset_data}")
