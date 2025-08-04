@@ -53,6 +53,8 @@
 ** xref:dev-guide/contributing.adoc[Guide de Contribution]
 
 * Guides de Données
+** xref:dev-guide/enriched-metadata-system.adoc[🆕 💎 Système de Métadonnées Enrichies]
+** xref:dev-guide/batch-dataset-import-system.adoc[🔄 Import de Datasets en Batch - V2]
 ** xref:dev-guide/kaggle-uuid-import-system.adoc[🚀 Système d'Import Kaggle UUID]
 ** xref:dev-guide/kaggle-datasets-setup.adoc[🔧 Configuration Datasets Kaggle]
 ** xref:dev-guide/dataset-management-guide.adoc[Gestion des Datasets]
