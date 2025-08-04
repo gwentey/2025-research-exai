@@ -64,10 +64,22 @@ config:
   validate_after_download: true
   extract_metadata: true
   
-  # Storage settings
+  # Storage settings (UUID architecture)
   upload_to_storage: true
   cleanup_after_upload: true
+  use_uuid_structure: true  # datasets/{uuid_dataset}/{uuid_file}.parquet
+  
+  # Database settings (UUID architecture)
+  create_file_columns: true  # Créer les entrées FileColumn avec métadonnées
+  analyze_column_types: true  # Analyser les types de données
+  detect_pii: true           # Détecter les données personnelles
   
   # Kaggle API settings
   max_retries: 3
-  timeout_seconds: 300 
+  timeout_seconds: 300
+  
+  # MinIO settings for local development
+  minio:
+    endpoint: "http://minio-service.ibis-x.svc.cluster.local:6700"
+    bucket: "ibis-x-datasets"
+    # Credentials are in environment variables 

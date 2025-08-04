@@ -1,0 +1,84 @@
+= Système d'Importation de Datasets Kaggle avec UUID
+
+Ce guide décrit le fonctionnement du système d'importation de datasets de développement depuis Kaggle, qui est maintenant basé sur un pipeline robuste, modulaire et sécurisé utilisant des UUIDs.
+
+== Contexte et Objectifs
+
+L'objectif de la commande `make dev-data` est de fournir un moyen simple et fiable pour les développeurs de peupler leur environnement local (Minikube) avec les datasets de référence du projet, directement depuis Kaggle.
+
+Les objectifs clés de la nouvelle implémentation sont :
+
+* **Stabilité** : La commande doit fonctionner de manière fiable à chaque fois, en gérant correctement la connectivité avec les services (MinIO, PostgreSQL).
+* **Modularité** : Le code Python est maintenant découpé en modules logiques (`config`, `kaggle_api`, `file_processor`, `db_manager`) pour une meilleure maintenabilité.
+* **Sécurité** : Chaque dataset et fichier importé se voit assigner un UUID unique, évitant ainsi les conflits de noms et améliorant la traçabilité.
+* **Contrôle** : Le développeur a la main sur le processus grâce à des options pour forcer la mise à jour et une étape de validation manuelle.
+
+== Comment utiliser `make dev-data`
+
+. **Prérequis** : Assurez-vous que votre environnement de développement est lancé avec `make dev`.
+
+. **Lancer l'importation** : Exécutez simplement la commande suivante dans votre terminal :
++
+[source,bash]
+----
+make dev-data
+----
+
+. **Processus d'importation** : La commande va automatiquement :
+.. Lancer les `port-forwards` nécessaires pour que le script local puisse communiquer avec MinIO et PostgreSQL dans Minikube.
+.. Attendre activement que les services soient prêts.
+.. Lancer le script d'importation Python (`datasets/kaggle-import/main.py`).
+
+== Le Pipeline d'Importation en Détail
+
+Le script `main.py` orchestre les étapes suivantes pour chaque dataset défini dans `kaggle_datasets_config.yaml` :
+
+. **Vérification du Cache** : Le script vérifie d'abord si un cache récent et valide existe pour le dataset. Si c'est le cas, l'import est ignoré pour gagner du temps.
+
+. **Téléchargement & Analyse** :
+.. Les fichiers du dataset sont téléchargés depuis Kaggle.
+.. Les fichiers CSV sont analysés pour en extraire des métadonnées (nombre de lignes, colonnes, etc.).
+
+. **Validation Manuelle** :
+.. Un résumé de l'importation est affiché dans la console.
+.. Le script vous demandera de confirmer avant de procéder. Répondez `oui` ou `yes` pour continuer.
+
+. **Traitement et Stockage** :
+.. Les fichiers CSV sont convertis au format Parquet, plus efficace.
+.. Des UUIDs uniques sont générés pour le dataset et chacun de ses fichiers.
+.. Les fichiers Parquet sont uploadés vers MinIO dans un chemin basé sur l'UUID du dataset (ex: `datasets/<dataset_uuid>/<file_uuid>.parquet`).
+
+. **Sauvegarde en Base de Données** :
+.. Les métadonnées complètes du dataset, des fichiers et des colonnes sont sauvegardées dans la base de données PostgreSQL, en utilisant les UUIDs générés.
+
+. **Mise à jour du Cache** : Un fichier de cache est créé ou mis à jour pour signaler que l'importation a réussi.
+
+== Options Avancées
+
+=== Forcer un Ré-import (`--force-refresh`)
+
+Si vous voulez forcer l'importation d'un dataset même si un cache valide existe (par exemple, pour tester des modifications sur le script), vous pouvez utiliser la variable `ARGS` du Makefile :
+
+[source,bash]
+----
+make dev-data ARGS="--force-refresh"
+----
+
+Pour un seul dataset :
+[source,bash]
+----
+make dev-data ARGS="--dataset social_media_addiction --force-refresh"
+----
+
+Le flag `--force-refresh` ignore la vérification du cache et la validation manuelle.
+
+=== Importer un Seul Dataset
+
+Pour n'importer qu'un seul dataset, utilisez l'argument `--dataset` :
+
+[source,bash]
+----
+make dev-data ARGS="--dataset student_performance"
+----
+
+Le nom du dataset doit correspondre à une des entrées dans `kaggle_datasets_config.yaml`.

@@ -1,0 +1,393 @@
+{
+  "download_date": "2025-08-04T16:51:07.547553",
+  "metadata": {
+    "files": [
+      {
+        "filename": "Student Stress Factors (2).csv",
+        "rows": 520,
+        "columns": 6,
+        "size_mb": 0.006720542907714844,
+        "column_details": [
+          {
+            "column_name": "Kindly Rate your Sleep Quality \ud83d\ude34",
+            "position": 0,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'Kindly Rate your Sleep Quality \ud83d\ude34' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "3",
+              "4",
+              "2"
+            ],
+            "stats": {
+              "mean": 3.125,
+              "median": 3.0,
+              "std": 1.099023037868148,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 2.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 0.9615384615384616
+          },
+          {
+            "column_name": "How many times a week do you suffer headaches \ud83e\udd15?",
+            "position": 1,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'How many times a week do you suffer headaches \ud83e\udd15?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "1",
+              "1",
+              "1"
+            ],
+            "stats": {
+              "mean": 2.1826923076923075,
+              "median": 2.0,
+              "std": 1.2474592527309063,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 1.0,
+              "q75": 3.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 0.9615384615384616
+          },
+          {
+            "column_name": "How would you rate you academic performance \ud83d\udc69\u200d\ud83c\udf93?",
+            "position": 2,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'How would you rate you academic performance \ud83d\udc69\u200d\ud83c\udf93?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "3",
+              "2",
+              "2"
+            ],
+            "stats": {
+              "mean": 3.326923076923077,
+              "median": 3.0,
+              "std": 1.061157869923206,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 3.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 0.9615384615384616
+          },
+          {
+            "column_name": "how would you rate your study load?",
+            "position": 3,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'how would you rate your study load?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "4",
+              "3",
+              "1"
+            ],
+            "stats": {
+              "mean": 2.75,
+              "median": 2.5,
+              "std": 1.3723810230570128,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 2.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 0.9615384615384616
+          },
+          {
+            "column_name": "How many times a week you practice extracurricular activities \ud83c\udfbe?",
+            "position": 4,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'How many times a week you practice extracurricular activities \ud83c\udfbe?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "2",
+              "3",
+              "4"
+            ],
+            "stats": {
+              "mean": 2.6826923076923075,
+              "median": 3.0,
+              "std": 1.4707450504451551,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 1.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 0.9615384615384616
+          },
+          {
+            "column_name": "How would you rate your stress levels?",
+            "position": 5,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'How would you rate your stress levels?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "3",
+              "2",
+              "4"
+            ],
+            "stats": {
+              "mean": 2.875,
+              "median": 3.0,
+              "std": 1.3578253893833145,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 2.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 0.9615384615384616
+          }
+        ],
+        "has_missing_values": false,
+        "missing_percentage": 0.0
+      },
+      {
+        "filename": "Student Stress Factors.csv",
+        "rows": 53,
+        "columns": 7,
+        "size_mb": 0.0019512176513671875,
+        "column_details": [
+          {
+            "column_name": "Timestamp",
+            "position": 0,
+            "data_type_original": "object",
+            "data_type_interpreted": "temporal",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Donn\u00e9e temporelle (date/heure) - Colonne 'Timestamp' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "27/10/2023 21:54:15",
+              "28/10/2023 12:24:40",
+              "28/10/2023 12:24:51"
+            ],
+            "stats": {},
+            "missing_count": 0,
+            "unique_count": 53,
+            "unique_percentage": 100.0
+          },
+          {
+            "column_name": "Kindly Rate your Sleep Quality \ud83d\ude34",
+            "position": 1,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'Kindly Rate your Sleep Quality \ud83d\ude34' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "3",
+              "4",
+              "2"
+            ],
+            "stats": {
+              "mean": 3.150943396226415,
+              "median": 3.0,
+              "std": 1.1992982950794817,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 2.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 9.433962264150944
+          },
+          {
+            "column_name": "How many times a week do you suffer headaches \ud83e\udd15?",
+            "position": 2,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'How many times a week do you suffer headaches \ud83e\udd15?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "1",
+              "1",
+              "1"
+            ],
+            "stats": {
+              "mean": 1.9811320754716981,
+              "median": 1.0,
+              "std": 1.2632462156885247,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 1.0,
+              "q75": 3.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 9.433962264150944
+          },
+          {
+            "column_name": "How would you rate you academic performance \ud83d\udc69\u200d\ud83c\udf93?",
+            "position": 3,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'How would you rate you academic performance \ud83d\udc69\u200d\ud83c\udf93?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "3",
+              "2",
+              "2"
+            ],
+            "stats": {
+              "mean": 3.2264150943396226,
+              "median": 3.0,
+              "std": 1.1542814853665837,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 3.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 9.433962264150944
+          },
+          {
+            "column_name": "how would you rate your study load?",
+            "position": 4,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'how would you rate your study load?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "4",
+              "3",
+              "1"
+            ],
+            "stats": {
+              "mean": 2.811320754716981,
+              "median": 2.0,
+              "std": 1.4285092252681966,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 2.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 9.433962264150944
+          },
+          {
+            "column_name": "How many times a week you practice extracurricular activities \ud83c\udfbe?",
+            "position": 5,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'How many times a week you practice extracurricular activities \ud83c\udfbe?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "2",
+              "3",
+              "4"
+            ],
+            "stats": {
+              "mean": 2.8867924528301887,
+              "median": 3.0,
+              "std": 1.449938690461011,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 2.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 9.433962264150944
+          },
+          {
+            "column_name": "How would you rate your stress levels?",
+            "position": 6,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'How would you rate your stress levels?' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "3",
+              "2",
+              "4"
+            ],
+            "stats": {
+              "mean": 2.792452830188679,
+              "median": 3.0,
+              "std": 1.377825636032783,
+              "min": 1.0,
+              "max": 5.0,
+              "q25": 2.0,
+              "q75": 4.0
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 9.433962264150944
+          }
+        ],
+        "has_missing_values": false,
+        "missing_percentage": 0.0
+      }
+    ],
+    "total_rows": 573,
+    "total_columns": 7,
+    "total_size_mb": 0.008671760559082031,
+    "parquet_files": [
+      "Student Stress Factors (2).parquet",
+      "Student Stress Factors.parquet"
+    ],
+    "kaggle_ref": "samyakb/student-stress-factors",
+    "kaggle_metadata": {
+      "title": ".\\Dataset-Metadata.Json",
+      "subtitle": "",
+      "description": "",
+      "usabilityRating": 0,
+      "lastUpdated": "",
+      "downloadCount": 0,
+      "voteCount": 0,
+      "size": 0,
+      "licenseText": "",
+      "keywords": [],
+      "collaborators": [],
+      "ownerName": "",
+      "ownerRef": ""
+    }
+  }
+}

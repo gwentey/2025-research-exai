@@ -1,0 +1,235 @@
+{
+  "download_date": "2025-08-04T16:51:06.773249",
+  "metadata": {
+    "files": [
+      {
+        "filename": "StudentsPerformance.csv",
+        "rows": 1000,
+        "columns": 8,
+        "size_mb": 0.06869888305664062,
+        "column_details": [
+          {
+            "column_name": "gender",
+            "position": 0,
+            "data_type_original": "object",
+            "data_type_interpreted": "categorical",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Variable cat\u00e9gorielle - Colonne 'gender' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "female",
+              "female",
+              "female"
+            ],
+            "stats": {
+              "most_frequent": "female",
+              "most_frequent_count": 518,
+              "category_count": 2
+            },
+            "missing_count": 0,
+            "unique_count": 2,
+            "unique_percentage": 0.2
+          },
+          {
+            "column_name": "race/ethnicity",
+            "position": 1,
+            "data_type_original": "object",
+            "data_type_interpreted": "categorical",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Variable cat\u00e9gorielle - Colonne 'race/ethnicity' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "group B",
+              "group C",
+              "group B"
+            ],
+            "stats": {
+              "most_frequent": "group C",
+              "most_frequent_count": 319,
+              "category_count": 5
+            },
+            "missing_count": 0,
+            "unique_count": 5,
+            "unique_percentage": 0.5
+          },
+          {
+            "column_name": "parental level of education",
+            "position": 2,
+            "data_type_original": "object",
+            "data_type_interpreted": "categorical",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Variable cat\u00e9gorielle - Colonne 'parental level of education' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "bachelor's degree",
+              "some college",
+              "master's degree"
+            ],
+            "stats": {
+              "most_frequent": "some college",
+              "most_frequent_count": 226,
+              "category_count": 6
+            },
+            "missing_count": 0,
+            "unique_count": 6,
+            "unique_percentage": 0.6
+          },
+          {
+            "column_name": "lunch",
+            "position": 3,
+            "data_type_original": "object",
+            "data_type_interpreted": "categorical",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Variable cat\u00e9gorielle - Colonne 'lunch' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "standard",
+              "standard",
+              "standard"
+            ],
+            "stats": {
+              "most_frequent": "standard",
+              "most_frequent_count": 645,
+              "category_count": 2
+            },
+            "missing_count": 0,
+            "unique_count": 2,
+            "unique_percentage": 0.2
+          },
+          {
+            "column_name": "test preparation course",
+            "position": 4,
+            "data_type_original": "object",
+            "data_type_interpreted": "categorical",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Variable cat\u00e9gorielle - Colonne 'test preparation course' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "none",
+              "completed",
+              "none"
+            ],
+            "stats": {
+              "most_frequent": "none",
+              "most_frequent_count": 642,
+              "category_count": 2
+            },
+            "missing_count": 0,
+            "unique_count": 2,
+            "unique_percentage": 0.2
+          },
+          {
+            "column_name": "math score",
+            "position": 5,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'math score' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "72",
+              "69",
+              "90"
+            ],
+            "stats": {
+              "mean": 66.089,
+              "median": 66.0,
+              "std": 15.16308009600945,
+              "min": 0.0,
+              "max": 100.0,
+              "q25": 57.0,
+              "q75": 77.0
+            },
+            "missing_count": 0,
+            "unique_count": 81,
+            "unique_percentage": 8.1
+          },
+          {
+            "column_name": "reading score",
+            "position": 6,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'reading score' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "72",
+              "90",
+              "95"
+            ],
+            "stats": {
+              "mean": 69.169,
+              "median": 70.0,
+              "std": 14.600191937252216,
+              "min": 17.0,
+              "max": 100.0,
+              "q25": 59.0,
+              "q75": 79.0
+            },
+            "missing_count": 0,
+            "unique_count": 72,
+            "unique_percentage": 7.199999999999999
+          },
+          {
+            "column_name": "writing score",
+            "position": 7,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'writing score' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "74",
+              "88",
+              "93"
+            ],
+            "stats": {
+              "mean": 68.054,
+              "median": 69.0,
+              "std": 15.19565701086965,
+              "min": 10.0,
+              "max": 100.0,
+              "q25": 57.75,
+              "q75": 79.0
+            },
+            "missing_count": 0,
+            "unique_count": 77,
+            "unique_percentage": 7.7
+          }
+        ],
+        "has_missing_values": false,
+        "missing_percentage": 0.0
+      }
+    ],
+    "total_rows": 1000,
+    "total_columns": 8,
+    "total_size_mb": 0.06869888305664062,
+    "parquet_files": [
+      "StudentsPerformance.parquet"
+    ],
+    "kaggle_ref": "spscientist/students-performance-in-exams",
+    "kaggle_metadata": {
+      "title": ".\\Dataset-Metadata.Json",
+      "subtitle": "",
+      "description": "",
+      "usabilityRating": 0,
+      "lastUpdated": "",
+      "downloadCount": 0,
+      "voteCount": 0,
+      "size": 0,
+      "licenseText": "",
+      "keywords": [],
+      "collaborators": [],
+      "ownerName": "",
+      "ownerRef": ""
+    }
+  }
+}

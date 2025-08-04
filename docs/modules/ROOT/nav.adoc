@@ -53,6 +53,8 @@
 ** xref:dev-guide/contributing.adoc[Guide de Contribution]
 
 * Guides de Données
+** xref:dev-guide/kaggle-uuid-import-system.adoc[🚀 Système d'Import Kaggle UUID]
+** xref:dev-guide/kaggle-datasets-setup.adoc[🔧 Configuration Datasets Kaggle]
 ** xref:dev-guide/dataset-management-guide.adoc[Gestion des Datasets]
 ** xref:dev-guide/dataset-manifest-system.adoc[🆕 Système de Manifest des Datasets]
 ** xref:dev-guide/dataset-import-workflow-v2.adoc[🆕 Workflow d'Import Unifié v2]

@@ -1,0 +1,197 @@
+{
+  "download_date": "2025-08-04T16:51:37.305177",
+  "metadata": {
+    "files": [
+      {
+        "filename": "Student_Performance.csv",
+        "rows": 10000,
+        "columns": 6,
+        "size_mb": 0.1669607162475586,
+        "column_details": [
+          {
+            "column_name": "Hours Studied",
+            "position": 0,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'Hours Studied' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "7",
+              "4",
+              "8"
+            ],
+            "stats": {
+              "mean": 4.9929,
+              "median": 5.0,
+              "std": 2.5893087961856156,
+              "min": 1.0,
+              "max": 9.0,
+              "q25": 3.0,
+              "q75": 7.0
+            },
+            "missing_count": 0,
+            "unique_count": 9,
+            "unique_percentage": 0.09
+          },
+          {
+            "column_name": "Previous Scores",
+            "position": 1,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'Previous Scores' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "99",
+              "82",
+              "51"
+            ],
+            "stats": {
+              "mean": 69.4457,
+              "median": 69.0,
+              "std": 17.34315225104711,
+              "min": 40.0,
+              "max": 99.0,
+              "q25": 54.0,
+              "q75": 85.0
+            },
+            "missing_count": 0,
+            "unique_count": 60,
+            "unique_percentage": 0.6
+          },
+          {
+            "column_name": "Extracurricular Activities",
+            "position": 2,
+            "data_type_original": "object",
+            "data_type_interpreted": "categorical",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Variable cat\u00e9gorielle - Colonne 'Extracurricular Activities' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "Yes",
+              "No",
+              "Yes"
+            ],
+            "stats": {
+              "most_frequent": "No",
+              "most_frequent_count": 5052,
+              "category_count": 2
+            },
+            "missing_count": 0,
+            "unique_count": 2,
+            "unique_percentage": 0.02
+          },
+          {
+            "column_name": "Sleep Hours",
+            "position": 3,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'Sleep Hours' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "9",
+              "4",
+              "7"
+            ],
+            "stats": {
+              "mean": 6.5306,
+              "median": 7.0,
+              "std": 1.6958629765177118,
+              "min": 4.0,
+              "max": 9.0,
+              "q25": 5.0,
+              "q75": 8.0
+            },
+            "missing_count": 0,
+            "unique_count": 6,
+            "unique_percentage": 0.06
+          },
+          {
+            "column_name": "Sample Question Papers Practiced",
+            "position": 4,
+            "data_type_original": "int64",
+            "data_type_interpreted": "numerical_integer",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique enti\u00e8re - Colonne 'Sample Question Papers Practiced' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "1",
+              "2",
+              "2"
+            ],
+            "stats": {
+              "mean": 4.5833,
+              "median": 5.0,
+              "std": 2.867347777708144,
+              "min": 0.0,
+              "max": 9.0,
+              "q25": 2.0,
+              "q75": 7.0
+            },
+            "missing_count": 0,
+            "unique_count": 10,
+            "unique_percentage": 0.1
+          },
+          {
+            "column_name": "Performance Index",
+            "position": 5,
+            "data_type_original": "float64",
+            "data_type_interpreted": "numerical_float",
+            "is_nullable": false,
+            "is_primary_key_component": false,
+            "is_pii": false,
+            "description": "Valeur num\u00e9rique d\u00e9cimale - Colonne 'Performance Index' import\u00e9e depuis Kaggle",
+            "example_values": [
+              "91.0",
+              "65.0",
+              "45.0"
+            ],
+            "stats": {
+              "mean": 55.2248,
+              "median": 55.0,
+              "std": 19.212557799463344,
+              "min": 10.0,
+              "max": 100.0,
+              "q25": 40.0,
+              "q75": 71.0
+            },
+            "missing_count": 0,
+            "unique_count": 91,
+            "unique_percentage": 0.91
+          }
+        ],
+        "has_missing_values": false,
+        "missing_percentage": 0.0
+      }
+    ],
+    "total_rows": 10000,
+    "total_columns": 6,
+    "total_size_mb": 0.1669607162475586,
+    "parquet_files": [
+      "Student_Performance.parquet"
+    ],
+    "kaggle_ref": "nikhil7280/student-performance-multiple-linear-regression",
+    "kaggle_metadata": {
+      "title": ".\\Dataset-Metadata.Json",
+      "subtitle": "",
+      "description": "",
+      "usabilityRating": 0,
+      "lastUpdated": "",
+      "downloadCount": 0,
+      "voteCount": 0,
+      "size": 0,
+      "licenseText": "",
+      "keywords": [],
+      "collaborators": [],
+      "ownerName": "",
+      "ownerRef": ""
+    }
+  }
+}

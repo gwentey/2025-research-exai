@@ -1,0 +1,310 @@
+= Configuration des Datasets Kaggle - Architecture UUID
+:description: Guide de configuration et utilisation des vrais datasets Kaggle avec architecture UUID dans IBIS-X
+:keywords: kaggle, datasets, configuration, uuid, credentials, développement
+:page-layout: docs
+
+[.lead]
+Ce guide décrit le nouveau système d'import automatique de datasets depuis Kaggle avec architecture UUID sécurisée pour IBIS-X.
+
+[IMPORTANT]
+====
+**IBIS-X utilise UNIQUEMENT des vrais datasets** provenant de Kaggle. Les fausses données ne sont plus autorisées, même en développement.
+====
+
+== 🆕 Nouveau Système UUID
+
+=== Architecture Sécurisée
+
+* **Stockage MinIO** : `datasets/{uuid_dataset}/{uuid_file}.parquet`
+* **Base PostgreSQL** : UUID automatiques pour toutes les entités
+* **Métadonnées complètes** : Analyse automatique des colonnes avec types, statistiques et détection PII
+* **Traçabilité** : Conservation du nom original + UUID de stockage
+
+=== Commande Simplifiée
+
+[source,bash]
+----
+make dev-data  # Import automatique des 7 datasets Kaggle
+----
+
+== Prérequis
+
+=== 1. Application IBIS-X
+
+L'application doit être lancée avant l'import :
+
+[source,bash]
+----
+make dev  # Lance l'application complète avec MinIO
+----
+
+=== 2. Credentials Kaggle
+
+Pour utiliser l'API Kaggle, vous devez :
+
+. Créer un compte sur https://www.kaggle.com[Kaggle]
+. Aller dans Account → API → Create New API Token  
+. Télécharger le fichier `kaggle.json`
+. Ajouter les credentials dans le fichier `.env` :
+
+[source,bash]
+----
+# Kaggle API (OBLIGATOIRE)
+KAGGLE_USERNAME=votre_username
+KAGGLE_KEY=votre_api_key
+
+# Base de données (configuré automatiquement)
+DATABASE_URL=postgresql://user:password@localhost:5432/ibisxdb
+
+# Stockage d'objets (configuré automatiquement)
+STORAGE_TYPE=minio
+MINIO_ENDPOINT=http://minio-service.ibis-x.svc.cluster.local:6700
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+STORAGE_BUCKET=ibis-x-datasets
+----
+
+== 🚀 Utilisation Rapide
+
+=== Import Automatique Complet
+
+**Commande unique** pour importer tous les datasets avec validation :
+
+[source,bash]
+----
+make dev-data
+----
+
+Cette commande :
+
+* ✅ Vérifie que l'application IBIS-X est accessible
+* ✅ Importe les 7 datasets Kaggle avec structure UUID
+* ✅ Analyse automatiquement les colonnes (types, statistiques, PII)
+* ✅ Stocke dans MinIO avec UUID sécurisés
+* ✅ Valide l'intégrité des données
+
+=== Tests et Diagnostic
+
+[source,bash]
+----
+# Test complet du système UUID
+cd datasets/kaggle-import
+make test-uuid-system
+
+# Test des credentials Kaggle
+make test-auth
+
+# Import d'un dataset spécifique
+make import-dataset DATASET=student_performance
+
+# Validation des datasets importés
+make validate-datasets
+----
+
+=== Commandes Avancées
+
+[source,bash]
+----
+# Forcer le re-téléchargement (ignore cache)
+cd datasets/kaggle-import
+make force-refresh
+
+# Lister les datasets configurés
+make list-datasets
+
+# Afficher l'état des imports
+make status
+----
+
+== 📊 Datasets Configurés
+
+=== 7 Vrais Datasets Kaggle Prêts
+
+**Architecture UUID** : Chaque dataset est stocké avec un UUID unique pour la sécurité.
+
+=== Domaine Éducation (5 datasets)
+
+. **Student Performance** - `spscientist/students-performance-in-exams`
+   - Tâche: Classification, Target: `math_score`
+. **Student Stress** - `samyakb/student-stress-factors`  
+   - Tâche: Regression, Target: `stress_level`
+. **Student Depression** - `adilshamim8/student-depression-dataset`
+   - Tâche: Classification, Target: `depression`
+. **Academic Performance** - `nikhil7280/student-performance-multiple-linear-regression`
+   - Tâche: Regression, Target: `cgpa`
+. **Riiid Answer Prediction** - `c/riiid-test-answer-prediction`
+   - Tâche: Classification, Target: `answered_correctly` (large dataset)
+
+=== Autres Domaines (2 datasets)  
+
+[start=6]
+. **Social Media Addiction** - `adilshamim8/social-media-addiction-vs-relationships`
+   - Domaine: Social Media, Target: `addiction_level`
+. **OULAD Dataset** - `vjcalling/ouladdata`
+   - Domaine: Education, Target: `final_result` (multi-file dataset)
+
+=== Métadonnées Automatiques
+
+Pour chaque dataset importé :
+
+* 📊 **Analyse des colonnes** : Types, statistiques, exemples
+* 🔐 **Détection PII** : Identification automatique des données personnelles  
+* ⚖️ **Critères éthiques** : Templates intelligents par domaine
+* 🗃️ **Structure UUID** : Stockage sécurisé et traçable
+
+== 🛠️ Configuration Avancée
+
+=== Ajout d'un Nouveau Dataset
+
+. **Éditer la configuration** :
++
+[source,bash]
+----
+# Fichier: datasets/kaggle-import/kaggle_datasets_config.yaml
+nouveau_dataset:
+  kaggle_ref: "username/dataset-name"
+  domain: "education"  # Utilisé pour les templates éthiques
+  description: "Description du dataset"
+  ml_task: "classification"  # ou "regression"
+  target_column: "colonne_cible"
+----
+
+. **Importer et tester** :
++
+[source,bash]
+----
+cd datasets/kaggle-import
+make import-dataset DATASET=nouveau_dataset
+----
+
+=== Architecture UUID Détaillée
+
+**Structure MinIO** :
+
+[source]
+----
+ibis-x-datasets/
+├── datasets/
+│   ├── 12345678-1234-1234-1234-123456789abc/  # UUID dataset
+│   │   ├── abcdef12-3456-7890-abcd-ef1234567890.parquet  # UUID fichier 1
+│   │   └── fedcba09-8765-4321-dcba-098765432109.parquet  # UUID fichier 2
+│   └── 87654321-4321-4321-4321-ba0987654321/  # Autre dataset
+----
+
+**Base PostgreSQL** :
+
+* `datasets` : Métadonnées complètes (31+ champs)
+* `dataset_files` : Informations fichiers avec UUID  
+* `file_columns` : Analyse détaillée des colonnes
+
+=== Cache et Performance
+
+* **Cache intelligent** : 7 jours, évite les re-téléchargements
+* **Conversion Parquet** : Compression optimale, gains 10-50x
+* **Analyse parallèle** : Colonnes analysées en simultané
+
+=== Monitoring et Diagnostic
+
+[source,bash]
+----
+# Validation complète des données
+make validate-datasets
+
+# Diagnostic système UUID  
+cd datasets/kaggle-import
+make test-uuid-system
+
+# Logs détaillés avec étapes
+tail -f kaggle_import.log
+
+# État complet des imports
+make status
+----
+
+== 🔧 Dépannage
+
+=== Erreurs Communes
+
+[cols="3,4,3", options="header"]
+|===
+|Erreur |Cause |Solution
+
+|"KAGGLE_USERNAME manquant dans .env"
+|Credentials non configurés
+|Ajoutez vos credentials Kaggle dans `.env`
+
+|Import Kaggle échoué
+|Connexion ou credentials invalides
+|Vérifiez connexion internet et credentials
+
+|Validation échouée
+|Fausses données détectées
+|Nettoyez avec `make clean` puis `make dev-data`
+
+|Application non accessible
+|Services non prêts
+|Vérifiez que `make dev` est terminé
+|===
+
+=== Diagnostic Avancé
+
+[source,bash]
+----
+# Voir les logs du job Kaggle
+kubectl logs -n ibis-x job/kaggle-dataset-import-job
+
+# Relancer manuellement l'import
+kubectl delete job kaggle-dataset-import-job -n ibis-x
+kubectl apply -f k8s/base/jobs/kaggle-dataset-import-job.yaml -n ibis-x
+
+# Vérifier le contenu de MinIO
+kubectl port-forward -n ibis-x service/minio-service 6701:6701
+# Puis allez sur http://localhost:6701 (minioadmin/minioadmin)
+----
+
+== 📝 Notes Importantes
+
+. **Le script `init_datasets.py` est OBSOLÈTE** et ne doit plus être utilisé
+. **Les datasets sont stockés avec des UUIDs** dans MinIO (ex: `1bde81b1-2ac8-4681-aa96-4de9b04e42e8/`)
+. **Le premier démarrage est plus long** mais garantit l'utilisation de vraies données
+. **Les datasets sont mis en cache** pendant 7 jours pour éviter les re-téléchargements
+
+== 🚨 Changements par rapport à l'ancien système
+
+[cols="1,1", options="header"]
+|===
+|Ancien Système |Nouveau Système
+
+|Fausses données générées
+|✅ Vrais datasets Kaggle
+
+|Dossiers nommés (`academic_performance/`)
+|✅ UUIDs (`1bde81b1-2ac8-4681-aa96-4de9b04e42e8/`)
+
+|Démarrage rapide
+|✅ Démarrage plus long mais données réelles
+
+|Script `init_datasets.py`
+|✅ Commande `make dev-data`
+|===
+
+== 💡 Pour les Développeurs
+
+Si vous devez débugger le processus d'import :
+
+[source,bash]
+----
+# Voir les logs du job Kaggle
+kubectl logs -n ibis-x job/kaggle-dataset-import-job
+
+# Relancer manuellement l'import
+kubectl delete job kaggle-dataset-import-job -n ibis-x
+kubectl apply -f k8s/base/jobs/kaggle-dataset-import-job.yaml -n ibis-x
+
+# Vérifier le contenu de MinIO
+kubectl port-forward -n ibis-x service/minio-service 6701:6701
+# Puis allez sur http://localhost:6701 (minioadmin/minioadmin)
+----
+
+[.text-center]
+**🎯 Objectif : 100% de vrais datasets, 0% de fausses données !**

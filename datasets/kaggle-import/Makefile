@@ -6,14 +6,15 @@ help:
 	@echo "================================="
 	@echo ""
 	@echo "Commandes disponibles :"
-	@echo "  install      - Installer les dépendances"
-	@echo "  test-auth    - Tester l'authentification Kaggle"
-	@echo "  import-all   - Importer tous les datasets"
-	@echo "  import-small - Importer seulement les petits datasets"
+	@echo "  install           - Installer les dépendances"
+	@echo "  test-auth         - Tester l'authentification Kaggle"
+	@echo "  test-uuid-system  - Test complet du système UUID"
+	@echo "  import-all        - Importer tous les datasets"
+	@echo "  import-small      - Importer seulement les petits datasets"
 	@echo "  import-dataset DATASET=nom - Importer un dataset spécifique"
-	@echo "  force-refresh - Forcer le re-téléchargement (ignore cache)"
-	@echo "  status       - Afficher l'état des imports"
-	@echo "  clean        - Nettoyer les fichiers temporaires"
+	@echo "  force-refresh     - Forcer le re-téléchargement (ignore cache)"
+	@echo "  status            - Afficher l'état des imports"
+	@echo "  clean             - Nettoyer les fichiers temporaires"
 	@echo ""
 	@echo "Configuration requise :"
 	@echo "  - Kaggle API credentials dans ~/.kaggle/kaggle.json"
@@ -98,6 +99,11 @@ check-config:
 list-datasets:
 	@echo "📋 Datasets configurés :"
 	@python -c "import yaml; config=yaml.safe_load(open('kaggle_datasets_config.yaml')); [print(f'  - {name:25} ({info[\"domain\"]:15}) {info[\"kaggle_ref\"]}') for name, info in config['datasets'].items()]"
+
+# Test complet du système UUID
+test-uuid-system:
+	@echo "🧪 Test complet du système d'import UUID..."
+	@python test_import_uuid.py
 
 # Test de connexion aux services
 test-services:
