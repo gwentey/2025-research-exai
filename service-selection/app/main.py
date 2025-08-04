@@ -644,6 +644,7 @@ def get_dataset(dataset_id: str, db: Session = Depends(database.get_db)):
     for file in files:
         files_metadata.append(schemas.DatasetFileMetadata(
             file_name_in_storage=file.file_name_in_storage,
+            original_filename=file.original_filename or file.file_name_in_storage,
             format=file.format,
             size_bytes=file.size_bytes or 0,
             row_count=file.row_count or 0,
@@ -1443,6 +1444,7 @@ def generate_files_metadata(dataset: models.Dataset, db: Session = None) -> List
         # Créer les métadonnées du fichier
         file_metadata = schemas.DatasetFileMetadata(
             file_name_in_storage=dataset_file.file_name_in_storage,
+            original_filename=dataset_file.original_filename or dataset_file.file_name_in_storage,
             format=dataset_file.format or "unknown",
             size_bytes=dataset_file.size_bytes or 0,
             row_count=dataset_file.row_count or 0,
@@ -1530,6 +1532,7 @@ def generate_fallback_files_metadata(dataset: models.Dataset) -> List[schemas.Da
         
         files.append(schemas.DatasetFileMetadata(
             file_name_in_storage=filename,
+            original_filename=filename,
             format="csv",
             size_bytes=file_size,
             row_count=file_instances,

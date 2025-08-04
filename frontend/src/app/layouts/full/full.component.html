@@ -12,7 +12,7 @@
   <!-- ============================================================== -->
   <!-- Vertical Sidebar -->
   <!-- ============================================================== -->
-  @if (!options.horizontal) {
+  @if (!options.horizontal && !resView) {
   <mat-sidenav
     #leftsidenav
     [mode]="isOver ? 'over' : 'side'"
@@ -22,16 +22,17 @@
     (openedChange)="onSidenavOpenedChange($event)"
     (closedStart)="onSidenavClosedStart()"
     class="sidebarNav"
+    position="start"
   >
     <div class="flex-layout">
       <app-sidebar
-        (toggleMobileNav)="sidenav.toggle()"
+        (toggleMobileNav)="toggleActiveSidenav()"
         [showToggle]="isOver"
       ></app-sidebar>
       <ng-scrollbar class="position-relative" style="height: 100%">
         <mat-nav-list class="sidebar-list">
           @for(item of navItems; track item) {
-          <app-nav-item [item]="item" (notify)="sidenav.toggle()">
+          <app-nav-item [item]="item" (notify)="toggleActiveSidenav()">
           </app-nav-item>
           }
         </mat-nav-list>
@@ -71,18 +72,19 @@
   <!-- ============================================================== -->
   @if (resView) {
   <mat-sidenav
-    #leftsidenav
+    #mobilesidenav
     [mode]="'over'"
     [opened]="options.sidenavOpened && !isTablet"
     (openedChange)="onSidenavOpenedChange($event)"
     (closedStart)="onSidenavClosedStart()"
     class="sidebarNav"
+    position="start"
   >
-    <app-sidebar (toggleMobileNav)="sidenav.toggle()" [showToggle]="isOver"> </app-sidebar>
+    <app-sidebar (toggleMobileNav)="toggleActiveSidenav()" [showToggle]="isOver"> </app-sidebar>
     <ng-scrollbar class="position-relative" style="height: 100%">
       <mat-nav-list class="sidebar-list">
         @for(item of navItems; track item) {
-        <app-nav-item [item]="item" (notify)="sidenav.toggle()"> </app-nav-item>
+        <app-nav-item [item]="item" (notify)="toggleActiveSidenav()"> </app-nav-item>
         }
       </mat-nav-list>
     </ng-scrollbar>
@@ -147,7 +149,7 @@
         <app-header
           [showToggle]="!isOver"
           (toggleCollapsed)="toggleCollapsed()"
-          (toggleMobileNav)="sidenav.toggle()"
+          (toggleMobileNav)="toggleActiveSidenav()"
           (toggleMobileFilterNav)="filterNavRight.toggle()"
           (optionsChange)="receiveOptions($event)"
         ></app-header>

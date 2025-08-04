@@ -79,6 +79,9 @@ export class FullComponent implements OnInit {
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
+  
+  @ViewChild('mobilesidenav')
+  public mobilesidenav: MatSidenav;
   resView = false;
   @ViewChild('content', { static: true }) content!: MatSidenavContent;
   //get options from service
@@ -365,6 +368,15 @@ export class FullComponent implements OnInit {
     
     this.toggleDarkTheme(options);
     this.toggleColorsTheme(options);
+  }
+
+  toggleActiveSidenav(): void {
+    // Toggle the appropriate sidenav based on the current view mode
+    if (this.resView && this.mobilesidenav) {
+      this.mobilesidenav.toggle();
+    } else if (this.sidenav) {
+      this.sidenav.toggle();
+    }
   }
 
   toggleDarkTheme(options: AppSettings) {
