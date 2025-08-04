@@ -1,0 +1,22 @@
+controller:
+  replicaCount: 2
+  nodeSelector:
+    kubernetes.io/os: linux
+  service:
+    type: LoadBalancer
+    loadBalancerIP: "52.226.32.96"
+    annotations:
+      # FORCE L'IP STATIQUE - Configuration par deploy-to-azure.sh
+      service.beta.kubernetes.io/azure-load-balancer-static-ip: "52.226.32.96"
+      service.beta.kubernetes.io/azure-load-balancer-resource-group: "MC_ibis-x-prod-rg_ibis-x-prod-aks_eastus"
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: /healthz
+      # EMPÊCHER Azure d'utiliser une IP dynamique
+      service.beta.kubernetes.io/azure-load-balancer-mode: "shared"
+  admissionWebhooks:
+    patch:
+      nodeSelector:
+        kubernetes.io/os: linux
+
+defaultBackend:
+  nodeSelector:
+    kubernetes.io/os: linux

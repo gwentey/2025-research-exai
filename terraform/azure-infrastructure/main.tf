@@ -138,7 +138,7 @@ resource "azurerm_kubernetes_cluster" "ibis-x_aks" {
 
   default_node_pool {
     name       = "default"
-    node_count = 2
+    node_count = 3
     vm_size    = "Standard_D2s_v3"
     
     # Configuration du stockage

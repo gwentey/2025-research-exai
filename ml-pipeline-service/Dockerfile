@@ -12,7 +12,9 @@ COPY ml-pipeline-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code
-COPY ml-pipeline-service/ .
+COPY ml-pipeline-service/app ./app
+COPY ml-pipeline-service/alembic ./alembic
+COPY ml-pipeline-service/alembic.ini ./
 COPY common/ ./common/
 
 # Expose the port the app runs on

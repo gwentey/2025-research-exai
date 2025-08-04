@@ -9,9 +9,31 @@ import os
 from pathlib import Path
 
 # --- Chemins du projet ---
-# Racine du projet (remonte de datasets/kaggle-import/importer_lib)
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.absolute()
-KAGGLE_IMPORT_DIR = PROJECT_ROOT / "datasets" / "kaggle-import"
+# 🛡️ DÉTECTION AUTOMATIQUE DE L'ENVIRONNEMENT (Local vs Container)
+def detect_environment_and_paths():
+    """
+    Détecte automatiquement l'environnement et retourne les chemins appropriés.
+    - Local: Structure normale du projet
+    - Container: Chemins ajustés pour /app/kaggle-import/
+    """
+    current_file = Path(__file__).absolute()
+    
+    # Détection container : si on est dans /app/kaggle-import/
+    if "/app/kaggle-import" in str(current_file):
+        # ENVIRONNEMENT CONTAINER
+        kaggle_import_dir = Path("/app/kaggle-import")
+        project_root = Path("/app")
+        print(f"🐳 DÉTECTÉ: Environnement Container - Base: {kaggle_import_dir}")
+    else:
+        # ENVIRONNEMENT LOCAL (structure normale)
+        project_root = current_file.parent.parent.parent.parent.absolute()
+        kaggle_import_dir = project_root / "datasets" / "kaggle-import"
+        print(f"💻 DÉTECTÉ: Environnement Local - Base: {kaggle_import_dir}")
+    
+    return project_root, kaggle_import_dir
+
+# Initialisation automatique des chemins
+PROJECT_ROOT, KAGGLE_IMPORT_DIR = detect_environment_and_paths()
 CONFIG_FILE = KAGGLE_IMPORT_DIR / "kaggle_datasets_config.yaml"
 CACHE_DIR = KAGGLE_IMPORT_DIR / "cache"
 LOG_FILE = KAGGLE_IMPORT_DIR / "kaggle_import.log"

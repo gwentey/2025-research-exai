@@ -94,8 +94,25 @@ class KaggleAPI:
             logger.info(f"{len(downloaded_files)} fichier(s) CSV téléchargé(s) pour '{kaggle_ref}'.")
             return downloaded_files
         except Exception as e:
-            logger.error(f"Erreur lors du téléchargement de '{kaggle_ref}': {e}")
-            raise
+            error_msg = str(e).lower()
+            
+            # Gestion spécifique des erreurs 403 pour les datasets de compétition
+            if "403" in error_msg or "forbidden" in error_msg:
+                if kaggle_ref.startswith("c/"):
+                    logger.warning(f"⚠️  DATASET DE COMPÉTITION NON ACCESSIBLE : '{kaggle_ref}'")
+                    logger.warning("   → Ce dataset de compétition Kaggle n'est plus accessible via l'API")
+                    logger.warning("   → Raison possible : compétition terminée, accès restreint, ou permissions insuffisantes")
+                    logger.warning("   → SOLUTION : Remplacer par un dataset public équivalent ou contacter l'administrateur Kaggle")
+                else:
+                    logger.warning(f"⚠️  ACCÈS REFUSÉ : '{kaggle_ref}' - Vérifiez vos permissions Kaggle")
+                
+                # Retourner une liste vide au lieu de faire échouer le processus
+                logger.info(f"🔄 CONTINUE : Passer au dataset suivant...")
+                return []
+            else:
+                # Pour les autres erreurs, continuer à les propager
+                logger.error(f"❌ Erreur lors du téléchargement de '{kaggle_ref}': {e}")
+                raise
 
     def _extract_relevant_metadata(self, dataset_info: object) -> Dict[str, Any]:
         """Extrait les métadonnées utiles de l'objet retourné par l'API Kaggle."""

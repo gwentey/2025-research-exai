@@ -30,11 +30,14 @@ datasets:
     
   riiid_answer_prediction:
     kaggle_ref: "c/riiid-test-answer-prediction"
-    domain: "education"
+    domain: "education" 
     description: "Large-scale educational data for answer prediction (EdNet)"
     ml_task: "classification"
     target_column: "answered_correctly"
     large_dataset: true  # Indicate this is a large dataset
+    competition_dataset: true  # Competition dataset - may have access restrictions
+    alternative_ref: "pratyushrathore/ednet-dataset"  # Public alternative if competition data unavailable
+    status: "competition_restricted"  # Indicates potential API access issues
     
   oulad_dataset:
     kaggle_ref: "vjcalling/ouladdata"
@@ -43,6 +46,10 @@ datasets:
     ml_task: "classification"
     target_column: "final_result"
     multi_file: true  # Indicate this has multiple CSV files
+    large_dataset: true  # Enable memory optimization
+    chunk_size: 2000  # Smaller chunks for memory optimization (default: 10000)
+    memory_optimized: true  # Use memory-efficient processing
+    process_files_sequentially: true  # Process one file at a time to reduce memory usage
     
   academic_performance:
     kaggle_ref: "nikhil7280/student-performance-multiple-linear-regression"
@@ -58,7 +65,14 @@ config:
   
   # Processing settings
   convert_to_parquet: true
-  chunk_size: 10000  # For large datasets
+  chunk_size: 10000  # For large datasets (can be overridden per dataset)
+  
+  # Memory optimization settings
+  memory_management:
+    enable_gc_between_chunks: true  # Force garbage collection between chunks
+    max_memory_usage_mb: 6000      # Maximum memory usage in MB before optimization
+    pandas_low_memory: true        # Use low_memory option for pandas.read_csv
+    disable_categorical_inference: true  # Disable automatic categorical detection for speed
   
   # Validation settings
   validate_after_download: true

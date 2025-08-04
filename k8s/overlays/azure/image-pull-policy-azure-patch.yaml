@@ -1,0 +1,67 @@
+# Patch pour forcer l'imagePullPolicy en mode production Azure
+# Assure que les pods téléchargent toujours les nouvelles images depuis ACR
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: api-gateway
+        imagePullPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-selection
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: service-selection
+        imagePullPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: frontend
+        imagePullPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-pipeline
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: ml-pipeline
+        imagePullPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-pipeline-celery-worker
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: celery-worker
+        imagePullPolicy: Always

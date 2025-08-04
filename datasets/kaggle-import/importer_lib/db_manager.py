@@ -14,7 +14,27 @@ import numpy as np
 
 from sqlalchemy.orm import Session
 from .database import get_db_session
-from models import Dataset, DatasetFile, FileColumn
+
+# Import des modèles avec gestion automatique de l'environnement (local vs container)
+try:
+    # Essai import direct (fonctionnement local)
+    from models import Dataset, DatasetFile, FileColumn
+except ModuleNotFoundError:
+    # Import depuis le container service-selection
+    import sys
+    import os
+    
+    # Dans le container: /app/kaggle-import/importer_lib/db_manager.py
+    # Les modèles sont dans: /app/models/
+    # Donc on doit remonter de /app/kaggle-import/importer_lib/ vers /app/
+    current_file = os.path.abspath(__file__)
+    kaggle_import_dir = os.path.dirname(os.path.dirname(current_file))  # /app/kaggle-import/
+    app_root = os.path.dirname(kaggle_import_dir)  # /app/
+    
+    print(f"🔧 DEBUG PYTHONPATH: Ajout de {app_root} au PYTHONPATH")
+    sys.path.insert(0, app_root)
+    
+    from models import Dataset, DatasetFile, FileColumn
 
 logger = logging.getLogger(__name__)
 

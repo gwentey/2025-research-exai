@@ -1,0 +1,36 @@
+# Patch pour augmenter les ressources du job Kaggle en production Azure
+# Nécessaire pour traiter les gros datasets comme ouladdata (multi-fichiers)
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kaggle-dataset-import-job
+  namespace: ibis-x
+spec:
+  template:
+    spec:
+      containers:
+      - name: kaggle-importer
+        # Ressources augmentées pour production - gros datasets
+        resources:
+          requests:
+            memory: "1Gi"      # Augmenté de 512Mi à 1Gi
+            cpu: "500m"        # Augmenté de 250m à 500m
+          limits:
+            memory: "8Gi"      # Augmenté de 2Gi à 8Gi (critique pour ouladdata)
+            cpu: "2000m"       # Augmenté de 1000m à 2000m
+        
+        # Variables spécifiques pour optimiser la mémoire des gros datasets
+        env:
+        - name: PANDAS_MAX_MEMORY_USAGE
+          value: "6000000000"  # 6GB en bytes pour pandas
+        - name: CHUNK_SIZE_LARGE_DATASETS
+          value: "5000"        # Taille de chunk réduite pour gros datasets
+        - name: MEMORY_OPTIMIZED_MODE
+          value: "true"        # Active le mode optimisé mémoire
+      
+      # Volumes - espace temporaire augmenté
+      volumes:
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: "15Gi"    # Augmenté de 5Gi à 15Gi pour gros datasets

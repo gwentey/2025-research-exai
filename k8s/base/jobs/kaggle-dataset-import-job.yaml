@@ -21,9 +21,9 @@ spec:
         image: service-selection:latest
         imagePullPolicy: IfNotPresent
         
-        # Commande pour exécuter l'importeur Kaggle
+        # Commande pour exécuter l'importeur Kaggle (nouveau système)
         command: ["python"]
-        args: ["/app/kaggle-import/kaggle_importer.py", "--config", "/app/kaggle-import/kaggle_datasets_config.yaml"]
+        args: ["kaggle-import/main.py", "--force-refresh"]
         
         # Variables d'environnement
         env:

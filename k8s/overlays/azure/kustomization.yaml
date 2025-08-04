@@ -17,8 +17,8 @@ images:
     newName: ibisxprodacr6630.azurecr.io/service-selection
   - name: frontend
     newName: ibisxprodacr6630.azurecr.io/frontend
-  - name: ml-pipeline
-    newName: ibisxprodacr6630.azurecr.io/ml-pipeline
+  - name: ibis-x-ml-pipeline
+    newName: ibisxprodacr6630.azurecr.io/ibis-x-ml-pipeline
 
 # Patches pour les configurations spécifiques à Azure
 patches:
@@ -32,6 +32,13 @@ patches:
     target:
       kind: Deployment
       name: service-selection
+  # CORRECTION PRODUCTION : Force ImagePullPolicy Always pour télécharger depuis ACR
+  - path: image-pull-policy-azure-patch.yaml
+  # PERFORMANCE : Ressources augmentées pour job Kaggle (gros datasets comme ouladdata)
+  - path: kaggle-import-job-resources-patch.yaml
+    target:
+      kind: Job
+      name: kaggle-dataset-import-job
 
 # Tags pour toutes les images (sera remplacé dynamiquement)
 commonLabels:

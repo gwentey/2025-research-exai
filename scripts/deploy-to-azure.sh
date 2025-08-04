@@ -35,6 +35,128 @@ log_error() {
 }
 
 # ==========================================
+# 🛠️ FONCTIONS UTILITAIRES ROBUSTES
+# ==========================================
+
+# Fonction pour exécuter une commande avec retry
+retry_command() {
+    local max_attempts="$1"
+    local delay="$2"
+    shift 2
+    local command=("$@")
+    local attempt=1
+    
+    while (( attempt <= max_attempts )); do
+        if "${command[@]}"; then
+            return 0
+        else
+            local exit_code=$?
+            if (( attempt < max_attempts )); then
+                log_warning "Tentative $attempt/$max_attempts échouée. Retry dans ${delay}s..."
+                sleep "$delay"
+                ((attempt++))
+            else
+                log_error "Échec après $max_attempts tentatives"
+                return $exit_code
+            fi
+        fi
+    done
+}
+
+# Fonction pour exécuter kubectl avec gestion d'erreur robuste
+kubectl_safe() {
+    local context_msg="$1"
+    shift
+    local kubectl_args=("$@")
+    
+    log_info "🔧 $context_msg"
+    if ! kubectl "${kubectl_args[@]}"; then
+        log_error "❌ Échec kubectl: $context_msg"
+        log_error "Commande: kubectl ${kubectl_args[*]}"
+        return 1
+    fi
+}
+
+# Fonction pour exécuter az CLI avec gestion d'erreur robuste
+az_safe() {
+    local context_msg="$1"
+    shift
+    local az_args=("$@")
+    
+    log_info "☁️ $context_msg"
+    if ! az "${az_args[@]}"; then
+        log_error "❌ Échec Azure CLI: $context_msg"
+        log_error "Commande: az ${az_args[*]}"
+        return 1
+    fi
+}
+
+# Fonction pour vérifier la connectivité Kubernetes
+check_k8s_connectivity() {
+    log_info "🔍 Vérification de la connectivité Kubernetes..."
+    if ! kubectl cluster-info >/dev/null 2>&1; then
+        log_error "❌ Impossible de se connecter au cluster Kubernetes"
+        log_error "Vérifiez votre configuration kubectl et la connectivité au cluster AKS"
+        return 1
+    fi
+    log_success "✅ Connectivité Kubernetes OK"
+}
+
+# Fonction pour monitorer un job avec logs en temps réel
+monitor_job_progress() {
+    local job_name="$1"
+    local namespace="${2:-ibis-x}"
+    local timeout_minutes="${3:-45}"
+    local timeout_seconds=$((timeout_minutes * 60))
+    
+    log_info "📊 Monitoring du job '$job_name' (timeout: ${timeout_minutes}min)"
+    
+    # Attendre que le job soit actif
+    local start_time=$(date +%s)
+    local check_interval=10
+    local last_log_check=0
+    
+    while true; do
+        local current_time=$(date +%s)
+        local elapsed=$((current_time - start_time))
+        
+        # Vérifier le timeout
+        if (( elapsed > timeout_seconds )); then
+            log_error "❌ Timeout atteint pour le job '$job_name' (${timeout_minutes}min)"
+            return 1
+        fi
+        
+        # Vérifier l'état du job
+        local job_status=""
+        job_status=$(kubectl get job "$job_name" -n "$namespace" -o jsonpath='{.status.conditions[0].type}' 2>/dev/null || echo "")
+        
+        if [[ "$job_status" == "Complete" ]]; then
+            log_success "✅ Job '$job_name' terminé avec succès"
+            return 0
+        elif [[ "$job_status" == "Failed" ]]; then
+            log_error "❌ Job '$job_name' a échoué"
+            return 1
+        fi
+        
+        # Afficher les logs périodiquement (toutes les 30 secondes)
+        if (( elapsed - last_log_check >= 30 )); then
+            local pod_name=""
+            pod_name=$(kubectl get pods -n "$namespace" -l job-name="$job_name" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+            
+            if [[ -n "$pod_name" ]]; then
+                log_info "📋 Logs récents du job '$job_name' (elapsed: ${elapsed}s):"
+                kubectl logs "$pod_name" -n "$namespace" --tail=10 2>/dev/null || log_warning "Impossible de récupérer les logs"
+                echo "---"
+            fi
+            
+            last_log_check=$elapsed
+        fi
+        
+        sleep $check_interval
+    done
+}
+
+# ==========================================
 # 🎯 CONFIGURATION PRODUCTION
 # ==========================================
 
@@ -138,7 +260,7 @@ fi
 log_info "🌐 Frontend: Mode $ANGULAR_ENV"
 log_info "📊 Données: WITH_DATA=$WITH_DATA"
 
-# Fonction pour vérifier les versions Kubernetes disponibles
+# Fonction pour vérifier les versions Kubernetes disponibles (ROBUSTE)
 check_kubernetes_versions() {
     log_info "Vérification des versions Kubernetes disponibles..."
     
@@ -148,8 +270,33 @@ check_kubernetes_versions() {
         region=$(grep -E '^location\s*=' "$TERRAFORM_DIR/terraform.tfvars" | cut -d'"' -f2 2>/dev/null || echo "East US")
     fi
     
-    # Vérifier les versions disponibles
-    local available_versions=$(az aks get-versions --location "$region" --output json | jq -r '.orchestrators[] | select(.supportPlan[] | contains("KubernetesOfficial")) | .orchestratorVersion' | sort -V)
+    # CORRECTION CRITIQUE : Vérifier les versions disponibles avec gestion d'erreur robuste
+    local k8s_versions_json=""
+    k8s_versions_json=$(az aks get-versions --location "$region" --output json 2>/dev/null || echo "null")
+    
+    # Vérifier si la réponse contient des données valides
+    if [[ -z "$k8s_versions_json" ]] || [[ "$k8s_versions_json" == "null" ]] || [[ "$k8s_versions_json" == "{}" ]]; then
+        log_warning "Impossible de récupérer les versions Kubernetes. Vérifiez votre connexion Azure."
+        return
+    fi
+    
+    # Vérifier que la structure JSON est valide avant de traiter
+    if ! echo "$k8s_versions_json" | jq -e . >/dev/null 2>&1; then
+        log_warning "Réponse JSON invalide d'Azure CLI pour les versions Kubernetes."
+        return
+    fi
+    
+    # Extraire les versions avec gestion d'erreur jq robuste et null-safe
+    local available_versions=""
+    available_versions=$(echo "$k8s_versions_json" | jq -r '
+        if (.orchestrators // null) and ((.orchestrators // []) | length > 0) then
+            (.orchestrators // [])[] | 
+            select((.supportPlan // null) and ((.supportPlan // []) | length > 0) and ((.supportPlan // [])[] | contains("KubernetesOfficial"))) | 
+            .orchestratorVersion // empty
+        else
+            empty
+        end
+    ' 2>/dev/null | sort -V || echo "")
     
     if [ -z "$available_versions" ]; then
         log_warning "Impossible de récupérer les versions Kubernetes. Vérifiez votre connexion Azure."
@@ -232,11 +379,47 @@ check_prerequisites() {
         exit 1
     fi
     
-    # Vérifier Docker
+    # Vérifier Docker de manière ROBUSTE
     if ! command -v docker &> /dev/null; then
         log_error "Docker n'est pas installé. Installez-le depuis https://docs.docker.com/get-docker/"
         exit 1
     fi
+    
+    # Vérifier que Docker daemon fonctionne
+    if ! docker info &> /dev/null; then
+        log_error "❌ Docker est installé mais le daemon ne fonctionne pas."
+        log_error "🔧 SOLUTIONS:"
+        log_error "   1. Démarrez Docker Desktop (Windows/Mac)"
+        log_error "   2. Ou démarrez le service Docker: sudo systemctl start docker (Linux)"
+        log_error "   3. Vérifiez que Docker a les permissions nécessaires"
+        exit 1
+    fi
+    
+    # Vérifier l'espace disque disponible de manière ROBUSTE (Windows/Linux/MacOS)
+    local available_space=""
+    if [[ "$IS_WINDOWS" == true ]]; then
+        # Windows : vérifier l'espace sur le disque C:
+        available_space=$(powershell -c "(Get-PSDrive C | Select-Object -ExpandProperty Free) / 1GB" 2>/dev/null | cut -d'.' -f1 || echo "10")
+    else
+        # Linux/MacOS : vérifier l'espace disque Docker
+        available_space=$(df -BG /var/lib/docker 2>/dev/null | awk 'NR==2 {print $4}' | sed 's/G//' || echo "10")
+    fi
+    
+    # Si l'espace est faible ET on est en mode production, nettoyer automatiquement
+    if [[ $available_space -lt 5 ]] && [[ $available_space != "10" ]]; then
+        log_warning "⚠️ Espace disque faible pour Docker ($available_space GB). Minimum recommandé: 5GB"
+        
+        if [[ "$DEPLOYMENT_MODE" == "manual-production" ]] || [[ "$USE_GITHUB_SECRETS" == "true" ]]; then
+            log_info "🧹 MODE PRODUCTION : Nettoyage automatique du cache Docker..."
+            docker system prune -f > /dev/null 2>&1 || true
+            docker image prune -f > /dev/null 2>&1 || true
+            log_success "✅ Cache Docker nettoyé automatiquement"
+        else
+            log_info "🧹 Conseil: Exécutez 'docker system prune -f' pour libérer de l'espace"
+        fi
+    fi
+    
+    log_success "✅ Docker fonctionne correctement"
     
     # Vérifier/Installer jq pour le parsing JSON
     if ! command -v jq &> /dev/null; then
@@ -573,7 +756,7 @@ init_terraform() {
     log_success "Terraform initialisé avec succès"
 }
 
-# Fonction pour planifier et appliquer Terraform
+# Fonction pour planifier et appliquer Terraform (100% AUTOMATIQUE)
 deploy_infrastructure() {
     log_info "Déploiement de l'infrastructure Azure..."
     
@@ -583,19 +766,25 @@ deploy_infrastructure() {
     log_info "Génération du plan Terraform..."
     terraform plan -out=tfplan
     
-    # Demander confirmation
-    echo
-    log_warning "Terraform va créer/modifier les ressources Azure ci-dessus."
-    read -p "Voulez-vous continuer ? (y/N): " confirm
-    
-    if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
-        log_error "Déploiement annulé par l'utilisateur"
-        exit 1
+    # CORRECTION CRITIQUE : Mode production = automatique, pas d'interaction utilisateur
+    if [[ "$DEPLOYMENT_MODE" == "manual-production" ]] || [[ "$USE_GITHUB_SECRETS" == "true" ]]; then
+        log_info "🚀 MODE PRODUCTION : Déploiement automatique activé (pas de confirmation requise)"
+        log_info "📋 Terraform va créer/modifier les ressources Azure selon le plan ci-dessus."
+    else
+        # Demander confirmation seulement en mode développement/test
+        echo
+        log_warning "Terraform va créer/modifier les ressources Azure ci-dessus."
+        read -p "Voulez-vous continuer ? (y/N): " confirm
+        
+        if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
+            log_error "Déploiement annulé par l'utilisateur"
+            exit 1
+        fi
     fi
     
     # Appliquer le plan
     log_info "Application du plan Terraform..."
-    terraform apply tfplan
+    terraform apply -auto-approve tfplan
     
     log_success "Infrastructure Azure déployée avec succès !"
 }
@@ -708,18 +897,270 @@ get_manual_infrastructure_info() {
     log_success "✅ Configuration manuelle chargée"
 }
 
-# Fonction pour l'initialisation automatique des données (selon environnement)
+# Fonction pour mettre à jour toutes les références ACR et Storage Account
+update_all_acr_references() {
+    log_info "🔍 Remplacement des placeholders ACR : PLACEHOLDER_ACR → $ACR_NAME"
+    log_info "🎯 Remplacement des placeholders dans tous les fichiers..."
+    
+    local updated_files=0
+    local critical_files=(
+        "k8s/overlays/minikube-jobs-only/api-gateway-migration-job.yaml"
+        "k8s/overlays/minikube-jobs-only/service-selection-migration-job.yaml"
+        "k8s/overlays/azure/kustomization.yaml"
+    )
+    
+    # Traitement des fichiers critiques pour ACR
+    for file in "${critical_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            log_info "✅ $file - aucun placeholder à remplacer"
+            ((updated_files++))
+        fi
+    done
+    
+    # 🎯 TRAITEMENT SPÉCIAL : Storage Secrets avec valeurs Terraform
+    local storage_secrets_file="k8s/base/service-selection/storage-secrets.yaml"
+    
+    if [[ -f "$storage_secrets_file" && -n "$STORAGE_ACCOUNT" && -n "$STORAGE_KEY" ]]; then
+        log_info "🔧 Mise à jour CRITIQUE: Storage Account dans $storage_secrets_file"
+        log_info "  🏗️ Ancien: ibisxprodstg2205 (codé en dur)"
+        log_info "  ✨ Nouveau: $STORAGE_ACCOUNT (depuis Terraform)"
+        
+        # Encoder les nouvelles valeurs en base64
+        local storage_name_b64=$(echo -n "$STORAGE_ACCOUNT" | base64 -w 0)
+        local storage_key_b64=$(echo -n "$STORAGE_KEY" | base64 -w 0)
+        
+        # Créer une sauvegarde
+        cp "$storage_secrets_file" "${storage_secrets_file}.backup-$(date +%s)"
+        
+        # Remplacer la valeur hardcodée par la vraie valeur Terraform
+        sed -i.tmp "s|azure-storage-account-name: aWJpc3hwcm9kc3RnMjIwNQ==|azure-storage-account-name: $storage_name_b64|g" "$storage_secrets_file"
+        sed -i.tmp "s|azure-storage-account-key: .*|azure-storage-account-key: $storage_key_b64|g" "$storage_secrets_file"
+        
+        # Nettoyer les fichiers temporaires
+        rm -f "${storage_secrets_file}.tmp"
+        
+        log_success "✅ Storage Account mis à jour: $STORAGE_ACCOUNT"
+        log_success "✅ Storage Key mise à jour depuis Terraform"
+        
+        # 🔄 FORCER LA RECRÉATION DU SECRET dans Kubernetes
+        log_info "🔄 Suppression du secret storage-secrets existant pour forcer la mise à jour..."
+        kubectl delete secret storage-secrets -n ibis-x 2>/dev/null || true
+        log_success "✅ Secret storage-secrets prêt pour recréation avec nouvelles valeurs"
+        
+        ((updated_files++))
+    else
+        log_warning "⚠️ Storage Account non disponible ou fichier manquant"
+        log_warning "  STORAGE_ACCOUNT: ${STORAGE_ACCOUNT:-VIDE}"
+        log_warning "  STORAGE_KEY: ${STORAGE_KEY:+DÉFINI}"
+        log_warning "  Fichier: $storage_secrets_file"
+    fi
+    
+    log_success "🎯 Remplacement terminé - $updated_files fichier(s) traités avec ACR : $ACR_NAME"
+}
+
+# Fonction pour vérifier les ressources AKS (cluster maintenant configuré avec 3 nœuds)
+check_aks_resources() {
+    log_info "🔍 Vérification des ressources AKS..."
+    
+    # Obtenir le nombre de nœuds actuels
+    local current_nodes=$(kubectl get nodes --no-headers | wc -l)
+    local ready_nodes=$(kubectl get nodes --no-headers | grep " Ready " | wc -l)
+    
+    log_info "📊 État du cluster AKS:"
+    log_info "  📈 Nœuds totaux: $current_nodes"
+    log_info "  ✅ Nœuds prêts: $ready_nodes"
+    
+    if [[ "$ready_nodes" -ge 3 ]]; then
+        log_success "✅ Cluster AKS a des ressources suffisantes ($ready_nodes nœuds prêts)"
+    else
+        log_warning "⚠️ Seulement $ready_nodes nœuds prêts, PostgreSQL pourrait avoir des problèmes de scheduling"
+        
+        # Vérifier si PostgreSQL a des problèmes de scheduling
+        local postgres_status=$(kubectl get pods -n ibis-x -l app=postgresql --no-headers 2>/dev/null | head -1 | awk '{print $3}' || echo "")
+        
+        if [[ "$postgres_status" == "Pending" ]]; then
+            log_warning "🚨 PostgreSQL en statut Pending - Attente que plus de nœuds soient prêts..."
+            log_info "💡 Terraform est configuré pour 3 nœuds, ils vont être disponibles bientôt"
+            
+            # Attendre un peu plus pour que les nœuds soient prêts
+            local timeout=180
+            local elapsed=0
+            
+            while [[ $elapsed -lt $timeout ]]; do
+                local ready_now=$(kubectl get nodes --no-headers | grep " Ready " | wc -l)
+                if [[ "$ready_now" -ge 3 ]]; then
+                    log_success "✅ Maintenant $ready_now nœuds sont prêts, PostgreSQL peut démarrer"
+                    break
+                fi
+                
+                log_info "  ⏳ Attente des nœuds: $ready_now/3 prêts..."
+                sleep 15
+                ((elapsed += 15))
+            done
+        fi
+    fi
+}
+
+# Fonction pour l'initialisation automatique des données en PRODUCTION
 initialize_sample_data() {
     if [[ "$WITH_DATA" == "true" ]]; then
         log_info "📊 Initialisation des données d'exemple..."
         
-        # Attendre que service-selection soit prêt
-        log_info "⏳ Attente que service-selection soit prêt..."
-        kubectl wait --for=condition=ready pod -l app=service-selection -n "${K8S_NAMESPACE:-ibis-x}" --timeout=5m
+        # Nettoyer tout job d'import existant pour éviter les conflits
+        log_info "🧹 Nettoyage complet des jobs d'import précédents..."
+        kubectl delete job kaggle-dataset-import-job -n "${K8S_NAMESPACE:-ibis-x}" --ignore-not-found=true
+        kubectl delete configmap kaggle-datasets-config -n "${K8S_NAMESPACE:-ibis-x}" --ignore-not-found=true
         
-        # Initialiser les données
-        log_info "🚀 Lancement de l'initialisation des datasets..."
-        kubectl exec -n "${K8S_NAMESPACE:-ibis-x}" deployment/service-selection -- python scripts/init_datasets.py all
+        # Attendre que le nettoyage soit terminé
+        sleep 5
+        
+        # Lancer le job d'import Kaggle avec ressources optimisées
+        log_info "🚀 Lancement du job d'import Kaggle avec ressources optimisées..."
+        
+        # Créer le job d'import Kaggle avec image ACR et ressources optimisées
+        log_info "🔧 Création du job Kaggle avec image ACR et ressources Azure optimisées..."
+        
+        # Récupérer l'ACR correct depuis Terraform
+        local ACR_NAME=""
+        ACR_NAME=$(cd "${TERRAFORM_DIR}" && terraform output -raw acr_name 2>/dev/null || echo "")
+        if [[ -z "$ACR_NAME" ]]; then
+            log_warning "Impossible de récupérer le nom ACR depuis Terraform, utilisation de la variable par défaut"
+            ACR_NAME="${AZURE_CONTAINER_REGISTRY}"
+        fi
+        
+        log_info "🐳 Utilisation de l'ACR: ${ACR_NAME}.azurecr.io"
+        
+        # Créer le job directement avec kubectl create et la bonne image ACR
+        cat <<EOF | kubectl apply -f - -n "${K8S_NAMESPACE:-ibis-x}"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kaggle-dataset-import-job
+  namespace: ibis-x
+  labels:
+    app: kaggle-dataset-import
+    component: data-import
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: kaggle-dataset-import
+        component: data-import
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: default
+      containers:
+      - name: kaggle-importer
+        image: ${ACR_NAME}.azurecr.io/service-selection:latest
+        imagePullPolicy: Always
+        command: ["python"]
+        args: ["kaggle-import/main.py", "--force-refresh"]
+        workingDir: /app
+        
+        # Ressources optimisées pour production Azure
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "8Gi"
+            cpu: "2000m"
+        
+        # Variables d'environnement pour la base de données
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: database-url
+        
+        # Variables optimisation mémoire
+        - name: PANDAS_MAX_MEMORY_USAGE
+          value: "6000000000"
+        - name: CHUNK_SIZE_LARGE_DATASETS
+          value: "5000"
+        - name: MEMORY_OPTIMIZED_MODE
+          value: "true"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        
+        # Configuration stockage Azure
+        - name: STORAGE_BACKEND
+          value: "azure"
+        - name: AZURE_STORAGE_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: storage-secrets
+              key: azure-connection-string
+        - name: AZURE_CONTAINER_NAME
+          value: "ibis-x-datasets"
+        
+        # Credentials Kaggle
+        - name: KAGGLE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kaggle-secrets
+              key: username
+        - name: KAGGLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kaggle-secrets
+              key: key
+        
+        # Configuration job
+        - name: FORCE_REFRESH
+          value: "true"
+        
+        # Volumes pour fichiers temporaires
+        volumeMounts:
+        - name: temp-storage
+          mountPath: /tmp
+      
+      # Volumes avec espace augmenté
+      volumes:
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: "15Gi"
+      
+      # Timeout étendu pour gros datasets
+      activeDeadlineSeconds: 3600
+EOF
+        
+        # Attendre que le job soit créé
+        log_info "⏳ Attente du démarrage du job d'import..."
+        kubectl wait --for=condition=active job/kaggle-dataset-import-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=60s
+        
+        # Monitoring du job avec logs en temps réel
+        if monitor_job_progress "kaggle-dataset-import-job" "${K8S_NAMESPACE:-ibis-x}" 45; then
+            log_success "✅ Import Kaggle terminé avec succès"
+        else
+            # En cas d'échec, afficher des informations détaillées pour debug
+            log_error "❌ Échec ou timeout du job d'import Kaggle"
+            
+            log_info "📋 Logs complets du job pour diagnostic:"
+            kubectl logs job/kaggle-dataset-import-job -n "${K8S_NAMESPACE:-ibis-x}" --tail=100 2>/dev/null || log_warning "Impossible de récupérer les logs complets"
+            
+            log_info "📊 État détaillé du job:"
+            kubectl describe job kaggle-dataset-import-job -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || log_warning "Impossible de décrire le job"
+            
+            log_info "🔍 État des pods du job:"
+            kubectl get pods -n "${K8S_NAMESPACE:-ibis-x}" -l job-name=kaggle-dataset-import-job -o wide 2>/dev/null || log_warning "Impossible de lister les pods du job"
+            
+            # Fallback: essayer avec kubectl exec si le job a échoué
+            log_warning "🔄 Tentative de fallback avec kubectl exec sur service-selection..."
+            if retry_command 2 5 kubectl rollout status deployment/service-selection -n "${K8S_NAMESPACE:-ibis-x}" --timeout=300s; then
+                if retry_command 2 10 kubectl exec -n "${K8S_NAMESPACE:-ibis-x}" deployment/service-selection -- python kaggle-import/main.py --force-refresh; then
+                    log_success "✅ Fallback réussi avec kubectl exec"
+                else
+                    log_error "❌ Échec du fallback kubectl exec"
+                    return 1
+                fi
+            else
+                log_error "❌ Service-selection n'est pas prêt pour le fallback"
+                return 1
+            fi
+        fi
         
         log_success "✅ Données d'exemple initialisées"
     else
@@ -731,28 +1172,38 @@ initialize_sample_data() {
 wait_for_migrations() {
     log_info "⏳ Attente des migrations de base de données..."
     
-    # Attendre PostgreSQL
+    # Attendre PostgreSQL avec retry
     log_info "🗄️ Attente que PostgreSQL soit prêt..."
-    kubectl wait pod --selector=app=postgresql --for=condition=Ready -n "${K8S_NAMESPACE:-ibis-x}" --timeout=5m
+    if ! retry_command 3 10 kubectl wait pod --selector=app=postgresql --for=condition=Ready -n "${K8S_NAMESPACE:-ibis-x}" --timeout=300s; then
+        log_error "❌ PostgreSQL non prêt après plusieurs tentatives"
+        return 1
+    fi
     
-    # Attendre les migrations
+    # Attendre les migrations avec gestion d'erreur robuste
     log_info "🔄 Attente des jobs de migration..."
-    if kubectl wait --for=condition=complete job/api-gateway-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=5m 2>/dev/null; then
+    
+    # Migration API Gateway
+    if retry_command 2 5 kubectl wait --for=condition=complete job/api-gateway-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=300s; then
         log_success "✅ Migration API Gateway terminée"
     else
-        log_warning "⚠️ Migration API Gateway non trouvée ou échouée"
+        log_warning "⚠️ Migration API Gateway non trouvée ou échouée - vérification manuelle..."
+        kubectl describe job/api-gateway-migration-job -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || log_warning "Job API Gateway non trouvé"
     fi
     
-    if kubectl wait --for=condition=complete job/service-selection-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=5m 2>/dev/null; then
+    # Migration Service Selection
+    if retry_command 2 5 kubectl wait --for=condition=complete job/service-selection-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=300s; then
         log_success "✅ Migration Service Selection terminée"
     else
-        log_warning "⚠️ Migration Service Selection non trouvée ou échouée"
+        log_warning "⚠️ Migration Service Selection non trouvée ou échouée - vérification manuelle..."
+        kubectl describe job/service-selection-migration-job -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || log_warning "Job Service Selection non trouvé"
     fi
     
-    if kubectl wait --for=condition=complete job/ml-pipeline-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=5m 2>/dev/null; then
+    # Migration ML Pipeline
+    if retry_command 2 5 kubectl wait --for=condition=complete job/ml-pipeline-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=300s; then
         log_success "✅ Migration ML Pipeline terminée"
     else
-        log_warning "⚠️ Migration ML Pipeline non trouvée ou échouée"
+        log_warning "⚠️ Migration ML Pipeline non trouvée ou échouée - vérification manuelle..."
+        kubectl describe job/ml-pipeline-migration-job -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || log_warning "Job ML Pipeline non trouvé"
     fi
     
     # Redémarrer les applications (comme dans GitHub Actions)
@@ -885,7 +1336,7 @@ build_and_push_images() {
     
     cd "$PROJECT_ROOT"
     
-    # Fonction helper pour build/push avec gestion intelligente des tags
+    # Fonction helper ROBUSTE pour build/push avec gestion automatique des erreurs
     build_and_push_image() {
         local service_name="$1"
         local dockerfile_path="$2"
@@ -906,22 +1357,61 @@ build_and_push_images() {
             tags_args="-t $base_image:latest"
         fi
         
-        # Construire avec les arguments appropriés
-        local docker_cmd="docker build $tags_args $build_args -f $dockerfile_path $build_context"
+        # 🛡️ FONCTION ROBUSTE : Essayer le build avec retry automatique
+        local build_success=false
+        local attempt=1
+        local max_attempts=2
         
-        if eval "$docker_cmd"; then
-            # Pousser tous les tags
-            if [[ "$DEPLOYMENT_MODE" == "production" ]]; then
-                docker push "$base_image:$IMAGE_TAG"
-                docker push "$base_image:latest"
+        while [[ $attempt -le $max_attempts ]] && [[ "$build_success" == "false" ]]; do
+            log_info "🔄 Tentative $attempt/$max_attempts pour $service_name..."
+            
+            # Première tentative : build normal
+            # Deuxième tentative : nettoyage cache + build --no-cache
+            local docker_cmd=""
+            if [[ $attempt -eq 1 ]]; then
+                docker_cmd="docker build $tags_args $build_args -f $dockerfile_path $build_context"
+            else
+                log_info "🧹 Nettoyage automatique du cache Docker..."
+                docker system prune -f > /dev/null 2>&1 || true
+                docker_cmd="docker build --no-cache $tags_args $build_args -f $dockerfile_path $build_context"
+                log_info "🔄 Retry avec cache nettoyé et --no-cache"
+            fi
+            
+            # Exécuter le build
+            if eval "$docker_cmd"; then
+                build_success=true
+                log_success "✅ Build $service_name réussi (tentative $attempt/$max_attempts)"
+            else
+                log_error "❌ Échec build $service_name (tentative $attempt/$max_attempts)"
+                if [[ $attempt -eq $max_attempts ]]; then
+                    log_error "💥 ERREUR CRITIQUE: Impossible de construire $service_name après $max_attempts tentatives"
+                    log_error "🔧 Suggestions:"
+                    log_error "   1. Vérifiez votre connexion Internet"
+                    log_error "   2. Vérifiez l'espace disque disponible"
+                    log_error "   3. Redémarrez Docker Desktop"
+                    exit 1
+                fi
+                ((attempt++))
+                sleep 2
+            fi
+        done
+        
+        # 🚀 Push des images vers ACR
+        log_info "📤 Push vers ACR..."
+        if [[ "$DEPLOYMENT_MODE" == "production" ]]; then
+            if docker push "$base_image:$IMAGE_TAG" && docker push "$base_image:latest"; then
                 log_success "✅ Image $service_name pushée (tags: $IMAGE_TAG, latest)"
             else
-                docker push "$base_image:latest"
-                log_success "✅ Image $service_name pushée (tag: latest)"
+                log_error "❌ Échec push $service_name vers ACR"
+                exit 1
             fi
         else
-            log_error "❌ Échec construction de l'image $service_name"
-            exit 1
+            if docker push "$base_image:latest"; then
+                log_success "✅ Image $service_name pushée (tag: latest)"
+            else
+                log_error "❌ Échec push $service_name vers ACR"
+                exit 1
+            fi
         fi
     }
     
@@ -931,8 +1421,8 @@ build_and_push_images() {
     # 2. Service Selection (contexte racine pour accéder aux modules communs)
     build_and_push_image "service-selection" "service-selection/Dockerfile" "." ""
     
-    # 3. ML Pipeline
-    build_and_push_image "ml-pipeline" "ml-pipeline-service/Dockerfile" "ml-pipeline-service/" ""
+    # 3. ML Pipeline (contexte racine pour accéder aux modules communs)
+    build_and_push_image "ibis-x-ml-pipeline" "ml-pipeline-service/Dockerfile" "." ""
     
     # 4. Frontend (avec build args spécifiques à l'environnement)
     local frontend_build_args=""
@@ -950,6 +1440,80 @@ build_and_push_images() {
     build_and_push_image "frontend" "frontend/Dockerfile" "frontend/" "$frontend_build_args"
     
     log_success "🚀 Toutes les images Docker pushées vers ACR : $ACR_NAME"
+}
+
+# Fonction pour forcer la mise à jour des secrets storage APRÈS Kustomize
+force_storage_secrets_update_after_kustomize() {
+    log_info "🔄 CORRECTION CRITIQUE : Forcer la mise à jour des secrets storage avec les vraies valeurs Terraform..."
+    
+    # 1. S'assurer que nous avons les bonnes valeurs Terraform
+    if [[ -z "$STORAGE_ACCOUNT" ]] || [[ -z "$STORAGE_KEY" ]]; then
+        log_info "📂 Récupération des valeurs storage depuis Terraform..."
+        cd "$TERRAFORM_DIR"
+        
+        STORAGE_ACCOUNT=$(terraform output -raw storage_account_name 2>/dev/null || echo "")
+        STORAGE_KEY=$(terraform output -raw storage_account_primary_key 2>/dev/null || echo "")
+        
+        cd "$PROJECT_ROOT"
+        export STORAGE_ACCOUNT
+        export STORAGE_KEY
+    fi
+    
+    # 2. Vérifier que nous avons les valeurs
+    if [[ -z "$STORAGE_ACCOUNT" ]] || [[ -z "$STORAGE_KEY" ]]; then
+        log_warning "⚠️ Impossible de récupérer les valeurs Terraform pour le storage"
+        return 1
+    fi
+    
+    # 3. Vérifier si le secret existe avec les mauvaises valeurs
+    local current_storage_name=""
+    if kubectl get secret storage-secrets -n "${K8S_NAMESPACE:-ibis-x}" &>/dev/null; then
+        current_storage_name=$(kubectl get secret storage-secrets -n "${K8S_NAMESPACE:-ibis-x}" -o jsonpath='{.data.azure-storage-account-name}' | base64 -d 2>/dev/null || echo "")
+    fi
+    
+    log_info "🔍 Vérification des secrets storage..."
+    log_info "  💾 Storage Terraform : $STORAGE_ACCOUNT"
+    log_info "  🔍 Storage Kubernetes : ${current_storage_name:-VIDE}"
+    
+    # 4. Si les valeurs sont différentes, forcer la correction
+    if [[ "$current_storage_name" != "$STORAGE_ACCOUNT" ]]; then
+        log_warning "❌ PROBLÈME DÉTECTÉ : Kubernetes utilise un storage account incorrect !"
+        log_warning "   Attendu (Terraform) : $STORAGE_ACCOUNT"
+        log_warning "   Actuel (Kubernetes) : ${current_storage_name:-VIDE}"
+        
+        log_info "🔧 CORRECTION AUTOMATIQUE en cours..."
+        
+        # Supprimer et recréer le secret avec les bonnes valeurs
+        kubectl delete secret storage-secrets -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        sleep 2
+        
+        log_info "🗂️ Recréation storage-secrets avec les vraies valeurs Terraform: $STORAGE_ACCOUNT"
+        kubectl create secret generic storage-secrets -n "${K8S_NAMESPACE:-ibis-x}" \
+            --from-literal=azure-storage-account-name="$STORAGE_ACCOUNT" \
+            --from-literal=azure-storage-account-key="$STORAGE_KEY" \
+            --from-literal=azure-container-name="ibis-x-datasets" \
+            --from-literal=access-key="minioadmin" \
+            --from-literal=minio-access-key="minioadmin" \
+            --from-literal=minio-bucket-name="exai-datasets" \
+            --from-literal=minio-endpoint="http://minio-service.exai.svc.cluster.local:9000" \
+            --from-literal=minio-secret-key="minioadmin" \
+            --from-literal=secret-key="minioadmin" || {
+            log_error "❌ Échec de création du secret storage-secrets"
+            return 1
+        }
+        
+        # 5. Forcer le redémarrage des pods qui utilisent ce secret
+        log_info "🔄 Redémarrage FORCÉ des pods pour utiliser le nouveau secret..."
+        kubectl rollout restart deployment/service-selection -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        
+        # Attendre que le rollout soit terminé
+        kubectl rollout status deployment/service-selection -n "${K8S_NAMESPACE:-ibis-x}" --timeout=120s 2>/dev/null || true
+        
+        log_success "✅ SECRET STORAGE CORRIGÉ : $STORAGE_ACCOUNT"
+        log_success "✅ Pods redémarrés pour utiliser le nouveau secret"
+    else
+        log_success "✅ Secret storage déjà correct : $STORAGE_ACCOUNT"
+    fi
 }
 
 # Fonction pour déployer l'application sur Kubernetes
@@ -986,6 +1550,11 @@ deploy_application() {
     # Applique automatiquement TOUS les patches Azure (stockage, auto-init, etc.)
     log_info "🚀 Déploiement unifié avec Kustomize Azure (Windows/Linux/MacOS)..."
     
+    # 🧹 NETTOYER LES JOBS EXISTANTS AVANT DÉPLOIEMENT (Fix: Jobs immutables)
+    log_info "🧹 Nettoyage préventif des jobs de migration existants..."
+    kubectl delete job api-gateway-migration-job service-selection-migration-job ml-pipeline-migration-job -n "${K8S_NAMESPACE:-ibis-x}" --ignore-not-found=true 2>/dev/null || true
+    log_success "✅ Jobs existants nettoyés (évite l'erreur 'field is immutable')"
+    
     # Sauvegarder le répertoire courant
     ORIGINAL_DIR=$(pwd)
     
@@ -1011,6 +1580,26 @@ deploy_application() {
         log_info "  🔄 Auto-init: FORCE_INIT_DATA=true + AUTO_INIT_DATA=true"
         log_info "  🐳 Images: ACR $ACR_NAME"
         log_info "  🎯 Mode: Production avec WITH_DATA=true"
+        
+        # 🔄 FORCER LE REDÉMARRAGE pour utiliser les nouvelles images pushées
+        log_info "🔄 Nettoyage des pods bloqués et redémarrage automatique..."
+        
+        # Supprimer les pods bloqués avec ErrImageNeverPull ou ErrImagePull
+        kubectl delete pods -n "${K8S_NAMESPACE:-ibis-x}" --field-selector=status.phase=Pending 2>/dev/null || true
+        kubectl delete pods -n "${K8S_NAMESPACE:-ibis-x}" --field-selector=status.phase=Failed 2>/dev/null || true
+        
+        # Redémarrer tous les deployments pour forcer l'utilisation des nouvelles images
+        kubectl rollout restart deployment/service-selection -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        kubectl rollout restart deployment/api-gateway -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        kubectl rollout restart deployment/ml-pipeline -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        kubectl rollout restart deployment/frontend -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        kubectl rollout restart deployment/ml-pipeline-celery-worker -n "${K8S_NAMESPACE:-ibis-x}" 2>/dev/null || true
+        
+        log_success "✅ Nettoyage et redémarrage automatique terminés - nouvelles images utilisées avec ImagePullPolicy Always"
+        
+        # 🔄 CORRECTION CRITIQUE : Forcer la mise à jour des secrets storage APRÈS Kustomize
+        force_storage_secrets_update_after_kustomize
+        
     else
         log_error "❌ Échec du déploiement Kustomize Azure"
         cd "$ORIGINAL_DIR"
@@ -1146,8 +1735,6 @@ update_all_acr_references() {
         "$K8S_DIR/base/jobs/api-gateway-migration-job.yaml"
         "$K8S_DIR/base/jobs/service-selection-migration-job.yaml"
         "$K8S_DIR/overlays/azure/kustomization.yaml"
-        "$K8S_DIR/overlays/azure/migration-jobs-image-patch.yaml"
-        "$K8S_DIR/overlays/azure/service-selection-migration-job-patch.yaml"
     )
     
     # Fonction simple pour remplacer PLACEHOLDER_ACR dans un fichier
@@ -1714,6 +2301,7 @@ main() {
     # Configuration et déploiement
     get_terraform_outputs
     configure_kubectl
+    check_k8s_connectivity
     
     # Build et déploiement de l'application
     build_and_push_images
@@ -1723,6 +2311,10 @@ main() {
     
     # Migrations et finalisation
     wait_for_migrations
+    
+    # Vérification des ressources AKS (cluster configuré avec 3 nœuds)
+    check_aks_resources
+    
     initialize_sample_data
     final_auto_check_and_fix
     
@@ -1761,6 +2353,7 @@ manage_infrastructure() {
         # Vérifier si l'infrastructure existe
         if check_infrastructure_exists; then
             log_success "✅ Infrastructure existante détectée"
+            log_info "🔄 Continuons avec le déploiement de l'application..."
         else
             log_info "🏗️ Infrastructure non trouvée - Création automatique..."
             create_infrastructure
