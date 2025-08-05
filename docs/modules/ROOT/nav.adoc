@@ -71,4 +71,5 @@
 ** xref:dev-guide/disaster-recovery.adoc[Plan de Reprise d'Activité]
 
 * Administration
+** xref:admin/production-admin-access.adoc[🔧 Accès Admin Production (PostgreSQL + Azure Storage)]
 ** xref:development/database-migrations.adoc[Migrations de Base de Données] 

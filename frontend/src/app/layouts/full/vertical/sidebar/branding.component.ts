@@ -9,6 +9,7 @@ import { CoreService } from 'src/app/services/core.service';
       <img
         src="./assets/images/logos/dark-logo.svg"
         class="align-middle m-2"
+        width="200"
         alt="logo"
       />
     </a>
@@ -17,6 +18,7 @@ import { CoreService } from 'src/app/services/core.service';
       <img
         src="./assets/images/logos/light-logo.svg"
         class="align-middle m-2"
+        width="200"
         alt="logo"
       />
     </a>

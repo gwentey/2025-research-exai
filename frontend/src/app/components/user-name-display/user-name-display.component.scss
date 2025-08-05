@@ -1,0 +1,30 @@
+// Styles pour le composant user-name-display
+:host {
+  display: block;
+  width: 100%;
+}
+
+h4 {
+  margin: 0;
+  padding: 0;
+  transition: font-size 0.2s ease-in-out;
+  
+  // Assurer que le texte ne déborde jamais
+  &.text-ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  // États de hover pour une meilleure UX
+  &:hover {
+    cursor: default;
+  }
+}
+
+// Responsive pour les très petits écrans
+@media (max-width: 480px) {
+  h4 {
+    font-size: 12px !important;
+  }
+}

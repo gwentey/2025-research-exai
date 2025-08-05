@@ -1,0 +1,197 @@
+= Gestion des Titres de Pages
+:description: Guide technique pour la gestion centralisée des titres de pages dans IBIS-X
+:keywords: Angular, titre, page, routing, traduction
+:page-layout: doc
+
+== Vue d'ensemble
+
+L'application IBIS-X implémente un système centralisé de gestion des titres de pages qui garantit une expérience utilisateur cohérente et professionnelle. Tous les titres suivent le format standardisé : `<Nom de la page> | IBIS-X`.
+
+== Architecture
+
+=== TitleService
+
+Le service `TitleService` (`frontend/src/app/services/title.service.ts`) est le composant central qui gère :
+
+* La formatting automatique des titres avec le séparateur `|` et le nom de l'application
+* L'intégration avec le système de traduction Angular (`@ngx-translate/core`)
+* Le support des titres dynamiques avec paramètres
+* Les mécanismes de fallback pour éviter les titres "undefined"
+
+=== Intégration avec le Routing
+
+L'application écoute automatiquement les changements de routes via `AppComponent` et met à jour le titre de page correspondant :
+
+```typescript
+// Dans app.component.ts
+private setupTitleUpdates(): void {
+  this.router.events
+    .pipe(
+      filter(event => event instanceof NavigationEnd),
+      // ... logique de récupération des données de route
+    )
+    .subscribe(({ data, params }) => {
+      this.updateTitle(data, params);
+    });
+}
+```
+
+== Configuration des Routes
+
+=== Ajout d'un titre à une route
+
+Pour ajouter un titre à une nouvelle route, inclure la propriété `title` dans les données de route :
+
+```typescript
+export const ExampleRoutes: Routes = [
+  {
+    path: '',
+    component: ExampleComponent,
+    data: {
+      title: 'MA_PAGE_EXEMPLE'  // Clé de traduction
+    }
+  }
+];
+```
+
+=== Titres dynamiques
+
+Pour les pages avec paramètres (détails d'un projet, d'un dataset, etc.), le système détecte automatiquement les paramètres de route et peut les utiliser pour personnaliser le titre.
+
+== Système de Traductions
+
+=== Structure des traductions
+
+Les titres de pages sont stockés dans la section `PAGE_TITLES` des fichiers de traduction :
+
+```json
+// frontend/src/assets/i18n/fr.json
+{
+  "PAGE_TITLES": {
+    "DASHBOARD": "Tableau de bord",
+    "DATASETS": "Jeux de données",
+    "PROJECTS": "Projets",
+    // ... autres titres
+  }
+}
+```
+
+```json
+// frontend/src/assets/i18n/en.json
+{
+  "PAGE_TITLES": {
+    "DASHBOARD": "Dashboard",
+    "DATASETS": "Datasets", 
+    "PROJECTS": "Projects",
+    // ... autres titres
+  }
+}
+```
+
+=== Ajout d'un nouveau titre
+
+1. Ajouter la clé de traduction dans `fr.json` et `en.json`
+2. Référencer cette clé dans les données de route
+3. Le système s'occupera automatiquement du formatting et de l'affichage
+
+== Mécanismes de Fallback
+
+Le système implémente plusieurs niveaux de fallback :
+
+1. **Titre défini dans les données de route** : Utilisation prioritaire
+2. **Déduction depuis l'URL** : Analyse de l'URL pour déterminer le titre approprié
+3. **Titre par défaut** : "IBIS-X" si aucune correspondance n'est trouvée
+
+=== Logique de fallback URL
+
+```typescript
+private setTitleFromUrl(): void {
+  const url = this.router.url;
+  let titleKey = 'DASHBOARD';
+  
+  if (url.includes('/datasets')) {
+    if (url.includes('/complete-metadata')) {
+      titleKey = 'DATASET_METADATA';
+    } else if (url.match(/\/datasets\/[^\/]+$/)) {
+      titleKey = 'DATASET_DETAIL';
+    } else {
+      titleKey = 'DATASETS';
+    }
+  }
+  // ... autres conditions
+}
+```
+
+== API du TitleService
+
+=== Méthodes principales
+
+`setTitle(pageTitle: string, isTranslationKey: boolean = true)`::
+Met à jour le titre de la page avec formatting automatique
+
+`setTitleWithParams(pageTitleKey: string, params: any)`::
+Met à jour le titre avec des paramètres de traduction
+
+`setTitleFromRoute(routeData: any, routeParams?: any)`::
+Met à jour le titre depuis les données de route (utilisé automatiquement)
+
+`resetToDefault()`::
+Réinitialise au titre par défaut "IBIS-X"
+
+=== Utilisation manuelle
+
+Pour des cas spéciaux nécessitant une gestion manuelle du titre :
+
+```typescript
+// Dans un composant
+constructor(private titleService: TitleService) {}
+
+ngOnInit() {
+  // Titre simple
+  this.titleService.setTitle('PAGE_TITLES.MA_PAGE');
+  
+  // Titre avec paramètres
+  this.titleService.setTitleWithParams('PAGE_TITLES.PROJECT_DETAIL', {
+    projectName: 'Mon Projet'
+  });
+}
+```
+
+== Bonnes Pratiques
+
+1. **Toujours utiliser les clés de traduction** : Ne jamais coder en dur les titres en français
+2. **Noms de clés descriptifs** : Utiliser des noms clairs comme `DATASET_DETAIL` plutôt que `PAGE1`
+3. **Cohérence dans les routes** : Toujours inclure la propriété `title` dans les nouvelles routes
+4. **Tests de traduction** : Vérifier que les titres s'affichent correctement dans les deux langues
+
+== Dépannage
+
+=== Problèmes courants
+
+**Titre "undefined" affiché**::
+* Vérifier que la clé de traduction existe dans les deux fichiers de langue
+* S'assurer que la route a une propriété `title` définie
+
+**Titre non traduit**::
+* Vérifier l'initialisation du service de traduction
+* Contrôler que la clé de traduction est correcte
+
+**Format de titre incorrect**::
+* Le TitleService applique automatiquement le format `<Titre> | IBIS-X`
+* Éviter d'inclure manuellement le séparateur ou le nom de l'application
+
+== Maintenance
+
+=== Ajout d'une nouvelle page
+
+1. Créer le composant et la route
+2. Ajouter les traductions dans `PAGE_TITLES`
+3. Inclure la propriété `title` dans la configuration de route
+4. Tester l'affichage dans les deux langues
+
+=== Modification d'un titre existant
+
+1. Modifier les traductions dans `fr.json` et `en.json`
+2. Le changement est immédiatement effectif sans modification du code
+
+Cette architecture garantit une gestion centralisée, maintenable et extensible des titres de pages tout en respectant l'internationalisation de l'application.

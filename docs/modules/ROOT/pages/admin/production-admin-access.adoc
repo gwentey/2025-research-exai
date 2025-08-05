@@ -1,0 +1,69 @@
+= Accès PostgreSQL Production avec pgAdmin
+:description: Guide simple pour accéder à PostgreSQL en production avec pgAdmin
+:keywords: admin, production, postgresql, pgadmin
+:page-layout: docs
+
+[.lead]
+Guide ultra-simple pour accéder à PostgreSQL en production avec pgAdmin.
+
+== 🚀 Étapes Rapides
+
+=== 1. Exposer PostgreSQL publiquement
+
+[source,bash]
+----
+kubectl apply -f k8s/base/postgres/postgresql-loadbalancer.yaml
+----
+
+=== 2. Obtenir l'IP publique
+
+[source,bash]
+----
+kubectl get service postgresql-loadbalancer -n ibis-x
+----
+
+**Résultat attendu :**
+[source,text]
+----
+NAME                      TYPE           CLUSTER-IP   EXTERNAL-IP      PORT(S)          AGE
+postgresql-loadbalancer   LoadBalancer   10.1.10.16   48.216.193.168   5432:32003/TCP   58s
+----
+
+➡️ **Votre IP PostgreSQL :** `48.216.193.168`
+
+=== 3. Connexion pgAdmin
+
+Ouvrir pgAdmin et créer une nouvelle connexion :
+
+[cols="1,2", options="header"]
+|===
+|Champ pgAdmin |Valeur
+
+|**Host name/address**
+|`48.216.193.168` _(votre IP obtenue)_
+
+|**Port**
+|`5432`
+
+|**Username**
+|`ibis_x_user`
+
+|**Password**
+|`password`
+
+|**Database**
+|`ibis_x_db`
+|===
+
+== ✅ C'est tout !
+
+Vous êtes maintenant connecté à PostgreSQL de production.
+
+== 🔒 Après utilisation
+
+Supprimer l'accès public pour sécuriser :
+
+[source,bash]
+----
+kubectl delete service postgresql-loadbalancer -n ibis-x
+----

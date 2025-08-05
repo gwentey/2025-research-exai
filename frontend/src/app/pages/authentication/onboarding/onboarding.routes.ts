@@ -7,5 +7,8 @@ export const OnboardingRoutes: Routes = [
     path: '',
     component: OnboardingWizardComponent,
     canActivate: [authGuard],
+    data: {
+      title: 'ONBOARDING'
+    }
   },
 ]; 

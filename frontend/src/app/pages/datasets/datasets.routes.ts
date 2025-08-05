@@ -8,10 +8,10 @@ export const DatasetsRoutes: Routes = [
     path: '',
     component: DatasetListingComponent,
     data: {
-      title: 'Datasets',
+      title: 'DATASETS',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Datasets' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.DATASETS' },
       ],
     },
   },
@@ -19,11 +19,11 @@ export const DatasetsRoutes: Routes = [
     path: ':id',
     component: DatasetDetailComponent,
     data: {
-      title: 'Détail Dataset',
+      title: 'DATASET_DETAIL',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Datasets', url: '/datasets' },
-        { title: 'Détail' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.DATASETS', url: '/datasets' },
+        { title: 'BREADCRUMB.DATASET_DETAIL' },
       ],
     },
   },
@@ -31,12 +31,12 @@ export const DatasetsRoutes: Routes = [
     path: ':id/complete-metadata',
     component: DatasetMetadataCompletionComponent,
     data: {
-      title: 'Complétion Métadonnées',
+      title: 'DATASET_METADATA',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Datasets', url: '/datasets' },
-        { title: 'Détail', url: '/datasets/:id' },
-        { title: 'Métadonnées' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.DATASETS', url: '/datasets' },
+        { title: 'BREADCRUMB.DATASET_DETAIL', url: '/datasets/:id' },
+        { title: 'BREADCRUMB.DATASET_METADATA' },
       ],
     },
   },

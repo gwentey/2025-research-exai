@@ -23,6 +23,7 @@ import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.comp
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
 import { BrandingComponent } from './vertical/sidebar/branding.component';
+import { UserNameDisplayComponent } from 'src/app/components/user-name-display';
 import { AuthService } from 'src/app/services/auth.service';
 import { UserRead } from 'src/app/models/auth.models';
 
@@ -61,7 +62,8 @@ interface quicklinks {
         AppHorizontalSidebarComponent,
         AppBreadcrumbComponent,
         CustomizerComponent,
-        BrandingComponent
+        BrandingComponent,
+        UserNameDisplayComponent
     ],
     templateUrl: './full.component.html',
     styleUrls: [],

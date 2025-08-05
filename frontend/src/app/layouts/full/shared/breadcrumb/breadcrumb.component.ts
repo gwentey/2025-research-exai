@@ -4,10 +4,11 @@ import { RouterModule } from '@angular/router';
 import { Router, NavigationEnd, ActivatedRoute, Data } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-breadcrumb',
-  imports: [RouterModule, TablerIconsModule],
+  imports: [RouterModule, TablerIconsModule, TranslateModule],
   templateUrl: './breadcrumb.component.html',
   styleUrls: [],
 })
@@ -35,9 +36,9 @@ export class AppBreadcrumbComponent {
       .pipe(mergeMap((route) => route.data))
       // tslint:disable-next-line - Disables all
       .subscribe((event) => {
-        // tslint:disable-next-line - Disables all
-        this.titleService.setTitle(event['title'] + ' - Angular 19');
+        // Ne plus interférer avec le système de titre, c'est AppComponent qui s'en charge maintenant
         this.pageInfo = event;
+        console.log('📋 Breadcrumb reçu:', event);
       });
   }
 }

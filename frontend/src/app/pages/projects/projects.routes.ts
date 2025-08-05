@@ -8,10 +8,10 @@ export const ProjectsRoutes: Routes = [
     path: '',
     component: ProjectListComponent,
     data: {
-      title: 'Projets',
+      title: 'PROJECTS',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Projets' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.PROJECTS' },
       ],
     },
   },
@@ -19,11 +19,11 @@ export const ProjectsRoutes: Routes = [
     path: 'new',
     component: ProjectFormComponent,
     data: {
-      title: 'Nouveau Projet',
+      title: 'PROJECTS',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Projets', url: '/projects' },
-        { title: 'Nouveau' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.PROJECTS', url: '/projects' },
+        { title: 'BREADCRUMB.PROJECT_NEW' },
       ],
     },
   },
@@ -31,11 +31,11 @@ export const ProjectsRoutes: Routes = [
     path: ':id',
     component: ProjectDetailComponent,
     data: {
-      title: 'Détail du Projet',
+      title: 'PROJECT_DETAIL',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Projets', url: '/projects' },
-        { title: 'Détail' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.PROJECTS', url: '/projects' },
+        { title: 'BREADCRUMB.PROJECT_DETAIL' },
       ],
     },
   },
@@ -43,11 +43,11 @@ export const ProjectsRoutes: Routes = [
     path: ':id/edit',
     component: ProjectFormComponent,
     data: {
-      title: 'Modifier le Projet',
+      title: 'PROJECTS',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Projets', url: '/projects' },
-        { title: 'Modifier' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.PROJECTS', url: '/projects' },
+        { title: 'BREADCRUMB.PROJECT_EDIT' },
       ],
     },
   },

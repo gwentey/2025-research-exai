@@ -181,7 +181,7 @@
   }
 }
 
-// Boutons de navigation
+// Boutons de navigation - SIMPLE ET EFFICACE
 .navigation-buttons {
   .step-button {
     min-width: 140px;
@@ -198,6 +198,11 @@
     
     mat-icon {
       margin-left: 8px;
+      margin-right: 8px;
+    }
+    
+    // Styles spécifiques pour le spinner de chargement
+    mat-spinner {
       margin-right: 8px;
     }
   }
@@ -425,6 +430,14 @@
       min-width: 120px;
       height: 44px;
       font-size: 14px;
+      
+      mat-icon {
+        margin-left: 6px;
+        margin-right: 6px;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
     }
   }
   

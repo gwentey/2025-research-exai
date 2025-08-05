@@ -4,6 +4,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+import { MatDividerModule } from '@angular/material/divider';
+import { MatRippleModule } from '@angular/material/core';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -22,6 +26,10 @@ import { CreditsIndicatorComponent } from '../../../components/credits-indicator
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+
+    MatDividerModule,
+    MatRippleModule,
+    MatBadgeModule,
     TranslateModule,
     CreditsIndicatorComponent
   ],

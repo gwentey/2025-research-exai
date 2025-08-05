@@ -13,21 +13,33 @@ export const AuthenticationRoutes: Routes = [
       {
         path: 'error',
         component: AppErrorComponent,
+        data: {
+          title: 'ERROR'
+        }
       },
 
       {
         path: 'login',
         component: AppSideLoginComponent,
         canActivate: [nonAuthGuard],
+        data: {
+          title: 'LOGIN'
+        }
       },
       {
         path: 'register',
         component: AppSideRegisterComponent,
         canActivate: [nonAuthGuard],
+        data: {
+          title: 'REGISTER'
+        }
       },
       {
         path: 'callback',
         component: OAuthCallbackComponent,
+        data: {
+          title: 'LOGIN'
+        }
       },
     ],
   },

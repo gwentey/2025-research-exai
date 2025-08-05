@@ -1,143 +1,285 @@
 <!-- Page de recharge des crédits -->
-<div class="credits-refill-page">
-  <!-- Header avec retour -->
-  <div class="page-header">
-    <button mat-icon-button (click)="goBack()" class="back-button" type="button">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <h1 class="page-title">{{ 'CREDITS_REFILL.TITLE' | translate }}</h1>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <!-- En-tête de la page -->
+      <div class="d-flex align-items-center justify-content-between m-b-24">
+        <div>
+          <h2 class="f-s-24 f-w-600 m-0">Recharge de crédits</h2>
+          <p class="text-body m-0">Récupérez vos crédits gratuits pour continuer à utiliser l'IA</p>
+        </div>
+        <button 
+          mat-stroked-button 
+          color="primary" 
+          (click)="goBack()"
+          class="d-flex align-items-center gap-8"
+          aria-label="Retour à la page de profil"
+        >
+          <mat-icon>arrow_back</mat-icon>
+          Retour
+        </button>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+      <!-- Card principale du solde -->
+      <mat-card class="cardWithShadow theme-card balance-card animate-scale-in">
+        <mat-card-header>
+          <mat-card-title class="card-title">
+            <mat-icon class="title-icon">account_balance_wallet</mat-icon>
+            {{ 'CREDITS_REFILL.CURRENT_BALANCE' | translate }}
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Section du solde actuel -->
+          <section class="credits-balance-section" 
+                   *ngIf="currentUser" 
+                   role="region" 
+                   aria-labelledby="balance-title"
+                   aria-describedby="balance-description">
+            <div class="balance-header">
+              <h3 class="section-title" id="balance-title" tabindex="0">{{ 'CREDITS_REFILL.CURRENT_STATUS' | translate }}</h3>
+            </div>
+            
+            <div class="balance-display" 
+                 role="group" 
+                 aria-labelledby="balance-title">
+              <div class="credits-visual" 
+                   role="img" 
+                   [attr.aria-label]="'Indicateur de crédits: ' + getUserCredits() + ' sur 10 crédits disponibles'">
+                <app-credits-indicator 
+                  [remaining]="getUserCredits()"
+                  [total]="10"
+                  size="large"
+                  [showInfo]="false"
+                  [showLabel]="true">
+                </app-credits-indicator>
+              </div>
+            </div>
+          </section>
+
+          <mat-divider class="section-divider"></mat-divider>
+
+          <!-- Section d'explication avec cartes -->
+          <section class="explanation-section" 
+                   role="region" 
+                   aria-labelledby="how-it-works-title">
+            <div class="explanation-header">
+              <h3 class="section-title" id="how-it-works-title">
+                <mat-icon class="section-icon" aria-hidden="true">help_outline</mat-icon>
+                {{ 'CREDITS_REFILL.HOW_IT_WORKS.TITLE' | translate }}
+              </h3>
+            </div>
+            
+            <div class="row explanation-cards">
+              <div class="col-lg-4 col-md-12 m-b-16">
+                <mat-card class="cardWithShadow explanation-card h-100">
+                  <mat-card-content class="p-20">
+                    <div class="d-flex align-items-center m-b-12">
+                      <mat-icon class="point-icon text-primary m-r-8">schedule</mat-icon>
+                      <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.FREQUENCY.TITLE' | translate }}</h4>
+                    </div>
+                    <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.FREQUENCY.DESC' | translate }}</p>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+              
+              <div class="col-lg-4 col-md-12 m-b-16">
+                <mat-card class="cardWithShadow explanation-card h-100">
+                  <mat-card-content class="p-20">
+                    <div class="d-flex align-items-center m-b-12">
+                      <mat-icon class="point-icon text-primary m-r-8">trending_up</mat-icon>
+                      <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.LIMIT.TITLE' | translate }}</h4>
+                    </div>
+                    <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.LIMIT.DESC' | translate }}</p>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+              
+              <div class="col-lg-4 col-md-12 m-b-16">
+                <mat-card class="cardWithShadow explanation-card h-100">
+                  <mat-card-content class="p-20">
+                    <div class="d-flex align-items-center m-b-12">
+                      <mat-icon class="point-icon text-primary m-r-8">psychology</mat-icon>
+                      <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.USAGE.TITLE' | translate }}</h4>
+                    </div>
+                    <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.USAGE.DESC' | translate }}</p>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+          </section>
+
+          <mat-divider class="section-divider"></mat-divider>
+
+          <!-- Section d'action avec cartes distinctes -->
+          <section class="action-section" 
+                   role="region" 
+                   aria-labelledby="action-title" 
+                   aria-live="polite">
+            <!-- Action disponible -->
+            <div *ngIf="canClaim && !isLoading" 
+                 class="action-card can-claim" 
+                 role="group" 
+                 aria-labelledby="action-available-title">
+              <div class="action-header">
+                <mat-icon class="success-icon" 
+                          aria-hidden="true" 
+                          role="presentation">check_circle</mat-icon>
+                <h4 class="action-title f-s-16 f-w-600" 
+                    id="action-available-title" 
+                    tabindex="0">{{ 'CREDITS_REFILL.AVAILABLE.TITLE' | translate }}</h4>
+              </div>
+              
+              <p class="action-message" 
+                 aria-describedby="action-available-title">
+                {{ 'CREDITS_REFILL.AVAILABLE.MESSAGE' | translate }}
+              </p>
+              
+              <button mat-raised-button 
+                      color="primary" 
+                      class="modern-btn btn-primary claim-button"
+                      (click)="claimCredits()"
+                      type="button"
+                      matRipple
+                      [attr.aria-label]="'Récupérer 10 crédits maintenant'"
+                      [attr.aria-describedby]="'claim-description'">
+                <mat-icon aria-hidden="true">refresh</mat-icon>
+                {{ 'CREDITS_REFILL.AVAILABLE.BUTTON' | translate }}
+              </button>
+              <span id="claim-description" class="sr-only">Cliquez pour récupérer vos 10 crédits gratuits. Cette action ne peut être effectuée qu'une fois toutes les 30 jours.</span>
+            </div>
+
+            <!-- Attente requise -->
+            <div *ngIf="!canClaim && !isLoading" 
+                 class="action-card must-wait" 
+                 role="group" 
+                 aria-labelledby="action-waiting-title">
+              <div class="action-header">
+                <mat-icon class="warning-icon" 
+                          aria-hidden="true" 
+                          role="presentation">access_time</mat-icon>
+                <h4 class="action-title f-s-16 f-w-600" 
+                    id="action-waiting-title" 
+                    tabindex="0">{{ 'CREDITS_REFILL.WAITING.TITLE' | translate }}</h4>
+              </div>
+              
+              <p class="action-message" 
+                 aria-describedby="action-waiting-title">
+                {{ 'CREDITS_REFILL.WAITING.MESSAGE' | translate }}
+              </p>
+              
+              <div class="wait-details" 
+                   role="group" 
+                   aria-labelledby="countdown-info">
+                <div class="countdown-badge modern-badge badge-warning" 
+                     role="timer" 
+                     [attr.aria-label]="daysRemaining + ' jours restants avant la prochaine récupération'">
+                  <mat-icon aria-hidden="true">schedule</mat-icon>
+                  {{ daysRemaining }} {{ 'CREDITS_REFILL.WAITING.DAYS_REMAINING' | translate }}
+                </div>
+                
+                <p class="next-claim" 
+                   *ngIf="nextClaimDate" 
+                   id="countdown-info" 
+                   aria-live="polite">
+                  {{ 'CREDITS_REFILL.WAITING.NEXT_CLAIM' | translate }}: 
+                  <strong>{{ nextClaimDate | date:'dd/MM/yyyy' }}</strong>
+                </p>
+              </div>
+            </div>
+
+            <!-- État de chargement -->
+            <div *ngIf="isLoading" 
+                 class="action-card loading-state" 
+                 role="status" 
+                 aria-live="polite" 
+                 aria-labelledby="loading-title">
+              <div class="loading-content">
+                <mat-progress-spinner diameter="40" 
+                                      mode="indeterminate" 
+                                      class="modern-spinner"
+                                      aria-label="Chargement en cours"></mat-progress-spinner>
+                <p class="loading-text" 
+                   id="loading-title">{{ 'CREDITS_REFILL.LOADING' | translate }}</p>
+              </div>
+            </div>
+          </section>
+        </mat-card-content>
+      </mat-card>
+        </div>
+        
+        <div class="col-lg-4">
+      <!-- Card informative -->
+      <mat-card class="cardWithShadow theme-card info-card animate-slide-in-right">
+        <mat-card-header>
+          <mat-card-title class="info-title" 
+                          id="info-card-title" 
+                          tabindex="0">
+            <mat-icon class="info-icon" 
+                      aria-hidden="true" 
+                      role="presentation">lightbulb</mat-icon>
+            {{ 'CREDITS_REFILL.INFO.TITLE' | translate }}
+          </mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content role="complementary" 
+                          aria-labelledby="info-card-title">
+          <div class="info-content">
+            <p class="info-description" 
+               aria-describedby="info-card-title">{{ 'CREDITS_REFILL.INFO.DESCRIPTION' | translate }}</p>
+            
+            <mat-divider class="divider-light" 
+                         role="separator" 
+                         aria-hidden="true"></mat-divider>
+            
+            <section class="tips-section" 
+                     role="region" 
+                     aria-labelledby="tips-title">
+              <h4 class="tips-title" 
+                  id="tips-title" 
+                  tabindex="0">
+                <mat-icon class="tips-icon" 
+                          aria-hidden="true" 
+                          role="presentation">tips_and_updates</mat-icon>
+                {{ 'CREDITS_REFILL.INFO.TIPS.TITLE' | translate }}
+              </h4>
+              
+              <div class="tips-list" 
+                   role="list" 
+                   aria-labelledby="tips-title">
+                <div class="tip-item modern-badge badge-primary" 
+                     role="listitem" 
+                     tabindex="0">
+                  <mat-icon class="tip-icon" 
+                            aria-hidden="true" 
+                            role="presentation">star</mat-icon>
+                  {{ 'CREDITS_REFILL.INFO.TIPS.TIP1' | translate }}
+                </div>
+                <div class="tip-item modern-badge badge-secondary" 
+                     role="listitem" 
+                     tabindex="0">
+                  <mat-icon class="tip-icon" 
+                            aria-hidden="true" 
+                            role="presentation">star</mat-icon>
+                  {{ 'CREDITS_REFILL.INFO.TIPS.TIP2' | translate }}
+                </div>
+                <div class="tip-item modern-badge badge-accent" 
+                     role="listitem" 
+                     tabindex="0">
+                  <mat-icon class="tip-icon" 
+                            aria-hidden="true" 
+                            role="presentation">star</mat-icon>
+                  {{ 'CREDITS_REFILL.INFO.TIPS.TIP3' | translate }}
+                </div>
+              </div>
+            </section>
+          </div>
+        </mat-card-content>
+      </mat-card>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <!-- Card principale -->
-  <mat-card class="refill-card">
-    <mat-card-header>
-      <mat-card-title class="card-title">
-        <mat-icon class="title-icon">account_balance_wallet</mat-icon>
-        {{ 'CREDITS_REFILL.CURRENT_BALANCE' | translate }}
-      </mat-card-title>
-    </mat-card-header>
-
-    <mat-card-content>
-      <!-- Affichage des crédits actuels -->
-      <div class="current-credits-section" *ngIf="currentUser">
-        <div class="credits-display">
-          <app-credits-indicator 
-            [remaining]="getUserCredits()"
-            [total]="10"
-            size="large"
-            [showInfo]="false"
-            [showLabel]="true">
-          </app-credits-indicator>
-        </div>
-        
-        <div class="credits-status">
-          <p class="status-text">
-            {{ 'CREDITS_REFILL.CURRENT_STATUS' | translate }}: 
-            <strong>{{ getUserCredits() }}/10 {{ 'CREDITS_REFILL.CREDITS' | translate }}</strong>
-          </p>
-        </div>
-      </div>
-
-      <!-- Explication du système -->
-      <div class="explanation-section">
-        <h3 class="section-title">{{ 'CREDITS_REFILL.HOW_IT_WORKS.TITLE' | translate }}</h3>
-        
-        <div class="explanation-points">
-          <div class="point">
-            <mat-icon class="point-icon">schedule</mat-icon>
-            <div class="point-content">
-              <h4>{{ 'CREDITS_REFILL.HOW_IT_WORKS.FREQUENCY.TITLE' | translate }}</h4>
-              <p>{{ 'CREDITS_REFILL.HOW_IT_WORKS.FREQUENCY.DESC' | translate }}</p>
-            </div>
-          </div>
-          
-          <div class="point">
-            <mat-icon class="point-icon">trending_up</mat-icon>
-            <div class="point-content">
-              <h4>{{ 'CREDITS_REFILL.HOW_IT_WORKS.LIMIT.TITLE' | translate }}</h4>
-              <p>{{ 'CREDITS_REFILL.HOW_IT_WORKS.LIMIT.DESC' | translate }}</p>
-            </div>
-          </div>
-          
-          <div class="point">
-            <mat-icon class="point-icon">psychology</mat-icon>
-            <div class="point-content">
-              <h4>{{ 'CREDITS_REFILL.HOW_IT_WORKS.USAGE.TITLE' | translate }}</h4>
-              <p>{{ 'CREDITS_REFILL.HOW_IT_WORKS.USAGE.DESC' | translate }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section d'action -->
-      <div class="action-section">
-        <!-- Si l'utilisateur peut récupérer des crédits -->
-        <div *ngIf="canClaim && !isLoading" class="can-claim">
-          <div class="claim-info">
-            <mat-icon class="success-icon">check_circle</mat-icon>
-            <p class="claim-message">
-              {{ 'CREDITS_REFILL.AVAILABLE.MESSAGE' | translate }}
-            </p>
-          </div>
-          
-          <button mat-raised-button 
-                  color="primary" 
-                  class="claim-button"
-                  (click)="claimCredits()"
-                  type="button">
-            <mat-icon class="m-r-8">refresh</mat-icon>
-            {{ 'CREDITS_REFILL.AVAILABLE.BUTTON' | translate }}
-          </button>
-        </div>
-
-        <!-- Si l'utilisateur doit attendre -->
-        <div *ngIf="!canClaim && !isLoading" class="must-wait">
-          <div class="wait-info">
-            <mat-icon class="warning-icon">access_time</mat-icon>
-            <p class="wait-message">
-              {{ 'CREDITS_REFILL.WAITING.MESSAGE' | translate }}
-            </p>
-            <p class="wait-details">
-              <strong>{{ daysRemaining }} {{ 'CREDITS_REFILL.WAITING.DAYS_REMAINING' | translate }}</strong>
-            </p>
-            <p class="next-claim" *ngIf="nextClaimDate">
-              {{ 'CREDITS_REFILL.WAITING.NEXT_CLAIM' | translate }}: 
-              <strong>{{ nextClaimDate | date:'dd/MM/yyyy' }}</strong>
-            </p>
-          </div>
-        </div>
-
-        <!-- Loading state -->
-        <div *ngIf="isLoading" class="loading-state">
-          <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
-          <p class="loading-text">{{ 'CREDITS_REFILL.LOADING' | translate }}</p>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- Card informative -->
-  <mat-card class="info-card">
-    <mat-card-header>
-      <mat-card-title class="info-title">
-        <mat-icon class="info-icon">info</mat-icon>
-        {{ 'CREDITS_REFILL.INFO.TITLE' | translate }}
-      </mat-card-title>
-    </mat-card-header>
-    
-    <mat-card-content>
-      <div class="info-content">
-        <p>{{ 'CREDITS_REFILL.INFO.DESCRIPTION' | translate }}</p>
-        
-        <div class="tips">
-          <h4>{{ 'CREDITS_REFILL.INFO.TIPS.TITLE' | translate }}</h4>
-          <ul>
-            <li>{{ 'CREDITS_REFILL.INFO.TIPS.TIP1' | translate }}</li>
-            <li>{{ 'CREDITS_REFILL.INFO.TIPS.TIP2' | translate }}</li>
-            <li>{{ 'CREDITS_REFILL.INFO.TIPS.TIP3' | translate }}</li>
-          </ul>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
 </div>

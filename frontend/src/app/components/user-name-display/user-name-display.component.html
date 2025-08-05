@@ -1,0 +1,13 @@
+<!-- Nom d'utilisateur avec troncature intelligente -->
+<h4 
+  *ngIf="shouldDisplay"
+  #nameElement
+  [class]="getClasses()"
+  [ngStyle]="getInlineStyles()"
+  [matTooltip]="getTooltipMessage()"
+  [matTooltipDisabled]="!shouldShowTooltip"
+  matTooltipPosition="above"
+  [attr.aria-label]="displayName"
+  [attr.title]="shouldShowTooltip ? displayName : null">
+  {{ displayName }}
+</h4>

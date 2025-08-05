@@ -455,7 +455,9 @@
       "LOADING": "Loading datasets...",
       "ERROR_TITLE": "Loading Error",
       "TOTAL_DATASETS": "{{count}} datasets available",
-      "FILTERED": "filtered"
+      "FILTERED": "filtered",
+      "NO_DATASETS_TITLE": "No datasets available",
+      "NO_DATASETS_MESSAGE": "No datasets are currently available in the system."
     },
     "SORT": {
       "DATASET_NAME": "Name",
@@ -1316,6 +1318,7 @@
   },
   "CREDITS_REFILL": {
     "TITLE": "Credits Refill",
+    "SUBTITLE": "Get your free credits to continue using AI",
     "CURRENT_BALANCE": "Current Balance",
     "CURRENT_STATUS": "Current status",
     "CREDITS": "credits",
@@ -1336,10 +1339,12 @@
       }
     },
     "AVAILABLE": {
+      "TITLE": "Credits Available",
       "MESSAGE": "You can claim your credits now!",
       "BUTTON": "Claim 10 Credits"
     },
     "WAITING": {
+      "TITLE": "Claim on Cooldown",
       "MESSAGE": "You must wait before you can claim new credits.",
       "DAYS_REMAINING": "day(s) remaining",
       "NEXT_CLAIM": "Next claim available on"
@@ -1354,5 +1359,47 @@
         "TIP3": "Save your successful models to avoid recreating them"
       }
     }
+  },
+  "PAGE_TITLES": {
+    "DASHBOARD": "Dashboard",
+    "DATASETS": "Datasets", 
+    "DATASET_DETAIL": "Dataset details",
+    "DATASET_METADATA": "Dataset metadata",
+    "PROJECTS": "Projects",
+    "PROJECT_DETAIL": "Project details",
+    "ML_PIPELINE": "ML pipeline",
+    "ML_PIPELINE_WIZARD": "ML pipeline wizard",
+    "ML_PIPELINE_CLEANING": "Data cleaning",
+    "ML_PIPELINE_TRAINING": "Model training",
+    "ML_PIPELINE_RESULTS": "Pipeline results",
+    "PROFILE": "My profile",
+    "CREDITS_REFILL": "Credits refill",
+    "ADMIN_DASHBOARD": "Administration",
+    "ADMIN_DATASETS": "Dataset management",
+    "ADMIN_USERS": "User management",
+    "ADMIN_ETHICAL_TEMPLATES": "Ethical templates",
+    "LOGIN": "Login",
+    "REGISTER": "Register",
+    "ONBOARDING": "Initial setup",
+    "ERROR": "Error",
+    "NOT_FOUND": "Page not found",
+    "XAI_EXPLANATIONS": "XAI explanations"
+  },
+  "BREADCRUMB": {
+    "HOME": "Home",
+    "DASHBOARD": "Dashboard",
+    "DATASETS": "Datasets",
+    "DATASET_DETAIL": "Details",
+    "DATASET_METADATA": "Metadata",
+    "PROJECTS": "Projects",
+    "PROJECT_DETAIL": "Details",
+    "PROJECT_NEW": "New",
+    "PROJECT_EDIT": "Edit",
+    "ML_PIPELINE": "ML Pipeline",
+    "PROFILE": "Profile",
+    "ADMIN": "Administration",
+    "ADMIN_DATASETS": "Dataset management",
+    "ADMIN_USERS": "User management",
+    "ADMIN_ETHICAL_TEMPLATES": "Ethical templates"
   }
 }

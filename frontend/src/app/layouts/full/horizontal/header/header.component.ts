@@ -13,6 +13,7 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AuthService } from 'src/app/services/auth.service';
 import { BrandingComponent } from '../../vertical/sidebar/branding.component';
 import { UserRead } from 'src/app/models/auth.models';
+import { UserNameDisplayComponent } from 'src/app/components/user-name-display';
 // Commented out potentially problematic import
 // import { AppHorizontalSearchDialogComponent } from './search-dialog.component';
 
@@ -58,6 +59,7 @@ interface quicklinks {
     TranslateModule,
     FormsModule,
     BrandingComponent,
+    UserNameDisplayComponent,
   ],
   templateUrl: './header.component.html',
 })
@@ -178,6 +180,29 @@ export class HorizontalHeaderComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  /**
+   * Détermine si l'email doit être affiché selon sa largeur par rapport à la référence
+   */
+  shouldShowEmail(): boolean {
+    if (!this.userEmail) return false;
+    
+    // Créer un canvas pour mesurer
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) return true; // Fallback : afficher si on ne peut pas mesurer
+    
+    // Utiliser la même police que le composant (f-s-14 f-w-400)
+    const fontFamily = '"Plus Jakarta Sans", sans-serif';
+    context.font = '400 14px ' + fontFamily;
+    
+    // Mesurer les deux textes
+    const referenceWidth = context.measureText('anthonyoutub@gmail.com').width;
+    const emailWidth = context.measureText(this.userEmail).width;
+    
+    // Afficher seulement si l'email n'est pas plus large que la référence
+    return emailWidth <= referenceWidth;
   }
 
   // Commented out openDialog method to avoid compilation error

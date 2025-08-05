@@ -6,10 +6,10 @@ export const PagesRoutes: Routes = [
     path: '',
     component: StarterComponent,
     data: {
-      title: 'Dashboard IBIS-X',
+      title: 'DASHBOARD',
       urls: [
-        { title: 'Accueil', url: '/' },
-        { title: 'Dashboard IBIS-X' },
+        { title: 'BREADCRUMB.HOME', url: '/' },
+        { title: 'BREADCRUMB.DASHBOARD' },
       ],
     },
   },

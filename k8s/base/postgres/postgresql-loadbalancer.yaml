@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-loadbalancer
+  namespace: ibis-x
+  labels:
+    app: postgresql
+    service-type: external
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: postgresql
+  selector:
+    app: postgresql
+  # Optionnel : Spécifier une IP statique si disponible
+  # loadBalancerIP: "YOUR_STATIC_IP"

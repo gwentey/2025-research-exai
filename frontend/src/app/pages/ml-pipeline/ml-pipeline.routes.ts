@@ -8,7 +8,7 @@ export const ML_PIPELINE_ROUTES: Routes = [
     path: '',
     component: MlPipelineDashboardComponent,
     data: {
-      title: 'ML Pipeline',
+      title: 'ML_PIPELINE',
       breadcrumb: [
         {
           label: 'Projets',
@@ -25,7 +25,7 @@ export const ML_PIPELINE_ROUTES: Routes = [
     path: 'ml-studio',
     component: MlStudioComponent,
     data: {
-      title: 'ML Studio',
+      title: 'ML_PIPELINE',
       breadcrumb: [
         {
           label: 'Projets',
@@ -46,7 +46,7 @@ export const ML_PIPELINE_ROUTES: Routes = [
     path: 'wizard',
     component: MlPipelineWizardComponent,
     data: {
-      title: 'ML Pipeline Wizard (Legacy)',
+      title: 'ML_PIPELINE_WIZARD',
       breadcrumb: [
         {
           label: 'Projets',
@@ -67,7 +67,7 @@ export const ML_PIPELINE_ROUTES: Routes = [
     path: 'experiment/:id',
     loadComponent: () => import('./experiment-results/experiment-results.component').then(m => m.ExperimentResultsComponent),
     data: {
-      title: 'Résultats d\'Expérience',
+      title: 'ML_PIPELINE_RESULTS',
       breadcrumb: [
         {
           label: 'Projets',
@@ -88,7 +88,7 @@ export const ML_PIPELINE_ROUTES: Routes = [
     path: 'experiments',
     loadComponent: () => import('./experiments-list/experiments-list.component').then(m => m.ExperimentsListComponent),
     data: {
-      title: 'Toutes les Expériences',
+      title: 'ML_PIPELINE',
       breadcrumb: [
         {
           label: 'Projets',

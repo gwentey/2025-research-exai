@@ -46,7 +46,11 @@
             onerror="this.src='/assets/images/profile/user5.jpg';"
           />
           <div class="m-l-16">
-            <h4 class="f-w-600">{{ userDisplayName }}</h4>
+            <app-user-name-display 
+              [displayName]="userDisplayName"
+              [maxWidth]="126"
+              baseClass="f-w-600">
+            </app-user-name-display>
             <span class="f-s-12">{{ userRole }}</span>
           </div>
           <div class="m-l-auto">
@@ -97,7 +101,11 @@
           onerror="this.src='/assets/images/profile/user5.jpg';"
         />
         <div class="m-l-16">
-          <h4 class="f-w-600">{{ userDisplayName }}</h4>
+          <app-user-name-display 
+            [displayName]="userDisplayName"
+            [maxWidth]="110"
+            baseClass="f-w-600">
+          </app-user-name-display>
           <span class="f-s-12">{{ userRole }}</span>
         </div>
         <div class="m-l-auto">

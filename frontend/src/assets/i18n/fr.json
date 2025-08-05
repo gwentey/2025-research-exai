@@ -455,7 +455,9 @@
       "LOADING": "Chargement des jeux de données...",
       "ERROR_TITLE": "Erreur de chargement",
       "TOTAL_DATASETS": "{{count}} jeux de données disponibles",
-      "FILTERED": "filtrés"
+      "FILTERED": "filtrés",
+      "NO_DATASETS_TITLE": "Aucun jeu de données disponible",
+      "NO_DATASETS_MESSAGE": "Aucun jeu de données n'est actuellement disponible dans le système."
     },
     "SORT": {
       "DATASET_NAME": "Nom",
@@ -1337,6 +1339,7 @@
   },
   "CREDITS_REFILL": {
     "TITLE": "Recharge de crédits",
+    "SUBTITLE": "Récupérez vos crédits gratuits pour continuer à utiliser l'IA",
     "CURRENT_BALANCE": "Solde actuel",
     "CURRENT_STATUS": "Statut actuel",
     "CREDITS": "crédits",
@@ -1357,10 +1360,12 @@
       }
     },
     "AVAILABLE": {
+      "TITLE": "Crédits disponibles",
       "MESSAGE": "Vous pouvez récupérer vos crédits maintenant !",
       "BUTTON": "Récupérer 10 crédits"
     },
     "WAITING": {
+      "TITLE": "Récupération en attente",
       "MESSAGE": "Vous devez attendre avant de pouvoir récupérer de nouveaux crédits.",
       "DAYS_REMAINING": "jour(s) restant(s)",
       "NEXT_CLAIM": "Prochaine récupération possible le"
@@ -1375,5 +1380,47 @@
         "TIP3": "Sauvegardez vos modèles réussis pour éviter de les recréer"
       }
     }
+  },
+  "PAGE_TITLES": {
+    "DASHBOARD": "Tableau de bord",
+    "DATASETS": "Jeux de données", 
+    "DATASET_DETAIL": "Détail du dataset",
+    "DATASET_METADATA": "Métadonnées du dataset",
+    "PROJECTS": "Projets",
+    "PROJECT_DETAIL": "Détail du projet",
+    "ML_PIPELINE": "Pipeline ML",
+    "ML_PIPELINE_WIZARD": "Assistant Pipeline ML",
+    "ML_PIPELINE_CLEANING": "Nettoyage des données",
+    "ML_PIPELINE_TRAINING": "Entraînement du modèle",
+    "ML_PIPELINE_RESULTS": "Résultats du pipeline",
+    "PROFILE": "Mon profil",
+    "CREDITS_REFILL": "Recharge de crédits",
+    "ADMIN_DASHBOARD": "Administration",
+    "ADMIN_DATASETS": "Gestion des datasets",
+    "ADMIN_USERS": "Gestion des utilisateurs",
+    "ADMIN_ETHICAL_TEMPLATES": "Templates éthiques",
+    "LOGIN": "Connexion",
+    "REGISTER": "Inscription",
+    "ONBOARDING": "Configuration initiale",
+    "ERROR": "Erreur",
+    "NOT_FOUND": "Page non trouvée",
+    "XAI_EXPLANATIONS": "Explications XAI"
+  },
+  "BREADCRUMB": {
+    "HOME": "Accueil",
+    "DASHBOARD": "Tableau de bord",
+    "DATASETS": "Jeux de données",
+    "DATASET_DETAIL": "Détail",
+    "DATASET_METADATA": "Métadonnées",
+    "PROJECTS": "Projets",
+    "PROJECT_DETAIL": "Détail",
+    "PROJECT_NEW": "Nouveau",
+    "PROJECT_EDIT": "Modifier",
+    "ML_PIPELINE": "Pipeline ML",
+    "PROFILE": "Profil",
+    "ADMIN": "Administration",
+    "ADMIN_DATASETS": "Gestion des datasets",
+    "ADMIN_USERS": "Gestion des utilisateurs",
+    "ADMIN_ETHICAL_TEMPLATES": "Templates éthiques"
   }
 }

@@ -11,10 +11,10 @@ export const AdminRoutes: Routes = [
     component: AdminDashboardComponent,
     canActivate: [adminGuard],
     data: {
-      title: 'Administration',
+      title: 'ADMIN_DASHBOARD',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Administration' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.ADMIN' },
       ],
     },
   },
@@ -23,11 +23,11 @@ export const AdminRoutes: Routes = [
     component: DatasetManagementComponent,
     canActivate: [adminGuard],
     data: {
-      title: 'Gestion des Datasets',
+      title: 'ADMIN_DATASETS',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Administration', url: '/admin' },
-        { title: 'Gestion des Datasets' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.ADMIN', url: '/admin' },
+        { title: 'BREADCRUMB.ADMIN_DATASETS' },
       ],
     },
   },
@@ -36,11 +36,11 @@ export const AdminRoutes: Routes = [
     component: UserManagementComponent,
     canActivate: [adminGuard],
     data: {
-      title: 'Gestion des Utilisateurs',
+      title: 'ADMIN_USERS',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Administration', url: '/admin' },
-        { title: 'Gestion des Utilisateurs' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.ADMIN', url: '/admin' },
+        { title: 'BREADCRUMB.ADMIN_USERS' },
       ],
     },
   },
@@ -49,11 +49,11 @@ export const AdminRoutes: Routes = [
     component: EthicalTemplatesComponent,
     canActivate: [adminGuard],
     data: {
-      title: 'Templates Éthiques',
+      title: 'ADMIN_ETHICAL_TEMPLATES',
       urls: [
-        { title: 'Accueil', url: '/starter' },
-        { title: 'Administration', url: '/admin' },
-        { title: 'Templates Éthiques' },
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.ADMIN', url: '/admin' },
+        { title: 'BREADCRUMB.ADMIN_ETHICAL_TEMPLATES' },
       ],
     },
   },
