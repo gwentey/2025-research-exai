@@ -14,11 +14,11 @@ $header-height: 70px !default;
 $borderColor: var(--mat-sys-outline-variant);
 $borderformColor: var(--mat-sys-outline-variant);
 
-// custom
-$primary: var(--mat-sys-primary);
-$secondary: var(--mat-sys-secondary);
-$accent: var(--mat-sys-secondary);
-$error: var(--mat-sys-error);
+// custom - Couleurs Sorbonne forcées
+$primary: #242e54; // Bleu Sorbonne principal
+$secondary: #9d876a; // Beige Sorbonne
+$accent: #9d876a; // Beige Sorbonne pour accent
+$error: #ef4444; // Rouge d'erreur
 $warning: #f8c076;
 $success: #4bd08b;
 $white: #ffffff;

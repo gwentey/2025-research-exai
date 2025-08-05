@@ -5,10 +5,10 @@
 // ==================================================
 
 :root {
-  // Couleurs modernes
-  --color-primary: #6366f1;
-  --color-primary-light: #818cf8;
-  --color-primary-dark: #4f46e5;
+  // Couleurs modernes - Palette Sorbonne
+  --color-primary: #242e54;
+  --color-primary-light: #3d4b7d;
+  --color-primary-dark: #1a2040;
   --color-secondary: #10b981;
   --color-accent: #f59e0b;
   --color-success: #22c55e;
@@ -96,7 +96,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.03) 1px, transparent 0);
+    background-image: radial-gradient(circle at 1px 1px, rgba(36, 46, 84, 0.03) 1px, transparent 0);
     background-size: 24px 24px;
     pointer-events: none;
     z-index: 1;
@@ -136,12 +136,12 @@
     .logo-icon-sidebar {
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+              background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
       border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+      box-shadow: 0 8px 24px rgba(36, 46, 84, 0.25);
       
       mat-icon {
         color: white;
@@ -203,15 +203,15 @@
           }
           
           &.active {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(36, 46, 84, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
             border-color: var(--color-primary);
             color: var(--color-primary);
-            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+            box-shadow: 0 8px 32px rgba(36, 46, 84, 0.15);
             
             .step-icon-nav {
               background: var(--color-primary);
               color: white;
-              box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+              box-shadow: 0 8px 24px rgba(36, 46, 84, 0.3);
             }
             
             .step-text-nav {
@@ -222,7 +222,7 @@
             .step-number-nav {
               background: var(--color-primary);
               color: white;
-              box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+              box-shadow: 0 4px 12px rgba(36, 46, 84, 0.3);
             }
           }
           
@@ -314,11 +314,11 @@
         
         .progress-bar-fill {
           height: 100%;
-          background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+          background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
           border-radius: var(--radius-full);
           transition: width var(--transition-smooth);
           position: relative;
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+          box-shadow: 0 2px 8px rgba(36, 46, 84, 0.3);
           
           &::after {
             content: '';
@@ -734,7 +734,7 @@
                 border-color: var(--color-primary);
                 color: var(--text-inverse);
                 transform: scale(1.1);
-                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+                box-shadow: 0 0 0 4px rgba(36, 46, 84, 0.2);
               }
             }
             
@@ -815,7 +815,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-lg);
-    border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    border-bottom: 1px solid rgba(36, 46, 84, 0.1);
     position: relative;
     z-index: 2;
     
@@ -827,7 +827,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3), 0 4px 16px rgba(99, 102, 241, 0.2);
+      box-shadow: 0 8px 32px rgba(36, 46, 84, 0.3), 0 4px 16px rgba(36, 46, 84, 0.2);
       flex-shrink: 0;
       position: relative;
       transition: all var(--transition-smooth);
@@ -954,7 +954,7 @@
       font-size: 1rem;
       font-weight: 700;
       color: var(--color-primary);
-      background: rgba(99, 102, 241, 0.1);
+      background: rgba(36, 46, 84, 0.1);
       padding: var(--space-xs) var(--space-sm);
       border-radius: var(--radius-sm);
     }
@@ -978,7 +978,7 @@
       &:focus {
         outline: none;
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        box-shadow: 0 0 0 3px rgba(36, 46, 84, 0.1);
       }
       
       &:hover {
@@ -1034,7 +1034,7 @@
     &.selected {
       .radio-card-content {
         border-color: var(--color-primary);
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(129, 140, 248, 0.05) 100%);
+        background: linear-gradient(135deg, rgba(36, 46, 84, 0.05) 0%, rgba(129, 140, 248, 0.05) 100%);
         box-shadow: var(--shadow-lg);
       }
       
@@ -1373,7 +1373,7 @@
 
         &.selected {
         border-color: var(--color-primary);
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(129, 140, 248, 0.05) 100%);
+        background: linear-gradient(135deg, rgba(36, 46, 84, 0.05) 0%, rgba(129, 140, 248, 0.05) 100%);
         box-shadow: var(--shadow-lg);
         
         .radio-button.checked {
@@ -1526,7 +1526,7 @@
           height: 40px;
           font-size: 20px;
           color: var(--color-primary);
-          background: rgba(99, 102, 241, 0.1);
+          background: rgba(36, 46, 84, 0.1);
           border-radius: var(--radius-md);
           display: flex;
           align-items: center;
@@ -1616,7 +1616,7 @@
   &:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px rgba(36, 46, 84, 0.1);
   }
   
   &:hover {
@@ -1671,7 +1671,7 @@
 
       &.selected {
       border-color: var(--color-primary);
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(129, 140, 248, 0.05) 100%);
+      background: linear-gradient(135deg, rgba(36, 46, 84, 0.05) 0%, rgba(129, 140, 248, 0.05) 100%);
       box-shadow: var(--shadow-xl);
       
       &::before {
@@ -2117,7 +2117,7 @@
             background: var(--color-primary);
             border-color: var(--color-primary);
             transform: scale(1.1);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 0 0 4px rgba(36, 46, 84, 0.2);
             
             .dot-number {
               color: var(--text-inverse);
@@ -2255,7 +2255,7 @@
       left: -50%;
       width: 200%;
       height: 200%;
-      background: conic-gradient(from 0deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+      background: conic-gradient(from 0deg, transparent, rgba(36, 46, 84, 0.1), transparent);
       animation: rotate 8s linear infinite;
       pointer-events: none;
     }
@@ -2288,7 +2288,7 @@
             background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
             border-radius: var(--radius-full);
             animation: neuralPulse 2s ease-in-out infinite;
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 30px rgba(36, 46, 84, 0.6);
           }
           
           .data-flows {

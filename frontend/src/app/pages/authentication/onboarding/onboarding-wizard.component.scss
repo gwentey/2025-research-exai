@@ -1,11 +1,39 @@
 @use '/src/assets/scss/variables';
 
-// Conteneur principal avec fond animé
+// Palette de couleurs Sorbonne ENRICHIE ET VIVANTE pour l'onboarding
+:root {
+  --sorbonne-primary: #242e54;        // Bleu Sorbonne principal
+  --sorbonne-primary-vivid: #2d3a67;  // Bleu Sorbonne plus vif
+  --sorbonne-primary-bright: #4a5a94; // Bleu Sorbonne lumineux
+  --sorbonne-primary-light: #3d4b7d;  // Variante claire
+  --sorbonne-primary-dark: #1a2040;   // Variante foncée
+  
+  --sorbonne-secondary: #9d876a;      // Beige Sorbonne principal
+  --sorbonne-gold-warm: #c4a676;      // Doré chaud et riche
+  --sorbonne-bronze: #b08d57;         // Bronze élégant
+  --sorbonne-cream: #e8d5b7;          // Crème dorée
+  --sorbonne-terracotta: #a67c52;     // Terracotta subtil
+  
+  --sorbonne-accent: #d4c4a8;         // Ton clair pour arrière-plans
+  --sorbonne-success: #4bd08b;        // Vert pour succès
+}
+
+// Conteneur principal avec fond animé Sorbonne VIVANT
 .blank-layout-container {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, 
+    var(--sorbonne-primary) 0%, 
+    var(--sorbonne-primary-vivid) 25%,
+    var(--sorbonne-primary-bright) 50%,
+    var(--sorbonne-bronze) 75%,
+    var(--sorbonne-gold-warm) 100%
+  );
+  background-size: 200% 200%;
   overflow: hidden;
+  
+  // Animation subtile du fond pour plus de vie
+  animation: gradient-shift 20s ease-in-out infinite;
 }
 
 // Carte d'onboarding
@@ -27,15 +55,16 @@
   margin: 0 auto;
 }
 
-// Barre de progression
+// Barre de progression Sorbonne
 .progress-container {
   .onboarding-progress {
     height: 8px;
     border-radius: 4px;
-    background-color: rgba(103, 58, 183, 0.1);
+    background-color: rgba(36, 46, 84, 0.15);
     
     .mdc-linear-progress__bar {
       border-radius: 4px;
+      background-color: var(--sorbonne-primary);
     }
   }
   
@@ -62,7 +91,7 @@
   }
 }
 
-// En-tête des étapes
+// En-tête des étapes avec style Sorbonne
 .step-header {
   text-align: center;
   
@@ -70,14 +99,15 @@
     font-size: 48px;
     width: 48px;
     height: 48px;
-    color: #673ab7;
+    color: var(--sorbonne-primary);
     margin-bottom: 16px;
+    filter: drop-shadow(0 2px 4px rgba(36, 46, 84, 0.2));
   }
   
   .step-title {
     font-size: 24px;
     font-weight: 600;
-    color: #333;
+    color: var(--sorbonne-primary-dark);
     margin-bottom: 8px;
   }
   
@@ -89,20 +119,25 @@
   }
 }
 
-// Contenu de l'introduction
+// Contenu de l'introduction avec style Sorbonne élégant
 .intro-content {
   .welcome-icon {
     .welcome-icon-large {
       font-size: 64px;
       width: 64px;
       height: 64px;
-      color: #673ab7;
+      color: var(--sorbonne-primary);
       animation: wave 2s ease-in-out infinite;
+      filter: drop-shadow(0 4px 8px rgba(36, 46, 84, 0.3));
     }
   }
   
   .welcome-title {
-    background: linear-gradient(135deg, #673ab7, #9c27b0);
+    background: linear-gradient(135deg, 
+      var(--sorbonne-primary) 0%, 
+      var(--sorbonne-primary-light) 50%, 
+      var(--sorbonne-secondary) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -131,23 +166,27 @@
       gap: 12px;
       padding: 20px 16px;
       border-radius: 12px;
-      background: rgba(103, 58, 183, 0.05);
-      border: 1px solid rgba(103, 58, 183, 0.1);
+      background: rgba(36, 46, 84, 0.05);
+      border: 1px solid rgba(36, 46, 84, 0.1);
       transition: all 0.3s ease;
       flex: 1;
       min-height: 100px;
       
       &:hover {
         transform: translateY(-2px);
-        background: rgba(103, 58, 183, 0.1);
-        border-color: rgba(103, 58, 183, 0.2);
+        background: linear-gradient(135deg, 
+          rgba(36, 46, 84, 0.08) 0%, 
+          rgba(157, 135, 106, 0.05) 100%
+        );
+        border-color: var(--sorbonne-secondary-light);
+        box-shadow: 0 4px 12px rgba(36, 46, 84, 0.15);
       }
       
       .feature-icon {
         font-size: 28px;
         width: 28px;
         height: 28px;
-        color: #673ab7;
+        color: var(--sorbonne-secondary);
         margin-bottom: 4px;
       }
       
@@ -162,17 +201,18 @@
   }
 }
 
-// Formulaires des étapes
+// Formulaires des étapes avec style Sorbonne
 .step-form {
   .mat-mdc-form-field {
     margin-bottom: 16px;
     
     .mdc-notched-outline {
-      border-color: rgba(103, 58, 183, 0.3);
+      border-color: rgba(36, 46, 84, 0.3);
     }
     
     &.mat-focused .mdc-notched-outline {
-      border-color: #673ab7;
+      border-color: var(--sorbonne-primary);
+      box-shadow: 0 0 0 2px rgba(36, 46, 84, 0.1);
     }
   }
   
@@ -201,31 +241,47 @@
       margin-right: 8px;
     }
     
-    // Styles spécifiques pour le spinner de chargement
-    mat-spinner {
-      margin-right: 8px;
+    // Contenu du bouton avec alignement parfait
+    .button-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 20px; // Pour éviter les changements de hauteur
+      
+      mat-spinner {
+        // Pas de marge supplémentaire, le gap gère l'espacement
+      }
+      
+      span {
+        // S'assurer que le texte est centré verticalement
+        line-height: 1;
+      }
     }
   }
 }
 
-// Indicateur d'étapes (dots)
+// Indicateur d'étapes (dots) - Couleur Sorbonne #242e54
 .steps-indicator {
   .step-dot {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background-color: rgba(103, 58, 183, 0.3);
+    background-color: rgba(36, 46, 84, 0.3);
     margin: 0 6px;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(36, 46, 84, 0.1);
     
     &.active {
-      background-color: #673ab7;
+      background-color: #242e54 !important;
       transform: scale(1.2);
+      box-shadow: 0 4px 8px rgba(36, 46, 84, 0.4);
     }
     
     &.completed {
-      background-color: #4caf50;
+      background-color: #242e54 !important;
       position: relative;
+      box-shadow: 0 4px 8px rgba(36, 46, 84, 0.4);
       
       &::after {
         content: '✓';
@@ -255,7 +311,7 @@
   }
 }
 
-// Fond avec bulles animées
+// Fond avec bulles animées Sorbonne
 .bubble-background {
   position: fixed;
   top: 0;
@@ -270,57 +326,104 @@
 .bubble {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
   animation: float 15s infinite ease-in-out;
   
+  // GRANDE BULLE 1 - Doré riche
   &.bubble-1 {
     width: 80px;
     height: 80px;
     left: 10%;
     top: 20%;
     animation-delay: 0s;
+    background: linear-gradient(135deg, 
+      rgba(196, 166, 118, 0.4) 0%,    // Doré chaud
+      rgba(232, 213, 183, 0.3) 50%,   // Crème dorée
+      rgba(212, 196, 168, 0.25) 100%  // Accent clair
+    );
+    border: 2px solid rgba(196, 166, 118, 0.3);
+    box-shadow: 0 8px 32px rgba(196, 166, 118, 0.2);
   }
   
+  // GRANDE BULLE 2 - Bleu Sorbonne vif
   &.bubble-2 {
     width: 60px;
     height: 60px;
     left: 80%;
     top: 10%;
     animation-delay: -2s;
+    background: linear-gradient(135deg, 
+      rgba(45, 58, 103, 0.35) 0%,     // Bleu vif
+      rgba(74, 90, 148, 0.3) 50%,     // Bleu lumineux
+      rgba(61, 75, 125, 0.25) 100%    // Bleu intermédiaire
+    );
+    border: 2px solid rgba(45, 58, 103, 0.4);
+    box-shadow: 0 8px 32px rgba(45, 58, 103, 0.25);
   }
   
+  // BULLE MOYENNE 3 - Bronze élégant
   &.bubble-3 {
     width: 100px;
     height: 100px;
     left: 20%;
     top: 60%;
     animation-delay: -4s;
+    background: linear-gradient(135deg, 
+      rgba(176, 141, 87, 0.4) 0%,     // Bronze
+      rgba(166, 124, 82, 0.3) 50%,    // Terracotta
+      rgba(157, 135, 106, 0.3) 100%   // Beige Sorbonne
+    );
+    border: 2px solid rgba(176, 141, 87, 0.35);
+    box-shadow: 0 12px 40px rgba(176, 141, 87, 0.2);
   }
   
+  // PETITE BULLE 4 - Crème vivante
   &.bubble-4 {
     width: 40px;
     height: 40px;
     left: 70%;
     top: 70%;
     animation-delay: -6s;
+    background: linear-gradient(135deg, 
+      rgba(232, 213, 183, 0.45) 0%,   // Crème dorée
+      rgba(212, 196, 168, 0.35) 50%,  // Accent clair
+      rgba(255, 255, 255, 0.25) 100%  // Blanc nacré
+    );
+    border: 1px solid rgba(232, 213, 183, 0.4);
+    box-shadow: 0 6px 24px rgba(232, 213, 183, 0.2);
   }
   
+  // TRÈS GRANDE BULLE 5 - Mix harmonieux
   &.bubble-5 {
     width: 120px;
     height: 120px;
     left: 5%;
     top: 80%;
     animation-delay: -8s;
+    background: linear-gradient(135deg, 
+      rgba(36, 46, 84, 0.3) 0%,       // Bleu Sorbonne principal
+      rgba(176, 141, 87, 0.35) 35%,   // Bronze
+      rgba(196, 166, 118, 0.4) 70%,   // Doré chaud
+      rgba(232, 213, 183, 0.3) 100%   // Crème dorée
+    );
+    border: 2px solid rgba(176, 141, 87, 0.3);
+    box-shadow: 0 16px 48px rgba(176, 141, 87, 0.15);
   }
   
+  // BULLE MOYENNE 6 - Terracotta subtil
   &.bubble-6 {
     width: 50px;
     height: 50px;
     left: 90%;
     top: 50%;
     animation-delay: -10s;
+    background: linear-gradient(135deg, 
+      rgba(166, 124, 82, 0.4) 0%,     // Terracotta
+      rgba(157, 135, 106, 0.35) 50%,  // Beige Sorbonne
+      rgba(184, 160, 130, 0.3) 100%   // Beige clair
+    );
+    border: 1px solid rgba(166, 124, 82, 0.35);
+    box-shadow: 0 8px 28px rgba(166, 124, 82, 0.2);
   }
 }
 
@@ -356,6 +459,22 @@
   }
   75% {
     transform: rotate(-10deg);
+  }
+}
+
+// Animation du fond pour plus de vie
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 100%;
   }
 }
 

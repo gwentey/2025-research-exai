@@ -57,56 +57,39 @@
                 </app-credits-indicator>
               </div>
             </div>
-          </section>
-
-          <mat-divider class="section-divider"></mat-divider>
-
-          <!-- Section d'explication avec cartes -->
-          <section class="explanation-section" 
-                   role="region" 
-                   aria-labelledby="how-it-works-title">
-            <div class="explanation-header">
-              <h3 class="section-title" id="how-it-works-title">
-                <mat-icon class="section-icon" aria-hidden="true">help_outline</mat-icon>
-                {{ 'CREDITS_REFILL.HOW_IT_WORKS.TITLE' | translate }}
-              </h3>
-            </div>
             
-            <div class="row explanation-cards">
-              <div class="col-lg-4 col-md-12 m-b-16">
-                <mat-card class="cardWithShadow explanation-card h-100">
-                  <mat-card-content class="p-20">
-                    <div class="d-flex align-items-center m-b-12">
-                      <mat-icon class="point-icon text-primary m-r-8">schedule</mat-icon>
-                      <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.FREQUENCY.TITLE' | translate }}</h4>
+            <!-- Section informations de claim -->
+            <div class="claim-info-section m-t-20">
+              <div class="claim-info-card">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="info-item">
+                    <mat-icon class="info-icon text-muted">history</mat-icon>
+                    <div class="info-content">
+                      <span class="info-label">{{ 'CREDITS_REFILL.LAST_CLAIM' | translate }}</span>
+                      <span class="info-value" [class.text-muted]="!currentUser.date_claim">
+                        {{ formatClaimDate(currentUser.date_claim) }}
+                      </span>
                     </div>
-                    <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.FREQUENCY.DESC' | translate }}</p>
-                  </mat-card-content>
-                </mat-card>
-              </div>
-              
-              <div class="col-lg-4 col-md-12 m-b-16">
-                <mat-card class="cardWithShadow explanation-card h-100">
-                  <mat-card-content class="p-20">
-                    <div class="d-flex align-items-center m-b-12">
-                      <mat-icon class="point-icon text-primary m-r-8">trending_up</mat-icon>
-                      <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.LIMIT.TITLE' | translate }}</h4>
+                  </div>
+                  
+                  <div class="info-item" *ngIf="!canClaim && daysRemaining > 0">
+                    <mat-icon class="info-icon text-warning">schedule</mat-icon>
+                    <div class="info-content">
+                      <span class="info-label">{{ 'CREDITS_REFILL.NEXT_AVAILABLE' | translate }}</span>
+                      <span class="info-value text-warning">
+                        {{ 'CREDITS_REFILL.IN_DAYS' | translate: {days: daysRemaining} }}
+                      </span>
                     </div>
-                    <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.LIMIT.DESC' | translate }}</p>
-                  </mat-card-content>
-                </mat-card>
-              </div>
-              
-              <div class="col-lg-4 col-md-12 m-b-16">
-                <mat-card class="cardWithShadow explanation-card h-100">
-                  <mat-card-content class="p-20">
-                    <div class="d-flex align-items-center m-b-12">
-                      <mat-icon class="point-icon text-primary m-r-8">psychology</mat-icon>
-                      <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.USAGE.TITLE' | translate }}</h4>
+                  </div>
+                  
+                  <div class="info-item" *ngIf="canClaim">
+                    <mat-icon class="info-icon text-success">check_circle</mat-icon>
+                    <div class="info-content">
+                      <span class="info-label">{{ 'CREDITS_REFILL.STATUS' | translate }}</span>
+                      <span class="info-value text-success">{{ 'CREDITS_REFILL.AVAILABLE_NOW' | translate }}</span>
                     </div>
-                    <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.USAGE.DESC' | translate }}</p>
-                  </mat-card-content>
-                </mat-card>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -148,7 +131,7 @@
                 <mat-icon aria-hidden="true">refresh</mat-icon>
                 {{ 'CREDITS_REFILL.AVAILABLE.BUTTON' | translate }}
               </button>
-              <span id="claim-description" class="sr-only">Cliquez pour récupérer vos 10 crédits gratuits. Cette action ne peut être effectuée qu'une fois toutes les 30 jours.</span>
+              <span id="claim-description" class="sr-only">Cliquez pour récupérer vos 10 crédits gratuits. Cette action ne peut être effectuée qu'une fois tous les 7 jours.</span>
             </div>
 
             <!-- Attente requise -->
@@ -279,7 +262,60 @@
         </mat-card-content>
       </mat-card>
         </div>
+        
+        <!-- Section Comment ça fonctionne - Déplacée en bas -->
+        <div class="col-12">
+          <mat-card class="cardWithShadow theme-card m-t-24">
+            <mat-card-header>
+              <mat-card-title class="card-title">
+                <mat-icon class="title-icon">help_outline</mat-icon>
+                {{ 'CREDITS_REFILL.HOW_IT_WORKS.TITLE' | translate }}
+              </mat-card-title>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="row explanation-cards">
+                <div class="col-lg-4 col-md-12 m-b-16">
+                  <mat-card class="cardWithShadow explanation-card h-100">
+                    <mat-card-content class="p-20">
+                      <div class="d-flex align-items-center m-b-12">
+                        <mat-icon class="point-icon text-primary m-r-8">schedule</mat-icon>
+                        <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.FREQUENCY.TITLE' | translate }}</h4>
+                      </div>
+                      <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.FREQUENCY.DESC' | translate }}</p>
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+                
+                <div class="col-lg-4 col-md-12 m-b-16">
+                  <mat-card class="cardWithShadow explanation-card h-100">
+                    <mat-card-content class="p-20">
+                      <div class="d-flex align-items-center m-b-12">
+                        <mat-icon class="point-icon text-primary m-r-8">trending_up</mat-icon>
+                        <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.LIMIT.TITLE' | translate }}</h4>
+                      </div>
+                      <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.LIMIT.DESC' | translate }}</p>
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+                
+                <div class="col-lg-4 col-md-12 m-b-16">
+                  <mat-card class="cardWithShadow explanation-card h-100">
+                    <mat-card-content class="p-20">
+                      <div class="d-flex align-items-center m-b-12">
+                        <mat-icon class="point-icon text-primary m-r-8">psychology</mat-icon>
+                        <h4 class="f-w-600 m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.USAGE.TITLE' | translate }}</h4>
+                      </div>
+                      <p class="text-muted m-0">{{ 'CREDITS_REFILL.HOW_IT_WORKS.USAGE.DESC' | translate }}</p>
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
       </div>
     </div>
   </div>
 </div>
+

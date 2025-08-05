@@ -78,7 +78,7 @@
         font-size: 48px;
         width: 48px;
         height: 48px;
-        color: #6366f1;
+        color: #242e54;
         
         &.animate-spin {
           animation: spin 2s linear infinite;
@@ -109,7 +109,7 @@
       
       .progress-bar {
         height: 100%;
-        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+        background: linear-gradient(90deg, #242e54 0%, #8b5cf6 100%);
         border-radius: 2px;
         animation: progress 2s ease-in-out infinite;
       }
@@ -502,7 +502,7 @@
         gap: 1rem;
         
         .step-icon {
-          color: #6366f1;
+          color: #242e54;
           font-size: 1.75rem !important;
           width: 1.75rem !important;
           height: 1.75rem !important;
@@ -659,7 +659,7 @@
         justify-content: center;
               width: 4rem;
               height: 4rem;
-              background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+              background: linear-gradient(135deg, #242e54 0%, #8b5cf6 100%);
               border-radius: 1rem;
               flex-shrink: 0;
               
@@ -810,7 +810,7 @@
   }
   
   &.selected {
-    border-color: #6366f1;
+    border-color: #242e54;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
     box-shadow: 0 16px 40px rgba(99, 102, 241, 0.15), 0 8px 24px rgba(99, 102, 241, 0.1), 0 4px 12px rgba(99, 102, 241, 0.05);
   }
@@ -1014,8 +1014,8 @@
           }
           
           &.active {
-            background: #6366f1;
-            border-color: #6366f1;
+            background: #242e54;
+            border-color: #242e54;
       transform: scale(1.1);
       
             .dot-number {
@@ -1075,7 +1075,7 @@
       }
       
       &.primary {
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        background: linear-gradient(135deg, #242e54 0%, #8b5cf6 100%);
         color: white;
         box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
         
@@ -1356,7 +1356,7 @@
       width: 48px;
       height: 48px;
       border: 3px solid var(--color-gray-200, #e5e7eb);
-      border-top: 3px solid var(--color-primary, #6366f1);
+      border-top: 3px solid var(--color-primary, #242e54);
       border-radius: var(--radius-full, 50%);
       animation: spin 1s linear infinite;
       margin: 0 auto var(--space-lg, 24px);
@@ -5413,7 +5413,7 @@
     gap: 20px;
 
     .intro-icon {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      background: linear-gradient(135deg, #1a2040 0%, #7c3aed 100%);
       color: white;
       width: 60px;
       height: 60px;
@@ -5471,7 +5471,7 @@
     border-bottom: 1px solid #e2e8f0;
 
     .feature-icon {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      background: linear-gradient(135deg, #1a2040 0%, #7c3aed 100%);
       color: white;
       width: 48px;
       height: 48px;
@@ -5585,7 +5585,7 @@
   }
 
   &.selected {
-    border-color: #4f46e5;
+    border-color: #1a2040;
     background: linear-gradient(135deg, #fafbff 0%, #f1f5ff 100%);
     box-shadow: 0 4px 20px rgba(79, 70, 229, 0.2);
   }
@@ -5605,7 +5605,7 @@
     margin-bottom: 16px;
 
     mat-icon {
-      color: #4f46e5;
+      color: #1a2040;
       font-size: 20px;
       width: 20px;
       height: 20px;
@@ -5722,7 +5722,7 @@
   }
 
   &.selected {
-    border-color: #4f46e5;
+    border-color: #1a2040;
     background: linear-gradient(135deg, #fafbff 0%, #f1f5ff 100%);
     box-shadow: 0 4px 20px rgba(79, 70, 229, 0.2);
   }
@@ -5734,7 +5734,7 @@
     margin-bottom: 16px;
 
     mat-icon {
-      color: #4f46e5;
+      color: #1a2040;
       font-size: 20px;
       width: 20px;
       height: 20px;
@@ -5893,7 +5893,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+    background: linear-gradient(90deg, #1a2040 0%, #7c3aed 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -5916,7 +5916,7 @@
     margin-bottom: 20px;
 
     .param-icon {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      background: linear-gradient(135deg, #1a2040 0%, #7c3aed 100%);
       color: white;
       width: 48px;
       height: 48px;
@@ -5959,7 +5959,7 @@
       height: 20px;
 
       &:hover {
-        color: #4f46e5;
+        color: #1a2040;
       }
     }
   }
@@ -5986,7 +5986,7 @@
 
       &:focus {
         outline: none;
-        border-color: #4f46e5;
+        border-color: #1a2040;
         background: white;
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
       }
@@ -6064,12 +6064,12 @@
   }
 
   &.selected {
-    border-color: #4f46e5;
+    border-color: #1a2040;
     background: linear-gradient(135deg, #fafbff 0%, #f1f5ff 100%);
     box-shadow: 0 4px 20px rgba(79, 70, 229, 0.2);
 
     .option-header h5 {
-      color: #4f46e5;
+      color: #1a2040;
     }
   }
 
@@ -6269,7 +6269,7 @@
     border-bottom: 1px solid #e2e8f0;
 
     .header-icon {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      background: linear-gradient(135deg, #1a2040 0%, #7c3aed 100%);
       color: white;
       width: 56px;
       height: 56px;
@@ -6409,7 +6409,7 @@
           font-size: 0.9rem;
 
           strong {
-            color: #4f46e5;
+            color: #1a2040;
             font-weight: 600;
           }
         }
@@ -6482,7 +6482,7 @@
       justify-content: center;
 
       mat-icon {
-        color: #4f46e5;
+        color: #1a2040;
         font-size: 24px;
         width: 24px;
         height: 24px;

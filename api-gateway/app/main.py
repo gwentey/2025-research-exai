@@ -17,7 +17,7 @@ from httpx_oauth.clients.google import GoogleOAuth2
 
 from .core.config import settings
 from .db import get_async_session
-from .schemas.user import UserCreate, UserRead, UserUpdate, UserProfileUpdate, PasswordUpdate, ProfilePictureUpdate, AccountDeletionRequest
+from .schemas.user import UserCreate, UserRead, UserUpdate, UserProfileUpdate, PasswordUpdate, ProfilePictureUpdate, AccountDeletionRequest, SignupResponse
 from .models.user import User as UserModel, OAuthAccount
 from .managers.user import UserManager
 
@@ -764,7 +764,7 @@ async def claim_user_credits(
     user_manager: UserManager = Depends(get_user_manager)
 ):
     """
-    Permet à l'utilisateur de récupérer des crédits (10 maximum, tous les 30 jours).
+    Permet à l'utilisateur de récupérer des crédits (10 maximum, tous les 7 jours).
     
     Retourne les détails du claim avec le statut :
     - success: true si le claim a réussi
@@ -802,15 +802,15 @@ app.include_router(
     tags=["auth"],
 )
 
-# Route d'inscription personnalisée pour corriger le problème
-@app.post("/auth/register", tags=["auth"])
+# Route d'inscription personnalisée avec auto-connexion
+@app.post("/auth/register", tags=["auth"], response_model=SignupResponse)
 async def register_user(
     user_create: UserCreate,
     user_manager: UserManager = Depends(get_user_manager),
 ):
     """
-    Route d'inscription personnalisée pour remplacer celle de fastapi-users
-    qui semble avoir un problème.
+    Route d'inscription personnalisée avec auto-connexion.
+    Retourne les informations utilisateur + token JWT pour connexion immédiate.
     """
     try:
         logger.info(f"Tentative d'inscription pour: {user_create.email}")
@@ -865,8 +865,17 @@ async def register_user(
                     session.add(created_user)
                     await session.commit()
                 
-                # Retourner les infos utilisateur sans le mot de passe
-                return UserRead.from_orm_user(created_user)
+                # *** NOUVEAUTÉ : Générer un token JWT pour auto-connexion ***
+                jwt_strategy = get_jwt_strategy()
+                access_token = await jwt_strategy.write_token(created_user)
+                logger.info(f"Token JWT généré pour l'utilisateur {created_user.id}")
+                
+                # Retourner la réponse avec auto-connexion
+                return SignupResponse(
+                    access_token=access_token,
+                    token_type="bearer",
+                    user=UserRead.from_orm_user(created_user)
+                )
             except Exception as user_error:
                 # S'assurer que la session est annulée en cas d'erreur
                 try:

@@ -7,7 +7,7 @@
   margin: 2rem 0;
 
   .btn-auto-fix {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    background: linear-gradient(135deg, #242e54 0%, #8b5cf6 50%, #a855f7 100%);
     border: none;
     color: white;
     padding: 1rem 2.5rem;
@@ -252,13 +252,13 @@
       background-color: white;
 
       &:focus {
-        border-color: #6366f1;
+        border-color: #242e54;
         outline: none;
         box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
       }
 
       &.recommended {
-        border-color: #6366f1;
+        border-color: #242e54;
         background-color: #f0f1ff;
       }
 
@@ -282,7 +282,7 @@
       align-items: center;
       gap: 2px;
       padding: 4px 6px;
-      background: linear-gradient(45deg, #6366f1, #8b5cf6);
+      background: linear-gradient(45deg, #242e54, #8b5cf6);
       color: white;
       border-radius: 12px;
       font-size: 0.6rem;
@@ -323,7 +323,7 @@
           min-width: 60px;
 
           &:focus {
-            border-color: #6366f1;
+            border-color: #242e54;
             outline: none;
           }
         }
@@ -558,7 +558,7 @@
       color: #212529;
 
       mat-icon {
-        color: #6366f1;
+        color: #242e54;
       }
     }
 
@@ -717,7 +717,7 @@
           gap: 0.5rem;
 
           mat-icon {
-            color: #6366f1;
+            color: #242e54;
           }
 
           .dataset-name {
@@ -750,7 +750,7 @@
             min-width: 100px;
 
             &:focus {
-              border-color: #6366f1;
+              border-color: #242e54;
               outline: none;
             }
           }

@@ -68,6 +68,16 @@ export interface UserRead {
 }
 
 /**
+ * Interface pour la réponse d'inscription avec auto-connexion.
+ * Retournée par l'endpoint /auth/register avec token JWT.
+ */
+export interface SignupResponse {
+  access_token: string;
+  token_type: string;
+  user: UserRead;
+}
+
+/**
  * Interface pour la réponse de l'autorisation OAuth
  */
 export interface OAuthAuthorizationResponse {

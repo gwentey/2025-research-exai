@@ -1,0 +1,251 @@
+// ==================================================
+// PALETTE SORBONNE+ : MODERNE ET CHALEUREUSE
+// ==================================================
+// Garde l'identité Sorbonne tout en apportant vie et modernité
+
+:root {
+  // ==================================================
+  // COULEURS PRIMAIRES SORBONNE (Identité de base)
+  // ==================================================
+  --sorbonne-primary: #242e54;        // Bleu Sorbonne - Pour logo et éléments principaux
+  --sorbonne-secondary: #9d876a;      // Beige Sorbonne - Pour accents subtils
+  
+  // ==================================================
+  // PALETTE ÉTENDUE MODERNE ET CHALEUREUSE
+  // ==================================================
+  
+  // Blues modernes et vibrants (dérivés du bleu Sorbonne)
+  --modern-blue-vivid: #3b4b8c;      // Bleu plus saturé et moderne
+  --modern-blue-bright: #5c6fb3;     // Bleu lumineux pour hover
+  --modern-blue-soft: #7a89c2;       // Bleu doux pour backgrounds
+  --modern-blue-light: #e8ebf7;      // Bleu très clair pour fonds
+  
+  // Accents chauds et modernes
+  --accent-coral: #ff6b6b;           // Coral vibrant pour CTAs importants
+  --accent-coral-soft: #ff8787;      // Coral doux pour hover
+  --accent-peach: #ffa574;           // Pêche chaleureux pour éléments positifs
+  --accent-sunset: #ff7e5f;          // Orange sunset moderne
+  
+  // Teintes dorées chaudes (évolution du beige Sorbonne)
+  --warm-gold: #d4a574;              // Or chaleureux moderne
+  --warm-amber: #e8b464;             // Ambre lumineux
+  --warm-honey: #f4c752;             // Miel doré pour highlights
+  --warm-champagne: #faebd7;         // Champagne clair pour fonds
+  
+  // Couleurs de support modernes
+  --modern-teal: #4ecdc4;            // Teal moderne pour succès
+  --modern-mint: #95e1d3;            // Menthe douce pour infos positives
+  --modern-lavender: #a8dadc;        // Lavande moderne pour sections
+  --modern-blush: #ffd6e0;           // Rose poudré pour éléments doux
+  
+  // Neutres chaleureux (remplacent les gris froids)
+  --warm-gray-50: #fafaf9;           // Presque blanc chaud
+  --warm-gray-100: #f5f5f3;          // Gris très clair chaud
+  --warm-gray-200: #e8e8e5;          // Gris clair chaud
+  --warm-gray-300: #d4d4d0;          // Gris moyen chaud
+  --warm-gray-600: #57574f;          // Gris foncé chaud
+  --warm-gray-900: #1a1a17;          // Presque noir chaud
+  
+  // ==================================================
+  // GRADIENTS MODERNES ET DYNAMIQUES
+  // ==================================================
+  
+  // Gradient principal moderne (pour headers, cartes importantes)
+  --gradient-modern-primary: linear-gradient(135deg, 
+    var(--modern-blue-vivid) 0%, 
+    var(--modern-blue-bright) 50%, 
+    var(--warm-gold) 100%
+  );
+  
+  // Gradient chaleureux (pour CTAs, boutons importants)
+  --gradient-warm-cta: linear-gradient(135deg, 
+    var(--accent-coral) 0%, 
+    var(--accent-sunset) 100%
+  );
+  
+  // Gradient doré (pour sections premium, highlights)
+  --gradient-golden: linear-gradient(135deg, 
+    var(--warm-gold) 0%, 
+    var(--warm-amber) 50%, 
+    var(--warm-honey) 100%
+  );
+  
+  // Gradient doux (pour backgrounds de sections)
+  --gradient-soft-bg: linear-gradient(135deg, 
+    var(--modern-blue-light) 0%, 
+    var(--warm-champagne) 50%, 
+    var(--modern-blush) 100%
+  );
+  
+  // ==================================================
+  // OMBRES MODERNES ET COLORÉES
+  // ==================================================
+  
+  --shadow-modern-sm: 0 2px 8px rgba(255, 107, 107, 0.1);
+  --shadow-modern-md: 0 4px 16px rgba(59, 75, 140, 0.12);
+  --shadow-modern-lg: 0 8px 32px rgba(212, 165, 116, 0.15);
+  --shadow-warm-glow: 0 0 24px rgba(244, 199, 82, 0.2);
+  
+  // ==================================================
+  // SYSTÈME DE COULEURS POUR L'APPLICATION
+  // ==================================================
+  
+  // Backgrounds
+  --app-bg-primary: var(--warm-gray-50);      // Fond principal chaleureux
+  --app-bg-secondary: #ffffff;                 // Blanc pur pour contraste
+  --app-bg-accent: var(--modern-blue-light);   // Fond d'accent doux
+  --app-bg-warm: var(--warm-champagne);        // Fond très chaleureux
+  
+  // Textes
+  --text-primary: var(--warm-gray-900);        // Texte principal chaud
+  --text-secondary: #57574f;                   // Texte secondaire bien visible (ancien var(--warm-gray-600))
+  --text-placeholder: #666666;                 // Texte placeholder TRÈS visible (plus foncé)
+  --text-accent: var(--modern-blue-vivid);     // Texte d'accent
+  --text-warm: var(--warm-gold);               // Texte chaleureux
+  
+  // Bordures
+  --border-light: var(--warm-gray-200);        // Bordure légère
+  --border-medium: var(--warm-gray-300);       // Bordure moyenne
+  --border-accent: var(--modern-blue-soft);    // Bordure d'accent
+  
+  // États interactifs
+  --hover-primary: var(--modern-blue-bright);  // Hover principal
+  --hover-warm: var(--accent-coral-soft);      // Hover chaleureux
+  --active-state: var(--accent-coral);         // État actif
+  --focus-ring: rgba(255, 107, 107, 0.3);      // Focus moderne
+}
+
+// ==================================================
+// CLASSES UTILITAIRES POUR APPLICATION MODERNE
+// ==================================================
+
+// Fond avec gradient moderne subtil
+.modern-gradient-bg {
+  background: var(--gradient-soft-bg);
+  background-attachment: fixed;
+}
+
+// Cartes modernes avec gradient et ombre colorée
+.modern-card {
+  background: linear-gradient(135deg, #ffffff 0%, var(--modern-blue-light) 100%);
+  border: 1px solid rgba(92, 111, 179, 0.1);
+  box-shadow: var(--shadow-modern-md);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      var(--shadow-modern-lg),
+      0 12px 24px rgba(255, 126, 95, 0.1);
+    border-color: var(--accent-peach);
+  }
+}
+
+// Boutons modernes et chaleureux
+.btn-modern-primary {
+  background: var(--gradient-warm-cta);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(255, 107, 107, 0.4);
+  }
+}
+
+// Headers avec gradient moderne
+.modern-header {
+  background: var(--gradient-modern-primary);
+  color: white;
+  box-shadow: 0 4px 24px rgba(59, 75, 140, 0.2);
+}
+
+// Sections avec fond chaleureux
+.warm-section {
+  background: linear-gradient(180deg, 
+    var(--warm-champagne) 0%, 
+    var(--app-bg-primary) 100%
+  );
+  border-top: 3px solid var(--warm-gold);
+}
+
+// Éléments interactifs modernes
+.modern-interactive {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: var(--warm-champagne);
+    border-color: var(--warm-gold);
+    color: var(--modern-blue-vivid);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+}
+
+// Tags et badges modernes
+.modern-tag {
+  background: linear-gradient(135deg, 
+    var(--accent-peach) 0%, 
+    var(--warm-amber) 100%
+  );
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(232, 180, 100, 0.3);
+}
+
+// ==================================================
+// INTÉGRATION AVEC MATERIAL DESIGN
+// ==================================================
+
+// Override des couleurs Material pour plus de chaleur
+.mat-mdc-button.modern-warm {
+  --mdc-filled-button-container-color: var(--accent-coral);
+  --mdc-filled-button-label-text-color: white;
+  
+  &:hover {
+    --mdc-filled-button-container-color: var(--accent-coral-soft);
+  }
+}
+
+// Cards Material avec style moderne
+.mat-mdc-card.modern-style {
+  background: var(--gradient-soft-bg);
+  border: 1px solid var(--border-accent);
+  box-shadow: var(--shadow-modern-md);
+}
+
+// ==================================================
+// ANIMATIONS MODERNES
+// ==================================================
+
+@keyframes modern-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+  }
+}
+
+@keyframes warm-glow {
+  0%, 100% { 
+    box-shadow: var(--shadow-warm-glow);
+  }
+  50% { 
+    box-shadow: 0 0 36px rgba(244, 199, 82, 0.3);
+  }
+}
+
+// ==================================================
+// NOTES D'UTILISATION
+// ==================================================
+// 1. Utiliser --sorbonne-primary uniquement pour le logo et éléments d'identité
+// 2. Privilégier les couleurs modernes pour l'interface générale
+// 3. Utiliser les gradients pour les sections importantes
+// 4. Appliquer les couleurs chaudes pour les interactions
+// 5. Les ombres colorées apportent de la profondeur moderne

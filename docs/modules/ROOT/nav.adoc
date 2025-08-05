@@ -22,6 +22,7 @@
 ** xref:user-guide/data-export.adoc[Export des Données]
 ** xref:user-guide/collaboration.adoc[Collaboration en Équipe]
 ** xref:user-guide/profile-settings.adoc[Paramètres de Profil]
+** xref:user-guide/profile-credits-display-improvement.adoc[Amélioration Affichage Crédits Profil]
 ** xref:user-guide/account-deletion.adoc[Suppression de Compte]
 
 * Guides de Développement
@@ -35,6 +36,8 @@
 ** xref:dev-guide/database-migrations.adoc[Migrations de Base de Données]
 ** xref:dev-guide/environment-setup.adoc[Configuration de l'Environnement]
 ** xref:dev-guide/frontend-development.adoc[Développement Frontend]
+** xref:dev-guide/nouvelle-identite-visuelle-sorbonne.adoc[🎨 Nouvelle Identité Visuelle Sorbonne]
+** xref:dev-guide/palette-sorbonne-moderne.adoc[🌟 Palette Sorbonne+ Moderne et Chaleureuse]
 ** xref:dev-guide/frontend-production-config-test.adoc[🧪 Test Configuration Frontend Production]
 ** xref:dev-guide/frontend-production-auto-rebuild.adoc[🔄 Auto-Rebuild Frontend Production]
 ** xref:dev-guide/backend-api-development.adoc[Développement API Backend]

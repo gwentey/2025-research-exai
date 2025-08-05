@@ -61,6 +61,7 @@ graph LR
         *   [✅] **Routes Projets intégrées** : `/projects`, `/projects/{id}`, `/projects/{id}/recommendations`.
         *   [✅] **Configuration multi-environnements** : URLs services adaptées local/Kubernetes.
         *   [✅] **Endpoints Gestion Profil Utilisateur (2025-01-24)** : API complète pour la modification du profil utilisateur.
+        *   [✅] **Auto-Connexion Post-Inscription (2025-01-27)** : Amélioration de l'expérience utilisateur avec connexion automatique après inscription.
         *   [⬜] Déploiement K8s à finaliser (configuration probes, secrets).
 
 *   **`service-selection/` :**
@@ -97,6 +98,25 @@ graph LR
             *   **Stockage** : Image stockée directement en base de données PostgreSQL
         *   **Gestion d'erreurs** : Codes HTTP appropriés (400 pour validation, 500 pour erreurs serveur)
         *   **Logging** : Traçabilité complète des opérations de mise à jour de profil
+
+    *   **Auto-Connexion Post-Inscription (2025-01-27) :**
+        *   **Problème Résolu** : Flux d'inscription brisé avec redirection vers page de login, expérience utilisateur dégradée
+        *   **Solution Implémentée** : Auto-connexion immédiate après inscription réussie
+        *   **Backend API** : Endpoint `/auth/register` modifié pour retourner `SignupResponse` avec :
+            *   `access_token` : Token JWT généré automatiquement via `get_jwt_strategy().write_token()`
+            *   `token_type` : "bearer" (standard)
+            *   `user` : Informations utilisateur complètes (`UserRead`)
+        *   **Schéma Pydantic** : Nouveau `SignupResponse` pour structurer la réponse avec token
+        *   **Frontend Angular** :
+            *   Interface `SignupResponse` ajoutée dans `auth.models.ts`
+            *   `AuthService.signup()` modifié pour stocker automatiquement le token JWT
+            *   `side-register.component.ts` redirige vers `/starter` au lieu de `/onboarding`
+        *   **Gestion d'Erreurs Robuste** :
+            *   Vérification du stockage correct du token dans localStorage
+            *   Fallback vers login manuel si auto-connexion échoue
+            *   Messages d'erreur contextuels avec query parameters
+        *   **Sécurité** : Utilise la même stratégie JWT que `/auth/jwt/login` pour cohérence
+        *   **Expérience Utilisateur** : Flux fluide inscription → dashboard sans étape intermédiaire
 
     *   **Structure Base de Données Normalisée (2025-07-06) :**
         *   **`datasets`** (Table principale) : Métadonnées complètes organisées en sections (identification, caractéristiques techniques, critères éthiques)
@@ -182,6 +202,8 @@ graph LR
         *   [✅] **Suivi Temps Réel** : Polling automatique du statut avec barre de progression et messages.
         *   [✅] **Affichage Résultats** : Visualisation des métriques et graphiques (confusion matrix, feature importance).
         *   [✅] **Traductions Complètes** : Support FR/EN pour tout le module ML Pipeline.
+        *   [✅] **Auto-Connexion Post-Inscription (2025-01-27)** : Amélioration UX majeure du flux d'inscription avec connexion automatique.
+        *   [✅] **Amélioration Affichage Crédits Profil (2025-01-29)** : Optimisation du style du texte d'explication des crédits ML dans le profil utilisateur pour une meilleure hiérarchie visuelle.
         *   [✅] **Interface ML Pipeline Moderne (2025-01-11)** : Refonte complète de l'interface ML avec design SaaS moderne :
             *   **Dashboard ML Pipeline** : Hero section animée, stats temps réel, présentation algorithmes
             *   **ML Studio** : Interface 4 étapes avec presets, animations fluides, guidance utilisateur
@@ -262,6 +284,46 @@ graph LR
             *   **Traduction** : Support FR/EN avec clés `PROFILE.SECURITY.DELETE_ACCOUNT.*`
             *   **Logging** : Traçabilité complète des demandes et suppressions de compte
             *   **Redirection** : Déconnexion automatique et redirection vers la page de connexion
+
+        *   **Système de Crédits Amélioré (2025-01-27)** : Refonte complète du système de recharge de crédits
+            *   **Problème Résolu** : Délai incorrect de 30 jours au lieu de 7 jours, logique de recharge défaillante
+            *   **Backend Corrigé** : 
+                *   API Gateway `UserManager.claim_credits()` - délai de recharge réduit de 30 à 7 jours
+                *   Logique de recharge corrigée pour compléter jusqu'à 10 crédits (pas toujours remettre à 10)
+                *   Documentation des endpoints mise à jour pour refléter le nouveau délai
+            *   **Frontend Amélioré** :
+                *   Affichage de la date du dernier claim avec gestion du cas "jamais réclamé"
+                *   Indicateur du nombre de jours restants avant la prochaine recharge possible
+                *   Statut dynamique (Disponible maintenant / Dans X jours)
+                *   Section d'informations contextuelle avec icônes Material Design
+            *   **Interface Utilisateur** : Section d'informations de claim dans `/profile/credits-refill`
+                *   Affichage de la dernière récupération avec formatage de date
+                *   Indicateur de disponibilité avec codes couleur (vert/orange/gris)
+                *   Messages adaptatifs selon l'état (disponible, en attente, jamais réclamé)
+            *   **Traductions Complètes** : Nouvelles clés FR/EN pour tous les nouveaux messages
+                *   `CREDITS_REFILL.LAST_CLAIM`, `NEVER_CLAIMED`, `NEXT_AVAILABLE`, `IN_DAYS`, `STATUS`, `AVAILABLE_NOW`
+                *   Correction du délai dans les descriptions existantes (30→7 jours)
+            *   **Styles CSS** : Nouvelle section `.claim-info-section` avec design Material cohérent
+            *   **Correction Erreur Sérialisation (2025-01-27)** : 
+                *   Problème résolu : "Object of type datetime is not JSON serializable" 
+                *   Solution : Conversion automatique des dates en format ISO via `.isoformat()`
+                *   Plus d'erreurs serveur 500 lors de la recharge de crédits
+            *   **Réorganisation Interface (2025-01-27)** :
+                *   Section informations de claim déplacée directement après l'indicateur de crédits
+                *   Section "Comment ça fonctionne" déplacée en bas dans une card séparée
+                *   Interface plus logique et progressive pour l'utilisateur
+                *   Correction du délai dans la description d'accessibilité (30→7 jours)
+            *   **Amélioration UX Finale (2025-01-27)** :
+                *   **Affichage Immédiat** : Informations de claim visibles dès le chargement de la page
+                *   **Pas de Redirection** : L'utilisateur reste sur la page après recharge des crédits
+                *   **Message de Succès Amélioré** : Snackbar avec émojis et informations détaillées
+                *   **Formatage de Date** : Affichage français lisible (ex: "5 août 2025, 16:06")
+                *   **Gestion des États** : Affichage correct que l'utilisateur ait déjà réclamé ou non
+                *   **Détection de Changements** : ChangeDetectionStrategy optimisée pour réactivité
+                *   **Styles de Succès** : Design vert attractif pour les notifications de réussite
+                *   **Typage TypeScript Robuste** : Fonction `formatClaimDate()` gère `string | undefined`
+                *   **Template Simplifié** : Suppression de la logique conditionnelle complexe
+                *   **Optimisation TypeScript** : Suppression des opérateurs optional chaining inutiles grâce aux gardes `*ngIf`
 
     *   **Visualisation Détaillée des Datasets (2025-01-25)** : Interface complète similaire à Kaggle
         *   **Composant Principal** : `DatasetDetailComponent` avec routing intégré `/datasets/:id`

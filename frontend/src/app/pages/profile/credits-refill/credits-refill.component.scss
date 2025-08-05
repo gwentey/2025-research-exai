@@ -471,6 +471,88 @@
   }
 }
 
+// Styles pour la section d'informations de claim
+.claim-info-section {
+  margin-top: var(--space-lg);
+  
+  .claim-info-card {
+    background: var(--background-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      
+      .info-icon {
+        font-size: 20px;
+        margin-right: var(--space-xs);
+      }
+      
+      .info-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        
+        .info-label {
+          font-size: var(--font-size-sm);
+          font-weight: var(--font-weight-medium);
+          color: var(--text-secondary);
+          margin: 0;
+        }
+        
+        .info-value {
+          font-size: var(--font-size-base);
+          font-weight: var(--font-weight-semibold);
+          color: var(--text-primary);
+          margin: 0;
+          
+          &.text-warning {
+            color: var(--color-warning);
+          }
+          
+          &.text-success {
+            color: var(--color-success);
+          }
+          
+          &.text-muted {
+            color: var(--text-muted);
+            font-style: italic;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Styles pour la section Comment ça fonctionne déplacée en bas
+.m-t-24 {
+  margin-top: 2rem !important;
+}
+
+// Styles pour le beau message de succès
+:host ::ng-deep .credits-success {
+  background-color: #4caf50 !important;
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+  
+  .mat-mdc-button {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.3) !important;
+    }
+  }
+}
+
 // Réduction de mouvement pour les utilisateurs sensibles
 @media (prefers-reduced-motion: reduce) {
   .credits-refill-page {

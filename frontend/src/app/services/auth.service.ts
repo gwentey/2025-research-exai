@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment'; // Importer l'environnement
 // Importer les nouvelles interfaces
-import { LoginCredentials, LoginResponse, SignupData, UserRead, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData, AccountDeletionRequest, AccountDeletionResponse, ClaimCreditsResponse } from '../models/auth.models';
+import { LoginCredentials, LoginResponse, SignupData, UserRead, SignupResponse, OAuthAuthorizationResponse, UserUpdate, PasswordUpdate, ProfilePictureUpload, OnboardingData, AccountDeletionRequest, AccountDeletionResponse, ClaimCreditsResponse } from '../models/auth.models';
 
 // Utiliser une constante comme constante
 const AUTH_TOKEN_KEY = 'ibis_x_access_token';
@@ -94,11 +94,11 @@ export class AuthService {
   }
 
   /**
-   * Inscrit un nouvel utilisateur.
+   * Inscrit un nouvel utilisateur avec auto-connexion.
    * @param userData - Objet SignupData contenant email et password.
-   * @returns Observable avec les informations UserRead de l'utilisateur créé.
+   * @returns Observable avec la réponse SignupResponse contenant token + infos utilisateur.
    */
-  signup(userData: SignupData): Observable<UserRead> {
+  signup(userData: SignupData): Observable<SignupResponse> {
     // S'assurer que tous les champs obligatoires sont présents dans la requête
     const completeUserData = {
       email: userData.email,
@@ -110,11 +110,27 @@ export class AuthService {
       locale: userData.locale || null
     };
     
-    // Utiliser UserRead comme type de retour
-    return this.http.post<UserRead>(`${environment.apiUrl}/auth/register`, completeUserData).pipe(
-      tap(() => {
-        // Optionnel : Rediriger vers la page de login après inscription réussie
-        // this.router.navigate(['/authentication/login']);
+    // Utiliser SignupResponse comme type de retour (avec auto-connexion)
+    return this.http.post<SignupResponse>(`${environment.apiUrl}/auth/register`, completeUserData).pipe(
+      tap((response) => {
+        // *** NOUVEAUTÉ : Auto-connexion après inscription ***
+        if (response && response.access_token) {
+          try {
+            this.storeToken(response.access_token);
+            console.log('Auto-connexion réussie après inscription:', response.user.email);
+            // Vérifier que le token est bien stocké
+            if (!this.getToken()) {
+              console.error('Erreur: Token non stocké dans localStorage');
+              throw new Error('TOKEN_STORAGE_FAILED');
+            }
+          } catch (error) {
+            console.error('Erreur lors du stockage du token:', error);
+            // On ne throw pas l'erreur ici pour permettre au composant de gérer le fallback
+          }
+          // Pas de redirection ici, on laisse le composant gérer la navigation
+        } else {
+          console.warn('Réponse d\'inscription sans token d\'auto-connexion');
+        }
       }),
       catchError(this.handleError)
     );

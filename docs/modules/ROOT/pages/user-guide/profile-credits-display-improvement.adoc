@@ -1,0 +1,102 @@
+= Amélioration de l'affichage des crédits dans le profil utilisateur
+:description: Documentation de l'amélioration du style du texte d'explication des crédits ML dans le composant profil
+
+== Vue d'ensemble
+
+Cette page documente l'amélioration apportée à l'affichage du texte d'explication des crédits ML dans la section profil utilisateur pour une meilleure lisibilité et un design plus élégant.
+
+== Problème identifié
+
+L'utilisateur a signalé que le texte "Utilisés pour créer et entraîner vos modèles d'IA" dans la carte des crédits du profil :
+
+* Était trop gros visuellement
+* Utilisait une police qui ne rendait pas bien
+* Manquait de subtilité dans la hiérarchie visuelle
+
+== Solution mise en œuvre
+
+=== Modifications apportées
+
+==== 1. Mise à jour du template HTML
+
+**Fichier :** `frontend/src/app/pages/profile/profile.component.html`
+
+**Ligne 124-126 :** Amélioration des classes CSS appliquées au texte d'explication :
+
+```html
+<!-- Avant -->
+<p class="text-body f-s-11 f-w-400 m-b-12">
+  {{ 'PROFILE.CREDITS.ML_USAGE' | translate }}
+</p>
+
+<!-- Après -->
+<p class="credits-usage-text text-muted f-s-9 f-w-300 m-b-12">
+  {{ 'PROFILE.CREDITS.ML_USAGE' | translate }}
+</p>
+```
+
+**Changements :**
+
+* `text-body` → `text-muted` : couleur plus discrète
+* `f-s-11` → `f-s-9` : taille de police réduite (de 11px à 9px)
+* `f-w-400` → `f-w-300` : poids de police plus léger
+* Ajout de la classe `credits-usage-text` pour styling spécifique
+
+==== 2. Ajout de styles CSS personnalisés
+
+**Fichier :** `frontend/src/app/pages/profile/profile.component.scss`
+
+**Lignes 229-235 :** Nouveau style pour la classe `.credits-usage-text` :
+
+```scss
+.credits-usage-text {
+  opacity: 0.75;
+  font-style: italic;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  color: #8a8a8a !important;
+}
+```
+
+**Améliorations apportées :**
+
+* `opacity: 0.75` : transparence subtile pour l'intégration visuelle
+* `font-style: italic` : style italique pour différencier du texte principal
+* `letter-spacing: 0.2px` : espacement léger entre les lettres pour améliorer la lisibilité
+* `line-height: 1.4` : interlignage optimal pour le confort de lecture
+* `color: #8a8a8a` : couleur grise douce et élégante
+
+== Résultat visuel
+
+=== Avant l'amélioration
+* Texte trop visible et imposant
+* Police standard sans caractère distinctif
+* Hiérarchie visuelle peu claire
+
+=== Après l'amélioration
+* Texte discret et élégant
+* Style italique pour marquer la différence
+* Intégration harmonieuse dans la hiérarchie visuelle
+* Meilleure lisibilité avec l'espacement des lettres
+
+== Impact sur l'expérience utilisateur
+
+Cette amélioration contribue à :
+
+* **Améliorer la hiérarchie visuelle** : le texte explicatif est maintenant clairement secondaire par rapport aux informations principales
+* **Renforcer l'élégance du design** : le style italique et la couleur discrète ajoutent de la sophistication
+* **Améliorer la lisibilité** : l'espacement des lettres et l'interlignage optimisent le confort de lecture
+* **Maintenir l'accessibilité** : la couleur reste suffisamment contrastée pour être lisible
+
+== Localisation
+
+Cette amélioration s'applique automatiquement aux deux langues supportées (français et anglais) car elle modifie uniquement le style, pas le contenu du texte qui reste géré par les clés de traduction `PROFILE.CREDITS.ML_USAGE`.
+
+== Compatibilité
+
+Cette modification est :
+
+* **Rétrocompatible** : aucun changement de structure HTML majeur
+* **Responsive** : s'adapte automatiquement aux différentes tailles d'écran
+* **Accessible** : maintient les standards d'accessibilité existants
+* **Cross-browser** : utilise uniquement des propriétés CSS largement supportées

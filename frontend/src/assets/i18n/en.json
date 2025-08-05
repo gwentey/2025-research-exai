@@ -1326,8 +1326,8 @@
     "HOW_IT_WORKS": {
       "TITLE": "How it works",
       "FREQUENCY": {
-        "TITLE": "Claim every 30 days",
-        "DESC": "You can claim 10 free credits every 30 days."
+        "TITLE": "Claim every 7 days",
+        "DESC": "You can claim 10 free credits every 7 days."
       },
       "LIMIT": {
         "TITLE": "10 credits maximum",
@@ -1349,6 +1349,12 @@
       "DAYS_REMAINING": "day(s) remaining",
       "NEXT_CLAIM": "Next claim available on"
     },
+    "LAST_CLAIM": "Last claim",
+    "NEVER_CLAIMED": "You have never requested credits yet",
+    "NEXT_AVAILABLE": "Next available",
+    "IN_DAYS": "in {{days}} day(s)",
+    "STATUS": "Status",
+    "AVAILABLE_NOW": "Available now",
     "INFO": {
       "TITLE": "Useful Information",
       "DESCRIPTION": "Credits are essential for using our artificial intelligence platform. Here are some tips to optimize their usage.",

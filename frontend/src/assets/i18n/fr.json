@@ -1347,8 +1347,8 @@
     "HOW_IT_WORKS": {
       "TITLE": "Comment ça fonctionne",
       "FREQUENCY": {
-        "TITLE": "Récupération tous les 30 jours",
-        "DESC": "Vous pouvez récupérer 10 crédits gratuits toutes les 30 jours."
+        "TITLE": "Récupération tous les 7 jours",
+        "DESC": "Vous pouvez récupérer 10 crédits gratuits toutes les 7 jours."
       },
       "LIMIT": {
         "TITLE": "Plafond de 10 crédits",
@@ -1370,6 +1370,12 @@
       "DAYS_REMAINING": "jour(s) restant(s)",
       "NEXT_CLAIM": "Prochaine récupération possible le"
     },
+    "LAST_CLAIM": "Dernière récupération",
+    "NEVER_CLAIMED": "Vous n'avez encore jamais demandé de crédits",
+    "NEXT_AVAILABLE": "Prochaine disponibilité",
+    "IN_DAYS": "dans {{days}} jour(s)",
+    "STATUS": "Statut",
+    "AVAILABLE_NOW": "Disponible maintenant",
     "INFO": {
       "TITLE": "Informations utiles",
       "DESCRIPTION": "Les crédits sont essentiels pour utiliser notre plateforme d'intelligence artificielle. Voici quelques conseils pour optimiser leur utilisation.",

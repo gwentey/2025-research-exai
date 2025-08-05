@@ -168,21 +168,23 @@
                     {{ 'ONBOARDING.NEXT' | translate }}
                     <mat-icon>arrow_forward</mat-icon>
                   </button>
-                                 } @else {
-                   <button 
-                     mat-flat-button 
-                     color="primary" 
-                     (click)="submitOnboarding()"
-                     [disabled]="!areAllFormsValid() || isLoading"
-                     class="step-button">
-                     @if(isLoading) {
-                       <mat-spinner diameter="20" class="m-r-8"></mat-spinner>
-                       {{ 'COMMON.LOADING' | translate }}
-                     } @else {
-                       {{ 'ONBOARDING.COMPLETE' | translate }}
-                     }
-                   </button>
-                 }
+                                                 } @else {
+                  <button 
+                    mat-flat-button 
+                    color="primary" 
+                    (click)="submitOnboarding()"
+                    [disabled]="!areAllFormsValid() || isLoading"
+                    class="step-button">
+                    <div class="button-content">
+                      @if(isLoading) {
+                        <mat-spinner diameter="20"></mat-spinner>
+                        <span>{{ 'COMMON.LOADING' | translate }}</span>
+                      } @else {
+                        <span>{{ 'ONBOARDING.COMPLETE' | translate }}</span>
+                      }
+                    </div>
+                  </button>
+                }
               </div>
             </div>
 

@@ -130,7 +130,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     
     async def claim_credits(self, user: User) -> Dict[str, Any]:
         """
-        Permet à un utilisateur de récupérer des crédits (10 maximum, tous les 30 jours).
+        Permet à un utilisateur de récupérer des crédits (10 maximum, tous les 7 jours).
         
         Returns:
             Dict avec le statut et les détails du claim
@@ -141,25 +141,27 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             # Vérifier si l'utilisateur peut claim des crédits
             if user.date_claim is not None:
                 days_since_last_claim = (now - user.date_claim).days
-                if days_since_last_claim < 30:
-                    days_remaining = 30 - days_since_last_claim
+                if days_since_last_claim < 7:
+                    days_remaining = 7 - days_since_last_claim
                     logger.info(f"L'utilisateur {user.id} doit attendre {days_remaining} jours avant le prochain claim")
                     return {
                         "success": False,
                         "message": f"Vous devez attendre {days_remaining} jour(s) avant de pouvoir récupérer des crédits.",
                         "days_remaining": days_remaining,
-                        "next_claim_date": user.date_claim + timedelta(days=30)
+                        "next_claim_date": (user.date_claim + timedelta(days=7)).isoformat()
                     }
             
             # L'utilisateur peut claim des crédits
             old_credits = user.credits
-            user.credits = 10  # Plafonné à 10, même si l'utilisateur en avait moins
+            # Recharger pour atteindre 10 crédits maximum (compléter jusqu'à 10)
+            new_credits = 10
+            user.credits = new_credits
             user.date_claim = now
             
             # Mettre à jour en base de données
-            await self.user_db.update(user, {"credits": 10, "date_claim": now})
+            await self.user_db.update(user, {"credits": new_credits, "date_claim": now})
             
-            credits_gained = user.credits - old_credits
+            credits_gained = new_credits - old_credits
             logger.info(f"L'utilisateur {user.id} a récupéré {credits_gained} crédits (total: {user.credits})")
             
             return {
@@ -167,7 +169,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
                 "message": "Crédits récupérés avec succès !",
                 "credits_gained": credits_gained,
                 "total_credits": user.credits,
-                "next_claim_date": now + timedelta(days=30)
+                "next_claim_date": (now + timedelta(days=7)).isoformat()
             }
             
         except Exception as e:

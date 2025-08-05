@@ -188,6 +188,26 @@ class OnboardingData(BaseModel):
             }
         }
 
+# Schéma pour la réponse d'inscription (avec auto-connexion)
+class SignupResponse(BaseModel):
+    access_token: str = Field(..., description="Token JWT pour auto-connexion")
+    token_type: str = Field(default="bearer", description="Type de token")
+    user: UserRead = Field(..., description="Informations de l'utilisateur créé")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "token_type": "bearer",
+                "user": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "email": "user@example.com",
+                    "pseudo": "nouveau_utilisateur",
+                    "credits": 10
+                }
+            }
+        }
+
 # Schéma pour la suppression de compte
 class AccountDeletionRequest(BaseModel):
     email_confirmation: str = Field(..., description="Adresse email pour confirmer la suppression (insensible à la casse)")

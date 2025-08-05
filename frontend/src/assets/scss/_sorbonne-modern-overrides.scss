@@ -1,0 +1,399 @@
+// ==================================================
+// OVERRIDES AUTOMATIQUES POUR MODERNISER L'APPLICATION
+// ==================================================
+// Applique la palette Sorbonne+ moderne à toute l'application
+
+// ==================================================
+// BODY ET STRUCTURE GÉNÉRALE
+// ==================================================
+
+body {
+  background: var(--app-bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+// Fond principal de l'application avec gradient subtil
+.blank-layout-container,
+.main-container,
+.page-wrapper {
+  background: linear-gradient(180deg, 
+    var(--warm-gray-50) 0%, 
+    var(--modern-blue-light) 50%,
+    var(--warm-champagne) 100%
+  ) !important;
+  background-attachment: fixed;
+}
+
+// ==================================================
+// SIDEBAR ET NAVIGATION
+// ==================================================
+
+// Sidebar moderne avec touches chaudes
+.app-sidebar,
+.mat-drawer {
+  background: linear-gradient(180deg, 
+    #ffffff 0%, 
+    var(--modern-blue-light) 100%
+  ) !important;
+  border-right: 1px solid var(--border-accent) !important;
+  
+  .sidebar-nav {
+    .sidebar-nav-item {
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: var(--warm-champagne) !important;
+        border-left: 3px solid var(--accent-coral);
+        
+        .hide-menu {
+          color: var(--modern-blue-vivid) !important;
+        }
+      }
+      
+      &.active {
+        background: linear-gradient(90deg, 
+          var(--modern-blue-light) 0%, 
+          transparent 100%
+        ) !important;
+        border-left: 3px solid var(--accent-coral) !important;
+        
+        .hide-menu {
+          color: var(--modern-blue-vivid) !important;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+}
+
+// ==================================================
+// CARTES ET CONTENEURS
+// ==================================================
+
+// Toutes les cartes Material Design modernisées
+.mat-mdc-card,
+.mat-card,
+.card {
+  background: linear-gradient(135deg, 
+    #ffffff 0%, 
+    var(--modern-blue-light) 100%
+  ) !important;
+  border: 1px solid rgba(92, 111, 179, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(59, 75, 140, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  
+  &:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 
+      0 8px 32px rgba(212, 165, 116, 0.15),
+      0 4px 16px rgba(255, 126, 95, 0.1) !important;
+    border-color: var(--warm-gold) !important;
+  }
+}
+
+// Cartes de dataset avec style moderne
+.dataset-card,
+.project-card,
+.dashboard-card {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-warm-cta);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover::before {
+    opacity: 1;
+  }
+  
+  .card-title {
+    color: var(--modern-blue-vivid) !important;
+    font-weight: 600 !important;
+  }
+  
+  .card-subtitle {
+    color: var(--text-secondary) !important;
+  }
+}
+
+// ==================================================
+// BOUTONS MODERNISÉS
+// ==================================================
+
+// Boutons primaires avec gradient chaleureux
+.mat-mdc-button.mat-primary,
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.btn-primary {
+  background: var(--gradient-warm-cta) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3) !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 24px rgba(255, 107, 107, 0.4) !important;
+  }
+}
+
+// Boutons secondaires modernes
+.mat-mdc-button,
+.mat-mdc-stroked-button {
+  border-color: var(--warm-gold) !important;
+  color: var(--modern-blue-vivid) !important;
+  
+  &:hover:not(:disabled) {
+    background: var(--warm-champagne) !important;
+    border-color: var(--accent-coral) !important;
+    color: var(--accent-coral) !important;
+  }
+}
+
+// ==================================================
+// TABLEAUX MODERNES
+// ==================================================
+
+.mat-mdc-table,
+.mat-table {
+  background: white !important;
+  
+  .mat-mdc-header-row,
+  .mat-header-row {
+    background: var(--gradient-golden) !important;
+    
+    .mat-mdc-header-cell,
+    .mat-header-cell {
+      color: white !important;
+      font-weight: 600 !important;
+      border-bottom: 2px solid var(--warm-amber) !important;
+    }
+  }
+  
+  .mat-mdc-row,
+  .mat-row {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: var(--warm-champagne) !important;
+      transform: scale(1.01);
+    }
+    
+    &:nth-child(even) {
+      background: var(--modern-blue-light) !important;
+    }
+  }
+}
+
+// ==================================================
+// CHIPS ET TAGS MODERNES
+// ==================================================
+
+.mat-mdc-chip,
+.mat-chip,
+.tag,
+.badge {
+  background: linear-gradient(135deg, 
+    var(--accent-peach) 0%, 
+    var(--warm-amber) 100%
+  ) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(232, 180, 100, 0.3) !important;
+  font-weight: 500 !important;
+}
+
+// ==================================================
+// FORMULAIRES MATERIAL DESIGN - NATIF PUR
+// ==================================================
+
+// SUPPRESSION DE TOUTES LES PERSONNALISATIONS
+// Laisser Material Design fonctionner nativement
+// Seuls les placeholders globaux seront stylés
+
+// ==================================================
+// SELECTS MATERIAL DESIGN - NATIF PUR
+// ==================================================
+
+// SUPPRESSION DE TOUTES LES PERSONNALISATIONS
+// Laisser Material Design fonctionner nativement
+
+// ==================================================
+// PROGRESS BARS ET SPINNERS
+// ==================================================
+
+.mat-mdc-progress-bar {
+  .mdc-linear-progress__bar-inner {
+    background: var(--gradient-warm-cta) !important;
+  }
+  
+  .mdc-linear-progress__buffer {
+    background: var(--warm-champagne) !important;
+  }
+}
+
+.mat-mdc-progress-spinner circle,
+.mat-progress-spinner circle {
+  stroke: var(--accent-coral) !important;
+}
+
+// ==================================================
+// TOOLTIPS ET DIALOGS
+// ==================================================
+
+.mat-mdc-tooltip {
+  background: var(--modern-blue-vivid) !important;
+  color: white !important;
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 4px 16px rgba(59, 75, 140, 0.3) !important;
+}
+
+.mat-mdc-dialog-container {
+  background: linear-gradient(135deg, 
+    white 0%, 
+    var(--modern-blue-light) 100%
+  ) !important;
+  box-shadow: 0 24px 48px rgba(59, 75, 140, 0.2) !important;
+}
+
+// ==================================================
+// SECTIONS SPÉCIFIQUES
+// ==================================================
+
+// Dashboard moderne
+.dashboard-container {
+  .stat-card {
+    background: linear-gradient(135deg, 
+      var(--warm-champagne) 0%, 
+      white 100%
+    ) !important;
+    border-top: 4px solid var(--accent-coral) !important;
+    
+    .stat-number {
+      color: var(--modern-blue-vivid) !important;
+      font-weight: 700 !important;
+    }
+    
+    .stat-icon {
+      background: var(--gradient-warm-cta) !important;
+      color: white !important;
+      border-radius: 50%;
+      padding: 12px;
+    }
+  }
+}
+
+// Datasets page moderne
+.datasets-container {
+  .dataset-filters {
+    background: var(--warm-champagne) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    border: 1px solid var(--warm-gold) !important;
+  }
+  
+  .dataset-grid {
+    .dataset-item {
+      border-left: 4px solid transparent !important;
+      
+      &:hover {
+        border-left-color: var(--accent-coral) !important;
+        background: linear-gradient(90deg, 
+          var(--warm-champagne) 0%, 
+          white 100%
+        ) !important;
+      }
+    }
+  }
+}
+
+// ==================================================
+// HEADERS ET TITRES ÉLÉGANTS ET SOBRES
+// ==================================================
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--modern-blue-vivid) !important;
+  font-weight: 600 !important;
+  
+  &.page-title {
+    color: var(--modern-blue-vivid) !important;
+    font-weight: 700 !important;
+    // Suppression de l'effet gradient multicolore
+  }
+}
+
+// ==================================================
+// LIENS ET NAVIGATION
+// ==================================================
+
+a {
+  color: var(--modern-blue-vivid) !important;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    color: var(--accent-coral) !important;
+    text-decoration: none !important;
+  }
+}
+
+// ==================================================
+// ANIMATIONS GLOBALES
+// ==================================================
+
+// Pulse moderne pour éléments importants
+.pulse-modern {
+  animation: modern-pulse 2s infinite;
+}
+
+// Glow chaleureux pour highlights
+.warm-glow {
+  animation: warm-glow 3s ease-in-out infinite;
+}
+
+// ==================================================
+// PLACEHOLDERS GLOBAUX MINIMALISTES
+// ==================================================
+
+// Styles minimaux pour s'assurer que les placeholders sont visibles
+input::placeholder,
+textarea::placeholder {
+  color: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+}
+
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+  color: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+}
+
+// ==================================================
+// RESPONSIVE ET MOBILE
+// ==================================================
+
+@media (max-width: 768px) {
+  .mat-mdc-card,
+  .card {
+    background: white !important;
+    border: 1px solid var(--border-light) !important;
+  }
+  
+  body {
+    background: var(--app-bg-primary) !important;
+  }
+}

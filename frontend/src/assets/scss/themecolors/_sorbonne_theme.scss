@@ -1,0 +1,14 @@
+// Thème Sorbonne - Variables CSS d'override uniquement
+html.sorbonne_theme {
+  // Variables CSS Material Design forcées aux couleurs Sorbonne
+  --mat-sys-primary: #242e54;
+  --mat-sys-primary-fixed-dim: rgba(36, 46, 84, 0.15);
+  --mat-sys-secondary: #9d876a;
+  --mat-sys-secondary-fixed-dim: rgba(157, 135, 106, 0.15);
+  --mat-sys-tertiary: #3d4b7d;
+  --mat-sys-error: #ef4444;
+  --mat-sys-surface: #ffffff;
+  --mat-sys-on-surface: #1a1a1a;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-on-secondary: #ffffff;
+}
