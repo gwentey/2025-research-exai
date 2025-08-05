@@ -2,7 +2,7 @@
 
 Ce guide décrit le processus de déploiement automatisé complet de l'application IBIS-X sur Microsoft Azure en utilisant les scripts Terraform optimisés et les outils d'orchestration Kubernetes.
 
-== 🚀 Nouvelle Approche : Déploiement 100% Automatisé
+== 🚀 Nouvelle Approche : Déploiement 100% Automatisé et Robuste
 
 Nous avons développé un script de déploiement entièrement automatisé qui gère :
 
@@ -13,7 +13,10 @@ Nous avons développé un script de déploiement entièrement automatisé qui g�
 - ✅ **Configuration des règles de sécurité réseau** (ports 80, 443, 22)
 - ✅ **Déploiement des applications** avec Kustomize
 - ✅ **Exécution des migrations de base de données**
-- ✅ **Changement de nom du projet** : IBIS-X → IBIS-X
+- 🆕 **Import robuste des datasets Kaggle** avec gestion des timeouts
+- 🆕 **Retry automatique** pour builds Docker et opérations Kubernetes
+- 🆕 **Diagnostic automatique** et fallback intelligent en cas de problème
+- 🆕 **Continuation du déploiement** même en cas de timeout des jobs longs
 
 == Objectif
 
@@ -116,6 +119,13 @@ Le script automatisé exécute les étapes suivantes :
 === 7. **Migrations de Base de Données**
 - Exécute les jobs de migration Alembic
 - Vérifie la complétion des migrations
+
+=== 8. **Import Robuste des Datasets Kaggle**
+- Lance le job d'import avec timeouts étendus (60 minutes)
+- Surveille l'exécution avec logs en temps réel
+- Gère automatiquement les timeouts avec fallback intelligent
+- Continue le déploiement même si l'import prend du temps
+- Fournit les commandes pour suivi/relance manuel si nécessaire
 
 == 📊 Informations Post-Déploiement
 
@@ -228,6 +238,43 @@ kubectl get events -n ibis-x
 az acr repository list --name <nom_acr>
 ----
 
+=== 🆕 Problème : Job Kaggle timeout ou échec
+**Solution** : Le script gère automatiquement ces cas
+
+[NOTE]
+====
+**Le déploiement continue automatiquement** même si le job Kaggle prend du temps ou échoue temporairement.
+====
+
+[source,bash]
+----
+# Vérifier le statut du job Kaggle
+kubectl get jobs -n ibis-x
+kubectl get pods -n ibis-x -l job-name=kaggle-dataset-import-job
+
+# Suivre les logs du job en cours
+kubectl logs -f <kaggle-pod-name> -n ibis-x
+
+# Relancer l'import manuellement si nécessaire
+kubectl exec -n ibis-x deployment/service-selection -- python kaggle-import/main.py --force-refresh
+
+# Vérifier les datasets importés
+kubectl exec -n ibis-x deployment/service-selection -- ls -la /app/datasets/
+----
+
+=== 🆕 Problème : Build Docker échoue
+**Solution** : Le script retry automatiquement
+
+[source,bash]
+----
+# Si le retry automatique échoue, nettoyer Docker manuellement
+docker system prune -f
+docker builder prune -f
+
+# Puis relancer le script
+./scripts/deploy-to-azure.sh
+----
+
 == 🎯 Avantages du Nouveau Processus
 
 1. **Reproductibilité** : Déploiement identique à chaque fois
@@ -235,6 +282,10 @@ az acr repository list --name <nom_acr>
 3. **Sécurité** : Certificats SSL automatiques
 4. **Maintenance** : Scripts de nettoyage automatisés
 5. **Monitoring** : Intégration complète avec Azure Monitor
+6. 🆕 **Robustesse** : Gestion automatique des timeouts et erreurs
+7. 🆕 **Résilience** : Retry automatique et fallback intelligent
+8. 🆕 **Fiabilité** : Continue même en cas de problèmes temporaires
+9. 🆕 **Diagnostic** : Logs détaillés et instructions de récupération automatiques
 
 == Prochaines Étapes
 

@@ -232,14 +232,17 @@ chmod +x scripts/deploy-to-azure.sh
 **Ce que fait le script automatiquement :**
 
 1. ✅ Vérifie tous les prérequis
-2. ✅ Vous connecte à Azure (si nécessaire)
+2. ✅ Vous connecte à Azure (si nécessaire)  
 3. ✅ Initialise et configure Terraform
 4. ✅ Crée toute l'infrastructure Azure
 5. ✅ Configure kubectl pour AKS
-6. ✅ Build et push les images Docker vers ACR
+6. ✅ Build et push les images Docker vers ACR (avec retry automatique)
 7. ✅ Déploie l'application sur Kubernetes
 8. ✅ Lance les migrations de base de données
-9. ✅ Affiche l'URL finale et les informations importantes
+9. ✅ **[NOUVEAU]** Import robuste des datasets Kaggle avec gestion intelligente des timeouts
+10. ✅ **[NOUVEAU]** Diagnostic automatique et fallback en cas de problème
+11. ✅ **[NOUVEAU]** Vérification finale du statut des jobs d'import
+12. ✅ Affiche l'URL finale et les informations importantes
 ====
 
 === Infrastructure créée
@@ -298,14 +301,63 @@ cd terraform/azure-infrastructure
 terraform output
 
 # Vérifier les pods Kubernetes
-kubectl get pods -n IBIS-X
+kubectl get pods -n ibis-x
 
 # Vérifier les services
-kubectl get services -n IBIS-X
+kubectl get services -n ibis-x
 
 # Tester l'accès à l'application
 curl -I http://$(terraform output -raw public_ip_address)
 ----
+
+=== 🛡️ Robustesse et Gestion des Erreurs
+
+Le script de déploiement intègre désormais une **gestion d'erreurs avancée** et des **mécanismes de fallback intelligents** :
+
+==== Import des Datasets Kaggle Robuste
+
+[NOTE]
+====
+**Nouvelles fonctionnalités de robustesse :**
+
+* ⏰ **Timeouts étendus** : 3 minutes pour démarrage, 60 minutes pour completion
+* 🔄 **Retry automatique** : Jusqu'à 5 tentatives pour les opérations critiques  
+* 🎯 **Détection intelligente** : Différencie les vraies erreurs des timeouts
+* 📊 **Diagnostic automatique** : Logs et statuts détaillés en cas de problème
+* 🚀 **Fallback** : Exécution alternative via kubectl exec si nécessaire
+* ✅ **Continuation** : Le déploiement continue même si import Kaggle en cours
+====
+
+==== Gestion des Timeouts Kaggle
+
+Si l'import Kaggle prend plus de temps que prévu, le script :
+
+1. **Détecte automatiquement** si le job est encore en cours d'exécution
+2. **Affiche des options** : continuer, attendre, ou utiliser le fallback
+3. **Continue le déploiement** sans bloquer l'ensemble du processus
+4. **Fournit les commandes** pour suivre ou relancer l'import manuellement
+
+[source,bash]
+----
+# Suivre un job Kaggle en cours
+kubectl logs -f kaggle-dataset-import-job-xxxxx -n ibis-x
+
+# Relancer l'import manuellement si nécessaire
+kubectl exec -n ibis-x deployment/service-selection -- python kaggle-import/main.py --force-refresh
+
+# Vérifier le statut final des datasets
+kubectl get jobs -n ibis-x
+----
+
+==== Messages de Diagnostic Automatique
+
+En cas de problème, le script affiche automatiquement :
+
+* 📋 **Logs détaillés** du job en échec
+* 📊 **État des pods** et ressources Kubernetes
+* 🔍 **Événements récents** pour identifier la cause
+* 💡 **Commandes de résolution** spécifiques au problème
+* 🎯 **Instructions de fallback** pour continuer manuellement
 
 == 👨‍💻 Étape 2 : Développement Local Continu
 
@@ -581,6 +633,14 @@ minikube delete
 |**Terraform bloqué**
 |State lock actif
 |`terraform force-unlock <LOCK_ID>`
+
+|**Job Kaggle timeout**
+|Import de gros datasets prend du temps
+|Le script continue automatiquement, suivre avec `kubectl logs -f`
+
+|**Images Docker échec build**
+|Problème réseau ou espace disque
+|Le script retry automatiquement, ou lancer `docker system prune -f`
 |===
 
 [source,bash]
@@ -594,6 +654,53 @@ az vm list-usage --location "East US"
 
 # Re-authentification Azure
 az logout && az login
+----
+
+=== 🔍 Problèmes spécifiques aux Jobs Kaggle
+
+[TIP]
+====
+**Le script gère automatiquement la plupart des problèmes Kaggle**, mais voici comment diagnostiquer manuellement :
+====
+
+[cols="2,3,2", options="header"]
+|===
+|Problème |Diagnostic |Solution
+
+|**Timeout du job Kaggle**
+|Job encore en cours d'exécution
+|Attendre ou suivre avec `kubectl logs -f pod-name`
+
+|**Job échoué immédiatement**
+|Problème de credentials ou réseau
+|Vérifier les secrets Kaggle avec `kubectl get secrets`
+
+|**Manque de ressources**
+|Pod en état Pending
+|Le script gère automatiquement, ou augmenter les ressources cluster
+
+|**Import incomplet**
+|Job terminé mais données partielles
+|Relancer avec `kubectl exec ... python kaggle-import/main.py --force-refresh`
+|===
+
+[source,bash]
+----
+# Diagnostic complet des jobs Kaggle
+kubectl get jobs -n ibis-x
+kubectl get pods -n ibis-x -l job-name=kaggle-dataset-import-job
+
+# Logs détaillés du job en cours
+kubectl logs -f kaggle-dataset-import-job-xxxxx -n ibis-x
+
+# Vérifier les secrets Kaggle
+kubectl get secret kaggle-secrets -n ibis-x -o yaml
+
+# Statut des datasets importés
+kubectl exec -n ibis-x deployment/service-selection -- ls -la /app/datasets/
+
+# Forcer un nouvel import si nécessaire  
+kubectl exec -n ibis-x deployment/service-selection -- python kaggle-import/main.py --force-refresh
 ----
 
 === Problèmes Développement Local
@@ -721,5 +828,27 @@ Vous maîtrisez maintenant le workflow complet IBIS-X :
 * ✅ **Monitoring** et **logs** intégrés
 * ✅ **Optimisation des coûts** Azure
 * ✅ **Suppression sécurisée** des ressources
+* 🆕 **Robustesse avancée** : Gestion intelligente des timeouts et erreurs
+* 🆕 **Import Kaggle résilient** : Fallback automatique et diagnostic complet
+* 🆕 **Retry automatique** : Build Docker et opérations Kubernetes auto-correctrices
+
+=== 🔧 Améliorations Récentes du Script de Déploiement
+
+Le script `deploy-to-azure.sh` a été considérablement renforcé avec :
+
+[NOTE]
+====
+**Nouvelles capacités de production :**
+
+* 🛡️ **Gestion d'erreurs robuste** : Le script ne plante plus sur les timeouts
+* ⏰ **Timeouts étendus** : Import Kaggle jusqu'à 60 minutes pour gros datasets  
+* 🔄 **Retry intelligent** : Jusqu'à 5 tentatives avec backoff automatique
+* 📊 **Diagnostic en temps réel** : Logs et statuts automatiques en cas de problème
+* 🚀 **Fallback kubectl exec** : Alternative automatique si jobs Kubernetes échouent
+* ✅ **Continuation du déploiement** : Même en cas de timeout, le déploiement continue
+* 💡 **Instructions de récupération** : Commandes exactes fournies pour résolution manuelle
+====
+
+Ces améliorations garantissent un **déploiement production 100% fiable** même dans des conditions difficiles (gros datasets, réseau lent, ressources limitées).
 
 **Plus jamais de configuration manuelle ! 🚀** 
