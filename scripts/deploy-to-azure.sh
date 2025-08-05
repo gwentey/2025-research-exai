@@ -102,6 +102,88 @@ check_k8s_connectivity() {
     log_success "✅ Connectivité Kubernetes OK"
 }
 
+# Fonction robuste pour attendre qu'un job démarre
+wait_for_job_to_start() {
+    local job_name="$1"
+    local namespace="${2:-ibis-x}"
+    local timeout_seconds="${3:-180}"
+    
+    log_info "🔍 Attente robuste du démarrage du job '$job_name' (timeout: ${timeout_seconds}s)"
+    
+    local start_time=$(date +%s)
+    local check_interval=5
+    local retry_count=0
+    local max_retries=3
+    
+    while true; do
+        local current_time=$(date +%s)
+        local elapsed=$((current_time - start_time))
+        
+        # Vérifier le timeout global
+        if (( elapsed > timeout_seconds )); then
+            log_error "❌ Timeout atteint pour le démarrage du job '$job_name' (${timeout_seconds}s)"
+            return 1
+        fi
+        
+        # Vérifier si le job existe
+        if kubectl get job "$job_name" -n "$namespace" &>/dev/null; then
+            log_info "✅ Job '$job_name' créé avec succès"
+            
+            # Attendre qu'un pod soit créé pour ce job
+            local pod_count
+            pod_count=$(kubectl get pods -n "$namespace" -l job-name="$job_name" --no-headers 2>/dev/null | wc -l || echo "0")
+            
+            if (( pod_count > 0 )); then
+                log_info "✅ Pod du job '$job_name' créé, vérification du statut..."
+                
+                # Vérifier que le pod n'est pas en erreur immédiate
+                local pod_status
+                pod_status=$(kubectl get pods -n "$namespace" -l job-name="$job_name" -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "Unknown")
+                
+                if [[ "$pod_status" == "Running" ]] || [[ "$pod_status" == "Pending" ]]; then
+                    log_success "✅ Job '$job_name' démarré avec succès (Pod: $pod_status)"
+                    return 0
+                elif [[ "$pod_status" == "Failed" ]]; then
+                    log_error "❌ Le pod du job '$job_name' a échoué immédiatement"
+                    
+                    # Afficher les logs pour diagnostic
+                    local pod_name
+                    pod_name=$(kubectl get pods -n "$namespace" -l job-name="$job_name" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+                    if [[ -n "$pod_name" ]]; then
+                        log_info "📋 Logs du pod en échec:"
+                        kubectl logs "$pod_name" -n "$namespace" --tail=20 2>/dev/null || log_warning "Impossible de récupérer les logs"
+                    fi
+                    return 1
+                else
+                    log_info "⏳ Pod en cours de démarrage (status: $pod_status), attente..."
+                fi
+            else
+                log_info "⏳ Attente de la création du pod pour le job '$job_name'..."
+            fi
+        else
+            log_info "⏳ Attente de la création du job '$job_name'..."
+            
+            # Si le job n'existe pas après plusieurs tentatives, on peut avoir un problème
+            retry_count=$((retry_count + 1))
+            if (( retry_count >= max_retries )); then
+                log_warning "⚠️ Job '$job_name' non trouvé après $max_retries tentatives, vérification des erreurs..."
+                
+                # Afficher des informations de diagnostic
+                log_info "📋 Diagnostic - Jobs existants dans le namespace:"
+                kubectl get jobs -n "$namespace" 2>/dev/null || log_warning "Impossible de lister les jobs"
+                
+                log_info "📋 Diagnostic - Événements récents:"
+                kubectl get events -n "$namespace" --sort-by='.lastTimestamp' | tail -10 2>/dev/null || log_warning "Impossible de récupérer les événements"
+                
+                # Continuer l'attente mais signaler le problème
+                retry_count=0
+            fi
+        fi
+        
+        sleep $check_interval
+    done
+}
+
 # Fonction pour monitorer un job avec logs en temps réel
 monitor_job_progress() {
     local job_name="$1"
@@ -115,6 +197,9 @@ monitor_job_progress() {
     local start_time=$(date +%s)
     local check_interval=10
     local last_log_check=0
+    local last_status_check=0
+    local consecutive_errors=0
+    local max_consecutive_errors=5
     
     while true; do
         local current_time=$(date +%s)
@@ -123,19 +208,79 @@ monitor_job_progress() {
         # Vérifier le timeout
         if (( elapsed > timeout_seconds )); then
             log_error "❌ Timeout atteint pour le job '$job_name' (${timeout_minutes}min)"
+            
+            # Afficher des informations de diagnostic avant d'échouer
+            log_info "📋 Diagnostic final du job:"
+            kubectl describe job "$job_name" -n "$namespace" 2>/dev/null || log_warning "Impossible de décrire le job"
+            
+            log_info "📋 État final des pods:"
+            kubectl get pods -n "$namespace" -l job-name="$job_name" -o wide 2>/dev/null || log_warning "Impossible de lister les pods"
+            
             return 1
         fi
         
-        # Vérifier l'état du job
+        # Vérifier l'état du job avec gestion d'erreurs robuste
         local job_status=""
-        job_status=$(kubectl get job "$job_name" -n "$namespace" -o jsonpath='{.status.conditions[0].type}' 2>/dev/null || echo "")
+        local job_info_available=false
         
-        if [[ "$job_status" == "Complete" ]]; then
-            log_success "✅ Job '$job_name' terminé avec succès"
-            return 0
-        elif [[ "$job_status" == "Failed" ]]; then
-            log_error "❌ Job '$job_name' a échoué"
-            return 1
+        # Essayer de récupérer les informations du job
+        if kubectl get job "$job_name" -n "$namespace" &>/dev/null; then
+            job_info_available=true
+            job_status=$(kubectl get job "$job_name" -n "$namespace" -o jsonpath='{.status.conditions[0].type}' 2>/dev/null || echo "")
+            
+            # Si pas de condition, vérifier le statut des pods
+            if [[ -z "$job_status" ]]; then
+                local active_pods
+                active_pods=$(kubectl get job "$job_name" -n "$namespace" -o jsonpath='{.status.active}' 2>/dev/null || echo "0")
+                if (( active_pods > 0 )); then
+                    job_status="Active"
+                fi
+            fi
+            
+            consecutive_errors=0
+        else
+            consecutive_errors=$((consecutive_errors + 1))
+            log_warning "⚠️ Impossible d'accéder au job '$job_name' (tentative $consecutive_errors/$max_consecutive_errors)"
+            
+            if (( consecutive_errors >= max_consecutive_errors )); then
+                log_error "❌ Impossible d'accéder au job après $max_consecutive_errors tentatives"
+                return 1
+            fi
+        fi
+        
+        # Traitement du statut du job
+        if [[ "$job_info_available" == "true" ]]; then
+            if [[ "$job_status" == "Complete" ]]; then
+                log_success "✅ Job '$job_name' terminé avec succès"
+                return 0
+            elif [[ "$job_status" == "Failed" ]]; then
+                log_error "❌ Job '$job_name' a échoué"
+                
+                # Afficher des informations détaillées sur l'échec
+                log_info "📋 Détails de l'échec:"
+                kubectl describe job "$job_name" -n "$namespace" 2>/dev/null || log_warning "Impossible de décrire le job"
+                
+                local pod_name
+                pod_name=$(kubectl get pods -n "$namespace" -l job-name="$job_name" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+                if [[ -n "$pod_name" ]]; then
+                    log_info "📋 Logs complets du pod en échec:"
+                    kubectl logs "$pod_name" -n "$namespace" --tail=50 2>/dev/null || log_warning "Impossible de récupérer les logs"
+                fi
+                
+                return 1
+            elif [[ "$job_status" == "Active" ]] || [[ -n "$job_status" ]]; then
+                # Job en cours d'exécution
+                if (( elapsed - last_status_check >= 60 )); then
+                    log_info "⏳ Job '$job_name' en cours (status: $job_status, elapsed: ${elapsed}s)"
+                    last_status_check=$elapsed
+                fi
+            else
+                # Statut inconnu, mais job existant
+                if (( elapsed - last_status_check >= 60 )); then
+                    log_info "⏳ Job '$job_name' en préparation (elapsed: ${elapsed}s)"
+                    last_status_check=$elapsed
+                fi
+            fi
         fi
         
         # Afficher les logs périodiquement (toutes les 30 secondes)
@@ -144,9 +289,14 @@ monitor_job_progress() {
             pod_name=$(kubectl get pods -n "$namespace" -l job-name="$job_name" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
             
             if [[ -n "$pod_name" ]]; then
-                log_info "📋 Logs récents du job '$job_name' (elapsed: ${elapsed}s):"
+                local pod_status
+                pod_status=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Unknown")
+                
+                log_info "📋 Logs récents du job '$job_name' (Pod: $pod_status, elapsed: ${elapsed}s):"
                 kubectl logs "$pod_name" -n "$namespace" --tail=10 2>/dev/null || log_warning "Impossible de récupérer les logs"
                 echo "---"
+            else
+                log_info "⏳ Attente du pod pour le job '$job_name' (elapsed: ${elapsed}s)"
             fi
             
             last_log_check=$elapsed
@@ -1127,17 +1277,47 @@ spec:
       activeDeadlineSeconds: 3600
 EOF
         
-        # Attendre que le job soit créé
+        # Attendre que le job soit créé et que le pod démarre
         log_info "⏳ Attente du démarrage du job d'import..."
-        kubectl wait --for=condition=active job/kaggle-dataset-import-job -n "${K8S_NAMESPACE:-ibis-x}" --timeout=60s
+        wait_for_job_to_start "kaggle-dataset-import-job" "${K8S_NAMESPACE:-ibis-x}" 180
         
-        # Monitoring du job avec logs en temps réel
-        if monitor_job_progress "kaggle-dataset-import-job" "${K8S_NAMESPACE:-ibis-x}" 45; then
+        # Monitoring du job avec logs en temps réel (timeout étendu pour production)
+        if monitor_job_progress "kaggle-dataset-import-job" "${K8S_NAMESPACE:-ibis-x}" 60; then
             log_success "✅ Import Kaggle terminé avec succès"
         else
-            # En cas d'échec, afficher des informations détaillées pour debug
+            # En cas d'échec ou timeout, diagnostiquer et gérer intelligemment
             log_error "❌ Échec ou timeout du job d'import Kaggle"
             
+            # Vérifier si le job est encore en cours d'exécution
+            local job_still_running=false
+            local pod_name
+            pod_name=$(kubectl get pods -n "${K8S_NAMESPACE:-ibis-x}" -l job-name=kaggle-dataset-import-job -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+            
+            if [[ -n "$pod_name" ]]; then
+                local pod_status
+                pod_status=$(kubectl get pod "$pod_name" -n "${K8S_NAMESPACE:-ibis-x}" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Unknown")
+                
+                if [[ "$pod_status" == "Running" ]]; then
+                    job_still_running=true
+                    log_warning "⚠️ Le job est encore en cours d'exécution ! Timeout probablement trop court."
+                    log_info "📊 Option 1: Attendre plus longtemps (job encore actif)"
+                    log_info "📊 Option 2: Continuer sans les données Kaggle"
+                    log_info "📊 Option 3: Utiliser le fallback kubectl exec"
+                    
+                    # Proposer d'attendre encore un peu si le job tourne encore
+                    log_info "🔄 Le job semble encore actif, on peut continuer le déploiement et vérifier plus tard..."
+                    log_warning "⏳ Import Kaggle en cours, le déploiement va continuer..."
+                    
+                    # Afficher les logs actuels pour information
+                    log_info "📋 Logs actuels du job en cours:"
+                    kubectl logs "$pod_name" -n "${K8S_NAMESPACE:-ibis-x}" --tail=20 2>/dev/null || log_warning "Impossible de récupérer les logs"
+                    
+                    # Ne pas échouer complètement si le job tourne encore
+                    log_info "🚀 Continuer le déploiement, l'import se terminera en arrière-plan"
+                fi
+            fi
+            
+            # Afficher des informations détaillées pour debug
             log_info "📋 Logs complets du job pour diagnostic:"
             kubectl logs job/kaggle-dataset-import-job -n "${K8S_NAMESPACE:-ibis-x}" --tail=100 2>/dev/null || log_warning "Impossible de récupérer les logs complets"
             
@@ -1147,18 +1327,27 @@ EOF
             log_info "🔍 État des pods du job:"
             kubectl get pods -n "${K8S_NAMESPACE:-ibis-x}" -l job-name=kaggle-dataset-import-job -o wide 2>/dev/null || log_warning "Impossible de lister les pods du job"
             
-            # Fallback: essayer avec kubectl exec si le job a échoué
-            log_warning "🔄 Tentative de fallback avec kubectl exec sur service-selection..."
-            if retry_command 2 5 kubectl rollout status deployment/service-selection -n "${K8S_NAMESPACE:-ibis-x}" --timeout=300s; then
-                if retry_command 2 10 kubectl exec -n "${K8S_NAMESPACE:-ibis-x}" deployment/service-selection -- python kaggle-import/main.py --force-refresh; then
-                    log_success "✅ Fallback réussi avec kubectl exec"
+            # Seulement essayer le fallback si le job n'est PAS en cours d'exécution
+            if [[ "$job_still_running" == "false" ]]; then
+                log_warning "🔄 Job arrêté ou échoué, tentative de fallback avec kubectl exec sur service-selection..."
+                
+                if retry_command 2 5 kubectl rollout status deployment/service-selection -n "${K8S_NAMESPACE:-ibis-x}" --timeout=300s; then
+                    log_info "🎯 Service-selection prêt, lancement de l'import via kubectl exec..."
+                    
+                    if retry_command 2 10 kubectl exec -n "${K8S_NAMESPACE:-ibis-x}" deployment/service-selection -- python kaggle-import/main.py --force-refresh; then
+                        log_success "✅ Fallback réussi avec kubectl exec"
+                    else
+                        log_error "❌ Échec du fallback kubectl exec"
+                        log_warning "⚠️ Continuons le déploiement sans les données Kaggle pour l'instant"
+                        log_info "💡 Vous pouvez importer les données manuellement plus tard avec:"
+                        log_info "   kubectl exec -n ${K8S_NAMESPACE:-ibis-x} deployment/service-selection -- python kaggle-import/main.py --force-refresh"
+                    fi
                 else
-                    log_error "❌ Échec du fallback kubectl exec"
-                    return 1
+                    log_error "❌ Service-selection n'est pas prêt pour le fallback"
+                    log_warning "⚠️ Continuons le déploiement sans les données Kaggle pour l'instant"
                 fi
             else
-                log_error "❌ Service-selection n'est pas prêt pour le fallback"
-                return 1
+                log_info "📊 Job encore en cours, pas besoin de fallback maintenant"
             fi
         fi
         
@@ -1488,9 +1677,14 @@ force_storage_secrets_update_after_kustomize() {
         sleep 2
         
         log_info "🗂️ Recréation storage-secrets avec les vraies valeurs Terraform: $STORAGE_ACCOUNT"
+        
+        # Construire la connection string Azure
+        local azure_connection_string="DefaultEndpointsProtocol=https;AccountName=${STORAGE_ACCOUNT};AccountKey=${STORAGE_KEY};EndpointSuffix=core.windows.net"
+        
         kubectl create secret generic storage-secrets -n "${K8S_NAMESPACE:-ibis-x}" \
             --from-literal=azure-storage-account-name="$STORAGE_ACCOUNT" \
             --from-literal=azure-storage-account-key="$STORAGE_KEY" \
+            --from-literal=azure-connection-string="$azure_connection_string" \
             --from-literal=azure-container-name="ibis-x-datasets" \
             --from-literal=access-key="minioadmin" \
             --from-literal=minio-access-key="minioadmin" \
@@ -2105,9 +2299,14 @@ create_storage_secrets_from_azure() {
         kubectl delete secret storage-secrets -n "$K8S_NAMESPACE" 2>/dev/null || true
         
         log_info "🗂️ Création storage-secrets avec valeurs Azure: $STORAGE_ACCOUNT"
+        
+        # Construire la connection string Azure
+        local azure_connection_string="DefaultEndpointsProtocol=https;AccountName=${STORAGE_ACCOUNT};AccountKey=${STORAGE_KEY};EndpointSuffix=core.windows.net"
+        
         kubectl create secret generic storage-secrets -n "$K8S_NAMESPACE" \
             --from-literal=azure-storage-account-name="$STORAGE_ACCOUNT" \
             --from-literal=azure-storage-account-key="$STORAGE_KEY" \
+            --from-literal=azure-connection-string="$azure_connection_string" \
             --from-literal=azure-container-name=ibis-x-datasets
         
         log_success "✅ Storage secrets créés: $STORAGE_ACCOUNT"
@@ -2153,6 +2352,52 @@ fix_failed_pods() {
 run_migrations() {
     log_info "🚀 Démarrage de l'auto-correction complète des migrations..."
     final_auto_check_and_fix
+}
+
+# Fonction pour vérifier le statut final du job Kaggle
+check_final_kaggle_status() {
+    log_info "🔍 Vérification finale du statut du job Kaggle..."
+    
+    local job_exists=false
+    local job_status=""
+    
+    # Vérifier si le job existe
+    if kubectl get job kaggle-dataset-import-job -n "${K8S_NAMESPACE:-ibis-x}" &>/dev/null; then
+        job_exists=true
+        job_status=$(kubectl get job kaggle-dataset-import-job -n "${K8S_NAMESPACE:-ibis-x}" -o jsonpath='{.status.conditions[0].type}' 2>/dev/null || echo "Active")
+        
+        local pod_name
+        pod_name=$(kubectl get pods -n "${K8S_NAMESPACE:-ibis-x}" -l job-name=kaggle-dataset-import-job -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+        
+        case "$job_status" in
+            "Complete")
+                log_success "✅ Job Kaggle terminé avec succès"
+                ;;
+            "Failed")
+                log_warning "⚠️ Job Kaggle a échoué - données Kaggle non importées"
+                log_info "💡 Vous pouvez réessayer manuellement avec:"
+                log_info "   kubectl exec -n ${K8S_NAMESPACE:-ibis-x} deployment/service-selection -- python kaggle-import/main.py --force-refresh"
+                ;;
+            "Active"|"")
+                if [[ -n "$pod_name" ]]; then
+                    local pod_status
+                    pod_status=$(kubectl get pod "$pod_name" -n "${K8S_NAMESPACE:-ibis-x}" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Unknown")
+                    
+                    if [[ "$pod_status" == "Running" ]]; then
+                        log_info "⏳ Job Kaggle encore en cours d'exécution en arrière-plan"
+                        log_info "📊 Vous pouvez suivre l'avancement avec:"
+                        log_info "   kubectl logs -f $pod_name -n ${K8S_NAMESPACE:-ibis-x}"
+                    else
+                        log_warning "⚠️ Job Kaggle dans un état indéterminé (Pod: $pod_status)"
+                    fi
+                else
+                    log_warning "⚠️ Job Kaggle existe mais aucun pod trouvé"
+                fi
+                ;;
+        esac
+    else
+        log_info "📊 Aucun job Kaggle en cours (WITH_DATA peut être désactivé)"
+    fi
 }
 
 # Fonction pour afficher les informations de l'application
@@ -2328,6 +2573,9 @@ main() {
     if [[ "$USE_GITHUB_SECRETS" == "true" ]]; then
         cleanup_migration_jobs
     fi
+    
+    # Vérification finale du job Kaggle
+    check_final_kaggle_status
     
     # Afficher les informations finales
     show_application_info
