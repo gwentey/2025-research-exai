@@ -12,14 +12,14 @@ body {
   color: var(--text-primary) !important;
 }
 
-// Fond principal de l'application avec gradient subtil
+// Fond principal de l'application avec gradient ULTRA-subtil
 .blank-layout-container,
 .main-container,
 .page-wrapper {
   background: linear-gradient(180deg, 
-    var(--warm-gray-50) 0%, 
-    var(--modern-blue-light) 50%,
-    var(--warm-champagne) 100%
+    #fafaf9 0%, 
+    #fbfbfb 50%,
+    #fefefe 100%
   ) !important;
   background-attachment: fixed;
 }
@@ -28,21 +28,21 @@ body {
 // SIDEBAR ET NAVIGATION
 // ==================================================
 
-// Sidebar moderne avec touches chaudes
+// Sidebar moderne avec touches TRÈS subtiles
 .app-sidebar,
 .mat-drawer {
   background: linear-gradient(180deg, 
     #ffffff 0%, 
-    var(--modern-blue-light) 100%
+    #fafbfc 100%
   ) !important;
-  border-right: 1px solid var(--border-accent) !important;
+  border-right: 1px solid rgba(122, 137, 194, 0.1) !important;
   
   .sidebar-nav {
     .sidebar-nav-item {
       transition: all 0.3s ease;
       
       &:hover {
-        background: var(--warm-champagne) !important;
+        background: #fcfcfb !important;
         border-left: 3px solid var(--accent-coral);
         
         .hide-menu {
@@ -52,7 +52,7 @@ body {
       
       &.active {
         background: linear-gradient(90deg, 
-          var(--modern-blue-light) 0%, 
+          #f8f9fc 0%, 
           transparent 100%
         ) !important;
         border-left: 3px solid var(--accent-coral) !important;
@@ -67,27 +67,95 @@ body {
 }
 
 // ==================================================
+// CORRECTION MENU HOVER TROP SOMBRE
+// ==================================================
+
+// Éléments de menu Material List
+.mat-mdc-list-item {
+  &:hover {
+    background: rgba(255, 255, 255, 0.8) !important;
+    
+    // Texte bien visible au hover
+    .hide-menu,
+    .mdc-list-item__primary-text,
+    .mat-mdc-list-item-unscoped-content {
+      color: var(--modern-blue-vivid) !important;
+    }
+    
+    // Icône bien visible au hover
+    .mat-mdc-list-item-icon,
+    .routeIcon {
+      color: var(--modern-blue-vivid) !important;
+    }
+  }
+  
+  // Élément actif
+  &.activeMenu {
+    background: rgba(248, 249, 252, 0.6) !important;
+    
+    .hide-menu,
+    .mdc-list-item__primary-text {
+      color: var(--modern-blue-vivid) !important;
+      font-weight: 600 !important;
+    }
+    
+    .mat-mdc-list-item-icon {
+      color: var(--accent-coral) !important;
+    }
+    
+    &:hover {
+      background: rgba(252, 252, 251, 0.9) !important;
+      
+      .hide-menu,
+      .mdc-list-item__primary-text {
+        color: var(--modern-blue-vivid) !important;
+      }
+    }
+  }
+}
+
+// Corrections spécifiques pour les classes supplémentaires
+.mat-mdc-list-item.accent,
+.mat-mdc-list-item.mat-toolbar,
+.mat-mdc-list-item.mat-primary {
+  &:hover {
+    background: rgba(255, 255, 255, 0.9) !important;
+    
+    .hide-menu,
+    .mdc-list-item__primary-text,
+    .mat-mdc-list-item-unscoped-content {
+      color: var(--modern-blue-vivid) !important;
+    }
+    
+    .mat-mdc-list-item-icon,
+    .routeIcon {
+      color: var(--modern-blue-vivid) !important;
+    }
+  }
+}
+
+// ==================================================
 // CARTES ET CONTENEURS
 // ==================================================
 
-// Toutes les cartes Material Design modernisées
+// Toutes les cartes Material Design modernisées - gradient TRÈS subtil
 .mat-mdc-card,
 .mat-card,
 .card {
   background: linear-gradient(135deg, 
     #ffffff 0%, 
-    var(--modern-blue-light) 100%
+    #f8f9fc 100%
   ) !important;
-  border: 1px solid rgba(92, 111, 179, 0.1) !important;
-  box-shadow: 0 4px 16px rgba(59, 75, 140, 0.08) !important;
+  border: 1px solid rgba(92, 111, 179, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(59, 75, 140, 0.06) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   
   &:hover {
     transform: translateY(-4px) !important;
     box-shadow: 
-      0 8px 32px rgba(212, 165, 116, 0.15),
-      0 4px 16px rgba(255, 126, 95, 0.1) !important;
-    border-color: var(--warm-gold) !important;
+      0 8px 32px rgba(212, 165, 116, 0.12),
+      0 4px 16px rgba(255, 126, 95, 0.08) !important;
+    border-color: rgba(212, 165, 116, 0.3) !important;
   }
 }
 
@@ -260,20 +328,20 @@ body {
 .mat-mdc-dialog-container {
   background: linear-gradient(135deg, 
     white 0%, 
-    var(--modern-blue-light) 100%
+    #f9f9fb 100%
   ) !important;
-  box-shadow: 0 24px 48px rgba(59, 75, 140, 0.2) !important;
+  box-shadow: 0 24px 48px rgba(59, 75, 140, 0.15) !important;
 }
 
 // ==================================================
 // SECTIONS SPÉCIFIQUES
 // ==================================================
 
-// Dashboard moderne
+// Dashboard moderne avec gradients TRÈS subtils
 .dashboard-container {
   .stat-card {
     background: linear-gradient(135deg, 
-      var(--warm-champagne) 0%, 
+      #fefefe 0%, 
       white 100%
     ) !important;
     border-top: 4px solid var(--accent-coral) !important;
@@ -292,13 +360,13 @@ body {
   }
 }
 
-// Datasets page moderne
+// Datasets page moderne avec couleurs TRÈS subtiles
 .datasets-container {
   .dataset-filters {
-    background: var(--warm-champagne) !important;
+    background: #fcfcfb !important;
     border-radius: 12px !important;
     padding: 20px !important;
-    border: 1px solid var(--warm-gold) !important;
+    border: 1px solid rgba(212, 165, 116, 0.2) !important;
   }
   
   .dataset-grid {
@@ -308,7 +376,7 @@ body {
       &:hover {
         border-left-color: var(--accent-coral) !important;
         background: linear-gradient(90deg, 
-          var(--warm-champagne) 0%, 
+          #fcfcfb 0%, 
           white 100%
         ) !important;
       }

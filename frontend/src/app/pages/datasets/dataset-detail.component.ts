@@ -32,6 +32,7 @@ import {
   Dataset,
   DataQualityAlert
 } from '../../models/dataset.models';
+import { MissingDataScoreComponent } from './components/missing-data-score.component';
 
 @Component({
   selector: 'app-dataset-detail',
@@ -54,7 +55,8 @@ import {
     MatMenuModule,
     MatDialogModule,
     MatSnackBarModule,
-    TranslateModule
+    TranslateModule,
+    MissingDataScoreComponent
   ],
   templateUrl: './dataset-detail.component.html',
   styleUrls: ['./dataset-detail.component.scss']
@@ -368,5 +370,21 @@ export class DatasetDetailComponent implements OnInit, OnDestroy {
    */
   completeMetadata(): void {
     this.router.navigate(['/datasets', this.datasetId, 'complete-metadata']);
+  }
+
+  /**
+   * Récupère toutes les colonnes de tous les fichiers du dataset
+   */
+  getAllColumns(): any[] {
+    if (!this.dataset?.files) return [];
+    
+    const allColumns: any[] = [];
+    this.dataset.files.forEach(file => {
+      if (file.columns) {
+        allColumns.push(...file.columns);
+      }
+    });
+    
+    return allColumns;
   }
 } 

@@ -1023,26 +1023,56 @@ async def proxy_request(
         
         # Préparer les headers à transmettre, incluant l'user_id pour l'authentification
         headers = {
-            "Content-Type": "application/json",
             "User-Agent": "API-Gateway-Proxy/1.0",
             "X-User-ID": str(current_user.id),  # Transmettre l'ID de l'utilisateur connecté
-            "X-User-Email": current_user.email  # Optionnel : email pour debug
+            "X-User-Email": current_user.email,  # Optionnel : email pour debug
+            "X-User-Role": current_user.role  # Transmettre le rôle pour l'autorisation
         }
+        
+        # Ne pas forcer Content-Type pour les uploads multipart
+        content_type = request.headers.get("content-type")
+        if content_type and not content_type.startswith("multipart/"):
+            headers["Content-Type"] = "application/json"
         
         # Récupérer le body si c'est une requête POST/PUT/PATCH
         body = None
+        files = None
         if request.method in ["POST", "PUT", "PATCH"]:
-            body = await request.body()
+            # Pour les uploads multipart, on utilise request.form() et request.files
+            if content_type and content_type.startswith("multipart/"):
+                form = await request.form()
+                files = []
+                for key, file in form.items():
+                    if hasattr(file, 'read'):  # C'est un fichier
+                        files.append((key, (file.filename, file.file, file.content_type)))
+                    else:  # C'est un champ normal
+                        if not body:
+                            body = {}
+                        body[key] = file
+            else:
+                body = await request.body()
         
         # Faire la requête vers le service backend
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.request(
-                method=request.method,
-                url=target_url,
-                params=query_params,
-                headers=headers,
-                content=body
-            )
+            if files:
+                # Pour les uploads de fichiers
+                response = await client.request(
+                    method=request.method,
+                    url=target_url,
+                    params=query_params,
+                    headers=headers,
+                    files=files,
+                    data=body
+                )
+            else:
+                # Pour les requêtes JSON normales
+                response = await client.request(
+                    method=request.method,
+                    url=target_url,
+                    params=query_params,
+                    headers=headers,
+                    content=body
+                )
             
             # Retourner la réponse du service backend
             return JSONResponse(
@@ -1266,7 +1296,164 @@ async def validate_ethical_templates(current_user: UserModel = Depends(current_s
         "warnings": []
     }
 
+# ============================================
+# ENDPOINT TEMPORAIRE POUR ADMIN GRANT
+# ============================================
+
+@app.post("/admin/temporary-grant", tags=["admin", "temporary"])
+async def temporary_grant_admin(
+    user_email: str = Query(..., description="Email de l'utilisateur à promouvoir admin"),
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    ENDPOINT TEMPORAIRE - Accorde les droits d'administrateur à un utilisateur par email.
+    
+    Cet endpoint est temporaire et destiné aux phases de développement.
+    Il permet de promouvoir rapidement un utilisateur au rôle 'admin' sans aller en base.
+    
+    Sécurité minimale : L'utilisateur qui fait la demande doit être authentifié.
+    Pour plus de sécurité en production, retirer cet endpoint !
+    """
+    try:
+        logger.info(f"Tentative de promotion admin pour: {user_email} par {current_user.email}")
+        
+        # Rechercher l'utilisateur par email
+        stmt = select(UserModel).where(UserModel.email == user_email.lower())
+        result = await session.execute(stmt)
+        target_user = result.scalars().first()
+        
+        if not target_user:
+            logger.warning(f"Utilisateur non trouvé: {user_email}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Aucun utilisateur trouvé avec l'email: {user_email}"
+            )
+        
+        # Vérifier s'il est déjà admin
+        if target_user.role == "admin":
+            logger.info(f"L'utilisateur {user_email} est déjà administrateur")
+            return {
+                "message": f"L'utilisateur {user_email} est déjà administrateur",
+                "user": {
+                    "id": str(target_user.id),
+                    "email": target_user.email,
+                    "role": target_user.role,
+                    "is_superuser": target_user.is_superuser
+                },
+                "action": "no_change"
+            }
+        
+        # Promouvoir l'utilisateur au rôle admin
+        old_role = target_user.role
+        target_user.role = "admin"
+        
+        # Sauvegarder en base
+        await session.commit()
+        await session.refresh(target_user)
+        
+        logger.info(f"Utilisateur {user_email} promu de '{old_role}' à 'admin' par {current_user.email}")
+        
+        return {
+            "message": f"Utilisateur {user_email} promu au rang d'administrateur avec succès !",
+            "user": {
+                "id": str(target_user.id),
+                "email": target_user.email,
+                "role": target_user.role,
+                "is_superuser": target_user.is_superuser,
+                "previous_role": old_role
+            },
+            "action": "promoted",
+            "granted_by": current_user.email
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la promotion admin: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la promotion: {str(e)}"
+        )
+
+@app.get("/admin/temporary-grant/current-user", tags=["admin", "temporary"])
+async def temporary_grant_current_user(
+    current_user: UserModel = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    ENDPOINT TEMPORAIRE - Accorde les droits d'administrateur à l'utilisateur actuellement connecté.
+    
+    Très pratique pour se donner rapidement les droits admin lors du développement.
+    ATTENTION: Cet endpoint doit être retiré en production !
+    """
+    try:
+        logger.info(f"Auto-promotion admin pour: {current_user.email}")
+        
+        # Récupérer l'utilisateur depuis la session
+        stmt = select(UserModel).where(UserModel.id == current_user.id)
+        result = await session.execute(stmt)
+        user_in_session = result.scalars().first()
+        
+        if not user_in_session:
+            raise HTTPException(
+                status_code=404,
+                detail="Utilisateur non trouvé en session"
+            )
+        
+        # Vérifier s'il est déjà admin
+        if user_in_session.role == "admin":
+            logger.info(f"L'utilisateur {current_user.email} est déjà administrateur")
+            return {
+                "message": "Vous êtes déjà administrateur",
+                "user": {
+                    "id": str(user_in_session.id),
+                    "email": user_in_session.email,
+                    "role": user_in_session.role,
+                    "is_superuser": user_in_session.is_superuser
+                },
+                "action": "no_change"
+            }
+        
+        # Promouvoir l'utilisateur au rôle admin
+        old_role = user_in_session.role
+        user_in_session.role = "admin"
+        
+        # Sauvegarder en base
+        await session.commit()
+        await session.refresh(user_in_session)
+        
+        logger.info(f"Auto-promotion de {current_user.email} de '{old_role}' à 'admin'")
+        
+        return {
+            "message": "Vous avez été promu administrateur avec succès !",
+            "user": {
+                "id": str(user_in_session.id),
+                "email": user_in_session.email,
+                "role": user_in_session.role,
+                "is_superuser": user_in_session.is_superuser,
+                "previous_role": old_role
+            },
+            "action": "self_promoted"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de l'auto-promotion admin: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de l'auto-promotion: {str(e)}"
+        )
+
 # Endpoint manquant pour l'upload de datasets - similar
+@app.api_route("/datasets/preview", methods=["POST"], tags=["datasets"])
+async def datasets_preview_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour l'analyse préalable des fichiers de dataset"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, "datasets/preview", current_user)
+
 @app.get("/datasets/upload/similar", tags=["datasets"])
 async def datasets_upload_similar(
     limit: int = Query(5, ge=1, le=20),

@@ -1,0 +1,233 @@
+= Guide d'Upload Manuel de Datasets IBIS-X
+:description: Guide complet pour ajouter manuellement des datasets dans IBIS-X
+:keywords: upload, dataset, manuel, interface, métadonnées
+
+== Vue d'ensemble
+
+IBIS-X propose un système d'upload manuel de datasets qui permet aux utilisateurs ayant les rôles *admin* ou *contributeur* d'ajouter leurs propres données à la plateforme. Cette fonctionnalité complète l'import automatique Kaggle existant.
+
+=== Formats supportés
+
+* *.csv* - Fichiers de valeurs séparées par des virgules
+* *.xlsx/.xls* - Fichiers Microsoft Excel
+* *.json* - Fichiers JavaScript Object Notation
+* *.xml* - Fichiers eXtensible Markup Language  
+* *.parquet* - Fichiers Apache Parquet (format optimisé)
+
+=== Contraintes techniques
+
+* Taille maximale par fichier : *100 MB*
+* Nombre maximum de fichiers : *10 par dataset*
+* Conversion automatique vers Parquet pour l'optimisation
+
+== Accès à la fonctionnalité
+
+=== Prérequis
+
+* Compte utilisateur IBIS-X avec rôle *admin* ou *contributeur*
+* Connexion active à la plateforme
+
+=== Navigation
+
+. Aller dans le menu *Datasets* 
+. Cliquer sur le bouton *"Ajouter un dataset"* (icône +)
+. Choisir entre :
+   - *Upload rapide* : Interface simple pour des datasets basiques
+   - *Assistant guidé* : Wizard complet avec analyse et métadonnées détaillées
+
+== Interface d'Upload Rapide
+
+=== Étapes
+
+. **Sélection des fichiers**
+   - Glisser-déposer ou cliquer pour sélectionner
+   - Validation automatique des formats
+   - Aperçu des fichiers sélectionnés
+
+. **Actions disponibles**
+   - *Analyser d'abord* : Lance l'analyse des fichiers
+   - *Assistant guidé* : Bascule vers le wizard complet  
+   - *Upload rapide* : Création immédiate avec métadonnées minimales
+
+=== Fonctionnalités
+
+* *Validation en temps réel* des fichiers
+* *Suggestions automatiques* basées sur l'analyse
+* *Gestion des brouillons* pour sauvegarder le travail en cours
+
+== Assistant d'Upload Guidé
+
+=== Workflow en 4 étapes
+
+==== Étape 1 : Sélection des Fichiers
+
+* Interface drag & drop intuitive
+* Validation des formats et tailles
+* Prévisualisation des fichiers sélectionnés
+* Messages d'erreur détaillés si nécessaire
+
+==== Étape 2 : Analyse Automatique
+
+L'analyse génère automatiquement :
+
+* *Statistiques générales* : nombre de lignes, colonnes, taille
+* *Score de qualité* global (0-100)
+* *Détection des problèmes* :
+  - Valeurs manquantes (pourcentage)
+  - Doublons détectés
+  - Fichiers vides
+* *Suggestions intelligentes* :
+  - Nom de dataset proposé
+  - Domaines d'application suggérés
+  - Tâches ML recommandées
+
+==== Étape 3 : Métadonnées Détaillées
+
+Formulaire organisé en 5 onglets :
+
+===== Général
+* Nom du dataset (obligatoire)
+* Année de création
+* Objectif/description
+* Domaines d'application
+* Tâches de machine learning
+
+===== Technique  
+* Type d'accès (public/privé/restreint)
+* Disponibilité (en ligne/hors ligne/sur demande)
+* Nombre d'instances/caractéristiques (auto-détecté)
+* Description des caractéristiques
+* Sources des données
+* Informations de citation
+
+===== Qualité
+* Dataset pre-splittée (train/test)
+* Présence de valeurs manquantes
+* Méthodes de gestion des valeurs manquantes
+* Facteurs temporels
+* Documentation de la qualité
+
+===== Éthique
+* Consentement éclairé
+* Transparence
+* Contrôle utilisateur
+* Équité et non-discrimination
+* Mesures de sécurité
+* Anonymisation
+* Responsabilité
+
+===== Documentation
+* Métadonnées fournies
+* Documentation externe
+* Politique de conservation
+* Limitation des finalités
+
+==== Étape 4 : Confirmation et Création
+
+* Récapitulatif complet des informations
+* Liste des fichiers à uploader
+* Métadonnées saisies
+* Bouton de création finale
+
+=== Fonctionnalités avancées
+
+* *Auto-sauvegarde* des métadonnées toutes les 3 secondes
+* *Indicateur de progression* du formulaire
+* *Suggestions intelligentes* applicables en un clic
+* *Tooltips explicatifs* pour chaque champ
+
+== Stockage et Traitement
+
+=== Pipeline de données
+
+. *Upload* des fichiers vers le service backend
+. *Validation* des formats et contenus
+. *Conversion automatique* vers Parquet pour l'optimisation
+. *Stockage* dans MinIO (local) ou Azure Blob (production)
+. *Enregistrement* des métadonnées dans PostgreSQL
+. *Indexation* pour la recherche et le filtrage
+
+=== Réutilisation de l'infrastructure Kaggle
+
+Le système d'upload manuel réutilise l'infrastructure robuste développée pour l'import Kaggle :
+
+* Mêmes modèles SQLAlchemy
+* Même pipeline de validation
+* Mêmes mécanismes de stockage
+* Même logique de conversion
+
+== Gestion d'Erreurs
+
+=== Erreurs fréquentes
+
+[cols="2,3,3"]
+|===
+|Erreur |Cause |Solution
+
+|Format non supporté
+|Extension de fichier non reconnue
+|Utiliser un des formats supportés (.csv, .xlsx, .json, .xml, .parquet)
+
+|Fichier trop volumineux  
+|Taille > 100MB
+|Diviser le fichier ou utiliser un format plus compact
+
+|Fichier vide
+|Aucune donnée détectée
+|Vérifier le contenu du fichier
+
+|Données corrompues
+|Structure invalide
+|Vérifier l'intégrité du fichier source
+
+|Timeout d'upload
+|Connexion lente/instable
+|Relancer l'upload ou utiliser une connexion plus stable
+|===
+
+=== Récupération
+
+* *Sauvegarde automatique* des brouillons
+* *Reprendre* l'upload après interruption  
+* *Messages d'erreur détaillés* avec solutions suggérées
+* *Rollback automatique* en cas d'échec
+
+== Bonnes Pratiques
+
+=== Préparation des données
+
+. *Nettoyer* les données avant upload
+. *Documenter* les colonnes et leur signification
+. *Vérifier* l'absence de données personnelles sensibles
+. *Optimiser* la taille des fichiers si possible
+
+=== Métadonnées
+
+. Remplir le *maximum de champs* pour une meilleure découvrabilité
+. Utiliser des *descriptions claires* et précises
+. Spécifier les *domaines d'application* pertinents
+. Documenter les *limitations* et *biais* connus
+
+=== Éthique
+
+. S'assurer du *consentement* pour l'utilisation des données
+. *Anonymiser* les données personnelles
+. Respecter les *réglementations* (RGPD, etc.)
+. Documenter les *mesures de protection* mises en place
+
+== Support et Assistance
+
+En cas de problème :
+
+* Consulter les *messages d'erreur* détaillés dans l'interface
+* Vérifier les *formats* et *tailles* de fichiers
+* Contacter l'équipe technique via le système de support IBIS-X
+* Consulter la documentation technique pour les développeurs
+
+== Évolutions futures
+
+* Support de formats additionnels (HDF5, NetCDF)
+* Upload par lots (batch upload)
+* Intégration avec des systèmes de stockage externes
+* API REST pour l'upload programmatique
+* Validation avancée avec règles métier personnalisables

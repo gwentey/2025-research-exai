@@ -8,6 +8,7 @@ import logging
 import uuid
 import pandas as pd
 import io
+import json
 from pydantic import UUID4
 
 # Configuration du logging
@@ -69,27 +70,69 @@ async def startup_event():
 
 def convert_to_parquet(file_content: bytes, filename: str) -> bytes:
     """
-    Convertit un fichier CSV en format Parquet.
+    Convertit un fichier (CSV, Excel, JSON, XML) en format Parquet.
     
     Args:
-        file_content: Contenu du fichier CSV en bytes
+        file_content: Contenu du fichier en bytes
         filename: Nom original du fichier
         
     Returns:
         Contenu du fichier Parquet en bytes
     """
     try:
-        # Lire le CSV depuis les bytes
-        csv_data = pd.read_csv(io.BytesIO(file_content))
+        file_extension = filename.lower().split('.')[-1] if '.' in filename else 'csv'
+        logger.info(f"Conversion vers Parquet : {filename} (format: {file_extension})")
+        
+        # Lecture selon le format du fichier
+        if file_extension == 'csv':
+            df = pd.read_csv(io.BytesIO(file_content))
+        elif file_extension in ['xlsx', 'xls']:
+            df = pd.read_excel(io.BytesIO(file_content), sheet_name=0)  # Première feuille par défaut
+        elif file_extension == 'json':
+            # Essayer de lire comme JSON structuré
+            json_data = json.loads(file_content.decode('utf-8'))
+            if isinstance(json_data, list):
+                df = pd.DataFrame(json_data)
+            elif isinstance(json_data, dict):
+                # Si c'est un dictionnaire, essayer de le transformer en DataFrame
+                df = pd.DataFrame([json_data])
+            else:
+                raise ValueError("Format JSON non supporté - doit être un array ou un objet")
+        elif file_extension == 'xml':
+            # Support XML simple - peut être étendu selon les besoins
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(file_content.decode('utf-8'))
+            # Conversion simple XML vers DataFrame (à améliorer selon structure)
+            records = []
+            for child in root:
+                record = {subchild.tag: subchild.text for subchild in child}
+                records.append(record)
+            df = pd.DataFrame(records)
+        elif file_extension == 'parquet':
+            # Si c'est déjà un Parquet, on le retourne tel quel
+            return file_content
+        else:
+            raise ValueError(f"Format de fichier non supporté: {file_extension}")
+        
+        # Validation de base
+        if df.empty:
+            raise ValueError("Le fichier est vide ou ne contient pas de données valides")
         
         # Convertir en Parquet
         parquet_buffer = io.BytesIO()
-        csv_data.to_parquet(parquet_buffer, index=False)
+        df.to_parquet(parquet_buffer, index=False, compression='snappy')
         parquet_buffer.seek(0)
         
+        original_size = len(file_content) / 1024  # KB
+        parquet_size = len(parquet_buffer.getvalue()) / 1024  # KB
+        compression_ratio = original_size / parquet_size if parquet_size > 0 else 1
+        
+        logger.info(f"Conversion réussie: {filename} ({original_size:.1f}KB → {parquet_size:.1f}KB, ratio: {compression_ratio:.1f}x)")
+        
         return parquet_buffer.read()
+        
     except Exception as e:
-        logger.error(f"Erreur lors de la conversion CSV->Parquet pour {filename}: {str(e)}")
+        logger.error(f"Erreur lors de la conversion {filename} vers Parquet: {str(e)}")
         raise HTTPException(
             status_code=400, 
             detail=f"Impossible de convertir le fichier {filename} en Parquet: {str(e)}"
@@ -214,6 +257,32 @@ def get_current_user_id(x_user_id: str = Header(..., alias="X-User-ID")) -> UUID
             status_code=401,
             detail="ID utilisateur invalide dans les headers"
         )
+
+
+def get_current_user_role(x_user_role: str = Header(..., alias="X-User-Role")) -> str:
+    """
+    Extrait le rôle de l'utilisateur connecté depuis les headers envoyés par l'API Gateway.
+    """
+    allowed_roles = ['admin', 'contributor', 'user']
+    if x_user_role not in allowed_roles:
+        raise HTTPException(
+            status_code=401,
+            detail="Rôle utilisateur invalide dans les headers"
+        )
+    return x_user_role
+
+
+def verify_upload_permissions(user_role: str = Depends(get_current_user_role)) -> str:
+    """
+    Vérifie que l'utilisateur a les permissions pour uploader des datasets.
+    Seuls les admin et contributeurs peuvent uploader.
+    """
+    if user_role not in ['admin', 'contributor']:
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé. Seuls les administrateurs et contributeurs peuvent ajouter des datasets."
+        )
+    return user_role
 
 # --- Utilitaires pour les requêtes ---
 
@@ -802,6 +871,255 @@ def get_similar_datasets(dataset_id: str, limit: int = 5, db: Session = Depends(
         similarity_explanation=similarity_explanation
     )
 
+@app.post("/datasets/preview", response_model=dict)
+def preview_dataset_files(
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(database.get_db),
+    current_user_role: str = Depends(verify_upload_permissions)
+):
+    """
+    Analyse les fichiers uploadés sans les sauvegarder.
+    Retourne les métadonnées extraites, suggestions et prévisualisation des données.
+    """
+    logger.info(f"[PREVIEW] Début de l'analyse de {len(files)} fichiers pour l'utilisateur avec rôle: {current_user_role}")
+    try:
+        preview_results = []
+        total_rows = 0
+        total_size = 0
+        detected_domains = set()
+        detected_tasks = set()
+        
+        for file in files:
+            # Lire le contenu du fichier
+            file_content = file.file.read()
+            file.file.seek(0)  # Reset pour usage ultérieur si nécessaire
+            
+            file_size = len(file_content)
+            total_size += file_size
+            
+            # Analyser le fichier
+            try:
+                # Tenter la conversion pour analyser la structure
+                if file.filename.lower().endswith('.csv'):
+                    df = pd.read_csv(io.BytesIO(file_content))
+                elif file.filename.lower().endswith(('.xlsx', '.xls')):
+                    df = pd.read_excel(io.BytesIO(file_content), sheet_name=0)
+                elif file.filename.lower().endswith('.json'):
+                    json_data = json.loads(file_content.decode('utf-8'))
+                    if isinstance(json_data, list):
+                        df = pd.DataFrame(json_data)
+                    elif isinstance(json_data, dict):
+                        df = pd.DataFrame([json_data])
+                    else:
+                        raise ValueError("Format JSON non supporté")
+                else:
+                    # Pour les autres formats, on va juste indiquer qu'ils sont supportés
+                    df = None
+                
+                if df is not None:
+                    # Analyser les colonnes
+                    columns_analysis = []
+                    for idx, col_name in enumerate(df.columns):
+                        col_data = df[col_name]
+                        col_type = _interpret_column_type(col_data)
+                        
+                        # Suggestions de domaine basées sur les noms de colonnes
+                        if any(keyword in col_name.lower() for keyword in ['score', 'grade', 'performance', 'achievement']):
+                            detected_domains.add('education')
+                        elif any(keyword in col_name.lower() for keyword in ['price', 'cost', 'revenue', 'profit']):
+                            detected_domains.add('finance')
+                        elif any(keyword in col_name.lower() for keyword in ['age', 'gender', 'health', 'medical']):
+                            detected_domains.add('healthcare')
+                        
+                        # Suggestions de tâche ML
+                        if col_name.lower() in ['target', 'label', 'class', 'outcome', 'result']:
+                            if col_type in ['categorical']:
+                                detected_tasks.add('classification')
+                            elif col_type in ['numerical_integer', 'numerical_float']:
+                                detected_tasks.add('regression')
+                        
+                        columns_analysis.append({
+                            'column_name': col_name,
+                            'position': idx,
+                            'data_type_interpreted': col_type,
+                            'is_nullable': bool(col_data.isnull().any().item()),
+                            'unique_values': int(col_data.nunique().item()) if hasattr(col_data.nunique(), 'item') else int(col_data.nunique()),
+                            'missing_count': int(col_data.isnull().sum().item()) if hasattr(col_data.isnull().sum(), 'item') else int(col_data.isnull().sum()),
+                            'example_values': col_data.dropna().head(3).astype(str).tolist()
+                        })
+                    
+                    row_count = len(df)
+                    total_rows += row_count
+                    
+                    # Prévisualisation des premières lignes - Conversion des types numpy
+                    if not df.empty:
+                        preview_df = df.head(10)
+                        # Convertir tous les types numpy en types Python natifs
+                        preview_data = []
+                        for record in preview_df.to_dict('records'):
+                            converted_record = {}
+                            for key, value in record.items():
+                                if hasattr(value, 'item'):  # C'est un type numpy
+                                    converted_record[key] = value.item()
+                                elif pd.isna(value):
+                                    converted_record[key] = None
+                                else:
+                                    converted_record[key] = value
+                            preview_data.append(converted_record)
+                    else:
+                        preview_data = []
+                    
+                    # Analyse de la qualité des données - Conversion des types numpy
+                    missing_percentage = float((df.isnull().sum().sum() / (len(df) * len(df.columns))) * 100)
+                    has_duplicates = bool(df.duplicated().any().item()) if hasattr(df.duplicated().any(), 'item') else bool(df.duplicated().any())
+                    
+                else:
+                    # Pour les fichiers non analysables directement
+                    row_count = 0
+                    columns_analysis = []
+                    preview_data = []
+                    missing_percentage = 0
+                    has_duplicates = False
+                
+                file_analysis = {
+                    'filename': file.filename,
+                    'size_bytes': file_size,
+                    'size_mb': round(file_size / (1024 * 1024), 2),
+                    'format': file.filename.split('.')[-1].lower() if '.' in file.filename else 'unknown',
+                    'row_count': row_count,
+                    'column_count': len(columns_analysis),
+                    'columns_analysis': columns_analysis,
+                    'preview_data': preview_data,
+                    'quality_metrics': {
+                        'missing_percentage': round(missing_percentage, 2),
+                        'has_duplicates': has_duplicates,
+                        'is_empty': row_count == 0
+                    },
+                    'analysis_status': 'success'
+                }
+                
+            except Exception as e:
+                logger.error(f"Erreur lors de l'analyse de {file.filename}: {str(e)}")
+                file_analysis = {
+                    'filename': file.filename,
+                    'size_bytes': file_size,
+                    'size_mb': round(file_size / (1024 * 1024), 2),
+                    'format': file.filename.split('.')[-1].lower() if '.' in file.filename else 'unknown',
+                    'analysis_status': 'error',
+                    'error_message': str(e)
+                }
+            
+            preview_results.append(file_analysis)
+        
+        # Suggestions automatiques basées sur l'analyse
+        suggestions = {
+            'suggested_domains': list(detected_domains) if detected_domains else ['general'],
+            'suggested_tasks': list(detected_tasks) if detected_tasks else ['classification'],
+            'suggested_dataset_name': files[0].filename.split('.')[0].replace('_', ' ').title() if files else 'Nouveau Dataset',
+            'total_instances': total_rows,
+            'total_features': max([fa.get('column_count', 0) for fa in preview_results if fa.get('analysis_status') == 'success'] + [0]),
+            'recommended_split': total_rows > 1000,  # Recommander un split si plus de 1000 lignes
+            'quality_score': _calculate_quality_score(preview_results)
+        }
+        
+        response_data = {
+            'files_analysis': preview_results,
+            'suggestions': suggestions,
+            'summary': {
+                'total_files': len(files),
+                'total_size_mb': round(total_size / (1024 * 1024), 2),
+                'total_rows': total_rows,
+                'analysis_timestamp': datetime.utcnow().isoformat()
+            }
+        }
+        
+        # Convertir tous les types numpy en types Python natifs
+        return _convert_numpy_types(response_data)
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la prévisualisation des datasets: {str(e)}")
+        
+        # Import du module d'erreurs avec gestion des imports hybrides
+        try:
+            from . import errors
+        except ImportError:
+            import errors
+        
+        # Utiliser le gestionnaire d'erreurs centralisé
+        raise errors.handle_upload_error(error=e)
+
+
+def _convert_numpy_types(obj):
+    """
+    Convertit récursivement tous les types numpy en types Python natifs pour la sérialisation JSON.
+    """
+    if hasattr(obj, 'item'):  # Type numpy avec méthode .item()
+        return obj.item()
+    elif isinstance(obj, dict):
+        return {key: _convert_numpy_types(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_numpy_types(item) for item in obj]
+    elif pd.isna(obj):
+        return None
+    else:
+        return obj
+
+def _interpret_column_type(col_data: pd.Series) -> str:
+    """Détermine le type sémantique d'une colonne."""
+    if pd.api.types.is_numeric_dtype(col_data):
+        return "numerical_integer" if pd.api.types.is_integer_dtype(col_data) else "numerical_float"
+    
+    try:
+        # Tente de convertir une partie en datetime
+        pd.to_datetime(col_data.dropna().head(100), errors='raise')
+        return "temporal"
+    except (ValueError, TypeError):
+        pass
+
+    # Si le ratio de valeurs uniques est faible, c'est probablement catégoriel
+    nunique_val = int(col_data.nunique().item()) if hasattr(col_data.nunique(), 'item') else int(col_data.nunique())
+    unique_ratio = nunique_val / len(col_data) if len(col_data) > 0 else 0
+    if unique_ratio < 0.1 and nunique_val < 50:
+        return "categorical"
+        
+    return "text"
+
+
+def _calculate_quality_score(files_analysis: List[dict]) -> float:
+    """Calcule un score de qualité global basé sur l'analyse des fichiers."""
+    if not files_analysis:
+        return 0.0
+    
+    total_score = 0
+    valid_files = 0
+    
+    for file_analysis in files_analysis:
+        if file_analysis.get('analysis_status') != 'success':
+            continue
+            
+        valid_files += 1
+        file_score = 100
+        
+        # Pénaliser pour les valeurs manquantes
+        missing_pct = file_analysis.get('quality_metrics', {}).get('missing_percentage', 0)
+        file_score -= missing_pct
+        
+        # Pénaliser pour les fichiers vides
+        if file_analysis.get('quality_metrics', {}).get('is_empty', False):
+            file_score = 0
+        
+        # Bonus pour les fichiers avec beaucoup de données
+        row_count = file_analysis.get('row_count', 0)
+        if row_count > 10000:
+            file_score += 10
+        elif row_count > 1000:
+            file_score += 5
+        
+        total_score += max(0, min(100, file_score))
+    
+    return round(total_score / valid_files if valid_files > 0 else 0, 1)
+
+
 @app.post("/datasets", response_model=schemas.DatasetRead, status_code=201)
 def create_dataset(
     dataset_name: str = Form(...),
@@ -845,15 +1163,39 @@ def create_dataset(
     accountability_defined: Optional[bool] = Form(False),
     # Fichiers
     files: List[UploadFile] = File(...),
-    db: Session = Depends(database.get_db)
+    db: Session = Depends(database.get_db),
+    current_user_role: str = Depends(verify_upload_permissions),
+    current_user_id: UUID4 = Depends(get_current_user_id)
 ):
     """
     Crée un nouvel enregistrement de dataset avec upload de fichiers.
     Supporte le format multipart/form-data avec métadonnées et fichiers.
     """
+    dataset_id = str(uuid.uuid4())
+    storage_path = None
+    
     try:
-        # Générer un UUID pour le dataset
-        dataset_id = str(uuid.uuid4())
+        # Import du module d'erreurs avec gestion des imports hybrides
+        try:
+            from . import errors
+        except ImportError:
+            import errors
+        
+        # Validation des fichiers avant upload
+        supported_formats = ['csv', 'xlsx', 'xls', 'json', 'xml', 'parquet']
+        max_file_size = 100 * 1024 * 1024  # 100MB
+        
+        for file in files:
+            errors.validate_file_format(file.filename, supported_formats)
+            file_content = file.file.read()
+            file.file.seek(0)  # Reset
+            errors.validate_file_size(len(file_content), max_file_size, file.filename)
+        
+        # Validation des métadonnées obligatoires
+        metadata = {'dataset_name': dataset_name}
+        errors.validate_metadata_required_fields(metadata)
+        
+        logger.info(f"Starting dataset creation: {dataset_id} with {len(files)} files")
         
         # Upload des fichiers vers le stockage d'objets avec UUID
         storage_path, file_metadata_list = upload_dataset_files(dataset_id, files)
@@ -942,24 +1284,17 @@ def create_dataset(
         logger.info(f"Dataset créé avec succès: {dataset_id} avec {len(files)} fichiers")
         return db_dataset
         
-    except HTTPException:
-        # Re-lever les HTTPException (erreurs de validation/upload)
-        raise
     except Exception as e:
-        # Rollback en cas d'erreur
+        # Rollback de la base de données
         db.rollback()
+        logger.error(f"Error during dataset creation {dataset_id}: {str(e)}")
         
-        # Essayer de nettoyer le stockage si le dataset a été partiellement créé
-        try:
-            if 'storage_path' in locals():
-                cleanup_dataset_storage(storage_path)
-        except:
-            pass  # Ignorer les erreurs de nettoyage
-        
-        logger.error(f"Erreur lors de la création du dataset: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erreur lors de la création du dataset: {str(e)}"
+        # Utiliser le gestionnaire d'erreurs centralisé
+        raise errors.handle_upload_error(
+            error=e,
+            dataset_id=dataset_id,
+            storage_path=storage_path,
+            cleanup_func=cleanup_dataset_storage
         )
 
 @app.put("/datasets/{dataset_id}", response_model=schemas.DatasetRead)
@@ -2957,6 +3292,56 @@ healthcare:
   quality:
     data_errors_description: "Dataset santé - qualité médicale vérifiée obligatoire"
 """
+
+
+# === ENDPOINT POUR L'ANALYSE DES DONNÉES MANQUANTES ===
+
+@app.get("/datasets/{dataset_id}/missing-data-analysis")
+def get_missing_data_analysis(
+    dataset_id: str,
+    db: Session = Depends(database.get_db)
+):
+    """
+    Analyse les données manquantes pour un dataset donné.
+    
+    Args:
+        dataset_id: ID du dataset à analyser
+        
+    Returns:
+        Analyse complète des données manquantes avec score et suggestions
+    """
+    try:
+        # Import du service d'analyse
+        try:
+            from .services.missing_data_analysis import missing_data_analyzer
+        except ImportError:
+            import sys
+            import os
+            sys.path.append(os.path.dirname(__file__))
+            from services.missing_data_analysis import missing_data_analyzer
+        
+        # Vérifier que le dataset existe
+        dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+        if not dataset:
+            raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} non trouvé")
+        
+        # Effectuer l'analyse
+        analysis_result = missing_data_analyzer.analyze_dataset_missing_data(dataset_id, db)
+        
+        logger.info(f"[MISSING DATA] Analyse terminée pour dataset {dataset_id} - Score: {analysis_result['missingDataScore']['overallScore']}")
+        
+        return analysis_result
+        
+    except ValueError as e:
+        logger.error(f"[MISSING DATA] Erreur de validation pour dataset {dataset_id}: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    except Exception as e:
+        logger.error(f"[MISSING DATA] Erreur lors de l'analyse pour dataset {dataset_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Erreur lors de l'analyse des données manquantes"
+        )
 
 
 if __name__ == "__main__":

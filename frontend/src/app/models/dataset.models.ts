@@ -431,4 +431,38 @@ export interface DataQualityAlert {
   affected_columns?: string[];
   severity: number; // 1-10
   recommendation?: string;
-} 
+}
+
+/**
+ * Interface pour les statistiques de données manquantes d'une colonne
+ */
+export interface ColumnMissingStats {
+  columnName: string;
+  missingCount: number;
+  totalCount: number;
+  missingPercentage: number;
+  dataType: string;
+  suggestion: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+}
+
+/**
+ * Interface pour le score global des données manquantes
+ */
+export interface MissingDataScore {
+  overallScore: number;
+  totalColumns: number;
+  analyzedColumns: number;
+  excludedColumns: string[];
+  columnStats: ColumnMissingStats[];
+  qualityLevel: 'perfect' | 'good' | 'warning' | 'critical';
+}
+
+/**
+ * Interface pour la réponse de l'analyse des données manquantes
+ */
+export interface MissingDataAnalysisResponse {
+  datasetId: string;
+  analysisTimestamp: string;
+  missingDataScore: MissingDataScore;
+}

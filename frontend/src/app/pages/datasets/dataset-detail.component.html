@@ -284,6 +284,14 @@
               </div>
 
               <div class="overview-right">
+                <!-- Score de complétude des données manquantes -->
+                <app-missing-data-score 
+                  *ngIf="dataset && dataset.id"
+                  [datasetId]="dataset.id"
+                  [files]="dataset.files"
+                  [columns]="getAllColumns()">
+                </app-missing-data-score>
+
                 <!-- Métriques de qualité -->
                 <mat-card class="quality-card" *ngIf="qualityMetrics">
                   <mat-card-header>

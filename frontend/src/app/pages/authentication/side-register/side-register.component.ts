@@ -14,6 +14,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { SignupData, SignupResponse } from '../../../models/auth.models';
+import { LoginBackgroundAnimationComponent } from '../../../components/login-background-animation/login-background-animation.component';
 
 @Component({
   selector: 'app-side-register',
@@ -25,6 +26,7 @@ import { SignupData, SignupResponse } from '../../../models/auth.models';
     ReactiveFormsModule,
     BrandingComponent,
     TranslateModule,
+    LoginBackgroundAnimationComponent,
   ],
   templateUrl: './side-register.component.html',
 })

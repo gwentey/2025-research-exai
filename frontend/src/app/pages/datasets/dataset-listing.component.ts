@@ -610,19 +610,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
    * Ouvre la page d'upload de datasets
    */
   uploadDataset(): void {
-    // TODO: Remplacer par la vraie route d'upload quand elle sera créée
-    console.log('Redirection vers upload de dataset');
-    // this.router.navigate(['/datasets/upload']);
-    
-    // Pour l'instant, rediriger vers l'administration pour les admins
-    this.roleService.isAdmin().subscribe(isAdmin => {
-      if (isAdmin) {
-        this.router.navigate(['/admin/datasets']);
-      } else {
-        // Pour les contributeurs, on pourrait avoir une route spécifique
-        console.log('Upload dataset pour contributeur - à implémenter');
-      }
-    });
+    this.router.navigate(['/datasets/upload']);
   }
 
   // Note: Le filtrage côté client a été supprimé.

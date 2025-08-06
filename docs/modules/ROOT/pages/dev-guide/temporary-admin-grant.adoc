@@ -1,0 +1,147 @@
+= Outil de Promotion Admin Temporaire
+:description: Guide d'utilisation de l'outil temporaire pour l'attribution de droits d'administrateur
+:keywords: admin, temporaire, développement, promotion
+:page-nav-title: Grant Admin Temporaire
+
+[WARNING]
+====
+Cet outil est **TEMPORAIRE** et destiné uniquement au développement. Il **DOIT** être retiré avant la mise en production !
+====
+
+== Vue d'ensemble
+
+L'outil de promotion admin temporaire permet aux développeurs d'accorder rapidement les droits d'administrateur sans avoir à intervenir manuellement dans la base de données PostgreSQL.
+
+== Fonctionnalités
+
+=== Auto-promotion
+* **Endpoint**: `GET /admin/temporary-grant/current-user`
+* **Description**: Permet à l'utilisateur actuellement connecté de s'auto-promouvoir administrateur
+* **Usage**: Très pratique lors du développement pour obtenir rapidement les droits admin
+
+=== Promotion d'un autre utilisateur
+* **Endpoint**: `POST /admin/temporary-grant?user_email=email@example.com`
+* **Description**: Promeut un utilisateur spécifique au rôle admin en utilisant son adresse email
+* **Usage**: Utile pour accorder des droits admin à d'autres membres de l'équipe
+
+== Interface utilisateur
+
+L'outil dispose d'une interface web accessible via le dashboard d'administration :
+
+=== Accès
+
+==== Option 1 : Depuis le dashboard principal (RECOMMANDÉ)
+1. Se connecter à l'application IBIS-X  
+2. Sur la **page d'accueil** (`/starter`), une carte orange apparaît automatiquement
+3. Cliquer sur **"Me promouvoir Administrateur"** → **Promotion instantanée !**
+
+==== Option 2 : Interface complète d'administration
+1. Se connecter à l'application IBIS-X
+2. Aller dans **Administration** → **Grant Admin Temporaire**
+3. Ou accéder directement à `/admin/temporary-grant`
+
+=== Fonctionnalités de l'interface
+* **Section Auto-promotion** : Bouton pour s'auto-promouvoir admin
+* **Section Promotion d'utilisateur** : Formulaire pour promouvoir un utilisateur par email
+* **Historique local** : Affichage des promotions récentes (stockées dans le localStorage)
+* **Informations utilisateur** : Affichage du rôle actuel et du statut admin
+
+== Sécurité
+
+[CAUTION]
+====
+**Sécurité minimale** : L'utilisateur doit simplement être authentifié pour utiliser ces endpoints. 
+
+En production, ces endpoints représentent un **risque de sécurité majeur** et doivent être absolument supprimés !
+====
+
+=== Mesures de sécurité actuelles
+* Authentification requise (`current_active_user`)
+* Logging de toutes les opérations
+* Vérification de l'existence de l'utilisateur avant promotion
+* Gestion des erreurs appropriée
+
+== Utilisation pratique
+
+=== Cas d'usage typique en développement
+
+1. **Premier démarrage** : Après une réinitialisation de la base de données
+   * Se connecter avec un compte utilisateur normal
+   * **Sur la page d'accueil**, la carte orange apparaît automatiquement
+   * Cliquer **"Me promouvoir Administrateur"** 
+   * ✨ **Terminé !** - Vous êtes admin instantanément
+
+2. **Promotion d'équipe** : Accorder des droits à d'autres développeurs
+   * Entrer l'email du développeur dans le formulaire
+   * Cliquer "Promouvoir Admin"
+   * Le développeur obtient immédiatement les droits admin
+
+=== Réponses des endpoints
+
+==== Succès
+[source,json]
+----
+{
+  "message": "Utilisateur user@example.com promu au rang d'administrateur avec succès !",
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "admin",
+    "is_superuser": true,
+    "previous_role": "user"
+  },
+  "action": "promoted",
+  "granted_by": "admin@example.com"
+}
+----
+
+==== Utilisateur déjà admin
+[source,json]
+----
+{
+  "message": "L'utilisateur user@example.com est déjà administrateur",
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "admin",
+    "is_superuser": true
+  },
+  "action": "no_change"
+}
+----
+
+== Nettoyage pour la production
+
+[IMPORTANT]
+====
+Avant le déploiement en production, **supprimer** :
+
+1. **Backend** (`api-gateway/app/main.py`) :
+   * `@app.post("/admin/temporary-grant", ...)`
+   * `@app.get("/admin/temporary-grant/current-user", ...)`
+
+2. **Frontend** :
+   * `frontend/src/app/pages/admin/temporary-admin-grant.component.ts`
+   * Retirer l'import et la route dans `admin.routes.ts`
+   * Supprimer le bouton dans `admin-dashboard.component.ts`
+   * Nettoyer les méthodes dans `admin.service.ts`
+
+3. **Documentation** :
+   * Supprimer ce fichier de documentation
+====
+
+== Code source
+
+=== Endpoints backend
+- Fichier : `api-gateway/app/main.py`
+- Lignes : ~1300-1450 (section "ENDPOINT TEMPORAIRE POUR ADMIN GRANT")
+
+=== Interface frontend
+- Composant principal : `frontend/src/app/pages/admin/temporary-admin-grant.component.ts`
+- Routes : `frontend/src/app/pages/admin/admin.routes.ts`
+- Service : `frontend/src/app/services/admin.service.ts` (méthodes temporaires)
+
+=== Traductions
+- Français : `frontend/src/assets/i18n/fr.json`
+- Anglais : `frontend/src/assets/i18n/en.json`
+- Clé : `ADMIN_TEMPORARY_GRANT`

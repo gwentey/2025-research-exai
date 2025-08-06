@@ -1384,6 +1384,7 @@
     "ADMIN_DATASETS": "Dataset management",
     "ADMIN_USERS": "User management",
     "ADMIN_ETHICAL_TEMPLATES": "Ethical templates",
+    "ADMIN_TEMPORARY_GRANT": "Temporary Admin Grant",
     "LOGIN": "Login",
     "REGISTER": "Register",
     "ONBOARDING": "Initial setup",
@@ -1395,6 +1396,8 @@
     "HOME": "Home",
     "DASHBOARD": "Dashboard",
     "DATASETS": "Datasets",
+    "UPLOAD_DATASET": "Add Dataset",
+    "UPLOAD_WIZARD": "Upload Wizard",
     "DATASET_DETAIL": "Details",
     "DATASET_METADATA": "Metadata",
     "PROJECTS": "Projects",
@@ -1406,6 +1409,291 @@
     "ADMIN": "Administration",
     "ADMIN_DATASETS": "Dataset management",
     "ADMIN_USERS": "User management",
-    "ADMIN_ETHICAL_TEMPLATES": "Ethical templates"
+    "ADMIN_ETHICAL_TEMPLATES": "Ethical templates",
+    "ADMIN_TEMPORARY_GRANT": "Temporary Admin Grant"
+  },
+  "ANIMATION": {
+    "LOGIN_BACKGROUND": {
+      "NEURAL_NETWORK": "Neural Network",
+      "PARTICLE_WAVE": "Particle Wave",
+      "DESCRIPTION_NEURAL": "Sophisticated animation representing connected neural network",
+      "DESCRIPTION_WAVE": "Intelligent data flow in undulating movement",
+      "FALLBACK_MESSAGE": "Simplified animation to optimize performance",
+      "LOADING": "Loading animation..."
+    }
+  },
+  "UPLOAD": {
+    "TITLE": "Add a new dataset",
+    "SUBTITLE": "Import your data and create a new dataset in IBIS-X",
+    "DROP_ZONE": {
+      "TITLE": "Drop your files here",
+      "DESCRIPTION": "or click to select files from your computer",
+      "SUPPORTED_FORMATS": "Supported formats: CSV, Excel (.xlsx, .xls), JSON, XML, Parquet",
+      "BROWSE": "Browse files",
+      "FILES_SELECTED": "file(s) selected",
+      "CLEAR_ALL": "Clear all",
+      "ERROR": "Error",
+      "REMOVE_FILE": "Remove this file",
+      "ADD_MORE": "Add more files"
+    },
+    "ACTIONS": {
+      "TITLE": "What would you like to do?",
+      "DESCRIPTION": "Choose the approach that suits you best",
+      "ANALYZE": "Analyze first",
+      "WIZARD": "Guided wizard"
+    },
+    "DRAFT": {
+      "FOUND": "A draft was found",
+      "LOAD": "Load draft",
+      "CLEAR": "Delete draft"
+    },
+    "ANALYSIS": {
+      "TITLE": "Analysis results",
+      "TOTAL_FILES": "Number of files",
+      "TOTAL_ROWS": "Total number of rows",
+      "TOTAL_SIZE": "Total size",
+      "QUALITY_SCORE": "Quality score",
+      "SUGGESTIONS": "Automatic suggestions",
+      "SUGGESTED_NAME": "Suggested name",
+      "SUGGESTED_DOMAINS": "Suggested domains",
+      "SUGGESTED_TASKS": "Suggested ML tasks",
+      "FILES_DETAIL": "File details",
+      "MISSING_DATA": "Missing data",
+      "DUPLICATES": "Duplicates",
+      "CONTINUE_WIZARD": "Continue with wizard",
+      "NEW_ANALYSIS": "New analysis"
+    }
+  },
+  "UPLOAD_WIZARD": {
+    "TITLE": "Dataset Upload Wizard",
+    "SUBTITLE": "Create your dataset in a few simple steps",
+    "STEPS": {
+      "FILES": "Files",
+      "ANALYSIS": "Analysis",
+      "METADATA": "Metadata",
+      "CONFIRMATION": "Confirmation"
+    },
+    "FILES": {
+      "TITLE": "Select your files",
+      "DESCRIPTION": "Choose the data files to include in your dataset",
+      "ANALYZE": "Analyze files"
+    },
+    "ANALYSIS": {
+      "TITLE": "Data analysis",
+      "DESCRIPTION": "Quality verification and metadata extraction",
+      "SUMMARY": "Analysis summary",
+      "TOTAL_FILES": "Number of files",
+      "TOTAL_ROWS": "Total number of rows",
+      "TOTAL_SIZE": "Total size",
+      "QUALITY_SCORE": "Quality score",
+      "ISSUES_DETECTED": "Issues detected",
+      "MISSING_DATA": "missing data",
+      "DUPLICATES_FOUND": "Duplicates detected",
+      "EMPTY_FILE": "Empty file",
+      "ANALYZING": "Analyzing...",
+      "PLEASE_WAIT": "Please wait while your files are being analyzed"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmation and creation",
+      "DESCRIPTION": "Review information and create your dataset",
+      "SUMMARY": "Summary",
+      "FILES": "Files",
+      "METADATA": "Metadata",
+      "DOMAINS": "Domains",
+      "TASKS": "ML Tasks",
+      "ACCESS": "Access"
+    },
+    "ACTIONS": {
+      "PREVIOUS": "Previous",
+      "CONTINUE_METADATA": "Continue to metadata",
+      "CREATE_DATASET": "Create dataset",
+      "UPLOADING": "Creating..."
+    }
+  },
+  "METADATA_FORM": {
+    "TITLE": "Dataset metadata",
+    "SUBTITLE": "Complete the descriptive information for your dataset",
+    "AUTO_SAVING": "Auto-saving...",
+    "COMPLETED": "completed",
+    "TABS": {
+      "GENERAL": "General",
+      "TECHNICAL": "Technical", 
+      "QUALITY": "Quality",
+      "ETHICS": "Ethics",
+      "DOCUMENTATION": "Documentation"
+    },
+    "GENERAL": {
+      "TITLE": "General information",
+      "SUBTITLE": "Name, description and classification of the dataset",
+      "DATASET_NAME": "Dataset name",
+      "DATASET_NAME_PLACEHOLDER": "Enter a descriptive name for your dataset",
+      "YEAR": "Year",
+      "OBJECTIVE": "Objective",
+      "OBJECTIVE_PLACEHOLDER": "Describe the objective of this dataset",
+      "DOMAINS": "Application domains",
+      "ML_TASKS": "Machine learning tasks"
+    },
+    "TECHNICAL": {
+      "TITLE": "Technical characteristics",
+      "SUBTITLE": "Information about data structure and access",
+      "ACCESS": "Access type",
+      "ACCESS_PUBLIC": "Public",
+      "ACCESS_PRIVATE": "Private",
+      "ACCESS_RESTRICTED": "Restricted",
+      "AVAILABILITY": "Availability",
+      "AVAILABILITY_ONLINE": "Online",
+      "AVAILABILITY_OFFLINE": "Offline",
+      "AVAILABILITY_REQUEST": "On request",
+      "INSTANCES_NUMBER": "Number of instances",
+      "FEATURES_NUMBER": "Number of features",
+      "FEATURES_DESCRIPTION": "Features description",
+      "FEATURES_DESCRIPTION_PLACEHOLDER": "Describe the main characteristics of the data",
+      "SOURCES": "Data sources",
+      "SOURCES_PLACEHOLDER": "Indicate the sources where this data comes from",
+      "NUM_CITATIONS": "Number of citations",
+      "CITATION_LINK": "Citation link",
+      "AUTO_DETECTED": "Auto-detected"
+    },
+    "QUALITY": {
+      "TITLE": "Data quality",
+      "SUBTITLE": "Information about completeness and reliability of data",
+      "IS_SPLIT": "Dataset already split into train/test",
+      "HAS_MISSING_VALUES": "Contains missing values",
+      "MISSING_VALUES_DESCRIPTION": "Missing values description",
+      "GLOBAL_MISSING_PERCENTAGE": "Global percentage of missing values",
+      "MISSING_VALUES_HANDLING": "Missing values handling method",
+      "HANDLING_DROP": "Drop rows",
+      "HANDLING_MEAN": "Replace with mean",
+      "HANDLING_MEDIAN": "Replace with median",
+      "HANDLING_MODE": "Replace with mode",
+      "HANDLING_INTERPOLATION": "Interpolation",
+      "TEMPORAL_FACTORS": "Contains temporal factors",
+      "DATA_QUALITY_DOCUMENTED": "Data quality documented",
+      "DATA_ERRORS_DESCRIPTION": "Data errors description",
+      "DATA_ERRORS_PLACEHOLDER": "Describe the types of errors or known issues"
+    },
+    "ETHICS": {
+      "TITLE": "Ethical criteria",
+      "SUBTITLE": "Compliance with ethical principles and data protection",
+      "INFORMED_CONSENT": "Informed consent obtained",
+      "TRANSPARENCY": "Transparency about usage",
+      "USER_CONTROL": "User control respected",
+      "EQUITY_NON_DISCRIMINATION": "Equity and non-discrimination",
+      "SECURITY_MEASURES": "Security measures in place",
+      "ANONYMIZATION_APPLIED": "Anonymization applied",
+      "ACCOUNTABILITY_DEFINED": "Accountability defined",
+      "YES": "Yes",
+      "NO": "No",
+      "UNKNOWN": "Unknown"
+    },
+    "DOCUMENTATION": {
+      "TITLE": "Documentation",
+      "SUBTITLE": "Availability and quality of documentation",
+      "METADATA_PROVIDED": "Metadata provided with dataset",
+      "EXTERNAL_DOC_AVAILABLE": "External documentation available",
+      "DOCUMENTATION_LINK": "Documentation link",
+      "RECORD_KEEPING_POLICY": "Record keeping policy",
+      "PURPOSE_LIMITATION": "Purpose limitation respected"
+    },
+    "SUGGESTIONS": {
+      "TITLE": "Automatic suggestions",
+      "APPLY_NAME": "Apply suggested name",
+      "APPLY_DOMAINS": "Apply suggested domains",
+      "APPLY_TASKS": "Apply suggested tasks"
+    },
+    "TOOLTIPS": {
+      "DATASET_NAME": "Unique and descriptive name to identify your dataset",
+      "YEAR": "Year of creation or data collection",
+      "OBJECTIVE": "Main purpose for which this dataset was created",
+      "DOMAINS": "Application sectors where this dataset can be used",
+      "ML_TASKS": "Types of machine learning algorithms suitable for this dataset",
+      "SPLIT": "Indicates if the dataset is already divided into training and test sets",
+      "TEMPORAL": "Presence of temporal variables important for analysis",
+      "INFORMED_CONSENT": "Did participants give their consent for data usage?",
+      "TRANSPARENCY": "Is the intended use of data clearly communicated?",
+      "USER_CONTROL": "Do users have control over their data?",
+      "EQUITY": "Does the dataset avoid discriminatory biases?",
+      "SECURITY": "Are appropriate security measures in place?",
+      "ANONYMIZATION": "Has personal data been anonymized?",
+      "ACCOUNTABILITY": "Are responsibilities clearly defined?",
+      "RECORD_KEEPING": "Is there a data retention policy?",
+      "PURPOSE_LIMITATION": "Is usage limited to declared purposes?"
+    },
+    "ERRORS": {
+      "REQUIRED": "This field is required"
+    },
+    "ACTIONS": {
+      "CANCEL": "Cancel",
+      "SAVE_DRAFT": "Save draft",
+      "CREATE_DATASET": "Create dataset",
+      "UPLOADING": "Creating..."
+    }
+  },
+  "DOMAINS": {
+    "EDUCATION": "Education",
+    "HEALTHCARE": "Healthcare",
+    "FINANCE": "Finance",
+    "TECHNOLOGY": "Technology",
+    "SCIENCE": "Science",
+    "SOCIAL": "Social",
+    "ENVIRONMENT": "Environment",
+    "GENERAL": "General"
+  },
+  "TASKS": {
+    "CLASSIFICATION": "Classification",
+    "REGRESSION": "Regression",
+    "CLUSTERING": "Clustering",
+    "ANOMALY_DETECTION": "Anomaly Detection",
+    "TIME_SERIES": "Time Series",
+    "NLP": "Natural Language Processing",
+    "COMPUTER_VISION": "Computer Vision",
+    "RECOMMENDATION": "Recommendation System"
+  },
+  "DATASET_DETAIL": {
+    "MISSING_DATA": {
+      "TITLE": "Data Completeness Score",
+      "SUBTITLE": "Analysis of missing values in the dataset",
+      "ANALYZED_COLUMNS": "Analyzed columns",
+      "EXCLUDED_COLUMNS": "Excluded columns",
+      "VIEW_DETAILS": "View details",
+      "OVERALL_SCORE": "Overall score",
+      "AVG_COMPLETENESS": "Average completeness",
+      "DETAILS_TITLE": "Detailed Missing Data Analysis",
+      "EXCLUDED_EXPLANATION": "The following columns have been automatically excluded from the analysis as they correspond to technical identifiers:",
+      "COLUMN_ANALYSIS": "Column Analysis",
+      "EXPORT_REPORT": "Export report",
+      "QUALITY_LEVELS": {
+        "PERFECT": "Perfectly complete",
+        "GOOD": "Generally clean",
+        "WARNING": "Cleaning recommended",
+        "CRITICAL": "Incomplete, attention needed"
+      },
+      "TABLE": {
+        "COLUMN_NAME": "Column name",
+        "DATA_TYPE": "Data type",
+        "MISSING_PERCENTAGE": "% Missing",
+        "MISSING_COUNT": "Missing values",
+        "SEVERITY": "Severity",
+        "SUGGESTION": "Treatment suggestion"
+      },
+      "SEVERITIES": {
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "HIGH": "High",
+        "CRITICAL": "Critical"
+      },
+      "SUGGESTIONS": {
+        "MINIMAL_CLEANING": "Minimal cleaning required",
+        "MINIMAL_CLEANING_TOOLTIP": "The low percentage of missing values allows for simple cleaning by deletion or basic imputation",
+        "IMPUTE_MEAN": "Imputation by mean",
+        "IMPUTE_MEAN_TOOLTIP": "For numerical data, replace missing values with the column mean",
+        "IMPUTE_MODE": "Imputation by mode",
+        "IMPUTE_MODE_TOOLTIP": "For categorical data, replace missing values with the most frequent value",
+        "CAREFUL_ANALYSIS": "Thorough analysis needed",
+        "CAREFUL_ANALYSIS_TOOLTIP": "The high rate of missing values requires analysis to understand the causes before treatment",
+        "CONSIDER_REMOVAL": "Consider removal",
+        "CONSIDER_REMOVAL_TOOLTIP": "The very high rate of missing values might justify removing this column"
+      }
+    }
   }
 }

@@ -24,6 +24,7 @@
 ** xref:user-guide/profile-settings.adoc[Paramètres de Profil]
 ** xref:user-guide/profile-credits-display-improvement.adoc[Amélioration Affichage Crédits Profil]
 ** xref:user-guide/account-deletion.adoc[Suppression de Compte]
+** xref:user-guide/manual-dataset-upload.adoc[📤 Upload Manuel de Datasets]
 
 * Guides de Développement
 ** xref:dev-guide/local-development-quickstart.adoc[🚀 Démarrage Rapide Local]
@@ -38,6 +39,7 @@
 ** xref:dev-guide/frontend-development.adoc[Développement Frontend]
 ** xref:dev-guide/nouvelle-identite-visuelle-sorbonne.adoc[🎨 Nouvelle Identité Visuelle Sorbonne]
 ** xref:dev-guide/palette-sorbonne-moderne.adoc[🌟 Palette Sorbonne+ Moderne et Chaleureuse]
+** xref:frontend/login-background-animation.adoc[🚀 Animation de Fond de Connexion IA]
 ** xref:dev-guide/frontend-production-config-test.adoc[🧪 Test Configuration Frontend Production]
 ** xref:dev-guide/frontend-production-auto-rebuild.adoc[🔄 Auto-Rebuild Frontend Production]
 ** xref:dev-guide/backend-api-development.adoc[Développement API Backend]

@@ -57,6 +57,19 @@ export interface UsersListResponse {
   total_pages: number;
 }
 
+export interface TemporaryPromotionResponse {
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+    is_superuser: boolean;
+    previous_role?: string;
+  };
+  action: 'promoted' | 'no_change' | 'self_promoted';
+  granted_by?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -294,6 +307,28 @@ export class AdminService {
         recent_uploads: 0, // Sera mis à jour par les autres appels  
         storage_used: 'Calcul...' // Sera mis à jour par les autres appels
       })),
+      catchError(this.handleError)
+    );
+  }
+
+  // === MÉTHODES TEMPORAIRES POUR PROMOTION ADMIN ===
+
+  /**
+   * TEMPORAIRE - Promeut l'utilisateur actuel au rôle admin
+   */
+  selfPromoteToAdmin(): Observable<TemporaryPromotionResponse> {
+    return this.http.get<TemporaryPromotionResponse>(`${environment.apiUrl}/admin/temporary-grant/current-user`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * TEMPORAIRE - Promeut un utilisateur au rôle admin par email
+   */
+  promoteUserToAdmin(userEmail: string): Observable<TemporaryPromotionResponse> {
+    const params = new HttpParams().set('user_email', userEmail);
+    
+    return this.http.post<TemporaryPromotionResponse>(`${environment.apiUrl}/admin/temporary-grant`, null, { params }).pipe(
       catchError(this.handleError)
     );
   }

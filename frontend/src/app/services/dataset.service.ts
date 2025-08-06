@@ -17,7 +17,8 @@ import {
   DatasetPreview,
   DatasetQualityMetrics,
   DataDistributionAnalysis,
-  ColumnStatistics
+  ColumnStatistics,
+  MissingDataAnalysisResponse
 } from '../models/dataset.models';
 
 @Injectable({
@@ -536,4 +537,16 @@ export class DatasetService {
       catchError(this.handleError)
     );
   }
+
+  /**
+   * Récupère l'analyse des données manquantes pour un dataset
+   * @param datasetId - ID du dataset
+   * @returns Observable avec l'analyse des données manquantes
+   */
+  getMissingDataAnalysis(datasetId: string): Observable<MissingDataAnalysisResponse> {
+    return this.http.get<MissingDataAnalysisResponse>(`${this.baseUrl}/${datasetId}/missing-data-analysis`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
 } 

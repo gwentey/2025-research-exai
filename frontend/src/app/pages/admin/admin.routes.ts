@@ -3,6 +3,7 @@ import { AdminDashboardComponent } from './admin-dashboard.component';
 import { DatasetManagementComponent } from './dataset-management.component';
 import { UserManagementComponent } from './user-management.component';
 import { EthicalTemplatesComponent } from './ethical-templates.component';
+import { TemporaryAdminGrantComponent } from './temporary-admin-grant.component';
 import { adminGuard } from '../../guards/role.guard';
 
 export const AdminRoutes: Routes = [
@@ -54,6 +55,18 @@ export const AdminRoutes: Routes = [
         { title: 'BREADCRUMB.HOME', url: '/starter' },
         { title: 'BREADCRUMB.ADMIN', url: '/admin' },
         { title: 'BREADCRUMB.ADMIN_ETHICAL_TEMPLATES' },
+      ],
+    },
+  },
+  {
+    path: 'temporary-grant',
+    component: TemporaryAdminGrantComponent,
+    data: {
+      title: 'ADMIN_TEMPORARY_GRANT',
+      urls: [
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.ADMIN', url: '/admin' },
+        { title: 'ADMIN_TEMPORARY_GRANT' },
       ],
     },
   },

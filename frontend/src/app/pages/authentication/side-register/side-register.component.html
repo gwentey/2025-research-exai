@@ -10,13 +10,13 @@
           <div class="row">
             <div class="col-lg-6">
               <div
-                class="align-items-center justify-content-center d-none d-lg-flex"
+                class="align-items-center justify-content-center d-none d-lg-flex h-100"
               >
-                <img
-                  src="/assets/images/backgrounds/login3-bg.png"
-                  alt="login"
-                  style="max-width: 500px"
-                />
+                <app-login-background-animation
+                  [animationType]="'sorbonne-3d'"
+                  [maxWidth]="600"
+                  [height]="450">
+                </app-login-background-animation>
               </div>
             </div>
             <div class="col-lg-6">

@@ -136,6 +136,16 @@ import { UserRead } from '../../models/auth.models';
 
             <button 
               mat-raised-button 
+              style="background-color: #ff9800; color: white;"
+              class="action-button temporary-button"
+              routerLink="/admin/temporary-grant"
+              title="Outil temporaire - À retirer en production">
+              <mat-icon>security</mat-icon>
+              Grant Admin Temporaire
+            </button>
+
+            <button 
+              mat-raised-button 
               color="primary"
               class="action-button"
               routerLink="/datasets/upload">
@@ -283,6 +293,24 @@ import { UserRead } from '../../models/auth.models';
       font-size: 1.5rem;
       width: 1.5rem;
       height: 1.5rem;
+    }
+
+    .temporary-button {
+      border: 2px dashed #ff9800 !important;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .temporary-button::before {
+      content: "DEV";
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-weight: bold;
     }
 
     .user-info-card {

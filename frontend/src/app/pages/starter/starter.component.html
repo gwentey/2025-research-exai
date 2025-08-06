@@ -1,5 +1,6 @@
-<!-- Page vide et simple -->
+<!-- Page d'accueil avec outil temporaire admin -->
 <div class="container-fluid p-24">
+  <!-- Carte principale -->
   <mat-card class="cardWithShadow">
     <mat-card-content class="p-48 text-center">
       <h1 class="mat-h1 m-b-16">{{ 'STARTER.WELCOME' | translate }}</h1>
@@ -14,5 +15,76 @@
         </button>
       </div>
     </mat-card-content>
+  </mat-card>
+
+  <!-- Carte temporaire d'administration - visible seulement si pas admin -->
+  <mat-card class="cardWithShadow temporary-admin-card m-t-24" *ngIf="currentUser$ | async as user">
+    <mat-card-header>
+      <mat-card-title class="temporary-title">
+        <mat-icon class="warning-icon">warning</mat-icon>
+        Outil de Développement - Grant Admin Temporaire
+      </mat-card-title>
+      <mat-card-subtitle>
+        <strong>ATTENTION :</strong> Outil temporaire pour faciliter le développement
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content class="p-24">
+      <div class="user-status-section">
+        <div class="current-status">
+          <p><strong>Utilisateur actuel :</strong> {{ user.email }}</p>
+          <p><strong>Rôle :</strong> 
+            <mat-chip [class]="'role-chip role-' + (user.role || 'user')">
+              {{ user.role || 'user' }}
+            </mat-chip>
+          </p>
+          <p><strong>Admin :</strong> 
+            <mat-chip [class]="user.is_superuser ? 'admin-yes' : 'admin-no'">
+              {{ user.is_superuser ? 'Oui' : 'Non' }}
+            </mat-chip>
+          </p>
+        </div>
+        
+        <!-- Afficher le bouton seulement si pas déjà admin -->
+        <div class="promotion-section" *ngIf="!user.is_superuser">
+          <p class="help-text">
+            <mat-icon class="info-icon">info</mat-icon>
+            Plus besoin d'aller dans PostgreSQL ! Cliquez ci-dessous pour obtenir les droits d'administrateur :
+          </p>
+          
+          <button 
+            mat-raised-button 
+            color="warn"
+            class="promotion-button"
+            [disabled]="isPromoting"
+            (click)="selfPromoteToAdmin()">
+            <mat-icon>security</mat-icon>
+            <span *ngIf="!isPromoting">Me promouvoir Administrateur</span>
+            <span *ngIf="isPromoting">
+              <mat-spinner diameter="20" class="inline-spinner"></mat-spinner>
+              Promotion en cours...
+            </span>
+          </button>
+        </div>
+
+        <!-- Message si déjà admin -->
+        <div class="already-admin-section" *ngIf="user.is_superuser">
+          <p class="success-text">
+            <mat-icon class="success-icon">check_circle</mat-icon>
+            Vous êtes déjà administrateur ! Accédez au 
+            <a routerLink="/admin" mat-button color="primary">Dashboard Admin</a>
+          </p>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions class="temporary-card-actions">
+      <button mat-button routerLink="/admin/temporary-grant" color="primary">
+        <mat-icon>settings</mat-icon>
+        Interface complète
+      </button>
+      <div class="spacer"></div>
+      <small class="dev-notice">🔧 Outil de développement uniquement</small>
+    </mat-card-actions>
   </mat-card>
 </div>

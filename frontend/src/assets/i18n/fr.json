@@ -1405,6 +1405,7 @@
     "ADMIN_DATASETS": "Gestion des datasets",
     "ADMIN_USERS": "Gestion des utilisateurs",
     "ADMIN_ETHICAL_TEMPLATES": "Templates éthiques",
+    "ADMIN_TEMPORARY_GRANT": "Promotion Admin Temporaire",
     "LOGIN": "Connexion",
     "REGISTER": "Inscription",
     "ONBOARDING": "Configuration initiale",
@@ -1416,6 +1417,8 @@
     "HOME": "Accueil",
     "DASHBOARD": "Tableau de bord",
     "DATASETS": "Jeux de données",
+    "UPLOAD_DATASET": "Ajouter un dataset",
+    "UPLOAD_WIZARD": "Assistant d'upload",
     "DATASET_DETAIL": "Détail",
     "DATASET_METADATA": "Métadonnées",
     "PROJECTS": "Projets",
@@ -1427,6 +1430,291 @@
     "ADMIN": "Administration",
     "ADMIN_DATASETS": "Gestion des datasets",
     "ADMIN_USERS": "Gestion des utilisateurs",
-    "ADMIN_ETHICAL_TEMPLATES": "Templates éthiques"
+    "ADMIN_ETHICAL_TEMPLATES": "Templates éthiques",
+    "ADMIN_TEMPORARY_GRANT": "Promotion Admin Temporaire"
+  },
+  "ANIMATION": {
+    "LOGIN_BACKGROUND": {
+      "NEURAL_NETWORK": "Réseau Neuronal",
+      "PARTICLE_WAVE": "Vague de Particules",
+      "DESCRIPTION_NEURAL": "Animation sophistiquée représentant un réseau de neurones connectés",
+      "DESCRIPTION_WAVE": "Flux de données intelligent en mouvement ondulatoire",
+      "FALLBACK_MESSAGE": "Animation simplifiée pour optimiser les performances",
+      "LOADING": "Chargement de l'animation..."
+    }
+  },
+  "UPLOAD": {
+    "TITLE": "Ajouter un nouveau dataset",
+    "SUBTITLE": "Importez vos données et créez un nouveau dataset dans IBIS-X",
+    "DROP_ZONE": {
+      "TITLE": "Glissez vos fichiers ici",
+      "DESCRIPTION": "ou cliquez pour sélectionner des fichiers depuis votre ordinateur",
+      "SUPPORTED_FORMATS": "Formats supportés : CSV, Excel (.xlsx, .xls), JSON, XML, Parquet",
+      "BROWSE": "Parcourir les fichiers",
+      "FILES_SELECTED": "fichier(s) sélectionné(s)",
+      "CLEAR_ALL": "Tout supprimer",
+      "ERROR": "Erreur",
+      "REMOVE_FILE": "Supprimer ce fichier",
+      "ADD_MORE": "Ajouter d'autres fichiers"
+    },
+    "ACTIONS": {
+      "TITLE": "Que souhaitez-vous faire ?",
+      "DESCRIPTION": "Choisissez l'approche qui vous convient le mieux",
+      "ANALYZE": "Analyser d'abord",
+      "WIZARD": "Assistant guidé"
+    },
+    "DRAFT": {
+      "FOUND": "Un brouillon a été trouvé",
+      "LOAD": "Charger le brouillon",
+      "CLEAR": "Supprimer le brouillon"
+    },
+    "ANALYSIS": {
+      "TITLE": "Résultats de l'analyse",
+      "TOTAL_FILES": "Nombre de fichiers",
+      "TOTAL_ROWS": "Nombre total de lignes",
+      "TOTAL_SIZE": "Taille totale",
+      "QUALITY_SCORE": "Score de qualité",
+      "SUGGESTIONS": "Suggestions automatiques",
+      "SUGGESTED_NAME": "Nom suggéré",
+      "SUGGESTED_DOMAINS": "Domaines suggérés",
+      "SUGGESTED_TASKS": "Tâches ML suggérées",
+      "FILES_DETAIL": "Détail des fichiers",
+      "MISSING_DATA": "Données manquantes",
+      "DUPLICATES": "Doublons",
+      "CONTINUE_WIZARD": "Continuer avec l'assistant",
+      "NEW_ANALYSIS": "Nouvelle analyse"
+    }
+  },
+  "UPLOAD_WIZARD": {
+    "TITLE": "Assistant d'upload de dataset",
+    "SUBTITLE": "Créez votre dataset en quelques étapes simples",
+    "STEPS": {
+      "FILES": "Fichiers",
+      "ANALYSIS": "Analyse",
+      "METADATA": "Métadonnées",
+      "CONFIRMATION": "Confirmation"
+    },
+    "FILES": {
+      "TITLE": "Sélectionnez vos fichiers",
+      "DESCRIPTION": "Choisissez les fichiers de données à inclure dans votre dataset",
+      "ANALYZE": "Analyser les fichiers"
+    },
+    "ANALYSIS": {
+      "TITLE": "Analyse des données",
+      "DESCRIPTION": "Vérification de la qualité et extraction des métadonnées",
+      "SUMMARY": "Résumé de l'analyse",
+      "TOTAL_FILES": "Nombre de fichiers",
+      "TOTAL_ROWS": "Nombre total de lignes",
+      "TOTAL_SIZE": "Taille totale",
+      "QUALITY_SCORE": "Score de qualité",
+      "ISSUES_DETECTED": "Problèmes détectés",
+      "MISSING_DATA": "de données manquantes",
+      "DUPLICATES_FOUND": "Doublons détectés",
+      "EMPTY_FILE": "Fichier vide",
+      "ANALYZING": "Analyse en cours...",
+      "PLEASE_WAIT": "Veuillez patienter pendant l'analyse de vos fichiers"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmation et création",
+      "DESCRIPTION": "Vérifiez les informations et créez votre dataset",
+      "SUMMARY": "Récapitulatif",
+      "FILES": "Fichiers",
+      "METADATA": "Métadonnées",
+      "DOMAINS": "Domaines",
+      "TASKS": "Tâches ML",
+      "ACCESS": "Accès"
+    },
+    "ACTIONS": {
+      "PREVIOUS": "Précédent",
+      "CONTINUE_METADATA": "Continuer vers les métadonnées",
+      "CREATE_DATASET": "Créer le dataset",
+      "UPLOADING": "Création en cours..."
+    }
+  },
+  "METADATA_FORM": {
+    "TITLE": "Métadonnées du dataset",
+    "SUBTITLE": "Complétez les informations descriptives de votre dataset",
+    "AUTO_SAVING": "Sauvegarde automatique...",
+    "COMPLETED": "complété",
+    "TABS": {
+      "GENERAL": "Général",
+      "TECHNICAL": "Technique", 
+      "QUALITY": "Qualité",
+      "ETHICS": "Éthique",
+      "DOCUMENTATION": "Documentation"
+    },
+    "GENERAL": {
+      "TITLE": "Informations générales",
+      "SUBTITLE": "Nom, description et classification du dataset",
+      "DATASET_NAME": "Nom du dataset",
+      "DATASET_NAME_PLACEHOLDER": "Entrez un nom descriptif pour votre dataset",
+      "YEAR": "Année",
+      "OBJECTIVE": "Objectif",
+      "OBJECTIVE_PLACEHOLDER": "Décrivez l'objectif de ce dataset",
+      "DOMAINS": "Domaines d'application",
+      "ML_TASKS": "Tâches de machine learning"
+    },
+    "TECHNICAL": {
+      "TITLE": "Caractéristiques techniques",
+      "SUBTITLE": "Informations sur la structure et l'accès aux données",
+      "ACCESS": "Type d'accès",
+      "ACCESS_PUBLIC": "Public",
+      "ACCESS_PRIVATE": "Privé",
+      "ACCESS_RESTRICTED": "Restreint",
+      "AVAILABILITY": "Disponibilité",
+      "AVAILABILITY_ONLINE": "En ligne",
+      "AVAILABILITY_OFFLINE": "Hors ligne",
+      "AVAILABILITY_REQUEST": "Sur demande",
+      "INSTANCES_NUMBER": "Nombre d'instances",
+      "FEATURES_NUMBER": "Nombre de caractéristiques",
+      "FEATURES_DESCRIPTION": "Description des caractéristiques",
+      "FEATURES_DESCRIPTION_PLACEHOLDER": "Décrivez les principales caractéristiques des données",
+      "SOURCES": "Sources des données",
+      "SOURCES_PLACEHOLDER": "Indiquez les sources d'où proviennent ces données",
+      "NUM_CITATIONS": "Nombre de citations",
+      "CITATION_LINK": "Lien de citation",
+      "AUTO_DETECTED": "Détecté automatiquement"
+    },
+    "QUALITY": {
+      "TITLE": "Qualité des données",
+      "SUBTITLE": "Informations sur la complétude et la fiabilité des données",
+      "IS_SPLIT": "Dataset déjà divisé en train/test",
+      "HAS_MISSING_VALUES": "Contient des valeurs manquantes",
+      "MISSING_VALUES_DESCRIPTION": "Description des valeurs manquantes",
+      "GLOBAL_MISSING_PERCENTAGE": "Pourcentage global de valeurs manquantes",
+      "MISSING_VALUES_HANDLING": "Méthode de gestion des valeurs manquantes",
+      "HANDLING_DROP": "Supprimer les lignes",
+      "HANDLING_MEAN": "Remplacer par la moyenne",
+      "HANDLING_MEDIAN": "Remplacer par la médiane",
+      "HANDLING_MODE": "Remplacer par le mode",
+      "HANDLING_INTERPOLATION": "Interpolation",
+      "TEMPORAL_FACTORS": "Contient des facteurs temporels",
+      "DATA_QUALITY_DOCUMENTED": "Qualité des données documentée",
+      "DATA_ERRORS_DESCRIPTION": "Description des erreurs de données",
+      "DATA_ERRORS_PLACEHOLDER": "Décrivez les types d'erreurs ou problèmes connus"
+    },
+    "ETHICS": {
+      "TITLE": "Critères éthiques",
+      "SUBTITLE": "Conformité aux principes éthiques et de protection des données",
+      "INFORMED_CONSENT": "Consentement éclairé obtenu",
+      "TRANSPARENCY": "Transparence sur l'utilisation",
+      "USER_CONTROL": "Contrôle utilisateur respecté",
+      "EQUITY_NON_DISCRIMINATION": "Équité et non-discrimination",
+      "SECURITY_MEASURES": "Mesures de sécurité en place",
+      "ANONYMIZATION_APPLIED": "Anonymisation appliquée",
+      "ACCOUNTABILITY_DEFINED": "Responsabilité définie",
+      "YES": "Oui",
+      "NO": "Non",
+      "UNKNOWN": "Inconnu"
+    },
+    "DOCUMENTATION": {
+      "TITLE": "Documentation",
+      "SUBTITLE": "Disponibilité et qualité de la documentation",
+      "METADATA_PROVIDED": "Métadonnées fournies avec le dataset",
+      "EXTERNAL_DOC_AVAILABLE": "Documentation externe disponible",
+      "DOCUMENTATION_LINK": "Lien vers la documentation",
+      "RECORD_KEEPING_POLICY": "Politique de conservation des enregistrements",
+      "PURPOSE_LIMITATION": "Limitation des finalités respectée"
+    },
+    "SUGGESTIONS": {
+      "TITLE": "Suggestions automatiques",
+      "APPLY_NAME": "Appliquer le nom suggéré",
+      "APPLY_DOMAINS": "Appliquer les domaines suggérés",
+      "APPLY_TASKS": "Appliquer les tâches suggérées"
+    },
+    "TOOLTIPS": {
+      "DATASET_NAME": "Nom unique et descriptif pour identifier votre dataset",
+      "YEAR": "Année de création ou de collecte des données",
+      "OBJECTIVE": "But principal pour lequel ce dataset a été créé",
+      "DOMAINS": "Secteurs d'application où ce dataset peut être utilisé",
+      "ML_TASKS": "Types d'algorithmes de machine learning adaptés à ce dataset",
+      "SPLIT": "Indique si le dataset est déjà divisé en ensembles d'entraînement et de test",
+      "TEMPORAL": "Présence de variables temporelles importantes pour l'analyse",
+      "INFORMED_CONSENT": "Les participants ont-ils donné leur consentement pour l'utilisation de leurs données ?",
+      "TRANSPARENCY": "L'utilisation prévue des données est-elle clairement communiquée ?",
+      "USER_CONTROL": "Les utilisateurs ont-ils un contrôle sur leurs données ?",
+      "EQUITY": "Le dataset évite-t-il les biais discriminatoires ?",
+      "SECURITY": "Des mesures de sécurité appropriées sont-elles en place ?",
+      "ANONYMIZATION": "Les données personnelles ont-elles été anonymisées ?",
+      "ACCOUNTABILITY": "Les responsabilités sont-elles clairement définies ?",
+      "RECORD_KEEPING": "Existe-t-il une politique de conservation des données ?",
+      "PURPOSE_LIMITATION": "L'utilisation est-elle limitée aux finalités déclarées ?"
+    },
+    "ERRORS": {
+      "REQUIRED": "Ce champ est obligatoire"
+    },
+    "ACTIONS": {
+      "CANCEL": "Annuler",
+      "SAVE_DRAFT": "Sauvegarder brouillon",
+      "CREATE_DATASET": "Créer le dataset",
+      "UPLOADING": "Création en cours..."
+    }
+  },
+  "DOMAINS": {
+    "EDUCATION": "Éducation",
+    "HEALTHCARE": "Santé",
+    "FINANCE": "Finance",
+    "TECHNOLOGY": "Technologie",
+    "SCIENCE": "Science",
+    "SOCIAL": "Social",
+    "ENVIRONMENT": "Environnement",
+    "GENERAL": "Général"
+  },
+  "TASKS": {
+    "CLASSIFICATION": "Classification",
+    "REGRESSION": "Régression",
+    "CLUSTERING": "Clustering",
+    "ANOMALY_DETECTION": "Détection d'anomalies",
+    "TIME_SERIES": "Séries temporelles",
+    "NLP": "Traitement du langage naturel",
+    "COMPUTER_VISION": "Vision par ordinateur",
+    "RECOMMENDATION": "Système de recommandation"
+  },
+  "DATASET_DETAIL": {
+    "MISSING_DATA": {
+      "TITLE": "Score de Complétude des Données",
+      "SUBTITLE": "Analyse des valeurs manquantes dans le dataset",
+      "ANALYZED_COLUMNS": "Colonnes analysées",
+      "EXCLUDED_COLUMNS": "Colonnes exclues",
+      "VIEW_DETAILS": "Voir les détails",
+      "OVERALL_SCORE": "Score global",
+      "AVG_COMPLETENESS": "Complétude moyenne",
+      "DETAILS_TITLE": "Analyse Détaillée des Données Manquantes",
+      "EXCLUDED_EXPLANATION": "Les colonnes suivantes ont été automatiquement exclues de l'analyse car elles correspondent à des identifiants techniques :",
+      "COLUMN_ANALYSIS": "Analyse par Colonne",
+      "EXPORT_REPORT": "Exporter le rapport",
+      "QUALITY_LEVELS": {
+        "PERFECT": "Parfaitement complet",
+        "GOOD": "Globalement propre",
+        "WARNING": "Nettoyage recommandé",
+        "CRITICAL": "Incomplet, attention"
+      },
+      "TABLE": {
+        "COLUMN_NAME": "Nom de la colonne",
+        "DATA_TYPE": "Type de données",
+        "MISSING_PERCENTAGE": "% Manquant",
+        "MISSING_COUNT": "Valeurs manquantes",
+        "SEVERITY": "Gravité",
+        "SUGGESTION": "Suggestion de traitement"
+      },
+      "SEVERITIES": {
+        "LOW": "Faible",
+        "MEDIUM": "Modéré",
+        "HIGH": "Élevé",
+        "CRITICAL": "Critique"
+      },
+      "SUGGESTIONS": {
+        "MINIMAL_CLEANING": "Nettoyage minimal requis",
+        "MINIMAL_CLEANING_TOOLTIP": "Le faible pourcentage de valeurs manquantes permet un nettoyage simple par suppression ou imputation basique",
+        "IMPUTE_MEAN": "Imputation par la moyenne",
+        "IMPUTE_MEAN_TOOLTIP": "Pour les données numériques, remplacer les valeurs manquantes par la moyenne de la colonne",
+        "IMPUTE_MODE": "Imputation par le mode",
+        "IMPUTE_MODE_TOOLTIP": "Pour les données catégorielles, remplacer les valeurs manquantes par la valeur la plus fréquente",
+        "CAREFUL_ANALYSIS": "Analyse approfondie nécessaire",
+        "CAREFUL_ANALYSIS_TOOLTIP": "Le taux élevé de valeurs manquantes nécessite une analyse pour comprendre les causes avant le traitement",
+        "CONSIDER_REMOVAL": "Envisager la suppression",
+        "CONSIDER_REMOVAL_TOOLTIP": "Le très haut taux de valeurs manquantes pourrait justifier la suppression de cette colonne"
+      }
+    }
   }
 }

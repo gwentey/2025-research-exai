@@ -2,6 +2,9 @@ import { Routes } from '@angular/router';
 import { DatasetListingComponent } from './dataset-listing.component';
 import { DatasetDetailComponent } from './dataset-detail.component';
 import { DatasetMetadataCompletionComponent } from './dataset-metadata-completion.component';
+import { DatasetUploadComponent } from './dataset-upload/dataset-upload.component';
+import { UploadWizardComponent } from './dataset-upload/wizard/upload-wizard.component';
+import { uploadGuard } from '../../guards/upload.guard';
 
 export const DatasetsRoutes: Routes = [
   {
@@ -12,6 +15,33 @@ export const DatasetsRoutes: Routes = [
       urls: [
         { title: 'BREADCRUMB.HOME', url: '/starter' },
         { title: 'BREADCRUMB.DATASETS' },
+      ],
+    },
+  },
+  {
+    path: 'upload',
+    component: DatasetUploadComponent,
+    canActivate: [uploadGuard],
+    data: {
+      title: 'UPLOAD_DATASET',
+      urls: [
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.DATASETS', url: '/datasets' },
+        { title: 'BREADCRUMB.UPLOAD_DATASET' },
+      ],
+    },
+  },
+  {
+    path: 'upload/wizard',
+    component: UploadWizardComponent,
+    canActivate: [uploadGuard],
+    data: {
+      title: 'UPLOAD_WIZARD',
+      urls: [
+        { title: 'BREADCRUMB.HOME', url: '/starter' },
+        { title: 'BREADCRUMB.DATASETS', url: '/datasets' },
+        { title: 'BREADCRUMB.UPLOAD_DATASET', url: '/datasets/upload' },
+        { title: 'BREADCRUMB.UPLOAD_WIZARD' },
       ],
     },
   },

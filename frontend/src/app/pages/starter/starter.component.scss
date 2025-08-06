@@ -466,6 +466,144 @@
   }
 }
 
+/* === CARTE TEMPORAIRE ADMIN === */
+.temporary-admin-card {
+  border: 2px dashed #ff9800 !important;
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "DEV ONLY";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #ff9800;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    z-index: 10;
+  }
+
+  .temporary-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e65100;
+    font-weight: 600;
+
+    .warning-icon {
+      color: #ff9800;
+      font-size: 1.5rem;
+    }
+  }
+
+  .current-status {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+
+    p {
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  .role-chip {
+    border-radius: 16px;
+    font-size: 0.8rem;
+    padding: 4px 12px;
+
+    &.role-admin {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+    }
+
+    &.role-user {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+  }
+
+  .admin-yes {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+  }
+
+  .admin-no {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+
+  .promotion-section {
+    text-align: center;
+    
+    .help-text {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      color: #5d4037;
+
+      .info-icon {
+        color: #2196f3;
+      }
+    }
+
+    .promotion-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto;
+      font-size: 1rem;
+      padding: 12px 24px;
+
+      .inline-spinner {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .already-admin-section {
+    text-align: center;
+    
+    .success-text {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #2e7d32;
+      font-weight: 500;
+
+      .success-icon {
+        color: #4caf50;
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .temporary-card-actions {
+    background: rgba(255, 152, 0, 0.1);
+    border-top: 1px solid rgba(255, 152, 0, 0.3);
+    
+    .spacer {
+      flex: 1;
+    }
+
+    .dev-notice {
+      color: #e65100;
+      font-weight: 500;
+      font-style: italic;
+    }
+  }
+}
+
 /* === ANIMATIONS === */
 @keyframes fadeInUp {
   from {
@@ -482,7 +620,8 @@
 .activity-card,
 .stats-card,
 .quick-actions-card,
-.system-status-card {
+.system-status-card,
+.temporary-admin-card {
   animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -490,3 +629,4 @@
 .metric-card:nth-child(2) { animation-delay: 0.2s; }
 .metric-card:nth-child(3) { animation-delay: 0.3s; }
 .metric-card:nth-child(4) { animation-delay: 0.4s; }
+.temporary-admin-card { animation-delay: 0.2s; }

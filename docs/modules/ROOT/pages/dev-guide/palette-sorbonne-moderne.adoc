@@ -335,6 +335,31 @@ textarea::placeholder {
 - ✅ **Tous types d'inputs/selects** supportés sans exception
 - ✅ **Interface moderne** via la palette Sorbonne+ sur le reste de l'app
 
+=== Ajustement Final : Gradients Ultra-Subtils
+
+**Demande utilisateur :** Réduire l'intensité des gradients sur les cartes - "trop fort, très très très subtil"
+**Solution appliquée :** Gradients quasi-imperceptibles
+
+[source,css]
+----
+// Avant : trop visible
+background: linear-gradient(135deg, #ffffff 0%, var(--modern-blue-light) 100%);
+// var(--modern-blue-light) = #e8ebf7 (trop visible)
+
+// Après : ultra-subtil  
+background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+// #f8f9fc = blanc avec pointe de bleu quasi-invisible
+----
+
+**Autres ajustements ultra-subtils :**
+- **Fond principal app** : `#fafaf9 → #fbfbfb → #fefefe` (quasi-blanc)
+- **Sidebar** : `#ffffff → #fafbfc` (ultra-léger)
+- **Dashboard cards** : `#fefefe → white` (presque imperceptible)
+- **Datasets filters** : `#fcfcfb` (blanc cassé très léger)
+- **Dialogs** : `white → #f9f9fb` (subtil)
+
+**Résultat :** Interface moderne mais avec gradients quasi-invisibles, très élégants et sobres
+
 == Maintenance
 
 **Pour ajouter de nouvelles couleurs :**
