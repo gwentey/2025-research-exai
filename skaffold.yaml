@@ -6,45 +6,51 @@ build:
   # Pas de defaultRepo global
   tagPolicy:
     inputDigest: {}
-  # Configuration pour optimiser le cache mais permettre le pull des images manquantes
+  # Configuration optimisée pour performance maximale en dev local
   local:
     push: false
-    tryImportMissing: false
+    tryImportMissing: true    # Changé: essaie d'importer si manquant
     useDockerCLI: true
     useBuildkit: true
+    concurrency: 2            # Réduit: max 2 builds simultanés
+  platforms: ["linux/amd64"] # Platform fixe pour cache optimal
   artifacts:
-    # Noms d'images de base SANS préfixe
-    - image: ibis-x-api-gateway
-      context: api-gateway
-      docker: 
-        dockerfile: Dockerfile
-        # Optimiser le cache Docker
-        noCache: false
-        pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
-    - image: service-selection
-      context: .  # Utilise le répertoire racine comme contexte pour accéder à common/
-      docker: 
-        dockerfile: service-selection/Dockerfile
-        noCache: false
-        pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
-    - image: ibis-x-ml-pipeline
-      context: .  # Utilise le répertoire racine comme contexte pour accéder à common/
-      docker: 
-        dockerfile: ml-pipeline-service/Dockerfile
-        noCache: false
-        pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
+    # Ordre optimisé: frontend rapide en premier, puis services backend
     - image: frontend
       context: frontend
-      # Définir buildArgs pour l'environnement par défaut (local)
       docker:
         dockerfile: Dockerfile
         noCache: false
-        pullParent: false # Ne pas re-puller les images parentes si elles existent déjà
+        pullParent: false
+    - image: ibis-x-api-gateway
+      context: api-gateway
+      docker:
+        dockerfile: Dockerfile
+        noCache: false
+        pullParent: false
+    - image: service-selection
+      context: .
+      docker:
+        dockerfile: service-selection/Dockerfile
+        noCache: false
+        pullParent: false
+    - image: ibis-x-ml-pipeline
+      context: .
+      docker:
+        dockerfile: ml-pipeline-service/Dockerfile
+        noCache: false
+        pullParent: false
         buildArgs:
           ANGULAR_ENV: development
 
 deploy:
-  kubectl: {}
+  kubectl:
+    hooks:
+      before: []
+      after: []
+  logs:
+    prefix: container
+  statusCheckDeadlineSeconds: 300  # Réduire le timeout d'attente
 profiles:
   - name: local
     # Profil complet pour déploiement local avec tous les composants

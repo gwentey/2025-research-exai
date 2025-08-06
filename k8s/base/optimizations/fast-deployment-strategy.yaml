@@ -1,0 +1,41 @@
+# Stratégie de déploiement optimisée pour développement local
+# Privilégie la vitesse tout en gardant une disponibilité minimale
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fast-deployment-strategy
+  namespace: ibis-x
+data:
+  strategy.yaml: |
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        # Optimisé pour dev local - plus rapide mais nécessite plus de ressources
+        maxUnavailable: 0         # Garde toujours au moins 1 pod actif
+        maxSurge: 2               # Augmenté de 1 -> 2 pour parallélisme
+    
+    # Optimisations des ressources pour démarrage rapide
+    resources:
+      requests:
+        memory: "256Mi"           # Minimum pour démarrage rapide
+        cpu: "100m"
+      limits:
+        memory: "1Gi"             # Suffisant pour dev
+        cpu: "500m"               # Limite raisonnable
+    
+    # Configuration spécifique pour les pods
+    template:
+      spec:
+        # Accélère la résolution DNS
+        dnsPolicy: Default
+        dnsConfig:
+          options:
+            - name: ndots
+              value: "1"
+        
+        # Priorité haute pour dev local
+        priorityClassName: "high-priority-dev"
+        
+        # Optimisation du nettoyage
+        terminationGracePeriodSeconds: 10  # Réduit de 30s -> 10s

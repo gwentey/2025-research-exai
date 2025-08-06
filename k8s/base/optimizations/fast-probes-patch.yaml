@@ -1,0 +1,33 @@
+# Optimisations des probes pour démarrage rapide
+# Applique les meilleures pratiques pour réduire les temps d'attente
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fast-probes-config
+  namespace: ibis-x
+data:
+  # Configuration des probes optimisées
+  readiness-probe.yaml: |
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 80
+      # Démarrage immédiat mais tolérant
+      initialDelaySeconds: 5    # Réduit de 15s -> 5s
+      periodSeconds: 3          # Réduit de 10s -> 3s
+      timeoutSeconds: 2         # Réduit de 1s -> 2s (plus sûr)
+      failureThreshold: 2       # Réduit de 3 -> 2
+      successThreshold: 1
+  
+  liveness-probe.yaml: |
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 80
+      # Plus conservateur pour éviter les restarts
+      initialDelaySeconds: 30   # Garde 30s pour sécurité
+      periodSeconds: 15         # Plus lent que readiness
+      timeoutSeconds: 5         # Plus tolérant
+      failureThreshold: 5       # Plus permissif (3->5)
+      successThreshold: 1

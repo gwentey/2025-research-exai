@@ -56,7 +56,22 @@
               "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "preserveSymlinks": true,
+              "watch": true,
+              "poll": 1000
+            },
+            "development-fast": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": false,
+              "namedChunks": true,
+              "preserveSymlinks": true,
+              "watch": false,
+              "outputHashing": "none",
+              "deleteOutputPath": false
             }
           },
           "defaultConfiguration": "production"
@@ -97,6 +112,11 @@
     }
   },
   "cli": {
-    "analytics": false
+    "analytics": false,
+    "cache": {
+      "enabled": true,
+      "path": ".angular/cache",
+      "environment": "local"
+    }
   }
 }

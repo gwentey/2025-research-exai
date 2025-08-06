@@ -202,43 +202,35 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   private async loadOrbitControlsFromCDN(): Promise<void> {
     console.log('📦 Loading REAL OrbitControls from CDN...');
     
-    // URLs des vrais OrbitControls Three.js (même version que Three.js)
-    const orbitControlsUrls = [
-      'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js',
-      'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/controls/OrbitControls.js',
-      'https://cdn.skypack.dev/three@0.158.0/examples/jsm/controls/OrbitControls.js'
-    ];
-
-    let loaded = false;
-    for (const url of orbitControlsUrls) {
-      try {
-        console.log(`📦 Trying OrbitControls CDN: ${url}`);
-        
-        // Load comme module ES6
-        const module = await import(url);
-        
-        // Attacher à THREE object
-        (window as any).THREE.OrbitControls = module.OrbitControls;
-        
-        loaded = true;
-        console.log(`✅ OrbitControls loaded successfully from: ${url}`);
-        break;
-      } catch (urlError) {
-        console.log(`❌ Failed OrbitControls CDN: ${url}`, urlError);
-        continue;
-      }
-    }
-
-    if (!loaded) {
-      throw new Error('Failed to load OrbitControls from any CDN');
-    }
-
-    // Vérifier que OrbitControls est disponible
-    if (!(window as any).THREE.OrbitControls) {
-      throw new Error('OrbitControls failed to load - OrbitControls not found in THREE');
-    }
-
-    console.log('✅ OrbitControls ready for use!');
+    // Load OrbitControls avec script injection (pas d'import dynamique pour éviter erreur Webpack)
+    const orbitControlsScript = document.createElement('script');
+    orbitControlsScript.type = 'module';
+    orbitControlsScript.innerHTML = `
+      import { OrbitControls } from 'https://cdn.skypack.dev/three@0.158.0/examples/jsm/controls/OrbitControls.js';
+      window.THREE.OrbitControls = OrbitControls;
+      console.log('✅ OrbitControls loaded via script injection');
+    `;
+    
+    return new Promise((resolve, reject) => {
+      orbitControlsScript.onload = () => {
+        // Petite attente pour que le script s'exécute
+        setTimeout(() => {
+          if ((window as any).THREE?.OrbitControls) {
+            console.log('✅ OrbitControls ready for use!');
+            resolve();
+          } else {
+            reject(new Error('OrbitControls failed to load'));
+          }
+        }, 100);
+      };
+      
+      orbitControlsScript.onerror = (error) => {
+        console.error('❌ Failed to load OrbitControls script:', error);
+        reject(new Error('Failed to load OrbitControls script'));
+      };
+      
+      document.head.appendChild(orbitControlsScript);
+    });
   }
 
   private setupThreeSceneBasic(THREE: any): void {

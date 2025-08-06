@@ -1,0 +1,42 @@
+{
+  "projects": {
+    "Spike": {
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "baseHref": "/",
+            "optimization": {
+              "scripts": false,
+              "styles": false,
+              "fonts": false
+            },
+            "outputHashing": "none",
+            "sourceMap": true,
+            "extractLicenses": false,
+            "vendorChunk": true,
+            "buildOptimizer": false,
+            "aot": true,
+            "statsJson": false,
+            "namedChunks": true,
+            "preserveSymlinks": true,
+            "allowedCommonJsDependencies": [
+              "moment",
+              "lodash"
+            ]
+          },
+          "configurations": {
+            "development-fast": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "vendorChunk": true,
+              "buildOptimizer": false,
+              "namedChunks": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
