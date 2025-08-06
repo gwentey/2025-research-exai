@@ -1411,7 +1411,9 @@
     "ONBOARDING": "Configuration initiale",
     "ERROR": "Erreur",
     "NOT_FOUND": "Page non trouvée",
-    "XAI_EXPLANATIONS": "Explications XAI"
+    "XAI_EXPLANATIONS": "Explications XAI",
+    "UPLOAD_WIZARD": "Assistant d'upload",
+    "UPLOAD_DATASET": "Ajouter un dataset"
   },
   "BREADCRUMB": {
     "HOME": "Accueil",
@@ -1548,6 +1550,8 @@
       "SUBTITLE": "Nom, description et classification du dataset",
       "DATASET_NAME": "Nom du dataset",
       "DATASET_NAME_PLACEHOLDER": "Entrez un nom descriptif pour votre dataset",
+      "DISPLAY_NAME": "Nom d'affichage",
+      "DISPLAY_NAME_PLACEHOLDER": "Entrez le nom qui sera affiché publiquement",
       "YEAR": "Année",
       "OBJECTIVE": "Objectif",
       "OBJECTIVE_PLACEHOLDER": "Décrivez l'objectif de ce dataset",
@@ -1624,6 +1628,7 @@
     },
     "TOOLTIPS": {
       "DATASET_NAME": "Nom unique et descriptif pour identifier votre dataset",
+      "DISPLAY_NAME": "Nom public qui sera affiché aux utilisateurs dans l'interface",
       "YEAR": "Année de création ou de collecte des données",
       "OBJECTIVE": "But principal pour lequel ce dataset a été créé",
       "DOMAINS": "Secteurs d'application où ce dataset peut être utilisé",

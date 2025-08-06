@@ -48,7 +48,7 @@ import { TranslateModule } from '@ngx-translate/core';
               <h3>{{ getProgressTitle() }}</h3>
               <mat-icon [class]="getProgressIconClass()">{{ getProgressIcon() }}</mat-icon>
             </div>
-            <p>{{ uploadProgress.message }}</p>
+            <p>{{ uploadProgress.message || 'En cours...' }}</p>
             <mat-progress-bar 
               mode="determinate" 
               [value]="uploadProgress.progress">
@@ -566,8 +566,8 @@ export class DatasetUploadComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
         this.uploadProgress = progress;
-        if (progress?.stage === 'completed' && progress.result) {
-          this.onUploadSuccess(progress.result);
+        if (progress?.stage === 'preview_completed' && progress.result) {
+          this.onPreviewCompleted(progress.result);
         } else if (progress?.stage === 'error') {
           this.onUploadError(progress.error || 'Erreur inconnue');
         }
@@ -734,14 +734,20 @@ export class DatasetUploadComponent implements OnInit, OnDestroy {
     sessionStorage.setItem('dataset-upload-state', JSON.stringify(state));
   }
 
-  private onUploadSuccess(result: any) {
+  private onPreviewCompleted(result: any) {
     this.isLoading = false;
-    this.snackBar.open('Dataset créé avec succès !', 'Fermer', { duration: 5000 });
+    this.analysisResults = result;
     
-    // Rediriger vers le dataset créé après un délai
-    setTimeout(() => {
-      this.router.navigate(['/datasets', result.id]);
-    }, 2000);
+    // Sauvegarder l'état pour le wizard
+    this.saveCurrentState();
+    
+    // Naviguer vers le wizard pour continuer avec les métadonnées
+    this.router.navigate(['/datasets/upload/wizard'], {
+      state: {
+        files: this.selectedFiles,
+        analysisResults: this.analysisResults
+      }
+    });
   }
 
   private onUploadError(error: string) {

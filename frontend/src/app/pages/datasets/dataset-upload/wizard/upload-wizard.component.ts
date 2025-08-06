@@ -886,7 +886,14 @@ export class UploadWizardComponent implements OnInit, OnDestroy {
     
     // Rediriger vers le dataset créé après un délai
     setTimeout(() => {
-      this.router.navigate(['/datasets', result.id]);
+      // Vérification de la structure de la réponse avant navigation
+      if (result && result.id) {
+        this.router.navigate(['/datasets', result.id]);
+      } else {
+        console.error('Erreur: ID du dataset non trouvé dans la réponse', result);
+        // Redirection de fallback vers la liste des datasets
+        this.router.navigate(['/datasets']);
+      }
     }, 2000);
   }
 

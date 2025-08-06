@@ -5,17 +5,21 @@
   </h4>
   <div class="d-flex align-items-center overflow-hidden">
     <ul class="breadcrumb">
-      @for (url of pageInfo?.['urls']; track url.url;let index = $index,last =
-      $last ) { @if(!last){
-      <li class="breadcrumb-item" [routerLink]="url.url">
-        <a [routerLink]="url.url">{{ url.title | translate }}</a>
-      </li>
-      }@else {
-      <li class="breadcrumb-item m-l-20">
-        <i-tabler name="circle-filled" class="icon-8"></i-tabler>
-      </li>
-      <li class="breadcrumb-item active f-s-14">{{ url.title | translate }}</li>
-      } }
+      @for (url of pageInfo?.['urls']; track url.url; let index = $index, last = $last) { 
+        @if(!last){
+          <li class="breadcrumb-item" [routerLink]="url.url">
+            <a [routerLink]="url.url">{{ url.title | translate }}</a>
+          </li>
+        } @else {
+          <!-- N'afficher l'icône chevron que s'il y a plus d'un élément -->
+          @if(pageInfo?.['urls'].length > 1) {
+            <li class="breadcrumb-item separator">
+              <i-tabler name="chevron-right" class="breadcrumb-chevron"></i-tabler>
+            </li>
+          }
+          <li class="breadcrumb-item active">{{ url.title | translate }}</li>
+        }
+      }
     </ul>
   </div>
 </div>

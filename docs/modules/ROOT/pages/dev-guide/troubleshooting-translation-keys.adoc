@@ -1,0 +1,160 @@
+= Résolution des problèmes de clés de traduction manquantes
+
+:description: Guide de résolution des problèmes d'affichage des clés de traduction au lieu du texte traduit
+:keywords: traduction, i18n, Angular, clés manquantes, breadcrumb
+:page-tags: frontend, troubleshooting, i18n
+
+== Problème : Affichage des clés de traduction au lieu du texte
+
+=== Symptômes
+
+* L'interface affiche une clé de traduction brute (ex: `PAGE_TITLES.UPLOAD_WIZARD`) au lieu du texte traduit
+* Cela se produit généralement dans le breadcrumb ou les titres de page
+* Le système de traduction Angular ne trouve pas la clé correspondante
+
+=== Diagnostic
+
+==== 1. Architecture du système de traduction
+
+Le système de traduction d'IBIS-X utilise `@ngx-translate/core` avec des fichiers JSON séparés pour chaque langue :
+
+* `frontend/src/assets/i18n/fr.json` - Traductions françaises
+* `frontend/src/assets/i18n/en.json` - Traductions anglaises
+
+==== 2. Mécanisme du breadcrumb
+
+Le composant breadcrumb (`frontend/src/app/layouts/full/shared/breadcrumb/breadcrumb.component.html`) construit dynamiquement les clés de traduction :
+
+[source,html]
+----
+{{ 'PAGE_TITLES.' + pageInfo?.['title'] | translate }}
+----
+
+Où `pageInfo.title` provient des données de route définies dans les fichiers de routing.
+
+==== 3. Configuration des routes
+
+Dans `frontend/src/app/pages/datasets/datasets.routes.ts`, chaque route définit un titre :
+
+[source,typescript]
+----
+{
+  path: 'upload/wizard',
+  component: UploadWizardComponent,
+  canActivate: [uploadGuard],
+  data: {
+    title: 'UPLOAD_WIZARD',  // Cette valeur est utilisée pour construire la clé
+    urls: [
+      { title: 'BREADCRUMB.HOME', url: '/starter' },
+      { title: 'BREADCRUMB.DATASETS', url: '/datasets' },
+      { title: 'BREADCRUMB.UPLOAD_DATASET', url: '/datasets/upload' },
+      { title: 'BREADCRUMB.UPLOAD_WIZARD' },
+    ],
+  },
+}
+----
+
+=== Solution
+
+==== Étape 1 : Identifier la clé manquante
+
+1. Vérifier l'erreur affichée dans l'interface (ex: `PAGE_TITLES.UPLOAD_WIZARD`)
+2. Extraire la partie après `PAGE_TITLES.` (ex: `UPLOAD_WIZARD`)
+3. Vérifier si cette clé existe dans les fichiers de traduction
+
+==== Étape 2 : Ajouter la clé manquante
+
+Ajouter la clé dans la section `PAGE_TITLES` de chaque fichier de traduction :
+
+**Dans `fr.json` :**
+[source,json]
+----
+"PAGE_TITLES": {
+  "DASHBOARD": "Tableau de bord",
+  "DATASETS": "Jeux de données",
+  // ... autres clés
+  "UPLOAD_WIZARD": "Assistant d'upload"  // Clé ajoutée
+}
+----
+
+**Dans `en.json` :**
+[source,json]
+----
+"PAGE_TITLES": {
+  "DASHBOARD": "Dashboard",
+  "DATASETS": "Datasets",
+  // ... autres clés
+  "UPLOAD_WIZARD": "Upload Wizard"  // Clé ajoutée
+}
+----
+
+=== Exemple de correction : Upload Wizard
+
+==== Problème rencontré
+
+L'utilisateur rapportait que le titre de la page upload wizard affichait `PAGE_TITLES.UPLOAD_WIZARD` au lieu de "Assistant d'upload".
+
+==== Diagnostic effectué
+
+1. **Vérification de la route** : La route était correctement configurée avec `title: 'UPLOAD_WIZARD'`
+2. **Vérification du breadcrumb** : Le template utilisait bien `'PAGE_TITLES.' + pageInfo?.['title']`
+3. **Vérification des traductions** : La clé `UPLOAD_WIZARD` manquait dans la section `PAGE_TITLES` du fichier français
+
+==== Solution appliquée
+
+Ajout de la clé manquante dans `frontend/src/assets/i18n/fr.json` :
+
+[source,json]
+----
+"PAGE_TITLES": {
+  // ... autres clés existantes
+  "XAI_EXPLANATIONS": "Explications XAI",
+  "UPLOAD_WIZARD": "Assistant d'upload"  // ← Clé ajoutée
+}
+----
+
+=== Prévention
+
+==== 1. Vérification lors de l'ajout de nouvelles routes
+
+Quand vous ajoutez une nouvelle route avec un `title` dans les données :
+
+1. Vérifiez que la clé correspondante existe dans `PAGE_TITLES` de tous les fichiers de langue
+2. Testez l'affichage dans l'interface pour vous assurer que la traduction fonctionne
+
+==== 2. Script de validation
+
+Vous pouvez créer un script pour vérifier la cohérence des clés de traduction :
+
+[source,bash]
+----
+# Extraire toutes les clés PAGE_TITLES utilisées dans les routes
+grep -r "title:" frontend/src/app/pages/ | grep -o "'[A-Z_]*'" | sort | uniq
+
+# Comparer avec les clés disponibles dans les fichiers de traduction
+grep -A 50 '"PAGE_TITLES"' frontend/src/assets/i18n/fr.json
+----
+
+=== Outils de debugging
+
+==== 1. Console du navigateur
+
+Activez les logs de traduction en ajoutant ceci dans `environment.ts` :
+
+[source,typescript]
+----
+export const environment = {
+  production: false,
+  translateLogs: true  // Pour afficher les clés manquantes
+};
+----
+
+==== 2. Extension Angular DevTools
+
+Utilisez l'extension Angular DevTools pour inspecter les données de route et vérifier la valeur de `pageInfo.title`.
+
+=== Références
+
+* https://github.com/ngx-translate/core[Documentation ngx-translate]
+* xref:dev-guide/frontend-architecture.adoc[Architecture Frontend IBIS-X]
+* xref:dev-guide/routing-configuration.adoc[Configuration du Routing]

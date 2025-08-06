@@ -1,0 +1,177 @@
+= Correction des Clés de Traduction Manquantes
+:description: Guide de résolution des problèmes de clés de traduction manquantes dans IBIS-X
+:keywords: traduction, i18n, Angular, clés manquantes, PAGE_TITLES
+
+== Vue d'ensemble
+
+Ce document décrit la résolution d'un problème courant d'affichage de clés de traduction non traduites dans l'interface utilisateur, spécifiquement le cas `PAGE_TITLES.UPLOAD_DATASET`.
+
+== Problème Identifié
+
+=== Symptôme
+L'interface affichait `PAGE_TITLES.UPLOAD_DATASET` au lieu du titre traduit sur la page d'upload de datasets.
+
+=== Cause Racine
+La clé de traduction `PAGE_TITLES.UPLOAD_DATASET` était manquante dans les fichiers de langue `fr.json` et `en.json`.
+
+=== Mécanisme de Génération des Titres
+Le système utilise une convention automatique :
+- Route définie avec `title: 'UPLOAD_DATASET'` dans `datasets.routes.ts`
+- Service de titre génère automatiquement `PAGE_TITLES.UPLOAD_DATASET`
+- Système de traduction recherche cette clé dans les fichiers i18n
+
+== Solution Implémentée
+
+=== Fichiers Modifiés
+
+**1. `frontend/src/assets/i18n/fr.json`**
+```json
+"PAGE_TITLES": {
+  // ... autres clés existantes
+  "XAI_EXPLANATIONS": "Explications XAI",
+  "UPLOAD_WIZARD": "Assistant d'upload",
+  "UPLOAD_DATASET": "Ajouter un dataset"  // ← Clé ajoutée
+}
+```
+
+**2. `frontend/src/assets/i18n/en.json`**
+```json
+"PAGE_TITLES": {
+  // ... autres clés existantes
+  "XAI_EXPLANATIONS": "XAI explanations",
+  "UPLOAD_DATASET": "Add Dataset"  // ← Clé ajoutée
+}
+```
+
+== Architecture du Système de Titres
+
+=== Fichiers Impliqués
+
+**Configuration des Routes :**
+- `frontend/src/app/pages/datasets/datasets.routes.ts`
+  - Définit `title: 'UPLOAD_DATASET'` pour la route `/datasets/upload`
+
+**Service de Gestion des Titres :**
+- `frontend/src/app/services/title.service.ts`
+  - Génère automatiquement `PAGE_TITLES.{route.title}`
+  - Gère les fallbacks en cas de clé manquante
+
+**Fichiers de Traduction :**
+- `frontend/src/assets/i18n/fr.json`
+- `frontend/src/assets/i18n/en.json`
+
+=== Flux de Fonctionnement
+
+1. **Navigation :** Utilisateur accède à `/datasets/upload`
+2. **Route :** Router charge la configuration avec `title: 'UPLOAD_DATASET'`
+3. **Service :** TitleService génère `PAGE_TITLES.UPLOAD_DATASET`
+4. **Traduction :** TranslateService recherche la clé dans le fichier de langue actuel
+5. **Affichage :** Titre traduit affiché dans le breadcrumb et l'onglet
+
+== Prévention des Problèmes Futurs
+
+=== Checklist pour Nouvelles Routes
+
+Lors de l'ajout d'une nouvelle route avec titre :
+
+1. ✅ **Définir la route** avec propriété `title`
+2. ✅ **Ajouter la clé de traduction** dans `PAGE_TITLES` (FR + EN)
+3. ✅ **Ajouter les breadcrumbs** dans `BREADCRUMB` si nécessaire
+4. ✅ **Tester l'affichage** dans les deux langues
+
+=== Exemple d'Ajout Complet
+
+**Route (ex: nouvelles-analytics.routes.ts) :**
+```typescript
+{
+  path: 'analytics/advanced',
+  component: AdvancedAnalyticsComponent,
+  data: {
+    title: 'ADVANCED_ANALYTICS',  // ← Clé pour PAGE_TITLES
+    urls: [
+      { title: 'BREADCRUMB.HOME', url: '/starter' },
+      { title: 'BREADCRUMB.ANALYTICS', url: '/analytics' },
+      { title: 'BREADCRUMB.ADVANCED_ANALYTICS' },  // ← Clé pour BREADCRUMB
+    ],
+  },
+}
+```
+
+**Traductions à ajouter :**
+```json
+// fr.json
+"PAGE_TITLES": {
+  "ADVANCED_ANALYTICS": "Analyses Avancées"
+},
+"BREADCRUMB": {
+  "ADVANCED_ANALYTICS": "Analyses Avancées",
+  "ANALYTICS": "Analyses"
+}
+
+// en.json  
+"PAGE_TITLES": {
+  "ADVANCED_ANALYTICS": "Advanced Analytics"
+},
+"BREADCRUMB": {
+  "ADVANCED_ANALYTICS": "Advanced Analytics",
+  "ANALYTICS": "Analytics"
+}
+```
+
+== Outils de Diagnostic
+
+=== Vérification des Clés Manquantes
+
+**Commande de recherche des clés utilisées :**
+```bash
+# Rechercher toutes les clés PAGE_TITLES utilisées
+grep -r "PAGE_TITLES\." frontend/src/app --include="*.ts"
+
+# Rechercher les définitions de titre dans les routes
+grep -r "title:" frontend/src/app --include="*.routes.ts"
+```
+
+**Validation de cohérence :**
+```bash
+# Comparer les clés entre FR et EN
+diff <(grep -o '"[A-Z_]*":' frontend/src/assets/i18n/fr.json | sort) \
+     <(grep -o '"[A-Z_]*":' frontend/src/assets/i18n/en.json | sort)
+```
+
+=== Service de Fallback
+
+Le `TitleService` implémente déjà une logique de fallback qui :
+1. Essaie la clé complète `PAGE_TITLES.UPLOAD_DATASET`
+2. Si échec, essaie la clé simplifiée `PAGE_TITLES.UPLOAD_DATASET`
+3. Si échec, utilise le titre de route brut `UPLOAD_DATASET`
+
+== Résultat
+
+=== Avant
+- Affichage : `PAGE_TITLES.UPLOAD_DATASET`
+- Impact UX : Confus et non professionnel
+
+=== Après  
+- Affichage (FR) : `Ajouter un dataset`
+- Affichage (EN) : `Add Dataset`
+- Impact UX : Clair et traduit correctement
+
+== Maintenance Continue
+
+=== Bonnes Pratiques
+
+1. **Cohérence :** Maintenir la même structure de clés entre FR et EN
+2. **Validation :** Tester chaque nouvelle route dans les deux langues
+3. **Documentation :** Documenter les nouvelles clés de traduction
+4. **Révision :** Faire réviser les traductions par des locuteurs natifs
+
+=== Automatisation Future
+
+Considérer l'implémentation d'un script de validation qui :
+- Vérifie la présence de toutes les clés PAGE_TITLES utilisées
+- Compare la cohérence entre les fichiers de langue
+- Signale les clés manquantes ou en doublon
+
+== Conclusion
+
+Cette correction résout un problème d'expérience utilisateur important tout en établissant une méthode claire pour éviter de futurs problèmes similaires. Le système de traduction d'IBIS-X fonctionne maintenant correctement pour tous les titres de page.

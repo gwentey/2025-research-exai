@@ -32,6 +32,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   private scene!: any;
   private camera!: any;
   private rotatingGroup!: any;
+  private controls!: any; // OrbitControls pour interaction souris
   private animationId!: number;
   private isAnimating = false;
 
@@ -46,9 +47,22 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('🚀 LOGIN ANIMATION COMPONENT STARTING...');
+    console.log('Platform:', this.platformId);
+    console.log('Canvas ref:', this.canvasRef);
+    
     if (isPlatformBrowser(this.platformId)) {
+      console.log('✅ Platform is browser, proceeding...');
       this.checkMobileDevice();
+      
+      // FORCER l'animation même sur mobile pour debug
+      console.log('🔧 FORCING Three.js load (debug mode)...');
+      this.isMobile = false; // FORCER pour debug
+      
       this.loadThreeJS();
+    } else {
+      console.log('❌ Not browser platform, showing fallback');
+      this.showFallback();
     }
   }
 
@@ -68,148 +82,364 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   }
 
   private async loadThreeJS(): Promise<void> {
-    if (this.isMobile) return;
+    console.log('🚀 Starting Three.js loading...');
+    if (this.isMobile) {
+      console.log('📱 Mobile detected, skipping Three.js');
+      return;
+    }
+
+    // Check WebGL support
+    if (!this.isWebGLSupported()) {
+      console.log('❌ WebGL not supported, showing fallback');
+      this.showFallback();
+      return;
+    }
 
     try {
-      // Load Three.js via script tags instead of ES6 imports
-      await this.loadScriptFromCDN('https://cdnjs.cloudflare.com/ajax/libs/three.js/r136/three.min.js');
-
-      // Check if THREE is available
-      if (!(window as any).THREE) {
-        throw new Error('Three.js failed to load');
+      console.log('📦 Loading Three.js from CDN...');
+      // Try multiple CDN URLs for Three.js
+      const threeJsUrls = [
+        'https://unpkg.com/three@0.158.0/build/three.min.js',
+        'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/three.js/r158/three.min.js'
+      ];
+      
+      let loaded = false;
+      for (const url of threeJsUrls) {
+        try {
+          console.log(`📦 Trying CDN: ${url}`);
+          await this.loadScriptFromCDN(url);
+          loaded = true;
+          console.log(`✅ Successfully loaded from: ${url}`);
+          break;
+        } catch (urlError) {
+          console.log(`❌ Failed CDN: ${url}`, urlError);
+          continue;
+        }
+      }
+      
+      if (!loaded) {
+        throw new Error('All CDN URLs failed');
       }
 
-      const THREE = (window as any).THREE;
-      this.setupThreeSceneBasic(THREE);
+      console.log('✅ Three.js script loaded, checking availability...');
+      // Check if THREE is available
+      if (!(window as any).THREE) {
+        throw new Error('Three.js failed to load - THREE object not found');
+      }
+
+      console.log('🎯 THREE object found, loading OrbitControls...');
+      
+      // Load OrbitControls avec simple script injection
+      console.log('📦 Loading OrbitControls...');
+      const orbitControlsScript = document.createElement('script');
+      orbitControlsScript.type = 'text/javascript';
+      orbitControlsScript.innerHTML = `
+        // OrbitControls simple pour interaction souris - COULEUR DORÉE SORBONNE !
+        THREE.OrbitControls = function(camera, domElement) {
+          this.camera = camera;
+          this.domElement = domElement;
+          this.enabled = true;
+          this.enableDamping = true;
+          this.dampingFactor = 0.08; // Fluidité
+          this.enableZoom = false; // Pas de zoom
+          this.enableRotate = true;
+          this.rotateSpeed = 1.0; // Sensibilité souris
+          this.minPolarAngle = 0.2; // Limites rotation verticale
+          this.maxPolarAngle = Math.PI - 0.2;
+          
+          let isMouseDown = false;
+          let mouseX = 0, mouseY = 0;
+          let phi = Math.PI / 2, theta = 0;
+          const spherical = new THREE.Spherical();
+          const radius = this.camera.position.length();
+          
+          const onMouseDown = (event) => {
+            isMouseDown = true;
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+            this.domElement.style.cursor = 'grabbing';
+          };
+          
+          const onMouseMove = (event) => {
+            if (!isMouseDown) return;
+            const deltaX = event.clientX - mouseX;
+            const deltaY = event.clientY - mouseY;
+            theta -= deltaX * 0.01 * this.rotateSpeed;
+            phi += deltaY * 0.01 * this.rotateSpeed;
+            phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, phi));
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+          };
+          
+          const onMouseUp = () => {
+            isMouseDown = false;
+            this.domElement.style.cursor = 'grab';
+          };
+          
+          this.domElement.addEventListener('mousedown', onMouseDown);
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+          this.domElement.style.cursor = 'grab';
+          
+          // Initialiser les angles depuis la position actuelle de la caméra
+          spherical.setFromVector3(this.camera.position);
+          theta = spherical.theta;
+          phi = spherical.phi;
+          
+          this.update = () => {
+            // SEULEMENT mettre à jour la caméra si l'utilisateur clique !
+            if (isMouseDown) {
+              spherical.theta = theta;
+              spherical.phi = phi;
+              spherical.radius = radius;
+              this.camera.position.setFromSpherical(spherical);
+              this.camera.lookAt(0, 0, 0);
+            }
+          };
+        };
+      `;
+      document.head.appendChild(orbitControlsScript);
+      console.log('✅ OrbitControls loaded');
+
+      // Wait for Angular to render the canvas
+      setTimeout(() => {
+        try {
+          const THREE = (window as any).THREE;
+          this.setupThreeSceneBasic(THREE);
+          console.log('🎨 Three.js scene setup completed!');
+        } catch (setupError) {
+          console.error('❌ Failed to setup Three.js scene:', setupError);
+          this.showFallback();
+        }
+      }, 100); // Give Angular time to render canvas
+      
     } catch (error) {
-      console.error('Failed to load Three.js:', error);
+      console.error('❌ Failed to load Three.js:', error);
       this.showFallback();
+    }
+  }
+
+  private isWebGLSupported(): boolean {
+    try {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      return !!context;
+    } catch (e) {
+      return false;
     }
   }
 
   private loadScriptFromCDN(src: string): Promise<void> {
     return new Promise((resolve, reject) => {
+      // Check if script already exists
+      const existingScript = document.querySelector(`script[src*="three"]`);
+      if (existingScript) {
+        console.log('📦 Three.js script already exists, checking THREE object...');
+        if ((window as any).THREE) {
+          console.log('✅ THREE object already available');
+          resolve();
+          return;
+        }
+      }
+
+      console.log('📦 Loading script from:', src);
       const script = document.createElement('script');
       script.src = src;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+      script.crossOrigin = 'anonymous'; // Add CORS support
+      script.onload = () => {
+        console.log('✅ Script loaded successfully:', src);
+        // Check if THREE is now available
+        if ((window as any).THREE) {
+          console.log('✅ THREE object is available');
+          resolve();
+        } else {
+          console.log('❌ THREE object not found after script load');
+          reject(new Error(`THREE object not found after loading: ${src}`));
+        }
+      };
+      script.onerror = (error) => {
+        console.error('❌ Failed to load script:', src, error);
+        reject(new Error(`Failed to load script: ${src}`));
+      };
       document.head.appendChild(script);
     });
   }
 
   private setupThreeSceneBasic(THREE: any): void {
+    console.log('🎬 Setting up Three.js scene...');
+    console.log('Canvas element:', this.canvasRef?.nativeElement);
+    console.log('Canvas size:', this.maxWidth, 'x', this.height);
+    
     this.canvas = this.canvasRef.nativeElement;
     
-    // Setup renderer
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
+    if (!this.canvas) {
+      throw new Error('Canvas element not found!');
+    }
+    
+    // Setup renderer avec fond TRANSPARENT
+    console.log('🖥️ Creating WebGL renderer...');
+    this.renderer = new THREE.WebGLRenderer({ 
+      canvas: this.canvas,
+      antialias: true,
+      alpha: true // TRANSPARENT !
+    });
+    this.renderer.setClearColor(0x000000, 0); // Fond transparent
     this.renderer.setSize(this.maxWidth, this.height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    console.log('✅ Renderer created with transparency');
 
-    // Setup scene avec fond sombre pour contraster avec les couleurs Sorbonne
+    // Setup scene avec fond TRANSPARENT
+    console.log('🎭 Creating scene...');
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0a0a); // Fond très sombre
+    // PAS de background = transparent !
+    console.log('✅ Scene created with transparent background');
     
-    // Setup camera - Vue plus large pour voir l'objet entier
-    this.camera = new THREE.PerspectiveCamera(60, this.maxWidth / this.height, 0.1, 100);
-    this.camera.position.z = 8; // Reculer la caméra
+    // Setup camera - centrée pour vue générale
+    console.log('📷 Setting up camera...');
+    this.camera = new THREE.PerspectiveCamera(45, this.maxWidth / this.height, 0.1, 100);
+    this.camera.position.set(0, 0, 5); // Caméra centrée
+    this.camera.lookAt(0, 0, 0); // Regarde le centre
+    console.log('✅ Camera positioned centrally');
 
-    // Setup rotating group
+    // Setup OrbitControls pour interaction souris - COULEUR DORÉE !
+    console.log('🖱️ Setting up OrbitControls...');
+    this.controls = new (THREE as any).OrbitControls(this.camera, this.canvas);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.08;
+    this.controls.enableZoom = false; // Pas de zoom
+    this.controls.enableRotate = true;
+    this.controls.rotateSpeed = 1.0;
+    console.log('✅ OrbitControls ready for mouse interaction!');
+
+    // Setup rotating group - ENCORE +15% VERS LA DROITE
+    console.log('🔄 Creating rotating group...');
     this.rotatingGroup = new THREE.Group();
+    this.rotatingGroup.position.set(-0.979, 0, 0); // -1.152 + 15% = -1.152 + 0.173 = -0.979
     this.scene.add(this.rotatingGroup);
+    console.log('✅ Rotating group added to scene (shifted 15% MORE to RIGHT)');
 
     // Create starfield background - Couleurs Sorbonne
+    console.log('⭐ Creating starfield...');
     this.createStarfield(THREE);
+    console.log('✅ Starfield created');
     
     // Create main objects - Couleurs Sorbonne
+    console.log('🎯 Creating main 3D objects...');
     this.createMainObjects(THREE);
+    console.log('✅ Main objects created');
     
     // Setup basic event listeners (without shockwave for now)
+    console.log('🖱️ Setting up event listeners...');
     this.setupBasicEventListeners();
+    console.log('✅ Event listeners set up');
     
     // Start animation
+    console.log('🎨 Showing canvas and starting animation...');
     this.canvasOpacity = 1;
     this.fallbackOpacity = 0;
     this.isAnimating = true;
+    console.log('🔄 Animation status:', this.isAnimating);
+    console.log('🎯 Rotating group exists:', !!this.rotatingGroup);
+    console.log('🖱️ OrbitControls exists:', !!this.controls);
     this.ngZone.runOutsideAngular(() => {
       this.animate();
     });
+    console.log('🚀 Animation started!');
   }
 
   private createStarfield(THREE: any): void {
+    console.log('⭐ Creating subtle white starfield...');
     const starGeometry = new THREE.BufferGeometry();
-    const starCount = 400; // Réduit pour moins d'encombrement
+    const starCount = 200; // Réduit pour discrétion
     const starsPositions = new Float32Array(starCount * 3);
     
     for (let i = 0; i < starCount * 3; i++) {
-      starsPositions[i] = (Math.random() - 0.5) * 80; // Réduction de la zone
+      starsPositions[i] = (Math.random() - 0.5) * 80; // Zone réduite
     }
     
     starGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
     
-    // Couleurs Sorbonne pour les étoiles
+    // Étoiles BLANC/GRIS TRÈS SUBTIL
     const starMaterial = new THREE.PointsMaterial({
-      color: 0x7a89c2, // Bleu doux Sorbonne
-      size: 0.03, // Plus petites
+      color: 0xf0f0f0, // BLANC CASSÉ très discret
+      size: 0.03, // Très petites
       sizeAttenuation: true,
       transparent: true,
-      opacity: 0.4 // Plus discrètes
+      opacity: 0.2 // ULTRA discrètes pour harmonie
     });
     
     const stars = new THREE.Points(starGeometry, starMaterial);
     this.scene.add(stars);
+    console.log('✅ Subtle white starfield created');
   }
 
   private createMainObjects(THREE: any): void {
-    // Inner icosahedron - Couleur Sorbonne principale (taille réduite)
-    const innerGeometry = new THREE.IcosahedronGeometry(0.6, 1); // Réduit de 1 à 0.6
+    // RETOUR TAILLES NORMALES pour debug - comme l'exemple !
+    console.log('🎯 Creating objects with NORMAL sizes for debug...');
+    
+    // Inner icosahedron - PRESQUE TRANSLUCIDE DORÉ SORBONNE TRÈS TRÈS CLAIR
+    const innerGeometry = new THREE.IcosahedronGeometry(1.196, 1); // +15% en plus : 1.04 * 1.15 = 1.196
     const innerMaterial = new THREE.MeshStandardMaterial({
-      color: 0x242e54, // Bleu principal Sorbonne
-      roughness: 0.3,
-      metalness: 0.8,
-      flatShading: true,
+      color: 0xf5f0e8, // DORÉ SORBONNE TRÈS TRÈS CLAIR (presque blanc doré)
+      roughness: 0.1, // Très lisse pour effet translucide
+      metalness: 0.05, // Quasi pas métallique = effet fantôme
+      flatShading: false, // Smooth pour effet translucide
       transparent: true,
-      opacity: 0.8
+      opacity: 0.12 // ULTRA TRANSPARENT ! (presque invisible)
     });
     const innerMesh = new THREE.Mesh(innerGeometry, innerMaterial);
     this.rotatingGroup.add(innerMesh);
+    console.log('✅ Inner icosahedron created (ultra translucent golden Sorbonne)');
     
-    // Outer wireframe - Or Sorbonne (taille réduite)
-    const outerGeometry = new THREE.IcosahedronGeometry(0.75, 1); // Réduit de 1.15 à 0.75
+    // Outer wireframe - BLEU SORBONNE (premier plan visible) +15%
+    const outerGeometry = new THREE.IcosahedronGeometry(1.42, 1); // +15% en plus : 1.235 * 1.15 ≈ 1.42
     const wireframeMaterial = new THREE.MeshBasicMaterial({
-      color: 0xd4a574, // Or Sorbonne
+      color: 0x242e54, // BLEU SORBONNE pour premier plan !
       wireframe: true,
       transparent: true,
-      opacity: 0.4
+      opacity: 0.8 // Bien visible comme forme principale
     });
     const wireframeMesh = new THREE.Mesh(outerGeometry, wireframeMaterial);
     this.rotatingGroup.add(wireframeMesh);
+    console.log('✅ Wireframe created (Sorbonne blue, +15% bigger)');
     
-    // Particles - Bleu lumineux Sorbonne (taille réduite)
+    // Points DORÉS SORBONNE aux intersections/vertices - COMME DEMANDÉ !
+    console.log('✨ Creating GOLDEN SORBONNE intersection points...');
     const positions = [];
     const posAttr = outerGeometry.attributes.position;
     for (let i = 0; i < posAttr.count; i++) {
       positions.push(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
     }
     
-    const particleGeometry = new THREE.BufferGeometry();
-    particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    const particleMaterial = new THREE.PointsMaterial({
-      color: 0x5c6fb3, // Bleu lumineux Sorbonne
-      size: 0.05, // Augmenté légèrement pour plus de visibilité
+    const goldenPointsGeometry = new THREE.BufferGeometry();
+    goldenPointsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const goldenPointsMaterial = new THREE.PointsMaterial({
+      color: 0xd4a574, // DORÉ SORBONNE - couleur officielle !
+      size: 0.08, // Plus gros pour être visibles aux intersections
+      sizeAttenuation: true,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.95 // Bien visibles comme points d'intersections
     });
-    const particles = new THREE.Points(particleGeometry, particleMaterial);
-    this.rotatingGroup.add(particles);
+    const goldenPoints = new THREE.Points(goldenPointsGeometry, goldenPointsMaterial);
+    this.rotatingGroup.add(goldenPoints);
+    console.log('✅ Golden Sorbonne intersection points created!');
     
-    // Add subtle lighting
-    const light = new THREE.PointLight(0xd4a574, 1.2); // Éclairage plus fort
-    light.position.set(4, 4, 4);
+    // Add lighting (optimisé pour doré translucide très clair)
+    const light = new THREE.PointLight(0xffffff, 0.6); // LUMIÈRE DOUCE pour révéler le doré
+    light.position.set(3, 2, 4); // Position pour éclairer délicatement
     this.scene.add(light);
     
-    // Ambient light pour mieux voir les détails
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+    // Ambient light dorée très subtile pour harmonie
+    const ambientLight = new THREE.AmbientLight(0xfaf8f5, 0.4); // Ambiant doré très clair
     this.scene.add(ambientLight);
+    
+    // Lumière dorée d'appoint pour révéler la translucidité
+    const goldenLight = new THREE.PointLight(0xf5f0e8, 0.2); // DORÉ TRÈS SUBTIL
+    goldenLight.position.set(-1, 1, 2); // Proche du centre translucide
+    this.scene.add(goldenLight);
+    
+    console.log('✅ Lighting optimized for ultra translucent golden');
   }
 
 
@@ -224,19 +454,37 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   }
 
   private animate(): void {
-    if (!this.isAnimating) return;
+    if (!this.isAnimating) {
+      console.log('⏹️ Animation stopped');
+      return;
+    }
 
     this.animationId = requestAnimationFrame(() => this.animate());
+    
+    // Debug: log every 120 frames (2 seconds at 60fps)
+    if (this.animationId % 120 === 0) {
+      console.log('🔄 Animation running, rotating group exists:', !!this.rotatingGroup);
+    }
 
-    // Rotate the main group slowly
-    this.rotatingGroup.rotation.x += 0.003;
-    this.rotatingGroup.rotation.y += 0.005;
+    // Update OrbitControls pour interaction souris
+    if (this.controls) {
+      this.controls.update();
+    }
+
+    // Rotate the main group automatiquement (toujours actif)
+    if (this.rotatingGroup) {
+      this.rotatingGroup.rotation.x += 0.002;
+      this.rotatingGroup.rotation.y += 0.003;
+    }
 
     // Basic rendering without post-processing
-    this.renderer.render(this.scene, this.camera);
+    if (this.renderer && this.scene && this.camera) {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   private showFallback(): void {
+    console.log('🔙 Showing fallback (animation failed)');
     this.canvasOpacity = 0;
     this.fallbackOpacity = 1;
   }
@@ -245,6 +493,10 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.isAnimating = false;
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
+    }
+    if (this.controls) {
+      // Cleanup OrbitControls events
+      this.controls.enabled = false;
     }
     if (this.renderer) {
       this.renderer.dispose();

@@ -5,21 +5,125 @@
   margin: 0;
   padding: 0px;
   display: flex;
+  align-items: center;
+  gap: 12px; // Espacement moderne entre tous les éléments
 }
 
 .breadcrumb-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+
   &:first-child {
-    //margin-left: -20px;
     &::marker {
       content: " ";
     }
   }
+
+  // Suppression des séparateurs automatiques "/" - on utilise uniquement le chevron conditionnel
+
   &.active {
-    margin-left: 20px;
+    color: var(--mat-sys-primary);
+    font-weight: 500;
+    
+    // Supprimer la marge gauche fixe car on utilise gap maintenant
+    margin-left: 0;
   }
+
   a {
     text-decoration: none;
-    color: var(--mat-sys-on-background);
+    color: var(--mat-sys-on-surface-variant);
     font-size: 14px;
+    font-weight: 400;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: var(--mat-sys-surface-variant);
+      color: var(--mat-sys-on-surface);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  // Style spécifique pour l'élément séparateur - BEAUCOUP plus visible
+  &.separator {
+    i-tabler {
+      margin: 0 8px;
+      color: var(--mat-sys-on-surface); // Couleur principale au lieu d'outline
+      opacity: 1; // Complètement opaque pour maximum de visibilité
+      font-size: 18px !important; // Force la taille, override les classes globales
+      
+      svg {
+        width: 18px !important;
+        height: 18px !important;
+        stroke-width: 2; // Trait plus épais
+      }
+    }
+  }
+
+  // Classe spécifique pour forcer le style du chevron
+  .breadcrumb-chevron {
+    color: var(--mat-sys-on-surface) !important;
+    opacity: 1 !important;
+    font-size: 18px !important;
+    
+    svg {
+      width: 18px !important;
+      height: 18px !important;
+      stroke-width: 2 !important;
+      color: var(--mat-sys-on-surface) !important;
+      fill: none !important;
+    }
+  }
+
+  // Style pour l'icône de séparation (chevron) - fallback
+  i-tabler {
+    margin: 0 2px;
+    color: var(--mat-sys-outline);
+    opacity: 0.8;
+    font-size: 14px;
+    
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  // Responsive design pour mobile
+  @media (max-width: 768px) {
+    a {
+      padding: 3px 6px;
+      font-size: 13px;
+    }
+
+    &.separator {
+      i-tabler {
+        margin: 0 6px; // Espacement adapté mobile
+        font-size: 16px !important; // Taille adaptée pour mobile
+        
+        svg {
+          width: 16px !important;
+          height: 16px !important;
+          stroke-width: 2; // Trait épais maintenu sur mobile
+        }
+      }
+    }
+
+    // Style mobile pour la classe chevron spécifique
+    .breadcrumb-chevron {
+      font-size: 16px !important;
+      margin: 0 6px !important;
+      
+      svg {
+        width: 16px !important;
+        height: 16px !important;
+        stroke-width: 2 !important;
+      }
+    }
   }
 }

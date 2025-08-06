@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, Header, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime
 import math
 import logging
@@ -788,6 +788,7 @@ def get_dataset_details(dataset_id: str, db: Session = Depends(database.get_db))
     return schemas.DatasetDetailResponse(
         id=dataset.id,
         dataset_name=dataset.dataset_name,
+        display_name=dataset.display_name,
         year=dataset.year,
         objective=dataset.objective,
         access=dataset.access,
@@ -882,6 +883,11 @@ def preview_dataset_files(
     Retourne les métadonnées extraites, suggestions et prévisualisation des données.
     """
     logger.info(f"[PREVIEW] Début de l'analyse de {len(files)} fichiers pour l'utilisateur avec rôle: {current_user_role}")
+    
+    # Log détaillé des fichiers reçus
+    for i, file in enumerate(files):
+        logger.info(f"[PREVIEW] Fichier {i+1}: {file.filename} ({file.content_type})")
+    
     try:
         preview_results = []
         total_rows = 0
@@ -1123,6 +1129,7 @@ def _calculate_quality_score(files_analysis: List[dict]) -> float:
 @app.post("/datasets", response_model=schemas.DatasetRead, status_code=201)
 def create_dataset(
     dataset_name: str = Form(...),
+    display_name: str = Form(...),
     year: Optional[int] = Form(None),
     objective: Optional[str] = Form(None),
     access: Optional[str] = Form(None),
@@ -1221,6 +1228,7 @@ def create_dataset(
         db_dataset = models.Dataset(
             id=dataset_id,
             dataset_name=dataset_name,
+            display_name=display_name,
             year=year,
             objective=objective,
             access=access,
@@ -1280,6 +1288,14 @@ def create_dataset(
             db.add(db_file)
         
         db.commit()
+        
+        # Analyser les fichiers et créer les métadonnées des colonnes
+        try:
+            _analyze_and_save_file_columns(db_dataset, db)
+            logger.info(f"Métadonnées des colonnes analysées et sauvegardées pour {len(files)} fichiers")
+        except Exception as e:
+            logger.warning(f"Erreur lors de l'analyse des colonnes pour {dataset_id}: {str(e)}")
+            # Ne pas faire échouer la création du dataset pour cela
         
         logger.info(f"Dataset créé avec succès: {dataset_id} avec {len(files)} fichiers")
         return db_dataset
@@ -3342,6 +3358,179 @@ def get_missing_data_analysis(
             status_code=500, 
             detail="Erreur lors de l'analyse des données manquantes"
         )
+
+
+def _analyze_and_save_file_columns(dataset: models.Dataset, db: Session):
+    """
+    Analyse les fichiers d'un dataset et sauvegarde les métadonnées des colonnes.
+    
+    Args:
+        dataset: Instance du dataset créé
+        db: Session de base de données
+    """
+    storage_client = get_storage_client()
+    
+    # Récupérer tous les fichiers du dataset
+    dataset_files = db.query(models.DatasetFile).filter(
+        models.DatasetFile.dataset_id == dataset.id
+    ).all()
+    
+    for dataset_file in dataset_files:
+        try:
+            # Télécharger le fichier depuis le stockage
+            object_path = f"{dataset.storage_path}{dataset_file.file_name_in_storage}"
+            file_data = storage_client.download_file(object_path)
+            
+            # Analyser le fichier selon son format
+            if dataset_file.format.lower() in ['csv', 'parquet']:
+                columns_metadata = _analyze_tabular_file(file_data, dataset_file.format.lower())
+                
+                # Sauvegarder les métadonnées des colonnes
+                for i, col_meta in enumerate(columns_metadata):
+                    file_column = models.FileColumn(
+                        dataset_file_id=dataset_file.id,
+                        column_name=col_meta['name'],
+                        data_type_original=col_meta.get('dtype_original', 'unknown'),
+                        data_type_interpreted=col_meta.get('dtype_interpreted', 'unknown'),
+                        is_nullable=col_meta.get('has_nulls', True),
+                        is_pii=False,  # TODO: Détection automatique PII
+                        example_values=col_meta.get('examples', [])[:10],  # Limiter à 10 exemples
+                        position=i,
+                        stats=col_meta.get('stats', {})
+                    )
+                    db.add(file_column)
+                
+                # Mettre à jour le row_count du fichier
+                if 'row_count' in columns_metadata[0] if columns_metadata else False:
+                    dataset_file.row_count = columns_metadata[0]['row_count']
+                
+                logger.info(f"Analysé {len(columns_metadata)} colonnes pour fichier {dataset_file.file_name_in_storage}")
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de l'analyse du fichier {dataset_file.file_name_in_storage}: {str(e)}")
+            continue
+    
+    # Calculer les statistiques agrégées du dataset
+    total_instances = 0
+    total_features = 0
+    
+    # Récupérer les statistiques depuis les fichiers analysés
+    for dataset_file in dataset_files:
+        if dataset_file.row_count:
+            # Prendre le maximum des instances (cas où les fichiers contiennent les mêmes données)
+            total_instances = max(total_instances, dataset_file.row_count)
+        
+        # Compter les colonnes de ce fichier
+        file_columns_count = db.query(models.FileColumn).filter(
+            models.FileColumn.dataset_file_id == dataset_file.id
+        ).count()
+        total_features += file_columns_count
+    
+    # Mettre à jour le dataset avec les statistiques calculées
+    if total_instances > 0:
+        dataset.instances_number = total_instances
+        logger.info(f"Dataset {dataset.id} mis à jour - Instances: {total_instances}")
+    
+    if total_features > 0:
+        dataset.features_number = total_features
+        logger.info(f"Dataset {dataset.id} mis à jour - Features: {total_features}")
+    
+    # Commit les nouvelles FileColumn + les statistiques du dataset
+    db.commit()
+
+
+def _analyze_tabular_file(file_data: bytes, file_format: str) -> List[Dict]:
+    """
+    Analyse un fichier tabulaire (CSV ou Parquet) et extrait les métadonnées des colonnes.
+    
+    Args:
+        file_data: Données du fichier en bytes
+        file_format: Format du fichier ('csv' ou 'parquet')
+        
+    Returns:
+        Liste des métadonnées des colonnes
+    """
+    try:
+        # Lire le fichier selon son format
+        if file_format == 'parquet':
+            df = pd.read_parquet(io.BytesIO(file_data))
+        else:  # csv
+            df = pd.read_csv(io.BytesIO(file_data))
+        
+        columns_metadata = []
+        row_count = len(df)
+        
+        for col_name in df.columns:
+            col_data = df[col_name]
+            
+            # Statistiques de base
+            has_nulls = col_data.isnull().any()
+            null_count = col_data.isnull().sum()
+            
+            # Type de données
+            dtype_original = str(col_data.dtype)
+            dtype_interpreted = _interpret_column_type(col_data)
+            
+            # Exemples de valeurs (non nulles)
+            examples = col_data.dropna().head(5).astype(str).tolist()
+            
+            # Statistiques avancées
+            stats = {
+                'null_count': int(null_count),
+                'null_percentage': float(null_count / row_count * 100) if row_count > 0 else 0,
+                'unique_count': int(col_data.nunique()),
+                'row_count': row_count
+            }
+            
+            # Statistiques numériques si applicable
+            if pd.api.types.is_numeric_dtype(col_data):
+                stats.update({
+                    'min': float(col_data.min()) if not col_data.empty else None,
+                    'max': float(col_data.max()) if not col_data.empty else None,
+                    'mean': float(col_data.mean()) if not col_data.empty else None,
+                    'std': float(col_data.std()) if not col_data.empty else None
+                })
+            
+            columns_metadata.append({
+                'name': col_name,
+                'dtype_original': dtype_original,
+                'dtype_interpreted': dtype_interpreted,
+                'has_nulls': has_nulls,
+                'examples': examples,
+                'stats': stats,
+                'row_count': row_count
+            })
+            
+        return columns_metadata
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de l'analyse du fichier {file_format}: {str(e)}")
+        return []
+
+
+def _interpret_column_type(col_data: pd.Series) -> str:
+    """
+    Interprète le type sémantique d'une colonne pandas.
+    
+    Args:
+        col_data: Série pandas
+        
+    Returns:
+        Type interprété ('numerical', 'categorical', 'text', 'datetime', 'boolean')
+    """
+    if pd.api.types.is_bool_dtype(col_data):
+        return 'boolean'
+    elif pd.api.types.is_numeric_dtype(col_data):
+        return 'numerical'
+    elif pd.api.types.is_datetime64_any_dtype(col_data):
+        return 'datetime'
+    else:
+        # Pour les chaînes, déterminer si c'est catégoriel ou textuel
+        unique_ratio = col_data.nunique() / len(col_data.dropna()) if len(col_data.dropna()) > 0 else 0
+        if unique_ratio < 0.5:  # Moins de 50% de valeurs uniques → catégoriel
+            return 'categorical'
+        else:
+            return 'text'
 
 
 if __name__ == "__main__":

@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from .. import models
+
+# Import du client de stockage commun
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))

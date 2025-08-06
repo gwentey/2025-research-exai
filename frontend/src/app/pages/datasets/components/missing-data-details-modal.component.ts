@@ -80,49 +80,92 @@ import { MissingDataScore, ColumnMissingStats } from '../../../models/dataset.mo
         <table mat-table [dataSource]="data.columnStats" class="columns-table">
           <!-- Colonne nom -->
           <ng-container matColumnDef="columnName">
-            <th mat-header-cell *matHeaderCellDef>{{ 'DATASET_DETAIL.MISSING_DATA.TABLE.COLUMN_NAME' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon>view_column</mat-icon>
+              {{ 'DATASET_DETAIL.MISSING_DATA.TABLE.COLUMN_NAME' | translate }}
+            </th>
             <td mat-cell *matCellDef="let column">
-              <span class="column-name">{{ column.columnName }}</span>
+              <div class="column-name-cell">
+                <mat-icon class="type-icon">{{ getColumnTypeIcon(column.dataType) }}</mat-icon>
+                <span class="column-name">{{ column.columnName }}</span>
+                <mat-icon class="status-icon" [class]="getSeverityClass(column.severity)">
+                  {{ getSeverityIcon(column.severity) }}
+                </mat-icon>
+              </div>
             </td>
           </ng-container>
 
           <!-- Colonne type de données -->
           <ng-container matColumnDef="dataType">
-            <th mat-header-cell *matHeaderCellDef>{{ 'DATASET_DETAIL.MISSING_DATA.TABLE.DATA_TYPE' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon>category</mat-icon>
+              {{ 'DATASET_DETAIL.MISSING_DATA.TABLE.DATA_TYPE' | translate }}
+            </th>
             <td mat-cell *matCellDef="let column">
-              <span class="data-type">{{ column.dataType }}</span>
+              <span class="type-badge" [class]="getColumnTypeClass(column.dataType)">
+                {{ getColumnTypeLabel(column.dataType) }}
+              </span>
             </td>
           </ng-container>
 
           <!-- Colonne pourcentage manquant -->
           <ng-container matColumnDef="missingPercentage">
-            <th mat-header-cell *matHeaderCellDef>{{ 'DATASET_DETAIL.MISSING_DATA.TABLE.MISSING_PERCENTAGE' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon>warning</mat-icon>
+              {{ 'DATASET_DETAIL.MISSING_DATA.TABLE.MISSING_PERCENTAGE' | translate }}
+            </th>
             <td mat-cell *matCellDef="let column">
-              {{ column.missingPercentage }}%
+              <div class="missing-info" *ngIf="column.missingPercentage > 0">
+                <div class="missing-bar">
+                  <div class="missing-fill" 
+                       [style.width.%]="column.missingPercentage"
+                       [class.low]="column.missingPercentage < 15"
+                       [class.medium]="column.missingPercentage >= 15 && column.missingPercentage < 50"
+                       [class.high]="column.missingPercentage >= 50">
+                  </div>
+                </div>
+                <span class="missing-text">{{ column.missingPercentage }}%</span>
+              </div>
+              <div class="no-missing" *ngIf="column.missingPercentage === 0">
+                <mat-icon>check_circle</mat-icon>
+                <span>0%</span>
+              </div>
             </td>
           </ng-container>
 
           <!-- Colonne nombre manquant -->
           <ng-container matColumnDef="missingCount">
-            <th mat-header-cell *matHeaderCellDef>{{ 'DATASET_DETAIL.MISSING_DATA.TABLE.MISSING_COUNT' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon>numbers</mat-icon>
+              {{ 'DATASET_DETAIL.MISSING_DATA.TABLE.MISSING_COUNT' | translate }}
+            </th>
             <td mat-cell *matCellDef="let column">
-              {{ column.missingCount | number }} / {{ column.totalCount | number }}
+              <span class="missing-count">{{ column.missingCount | number }} / {{ column.totalCount | number }}</span>
             </td>
           </ng-container>
 
           <!-- Colonne gravité -->
           <ng-container matColumnDef="severity">
-            <th mat-header-cell *matHeaderCellDef>{{ 'DATASET_DETAIL.MISSING_DATA.TABLE.SEVERITY' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon>priority_high</mat-icon>
+              {{ 'DATASET_DETAIL.MISSING_DATA.TABLE.SEVERITY' | translate }}
+            </th>
             <td mat-cell *matCellDef="let column">
-              {{ ('DATASET_DETAIL.MISSING_DATA.SEVERITIES.' + column.severity.toUpperCase()) | translate }}
+              <span class="severity-badge" [class]="'severity-' + column.severity">
+                {{ ('DATASET_DETAIL.MISSING_DATA.SEVERITIES.' + column.severity.toUpperCase()) | translate }}
+              </span>
             </td>
           </ng-container>
 
           <!-- Colonne suggestion -->
           <ng-container matColumnDef="suggestion">
-            <th mat-header-cell *matHeaderCellDef>{{ 'DATASET_DETAIL.MISSING_DATA.TABLE.SUGGESTION' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon>lightbulb</mat-icon>
+              {{ 'DATASET_DETAIL.MISSING_DATA.TABLE.SUGGESTION' | translate }}
+            </th>
             <td mat-cell *matCellDef="let column">
-              <span [matTooltip]="(column.suggestion + '_TOOLTIP') | translate"
+              <span class="suggestion-text" 
+                   [matTooltip]="(column.suggestion + '_TOOLTIP') | translate"
                    matTooltipPosition="left">
                 {{ column.suggestion | translate }}
               </span>
@@ -246,12 +289,36 @@ import { MissingDataScore, ColumnMissingStats } from '../../../models/dataset.mo
 
     .missing-count {
       font-size: 0.875rem;
+      color: #6c757d;
+      font-weight: 500;
     }
 
     .severity-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
       font-size: 0.75rem;
       font-weight: 500;
       text-transform: uppercase;
+    }
+
+    .severity-badge.severity-low {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+    }
+
+    .severity-badge.severity-medium {
+      background-color: #fff3e0;
+      color: #ef6c00;
+    }
+
+    .severity-badge.severity-high {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+
+    .severity-badge.severity-critical {
+      background-color: #ffebee;
+      color: #b71c1c;
     }
 
     .suggestion-text {
@@ -301,20 +368,69 @@ export class MissingDataDetailsModalComponent {
   }
 
   /**
-   * Retourne l'icône appropriée pour le type de données
+   * Retourne l'icône appropriée pour le type de données (comme ML-wizard)
    */
-  getDataTypeIcon(dataType: string): string {
-    if (dataType.includes('numerical') || dataType.includes('float') || dataType.includes('int')) {
-      return 'tag';
-    } else if (dataType.includes('temporal') || dataType.includes('date') || dataType.includes('time')) {
-      return 'schedule';
-    } else if (dataType.includes('categorical')) {
-      return 'category';
-    } else if (dataType.includes('text') || dataType.includes('string')) {
-      return 'text_fields';
-    } else {
-      return 'help';
-    }
+  getColumnTypeIcon(type: string): string {
+    const iconMap: Record<string, string> = {
+      'string': 'text_fields',
+      'text': 'text_fields',
+      'integer': 'numbers',
+      'int': 'numbers',
+      'float': 'decimal_increase',
+      'decimal': 'decimal_increase',
+      'boolean': 'toggle_on',
+      'bool': 'toggle_on',
+      'datetime': 'event',
+      'date': 'event',
+      'timestamp': 'event',
+      'object': 'category',
+      'category': 'category'
+    };
+    return iconMap[type?.toLowerCase()] || 'help';
+  }
+
+  /**
+   * Retourne le label traduit pour un type de colonne
+   */
+  getColumnTypeLabel(type: string): string {
+    const labelMap: Record<string, string> = {
+      'string': 'Texte',
+      'text': 'Texte',
+      'integer': 'Entier',
+      'int': 'Entier',
+      'float': 'Décimal',
+      'decimal': 'Décimal',
+      'boolean': 'Booléen',
+      'bool': 'Booléen',
+      'datetime': 'Date/Heure',
+      'date': 'Date',
+      'timestamp': 'Date/Heure',
+      'object': 'Objet',
+      'category': 'Catégorie'
+    };
+    return labelMap[type?.toLowerCase()] || type || 'Inconnu';
+  }
+
+  /**
+   * Retourne la classe CSS pour un type de colonne
+   */
+  getColumnTypeClass(type: string): string {
+    const classMap: Record<string, string> = {
+      'string': 'string',
+      'text': 'string',
+      'integer': 'integer',
+      'int': 'integer',
+      'float': 'float',
+      'decimal': 'float',
+      'boolean': 'boolean',
+      'bool': 'boolean',
+      'datetime': 'datetime',
+      'date': 'datetime',
+      'timestamp': 'datetime',
+      'object': 'string',
+      'category': 'string'
+    };
+    return classMap[type?.toLowerCase()] || 'string';
   }
 
   /**
@@ -327,6 +443,19 @@ export class MissingDataDetailsModalComponent {
       case 'high': return 'error';
       case 'critical': return 'dangerous';
       default: return 'help';
+    }
+  }
+
+  /**
+   * Retourne la classe CSS pour la gravité
+   */
+  getSeverityClass(severity: string): string {
+    switch (severity) {
+      case 'low': return 'perfect';
+      case 'medium': return 'warning';
+      case 'high': return 'danger';
+      case 'critical': return 'danger';
+      default: return 'good';
     }
   }
 

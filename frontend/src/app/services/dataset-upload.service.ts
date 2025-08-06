@@ -57,7 +57,7 @@ export interface PreviewResponse {
 
 export interface UploadProgress {
   progress: number;
-  stage: 'uploading' | 'converting' | 'analyzing' | 'saving' | 'completed' | 'error';
+  stage: 'uploading' | 'converting' | 'analyzing' | 'saving' | 'completed' | 'preview_completed' | 'error';
   message: string;
   result?: any;
   error?: string;
@@ -65,6 +65,7 @@ export interface UploadProgress {
 
 export interface DatasetMetadata {
   dataset_name: string;
+  display_name: string;
   year?: number;
   objective?: string;
   access?: string;
@@ -144,7 +145,7 @@ export class DatasetUploadService {
       map(response => {
         this.updateProgress({
           progress: 100,
-          stage: 'completed',
+          stage: 'preview_completed',
           message: 'Analyse terminée avec succès',
           result: response
         });

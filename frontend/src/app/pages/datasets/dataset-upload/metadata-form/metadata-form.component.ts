@@ -100,6 +100,33 @@ import { TranslateModule } from '@ngx-translate/core';
                     </mat-error>
                   </mat-form-field>
 
+                  <!-- Bouton de synchronisation des noms -->
+                  <div class="name-sync-container">
+                    <button 
+                      type="button"
+                      mat-icon-button 
+                      [class.synced]="isDisplayNameSynced"
+                      [class.unsynced]="!isDisplayNameSynced"
+                      (click)="toggleDisplayNameSync()"
+                      [matTooltip]="isDisplayNameSynced ? 'Nom d\\'affichage synchronisé avec le nom du dataset - Cliquer pour les séparer' : 'Noms séparés - Cliquer pour synchroniser le nom d\\'affichage avec le nom du dataset'"
+                      class="sync-toggle-btn">
+                      <mat-icon>{{ isDisplayNameSynced ? 'sync' : 'sync_disabled' }}</mat-icon>
+                    </button>
+                    <span class="sync-label">
+                      {{ isDisplayNameSynced ? 'Nom d\\'affichage synchronisé avec le nom du dataset' : 'Noms séparés' }}
+                    </span>
+                  </div>
+
+                  <!-- Nom d'affichage -->
+                  <mat-form-field appearance="outline" class="full-width display-name-field" [class.synced]="isDisplayNameSynced">
+                    <mat-label>{{ 'METADATA_FORM.GENERAL.DISPLAY_NAME' | translate }}</mat-label>
+                    <input matInput formControlName="display_name" 
+                           [readonly]="isDisplayNameSynced"
+                           [class.readonly-input]="isDisplayNameSynced"
+                           placeholder="{{ 'METADATA_FORM.GENERAL.DISPLAY_NAME_PLACEHOLDER' | translate }}">
+                    <mat-icon matSuffix matTooltip="{{ 'METADATA_FORM.TOOLTIPS.DISPLAY_NAME' | translate }}">help</mat-icon>
+                  </mat-form-field>
+
                   <!-- Année -->
                   <mat-form-field appearance="outline">
                     <mat-label>{{ 'METADATA_FORM.GENERAL.YEAR' | translate }}</mat-label>
@@ -651,6 +678,89 @@ import { TranslateModule } from '@ngx-translate/core';
       min-width: 120px;
     }
 
+    /* Styles pour le bouton de synchronisation des noms */
+    .name-sync-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 8px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      transition: all 0.3s ease;
+    }
+
+    .sync-toggle-btn {
+      transition: all 0.3s ease;
+      border-radius: 50%;
+    }
+
+    .sync-toggle-btn.synced {
+      background-color: #4caf50 !important;
+      color: white !important;
+    }
+
+    .sync-toggle-btn.synced:hover {
+      background-color: #45a049 !important;
+    }
+
+    .sync-toggle-btn.unsynced {
+      background-color: #ff9800 !important;
+      color: white !important;
+    }
+
+    .sync-toggle-btn.unsynced:hover {
+      background-color: #f57c00 !important;
+    }
+
+    .sync-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #6c757d;
+      text-align: center;
+      flex: 1;
+      margin: 0 8px;
+    }
+
+    .name-sync-container:hover {
+      background: #e9ecef;
+      border-color: #dee2e6;
+    }
+
+    /* Styles pour le champ nom d'affichage */
+    .display-name-field {
+      margin-top: 16px; /* Padding demandé */
+      transition: all 0.3s ease;
+    }
+
+    .display-name-field.synced {
+      opacity: 0.7;
+    }
+
+    .display-name-field.synced .mat-form-field-wrapper {
+      background-color: #f8f9fa;
+    }
+
+    .readonly-input {
+      background-color: #f8f9fa !important;
+      color: #6c757d !important;
+      cursor: not-allowed;
+    }
+
+    /* Style pour les champs synchronisés */
+    .display-name-field.synced input {
+      background-color: #f8f9fa !important;
+      color: #6c757d !important;
+      cursor: not-allowed;
+    }
+
+    .display-name-field.synced .mat-form-field-outline {
+      background-color: #f8f9fa;
+      opacity: 0.8;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .metadata-form-container {
@@ -683,6 +793,7 @@ export class MetadataFormComponent implements OnInit, OnDestroy {
   currentYear = new Date().getFullYear();
   isAutoSaving = false;
   isSubmitting = false;
+  isDisplayNameSynced = true; // Par défaut, les noms sont synchronisés
 
   private destroy$ = new Subject<void>();
   private autoSaveDelay = 3000; // 3 secondes
@@ -727,6 +838,9 @@ export class MetadataFormComponent implements OnInit, OnDestroy {
       this.applyAutoSuggestions();
     }
 
+    // Configurer la synchronisation automatique des noms
+    this.setupDisplayNameSync();
+
     // Auto-save
     this.metadataForm.valueChanges
       .pipe(
@@ -747,6 +861,7 @@ export class MetadataFormComponent implements OnInit, OnDestroy {
     return this.fb.group({
       // Informations générales
       dataset_name: ['', Validators.required],
+      display_name: [''],
       year: [this.currentYear],
       objective: [''],
       domain: [[]],
@@ -797,6 +912,11 @@ export class MetadataFormComponent implements OnInit, OnDestroy {
     
     if (this.suggestions.suggested_dataset_name && !this.metadataForm.get('dataset_name')?.value) {
       updates.dataset_name = this.suggestions.suggested_dataset_name;
+      
+      // Synchroniser display_name si la synchronisation est active
+      if (this.isDisplayNameSynced) {
+        updates.display_name = this.formatDisplayName(this.suggestions.suggested_dataset_name);
+      }
     }
     
     if (this.suggestions.suggested_domains?.length > 0 && !this.metadataForm.get('domain')?.value?.length) {
@@ -807,12 +927,23 @@ export class MetadataFormComponent implements OnInit, OnDestroy {
       updates.task = this.suggestions.suggested_tasks;
     }
     
+    // Mettre à jour les statistiques techniques (activer temporairement les champs désactivés)
     if (this.suggestions.total_instances) {
-      updates.instances_number = this.suggestions.total_instances;
+      const instancesControl = this.metadataForm.get('instances_number');
+      if (instancesControl) {
+        instancesControl.enable();
+        instancesControl.setValue(this.suggestions.total_instances);
+        instancesControl.disable();
+      }
     }
     
     if (this.suggestions.total_features) {
-      updates.features_number = this.suggestions.total_features;
+      const featuresControl = this.metadataForm.get('features_number');
+      if (featuresControl) {
+        featuresControl.enable();
+        featuresControl.setValue(this.suggestions.total_features);
+        featuresControl.disable();
+      }
     }
 
     this.metadataForm.patchValue(updates);
@@ -855,6 +986,49 @@ export class MetadataFormComponent implements OnInit, OnDestroy {
       this.isSubmitting = true;
       this.formSubmit.emit(this.metadataForm.value);
     }
+  }
+
+  /**
+   * Bascule la synchronisation entre dataset_name et display_name
+   */
+  toggleDisplayNameSync() {
+    this.isDisplayNameSynced = !this.isDisplayNameSynced;
+    
+    if (this.isDisplayNameSynced) {
+      // Synchroniser display_name avec dataset_name
+      const datasetName = this.metadataForm.get('dataset_name')?.value || '';
+      this.metadataForm.patchValue({
+        display_name: this.formatDisplayName(datasetName)
+      });
+    }
+  }
+
+  /**
+   * Formate le nom de dataset en nom d'affichage (première lettre en majuscule, remplace _ par espaces)
+   */
+  private formatDisplayName(datasetName: string): string {
+    if (!datasetName) return '';
+    
+    return datasetName
+      .replace(/[_-]/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  /**
+   * Met à jour display_name automatiquement quand dataset_name change (si synchronisé)
+   */
+  private setupDisplayNameSync() {
+    this.metadataForm.get('dataset_name')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(datasetName => {
+        if (this.isDisplayNameSynced && datasetName) {
+          this.metadataForm.patchValue({
+            display_name: this.formatDisplayName(datasetName)
+          }, { emitEvent: false }); // emitEvent: false pour éviter les boucles
+        }
+      });
   }
 
   onCancel() {

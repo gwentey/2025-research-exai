@@ -1042,13 +1042,28 @@ async def proxy_request(
             if content_type and content_type.startswith("multipart/"):
                 form = await request.form()
                 files = []
-                for key, file in form.items():
-                    if hasattr(file, 'read'):  # C'est un fichier
-                        files.append((key, (file.filename, file.file, file.content_type)))
-                    else:  # C'est un champ normal
-                        if not body:
-                            body = {}
-                        body[key] = file
+                body = {}
+                
+                # Traiter tous les champs du formulaire, en gérant les fichiers multiples
+                for key in form.keys():
+                    # Récupérer toutes les valeurs pour cette clé (gère les multiples)
+                    if hasattr(form, 'getlist'):
+                        values = form.getlist(key)
+                    else:
+                        # Fallback si getlist n'est pas disponible
+                        values = [form.get(key)]
+                    
+                    logger.info(f"[PROXY] Clé '{key}' a {len(values)} valeur(s)")
+                    
+                    for value in values:
+                        if hasattr(value, 'read'):  # C'est un fichier
+                            files.append((key, (value.filename, value.file, value.content_type)))
+                            logger.info(f"[PROXY] Fichier ajouté: {value.filename}")
+                        else:  # C'est un champ normal (métadonnées)
+                            # Pour les champs multiples, on garde la dernière valeur
+                            body[key] = value
+                
+                logger.info(f"[PROXY] Total fichiers à transmettre: {len(files)}")
             else:
                 body = await request.body()
         
@@ -1103,6 +1118,11 @@ async def datasets_proxy(request: Request, current_user: UserModel = Depends(cur
 async def dataset_detail_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
     """Proxy vers le service-selection pour les opérations sur un dataset spécifique"""
     return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}", current_user)
+
+@app.api_route("/datasets/{dataset_id}/missing-data-analysis", methods=["GET"], tags=["datasets"])
+async def dataset_missing_data_analysis_proxy(dataset_id: str, request: Request, current_user: UserModel = Depends(current_active_user)):
+    """Proxy vers le service-selection pour l'analyse des données manquantes d'un dataset"""
+    return await proxy_request(request, settings.SERVICE_SELECTION_URL, f"datasets/{dataset_id}/missing-data-analysis", current_user)
 
 @app.get("/datasets/domains", tags=["datasets"])
 async def datasets_domains_proxy(request: Request, current_user: UserModel = Depends(current_active_user)):

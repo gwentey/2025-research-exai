@@ -377,6 +377,7 @@ class DatasetDetailResponse(BaseModel):
     # Informations de base du dataset
     id: UUID4
     dataset_name: str
+    display_name: Optional[str]
     year: Optional[int]
     objective: Optional[str]
     access: Optional[str]

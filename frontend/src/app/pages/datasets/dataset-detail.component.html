@@ -1,103 +1,148 @@
 <div class="dataset-detail-container" *ngIf="!isLoading && !error && dataset">
-  <!-- Header héroïque du dataset -->
-  <div class="hero-header">
-    <div class="hero-background"></div>
-    <div class="hero-content">
-      <div class="hero-main">
-        <div class="hero-left">
-          <button mat-icon-button (click)="goBack()" class="back-btn">
-            <mat-icon>arrow_back</mat-icon>
-          </button>
-          
-          <div class="dataset-identity">
-            <h1 class="dataset-title">{{ dataset.display_name }}</h1>
-            <p class="dataset-objective" *ngIf="dataset.objective">{{ dataset.objective }}</p>
+  <!-- Hero Header Moderne Amélioré -->
+  <div class="modern-hero-header">
+    <!-- Background Dynamique avec Particules -->
+    <div class="hero-background-modern">
+      <div class="gradient-overlay" [style.background]="getDynamicGradient()"></div>
+      <div class="particles-container" aria-hidden="true">
+        <div class="particle" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]" [style.animationDelay]="(i * 2) + 's'" aria-hidden="true"></div>
+      </div>
+      <div class="mesh-gradient"></div>
+    </div>
+
+    <!-- Contenu Principal du Hero -->
+    <div class="hero-content-modern">
+      <!-- Navigation Header -->
+      <div class="hero-nav">
+        <button mat-icon-button (click)="goBack()" class="modern-back-btn">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="breadcrumb">
+          <span class="breadcrumb-item">Datasets</span>
+          <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+          <span class="breadcrumb-current">{{ dataset.display_name }}</span>
+        </div>
+      </div>
+
+      <!-- Zone Principale du Hero -->
+      <div class="hero-main-modern">
+        <!-- Section Gauche: Identité du Dataset -->
+        <div class="hero-identity">
+          <!-- Icône de Domaine Dynamique -->
+          <div class="domain-icon-container">
+            <div class="icon-glow"></div>
+            <div class="domain-icon">
+              <mat-icon class="domain-main-icon">{{ getDomainIcon() }}</mat-icon>
+            </div>
+          </div>
+
+          <!-- Informations Principales -->
+          <div class="dataset-info">
+            <div class="dataset-header">
+              <h1 class="dataset-title-modern">{{ dataset.display_name }}</h1>
+              <div class="quality-badge" *ngIf="qualityMetrics" [class]="getQualityBadgeClass()">
+                <mat-icon class="quality-icon">{{ getQualityIcon(qualityMetrics.overall_score) }}</mat-icon>
+                <span class="quality-text">{{ Math.round(qualityMetrics.overall_score * 100) }}% qualité</span>
+              </div>
+            </div>
             
-            <div class="meta-badges">
-              <mat-chip-set>
-                <mat-chip *ngIf="dataset.year" class="year-chip">
-                  <mat-icon matChipAvatar>calendar_today</mat-icon>
-                  {{ dataset.year }}
-                </mat-chip>
-                <mat-chip class="instances-chip">
-                  <mat-icon matChipAvatar>storage</mat-icon>
-                  {{ formatNumber(dataset.instances_number) }} instances
-                </mat-chip>
-                <mat-chip class="features-chip">
-                  <mat-icon matChipAvatar>view_column</mat-icon>
-                  {{ formatNumber(dataset.features_number) }} features
-                </mat-chip>
-                <mat-chip *ngIf="dataset.num_citations && dataset.num_citations > 0" class="citations-chip">
-                  <mat-icon matChipAvatar>format_quote</mat-icon>
-                  {{ formatNumber(dataset.num_citations) }} citations
-                </mat-chip>
-              </mat-chip-set>
+            <p class="dataset-objective-modern" *ngIf="dataset.objective">{{ dataset.objective }}</p>
+            
+            <!-- Stats Compactes -->
+            <div class="dataset-stats-modern">
+              <div class="stat-item" *ngIf="dataset.year">
+                <mat-icon class="stat-icon">schedule</mat-icon>
+                <span class="stat-value">{{ dataset.year }}</span>
+              </div>
+              <div class="stat-item">
+                <mat-icon class="stat-icon">storage</mat-icon>
+                <span class="stat-value">{{ formatNumber(dataset.instances_number) }}</span>
+                <span class="stat-label">instances</span>
+              </div>
+              <div class="stat-item">
+                <mat-icon class="stat-icon">view_column</mat-icon>
+                <span class="stat-value">{{ formatNumber(dataset.features_number) }}</span>
+                <span class="stat-label">features</span>
+              </div>
+              <div class="stat-item" *ngIf="dataset.num_citations && dataset.num_citations > 0">
+                <mat-icon class="stat-icon">format_quote</mat-icon>
+                <span class="stat-value">{{ formatNumber(dataset.num_citations) }}</span>
+                <span class="stat-label">citations</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="hero-right">
-          <div class="quality-overview">
-            <div class="quality-score" *ngIf="qualityMetrics">
-              <div class="score-circle" [class]="getQualityColor(qualityMetrics.overall_score)" 
-                   matTooltip="Score global de qualité basé sur la complétude, consistance, précision et conformité éthique des données. Plus le score est élevé, plus le dataset est fiable pour vos analyses."
-                   matTooltipPosition="below">
-                <span class="score-value">{{ Math.round(qualityMetrics.overall_score * 100) }}</span>
-                <span class="score-label">Score</span>
+        <!-- Section Droite: Score et Actions -->
+        <div class="hero-actions">
+          <!-- Score de Qualité Moderne -->
+          <div class="quality-display-modern" *ngIf="qualityMetrics">
+            <div class="quality-circle-modern" 
+                 [class]="getQualityColor(qualityMetrics.overall_score)"
+                 [attr.aria-label]="'Score de qualité: ' + Math.round(qualityMetrics.overall_score * 100) + ' pour cent'"
+                 role="img">
+              <div class="circle-background"></div>
+              <div class="circle-progress" [style.stroke-dashoffset]="getCircleProgress(qualityMetrics.overall_score)" aria-hidden="true"></div>
+              <div class="circle-content">
+                <span class="score-number">{{ Math.round(qualityMetrics.overall_score * 100) }}</span>
+                <span class="score-suffix">%</span>
               </div>
             </div>
-            
-            <div class="action-buttons">
-              <button mat-raised-button color="primary" (click)="downloadDataset()">
-                <mat-icon>download</mat-icon>
-                Télécharger
+            <div class="quality-label">Score de qualité</div>
+          </div>
+
+          <!-- Actions Principales -->
+          <div class="action-buttons-modern">
+            <button mat-flat-button color="primary" class="primary-action" (click)="downloadDataset()">
+              <mat-icon>download</mat-icon>
+              <span>Télécharger</span>
+            </button>
+            <button mat-stroked-button class="secondary-action" (click)="completeMetadata()">
+              <mat-icon>edit_note</mat-icon>
+              <span>Métadonnées</span>
+            </button>
+            <button mat-icon-button class="icon-action" (click)="addToFavorites()" matTooltip="Ajouter aux favoris">
+              <mat-icon>favorite_border</mat-icon>
+            </button>
+            <button mat-icon-button class="icon-action" [matMenuTriggerFor]="actionMenu" matTooltip="Plus d'actions">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #actionMenu="matMenu">
+              <button mat-menu-item (click)="shareDataset()">
+                <mat-icon>share</mat-icon>
+                <span>Partager</span>
               </button>
-              <button mat-stroked-button color="accent" (click)="completeMetadata()" matTooltip="Compléter les métadonnées techniques et éthiques">
-                <mat-icon>edit_note</mat-icon>
-                Métadonnées
+              <button mat-menu-item>
+                <mat-icon>flag</mat-icon>
+                <span>Signaler</span>
               </button>
-              <button mat-button (click)="addToFavorites()">
-                <mat-icon>favorite_border</mat-icon>
-                Favoris
-              </button>
-              <button mat-icon-button [matMenuTriggerFor]="actionMenu">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #actionMenu="matMenu">
-                <button mat-menu-item (click)="shareDataset()">
-                  <mat-icon>share</mat-icon>
-                  Partager
-                </button>
-                <button mat-menu-item>
-                  <mat-icon>flag</mat-icon>
-                  Signaler
-                </button>
-              </mat-menu>
-            </div>
+            </mat-menu>
           </div>
         </div>
       </div>
 
-      <!-- Tags et domaines -->
-      <div class="tags-section" *ngIf="dataset.domain || dataset.task">
-        <div class="tag-group" *ngIf="dataset.domain && dataset.domain.length > 0">
-          <span class="tag-label">Domaines:</span>
-          <mat-chip-set>
-            <mat-chip *ngFor="let domain of dataset.domain" class="domain-chip">
-              <mat-icon matChipAvatar>domain</mat-icon>
-              {{ domain }}
-            </mat-chip>
-          </mat-chip-set>
-        </div>
+      <!-- Tags et Domaines Modernes -->
+      <div class="tags-section-modern" *ngIf="dataset.domain || dataset.task">
+        <div class="tags-container">
+          <div class="tag-group-modern" *ngIf="dataset.domain && dataset.domain.length > 0">
+            <span class="tag-category">Domaines</span>
+            <div class="tags-list">
+              <span *ngFor="let domain of dataset.domain" class="tag-pill domain-tag">
+                <mat-icon class="tag-icon">domain</mat-icon>
+                {{ domain }}
+              </span>
+            </div>
+          </div>
 
-        <div class="tag-group" *ngIf="dataset.task && dataset.task.length > 0">
-          <span class="tag-label">Tâches ML:</span>
-          <mat-chip-set>
-            <mat-chip *ngFor="let task of dataset.task" class="task-chip">
-              <mat-icon matChipAvatar>psychology</mat-icon>
-              {{ task }}
-            </mat-chip>
-          </mat-chip-set>
+          <div class="tag-group-modern" *ngIf="dataset.task && dataset.task.length > 0">
+            <span class="tag-category">Tâches ML</span>
+            <div class="tags-list">
+              <span *ngFor="let task of dataset.task" class="tag-pill task-tag">
+                <mat-icon class="tag-icon">psychology</mat-icon>
+                {{ task }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -455,43 +500,63 @@
                     <div class="columns-table">
                       <mat-table [dataSource]="dataset.files[selectedFileIndex].columns" class="columns-mat-table">
                         <ng-container matColumnDef="position">
-                          <mat-header-cell *matHeaderCellDef>Position</mat-header-cell>
+                          <mat-header-cell *matHeaderCellDef>
+                            <mat-icon>tag</mat-icon>
+                            Position
+                          </mat-header-cell>
                           <mat-cell *matCellDef="let column">{{ column.position }}</mat-cell>
                         </ng-container>
 
                         <ng-container matColumnDef="name">
-                          <mat-header-cell *matHeaderCellDef>Nom</mat-header-cell>
+                          <mat-header-cell *matHeaderCellDef>
+                            <mat-icon>view_column</mat-icon>
+                            Colonne
+                          </mat-header-cell>
                           <mat-cell *matCellDef="let column">
-                            <div class="column-name">
-                              <span class="name">{{ column.column_name }}</span>
+                            <div class="column-name-cell">
+                              <mat-icon class="type-icon">{{ getColumnTypeIcon(column.data_type_interpreted || column.data_type_original) }}</mat-icon>
+                              <span class="column-name">{{ column.column_name }}</span>
                               <mat-icon *ngIf="column.is_pii" class="pii-icon" matTooltip="Données personnelles identifiables">lock</mat-icon>
                               <mat-icon *ngIf="column.is_primary_key_component" class="pk-icon" matTooltip="Clé primaire">key</mat-icon>
+                              <mat-icon class="status-icon perfect">check_circle</mat-icon>
                             </div>
                           </mat-cell>
                         </ng-container>
 
                         <ng-container matColumnDef="type">
-                          <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
+                          <mat-header-cell *matHeaderCellDef>
+                            <mat-icon>category</mat-icon>
+                            Type
+                          </mat-header-cell>
                           <mat-cell *matCellDef="let column">
-                            <span class="data-type">{{ column.data_type_interpreted || column.data_type_original }}</span>
+                            <span class="type-badge" [class]="getColumnTypeClass(column.data_type_interpreted || column.data_type_original)">
+                              {{ getColumnTypeLabel(column.data_type_interpreted || column.data_type_original) }}
+                            </span>
                           </mat-cell>
                         </ng-container>
 
                         <ng-container matColumnDef="nullable">
-                          <mat-header-cell *matHeaderCellDef>Nullable</mat-header-cell>
+                          <mat-header-cell *matHeaderCellDef>
+                            <mat-icon>warning</mat-icon>
+                            Nullable
+                          </mat-header-cell>
                           <mat-cell *matCellDef="let column">
-                            <mat-icon [class]="column.is_nullable ? 'nullable' : 'not-nullable'">
-                              {{ column.is_nullable ? 'check_circle' : 'cancel' }}
-                            </mat-icon>
+                            <div class="no-missing">
+                              <mat-icon>check_circle</mat-icon>
+                              <span>{{ column.is_nullable ? 'Oui' : 'Non' }}</span>
+                            </div>
                           </mat-cell>
                         </ng-container>
 
                         <ng-container matColumnDef="examples">
-                          <mat-header-cell *matHeaderCellDef>Exemples</mat-header-cell>
+                          <mat-header-cell *matHeaderCellDef>
+                            <mat-icon>preview</mat-icon>
+                            Exemples
+                          </mat-header-cell>
                           <mat-cell *matCellDef="let column">
                             <div class="examples" *ngIf="column.example_values">
                               <mat-chip-set>
-                                <mat-chip *ngFor="let example of column.example_values.slice(0, 3)" class="example-chip">
+                                <mat-chip *ngFor="let example of column.example_values.slice(0, 2)" class="example-chip">
                                   {{ example }}
                                 </mat-chip>
                               </mat-chip-set>
@@ -500,7 +565,10 @@
                         </ng-container>
 
                         <ng-container matColumnDef="description">
-                          <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
+                          <mat-header-cell *matHeaderCellDef>
+                            <mat-icon>description</mat-icon>
+                            Description
+                          </mat-header-cell>
                           <mat-cell *matCellDef="let column">
                             <span class="description">{{ column.description || 'Non spécifiée' }}</span>
                           </mat-cell>

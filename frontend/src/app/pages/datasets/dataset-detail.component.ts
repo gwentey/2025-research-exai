@@ -387,4 +387,157 @@ export class DatasetDetailComponent implements OnInit, OnDestroy {
     
     return allColumns;
   }
+
+  /**
+   * Obtient l'icône pour un type de colonne (similaire au ML-pipeline-wizard)
+   */
+  getColumnTypeIcon(type: string): string {
+    const iconMap: Record<string, string> = {
+      'string': 'text_fields',
+      'text': 'text_fields',
+      'integer': 'numbers',
+      'int': 'numbers',
+      'float': 'decimal_increase',
+      'decimal': 'decimal_increase',
+      'boolean': 'toggle_on',
+      'bool': 'toggle_on',
+      'datetime': 'event',
+      'date': 'event',
+      'timestamp': 'event',
+      'object': 'category',
+      'category': 'category'
+    };
+    return iconMap[type?.toLowerCase()] || 'help';
+  }
+
+  /**
+   * Obtient le label traduit pour un type de colonne
+   */
+  getColumnTypeLabel(type: string): string {
+    const labelMap: Record<string, string> = {
+      'string': 'Texte',
+      'text': 'Texte',
+      'integer': 'Entier',
+      'int': 'Entier',
+      'float': 'Décimal',
+      'decimal': 'Décimal',
+      'boolean': 'Booléen',
+      'bool': 'Booléen',
+      'datetime': 'Date/Heure',
+      'date': 'Date',
+      'timestamp': 'Date/Heure',
+      'object': 'Objet',
+      'category': 'Catégorie'
+    };
+    return labelMap[type?.toLowerCase()] || type || 'Inconnu';
+  }
+
+  /**
+   * Obtient la classe CSS pour un type de colonne
+   */
+  getColumnTypeClass(type: string): string {
+    const classMap: Record<string, string> = {
+      'string': 'string',
+      'text': 'string',
+      'integer': 'integer',
+      'int': 'integer',
+      'float': 'float',
+      'decimal': 'float',
+      'boolean': 'boolean',
+      'bool': 'boolean',
+      'datetime': 'datetime',
+      'date': 'datetime',
+      'timestamp': 'datetime',
+      'object': 'string',
+      'category': 'string'
+    };
+    return classMap[type?.toLowerCase()] || 'string';
+  }
+
+  /**
+   * Retourne un gradient dynamique basé sur le domaine du dataset
+   */
+  getDynamicGradient(): string {
+    if (!this.dataset?.domain || this.dataset.domain.length === 0) {
+      return 'linear-gradient(135deg, var(--sorbonne-primary, #242e54) 0%, #1e2749 100%)'; // Gradient par défaut IBIS-X
+    }
+
+    const domain = this.dataset.domain[0].toLowerCase();
+    const gradientMap: Record<string, string> = {
+      'education': 'linear-gradient(135deg, var(--modern-blue-bright, #5c6fb3) 0%, var(--modern-blue-vivid, #3b4b8c) 100%)',
+      'health': 'linear-gradient(135deg, var(--modern-teal, #4ecdc4) 0%, var(--modern-mint, #95e1d3) 100%)',
+      'finance': 'linear-gradient(135deg, var(--warm-gold, #d4a574) 0%, var(--warm-amber, #e8b464) 100%)',
+      'technology': 'linear-gradient(135deg, var(--accent-coral, #ff6b6b) 0%, var(--accent-sunset, #ff7e5f) 100%)',
+      'social': 'linear-gradient(135deg, var(--modern-lavender, #a8dadc) 0%, var(--modern-blush, #ffd6e0) 100%)',
+      'science': 'linear-gradient(135deg, var(--accent-peach, #ffa574) 0%, var(--warm-honey, #f4c752) 100%)',
+      'business': 'linear-gradient(135deg, var(--warm-champagne, #faebd7) 0%, var(--warm-amber, #e8b464) 100%)',
+      'government': 'linear-gradient(135deg, var(--sorbonne-primary, #242e54) 0%, var(--modern-blue-vivid, #3b4b8c) 100%)'
+    };
+
+    // Cherche le domaine dans la map ou utilise le gradient par défaut
+    for (const key in gradientMap) {
+      if (domain.includes(key)) {
+        return gradientMap[key];
+      }
+    }
+
+    return 'linear-gradient(135deg, var(--sorbonne-primary, #242e54) 0%, #1e2749 100%)';
+  }
+
+  /**
+   * Retourne l'icône appropriée pour le domaine du dataset
+   */
+  getDomainIcon(): string {
+    if (!this.dataset?.domain || this.dataset.domain.length === 0) {
+      return 'dataset';
+    }
+
+    const domain = this.dataset.domain[0].toLowerCase();
+    const iconMap: Record<string, string> = {
+      'education': 'school',
+      'health': 'medical_services',
+      'finance': 'account_balance',
+      'technology': 'computer',
+      'social': 'people',
+      'science': 'science',
+      'business': 'business',
+      'government': 'account_balance',
+      'transportation': 'directions_car',
+      'environment': 'eco',
+      'sports': 'sports',
+      'entertainment': 'movie'
+    };
+
+    // Cherche le domaine dans la map ou utilise l'icône par défaut
+    for (const key in iconMap) {
+      if (domain.includes(key)) {
+        return iconMap[key];
+      }
+    }
+
+    return 'dataset';
+  }
+
+  /**
+   * Retourne la classe CSS pour le badge de qualité
+   */
+  getQualityBadgeClass(): string {
+    if (!this.qualityMetrics) return 'quality-unknown';
+    
+    const score = this.qualityMetrics.overall_score;
+    if (score >= 0.8) return 'quality-excellent';
+    if (score >= 0.6) return 'quality-good';
+    if (score >= 0.4) return 'quality-fair';
+    return 'quality-poor';
+  }
+
+  /**
+   * Calcule le stroke-dashoffset pour le cercle de progression du score de qualité
+   */
+  getCircleProgress(score: number): number {
+    const radius = 50; // Rayon du cercle
+    const circumference = 2 * Math.PI * radius;
+    const progress = score || 0;
+    return circumference - (progress * circumference);
+  }
 } 

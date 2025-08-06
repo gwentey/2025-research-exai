@@ -1390,7 +1390,8 @@
     "ONBOARDING": "Initial setup",
     "ERROR": "Error",
     "NOT_FOUND": "Page not found",
-    "XAI_EXPLANATIONS": "XAI explanations"
+    "XAI_EXPLANATIONS": "XAI explanations",
+    "UPLOAD_DATASET": "Add Dataset"
   },
   "BREADCRUMB": {
     "HOME": "Home",
