@@ -82,7 +82,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   }
 
   private async loadThreeJS(): Promise<void> {
-    console.log('🚀 Starting Three.js loading...');
+    console.log('🚀 Loading Three.js + OrbitControls as ES6 MODULES (EXACTLY like working example)...');
     if (this.isMobile) {
       console.log('📱 Mobile detected, skipping Three.js');
       return;
@@ -96,44 +96,57 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     }
 
     try {
-      console.log('📦 Loading Three.js from CDN...');
-      // Try multiple CDN URLs for Three.js
-      const threeJsUrls = [
-        'https://unpkg.com/three@0.158.0/build/three.min.js',
-        'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/three.js/r158/three.min.js'
-      ];
+      // Load EVERYTHING as ES6 modules (EXACTLY like the working example)
+      console.log('📦 Loading Three.js + OrbitControls as ES6 modules...');
       
-      let loaded = false;
-      for (const url of threeJsUrls) {
-        try {
-          console.log(`📦 Trying CDN: ${url}`);
-          await this.loadScriptFromCDN(url);
-          loaded = true;
-          console.log(`✅ Successfully loaded from: ${url}`);
-          break;
-        } catch (urlError) {
-          console.log(`❌ Failed CDN: ${url}`, urlError);
-          continue;
-        }
-      }
+      const moduleScript = document.createElement('script');
+      moduleScript.type = 'module';
+      moduleScript.innerHTML = `
+        // Import EXACTLY like the working example
+        import * as THREE from 'https://cdn.skypack.dev/three@0.136.0/build/three.module.js';
+        import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/controls/OrbitControls.js';
+        
+        // Attach to window SEPARATELY (THREE is not extensible!)
+        window.THREE = THREE;
+        window.OrbitControls = OrbitControls; // ✅ SÉPARÉ !
+        
+        console.log('✅ Three.js + OrbitControls loaded as ES6 modules!', {
+          THREE: !!window.THREE,
+          OrbitControls: !!window.OrbitControls
+        });
+        
+        // Notify Angular that everything is ready
+        window.dispatchEvent(new CustomEvent('threeAndOrbitControlsReady'));
+      `;
       
-      if (!loaded) {
-        throw new Error('All CDN URLs failed');
-      }
-
-      console.log('✅ Three.js script loaded, checking availability...');
-      // Check if THREE is available
-      if (!(window as any).THREE) {
-        throw new Error('Three.js failed to load - THREE object not found');
-      }
-
-      console.log('🎯 THREE object found, loading OrbitControls...');
-      
-      // Load VRAIS OrbitControls Three.js depuis CDN
-      console.log('📦 Loading REAL OrbitControls from CDN...');
-      await this.loadOrbitControlsFromCDN();
-      console.log('✅ Real OrbitControls loaded');
+      await new Promise((resolve, reject) => {
+        const handleReady = () => {
+          if ((window as any).THREE && (window as any).OrbitControls) {
+            console.log('✅ THREE + OrbitControls confirmed ready!');
+            window.removeEventListener('threeAndOrbitControlsReady', handleReady);
+            resolve(true);
+          } else {
+            reject(new Error('THREE or OrbitControls not found after ready event'));
+          }
+        };
+        
+        window.addEventListener('threeAndOrbitControlsReady', handleReady);
+        
+        moduleScript.onerror = (error) => {
+          console.error('❌ Failed to load Three.js module:', error);
+          window.removeEventListener('threeAndOrbitControlsReady', handleReady);
+          reject(new Error('Failed to load Three.js module'));
+        };
+        
+        // Timeout de sécurité
+        setTimeout(() => {
+          window.removeEventListener('threeAndOrbitControlsReady', handleReady);
+          reject(new Error('Three.js module loading timeout'));
+        }, 15000);
+        
+        document.head.appendChild(moduleScript);
+        console.log('📦 Three.js ES6 module script injected');
+      });
 
       // Wait for Angular to render the canvas
       setTimeout(() => {
@@ -145,7 +158,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
           console.error('❌ Failed to setup Three.js scene:', setupError);
           this.showFallback();
         }
-      }, 100); // Give Angular time to render canvas
+      }, 100);
       
     } catch (error) {
       console.error('❌ Failed to load Three.js:', error);
@@ -199,39 +212,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     });
   }
 
-  private async loadOrbitControlsFromCDN(): Promise<void> {
-    console.log('📦 Loading REAL OrbitControls from CDN...');
-    
-    // Load OrbitControls avec script injection (pas d'import dynamique pour éviter erreur Webpack)
-    const orbitControlsScript = document.createElement('script');
-    orbitControlsScript.type = 'module';
-    orbitControlsScript.innerHTML = `
-      import { OrbitControls } from 'https://cdn.skypack.dev/three@0.158.0/examples/jsm/controls/OrbitControls.js';
-      window.THREE.OrbitControls = OrbitControls;
-      console.log('✅ OrbitControls loaded via script injection');
-    `;
-    
-    return new Promise((resolve, reject) => {
-      orbitControlsScript.onload = () => {
-        // Petite attente pour que le script s'exécute
-        setTimeout(() => {
-          if ((window as any).THREE?.OrbitControls) {
-            console.log('✅ OrbitControls ready for use!');
-            resolve();
-          } else {
-            reject(new Error('OrbitControls failed to load'));
-          }
-        }, 100);
-      };
-      
-      orbitControlsScript.onerror = (error) => {
-        console.error('❌ Failed to load OrbitControls script:', error);
-        reject(new Error('Failed to load OrbitControls script'));
-      };
-      
-      document.head.appendChild(orbitControlsScript);
-    });
-  }
+
 
   private setupThreeSceneBasic(THREE: any): void {
     console.log('🎬 Setting up Three.js scene...');
@@ -271,16 +252,44 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
 
     // Setup OrbitControls SIMPLE comme l'exemple qui fonctionne !
     console.log('🖱️ Setting up REAL OrbitControls...');
-    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enableDamping = true; // SIMPLE comme l'exemple !
-    console.log('✅ REAL OrbitControls ready for mouse interaction!');
+    const OrbitControls = (window as any).OrbitControls; // ✅ SÉPARÉ de THREE !
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    
+    // Configuration pour activer l'interaction souris SANS LIMITES !
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.1;
+    this.controls.enableRotate = true;  // ✅ ACTIVER rotation souris !
+    this.controls.enableZoom = true;    // ✅ ACTIVER zoom molette !
+    this.controls.enablePan = false;    // ❌ DÉSACTIVER pan (déplacement)
+    this.controls.rotateSpeed = 1.0;    // Sensibilité rotation
+    this.controls.zoomSpeed = 1.2;      // Sensibilité zoom
+    
+    // ✅ SUPPRIMER toutes les limites pour liberté totale !
+    this.controls.minDistance = 0;     // Pas de limite zoom avant
+    this.controls.maxDistance = Infinity; // Pas de limite zoom arrière
+    this.controls.minPolarAngle = 0;    // Rotation verticale libre
+    this.controls.maxPolarAngle = Math.PI; // Rotation verticale libre
+    this.controls.minAzimuthAngle = -Infinity; // Rotation horizontale libre
+    this.controls.maxAzimuthAngle = Infinity;  // Rotation horizontale libre
+    
+    console.log('✅ REAL OrbitControls configured for mouse interaction!', {
+      enableRotate: this.controls.enableRotate,
+      enableZoom: this.controls.enableZoom,
+      domElement: this.controls.domElement?.tagName,
+      rendererDomElement: this.renderer.domElement?.tagName,
+      canvasElement: this.canvas?.tagName,
+      sameElement: this.renderer.domElement === this.canvas
+    });
 
-    // Setup rotating group - ENCORE +15% VERS LA DROITE
+    // OrbitControls opérationnels - debug terminé
+    console.log('✅ OrbitControls configured and ready for interaction!');
+
+    // Setup rotating group - DÉCALÉ 15% PLUS VERS LA GAUCHE
     console.log('🔄 Creating rotating group...');
     this.rotatingGroup = new THREE.Group();
-    this.rotatingGroup.position.set(-0.979, 0, 0); // -1.152 + 15% = -1.152 + 0.173 = -0.979
+    this.rotatingGroup.position.set(-0.75, 0, 0); // Décalage 15% plus vers la gauche : -0.3 - 0.45 = -0.75
     this.scene.add(this.rotatingGroup);
-    console.log('✅ Rotating group added to scene (shifted 15% MORE to RIGHT)');
+    console.log('✅ Rotating group added to scene (shifted 15% MORE to LEFT)');
 
     // Create starfield background - Couleurs Sorbonne
     console.log('⭐ Creating starfield...');
@@ -338,11 +347,11 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   }
 
   private createMainObjects(THREE: any): void {
-    // RETOUR TAILLES NORMALES pour debug - comme l'exemple !
-    console.log('🎯 Creating objects with NORMAL sizes for debug...');
+    // TAILLES OPTIMISÉES - réduites de 7% pour ajustement final
+    console.log('🎯 Creating objects with sizes reduced by 7%...');
     
-    // Inner icosahedron - PRESQUE TRANSLUCIDE DORÉ SORBONNE TRÈS TRÈS CLAIR
-    const innerGeometry = new THREE.IcosahedronGeometry(1.196, 1); // +15% en plus : 1.04 * 1.15 = 1.196
+    // Inner icosahedron - PRESQUE TRANSLUCIDE DORÉ SORBONNE TRÈS TRÈS CLAIR (-7%)
+    const innerGeometry = new THREE.IcosahedronGeometry(0.818, 1); // 0.88 * 0.93 = 0.818
     const innerMaterial = new THREE.MeshStandardMaterial({
       color: 0xf5f0e8, // DORÉ SORBONNE TRÈS TRÈS CLAIR (presque blanc doré)
       roughness: 0.1, // Très lisse pour effet translucide
@@ -355,8 +364,8 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.rotatingGroup.add(innerMesh);
     console.log('✅ Inner icosahedron created (ultra translucent golden Sorbonne)');
     
-    // Outer wireframe - BLEU SORBONNE (premier plan visible) +15%
-    const outerGeometry = new THREE.IcosahedronGeometry(1.42, 1); // +15% en plus : 1.235 * 1.15 ≈ 1.42
+    // Outer wireframe - BLEU SORBONNE (premier plan visible) réduit de 7%
+    const outerGeometry = new THREE.IcosahedronGeometry(0.972, 1); // 1.045 * 0.93 = 0.972
     const wireframeMaterial = new THREE.MeshBasicMaterial({
       color: 0x242e54, // BLEU SORBONNE pour premier plan !
       wireframe: true,
@@ -379,7 +388,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     goldenPointsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const goldenPointsMaterial = new THREE.PointsMaterial({
       color: 0xd4a574, // DORÉ SORBONNE - couleur officielle !
-      size: 0.08, // Plus gros pour être visibles aux intersections
+      size: 0.051, // Réduit de 7% : 0.055 * 0.93 = 0.051
       sizeAttenuation: true,
       transparent: true,
       opacity: 0.95 // Bien visibles comme points d'intersections
