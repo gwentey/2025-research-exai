@@ -130,77 +130,10 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
 
       console.log('🎯 THREE object found, loading OrbitControls...');
       
-      // Load OrbitControls avec simple script injection
-      console.log('📦 Loading OrbitControls...');
-      const orbitControlsScript = document.createElement('script');
-      orbitControlsScript.type = 'text/javascript';
-      orbitControlsScript.innerHTML = `
-        // OrbitControls simple pour interaction souris - COULEUR DORÉE SORBONNE !
-        THREE.OrbitControls = function(camera, domElement) {
-          this.camera = camera;
-          this.domElement = domElement;
-          this.enabled = true;
-          this.enableDamping = true;
-          this.dampingFactor = 0.08; // Fluidité
-          this.enableZoom = false; // Pas de zoom
-          this.enableRotate = true;
-          this.rotateSpeed = 1.0; // Sensibilité souris
-          this.minPolarAngle = 0.2; // Limites rotation verticale
-          this.maxPolarAngle = Math.PI - 0.2;
-          
-          let isMouseDown = false;
-          let mouseX = 0, mouseY = 0;
-          let phi = Math.PI / 2, theta = 0;
-          const spherical = new THREE.Spherical();
-          const radius = this.camera.position.length();
-          
-          const onMouseDown = (event) => {
-            isMouseDown = true;
-            mouseX = event.clientX;
-            mouseY = event.clientY;
-            this.domElement.style.cursor = 'grabbing';
-          };
-          
-          const onMouseMove = (event) => {
-            if (!isMouseDown) return;
-            const deltaX = event.clientX - mouseX;
-            const deltaY = event.clientY - mouseY;
-            theta -= deltaX * 0.01 * this.rotateSpeed;
-            phi += deltaY * 0.01 * this.rotateSpeed;
-            phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, phi));
-            mouseX = event.clientX;
-            mouseY = event.clientY;
-          };
-          
-          const onMouseUp = () => {
-            isMouseDown = false;
-            this.domElement.style.cursor = 'grab';
-          };
-          
-          this.domElement.addEventListener('mousedown', onMouseDown);
-          document.addEventListener('mousemove', onMouseMove);
-          document.addEventListener('mouseup', onMouseUp);
-          this.domElement.style.cursor = 'grab';
-          
-          // Initialiser les angles depuis la position actuelle de la caméra
-          spherical.setFromVector3(this.camera.position);
-          theta = spherical.theta;
-          phi = spherical.phi;
-          
-          this.update = () => {
-            // SEULEMENT mettre à jour la caméra si l'utilisateur clique !
-            if (isMouseDown) {
-              spherical.theta = theta;
-              spherical.phi = phi;
-              spherical.radius = radius;
-              this.camera.position.setFromSpherical(spherical);
-              this.camera.lookAt(0, 0, 0);
-            }
-          };
-        };
-      `;
-      document.head.appendChild(orbitControlsScript);
-      console.log('✅ OrbitControls loaded');
+      // Load VRAIS OrbitControls Three.js depuis CDN
+      console.log('📦 Loading REAL OrbitControls from CDN...');
+      await this.loadOrbitControlsFromCDN();
+      console.log('✅ Real OrbitControls loaded');
 
       // Wait for Angular to render the canvas
       setTimeout(() => {
@@ -266,6 +199,48 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     });
   }
 
+  private async loadOrbitControlsFromCDN(): Promise<void> {
+    console.log('📦 Loading REAL OrbitControls from CDN...');
+    
+    // URLs des vrais OrbitControls Three.js (même version que Three.js)
+    const orbitControlsUrls = [
+      'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js',
+      'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/controls/OrbitControls.js',
+      'https://cdn.skypack.dev/three@0.158.0/examples/jsm/controls/OrbitControls.js'
+    ];
+
+    let loaded = false;
+    for (const url of orbitControlsUrls) {
+      try {
+        console.log(`📦 Trying OrbitControls CDN: ${url}`);
+        
+        // Load comme module ES6
+        const module = await import(url);
+        
+        // Attacher à THREE object
+        (window as any).THREE.OrbitControls = module.OrbitControls;
+        
+        loaded = true;
+        console.log(`✅ OrbitControls loaded successfully from: ${url}`);
+        break;
+      } catch (urlError) {
+        console.log(`❌ Failed OrbitControls CDN: ${url}`, urlError);
+        continue;
+      }
+    }
+
+    if (!loaded) {
+      throw new Error('Failed to load OrbitControls from any CDN');
+    }
+
+    // Vérifier que OrbitControls est disponible
+    if (!(window as any).THREE.OrbitControls) {
+      throw new Error('OrbitControls failed to load - OrbitControls not found in THREE');
+    }
+
+    console.log('✅ OrbitControls ready for use!');
+  }
+
   private setupThreeSceneBasic(THREE: any): void {
     console.log('🎬 Setting up Three.js scene...');
     console.log('Canvas element:', this.canvasRef?.nativeElement);
@@ -302,15 +277,11 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.camera.lookAt(0, 0, 0); // Regarde le centre
     console.log('✅ Camera positioned centrally');
 
-    // Setup OrbitControls pour interaction souris - COULEUR DORÉE !
-    console.log('🖱️ Setting up OrbitControls...');
-    this.controls = new (THREE as any).OrbitControls(this.camera, this.canvas);
-    this.controls.enableDamping = true;
-    this.controls.dampingFactor = 0.08;
-    this.controls.enableZoom = false; // Pas de zoom
-    this.controls.enableRotate = true;
-    this.controls.rotateSpeed = 1.0;
-    console.log('✅ OrbitControls ready for mouse interaction!');
+    // Setup OrbitControls SIMPLE comme l'exemple qui fonctionne !
+    console.log('🖱️ Setting up REAL OrbitControls...');
+    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true; // SIMPLE comme l'exemple !
+    console.log('✅ REAL OrbitControls ready for mouse interaction!');
 
     // Setup rotating group - ENCORE +15% VERS LA DROITE
     console.log('🔄 Creating rotating group...');
