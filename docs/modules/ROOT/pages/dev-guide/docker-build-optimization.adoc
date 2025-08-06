@@ -1,0 +1,132 @@
+= Optimisation Docker Build pour IBIS-X
+:description: Guide d'optimisation des builds Docker pour accélérer le développement local
+:keywords: docker, buildkit, optimisation, performance
+
+== Problème Résolu
+
+Lors de l'exécution de `make dev`, le processus de build Docker du frontend Angular était extrêmement lent avec un contexte de **3.778 GB** envoyé au daemon Docker.
+
+== Solutions Implémentées
+
+=== 1. Fichier .dockerignore Optimisé
+
+Créé `frontend/.dockerignore` pour exclure tous les fichiers inutiles au build :
+
+[source,dockerignore]
+----
+# Dependencies - Le répertoire le plus lourd à exclure
+node_modules
+
+# Build outputs - Exclure les anciens builds
+dist
+.angular
+
+# IDE et éditeurs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Logs et caches
+*.log
+npm-debug.log*
+*.tsbuildinfo
+coverage
+
+# Git et environnement
+.git
+.gitignore
+.env*
+
+# Documentation et tests
+README.md
+*.md
+*.spec.ts
+e2e
+----
+
+=== 2. Activation de Docker BuildKit
+
+==== Dans Skaffold
+Modifié `skaffold.yaml` pour activer BuildKit :
+
+[source,yaml]
+----
+build:
+  local:
+    push: false
+    tryImportMissing: false
+    useDockerCLI: true
+    useBuildkit: true  # <- Activé
+----
+
+==== Configuration Globale
+Ajouté une vérification automatique dans le Makefile (`make check-buildkit`) qui :
+
+* Vérifie si `DOCKER_BUILDKIT=1` est configuré
+* Fournit les instructions pour l'activer définitivement
+* Informe que BuildKit est déjà activé dans Skaffold
+
+==== Activation Manuelle (Optionnelle)
+Pour activer BuildKit globalement :
+
+[source,powershell]
+----
+# PowerShell (Windows)
+[Environment]::SetEnvironmentVariable("DOCKER_BUILDKIT", "1", "User")
+----
+
+[source,bash]
+----
+# Bash/Zsh (Linux/Mac)
+echo 'export DOCKER_BUILDKIT=1' >> ~/.bashrc
+source ~/.bashrc
+----
+
+=== 3. Outils de Diagnostic
+
+==== Nouvelles commandes Makefile
+
+[source,bash]
+----
+make check-buildkit         # Vérifie l'état de BuildKit
+make test-docker-context    # Teste la taille du contexte Docker
+----
+
+== Résultats Attendus
+
+* **Contexte Docker** : De ~3.8 GB à < 50 MB
+* **Vitesse de build** : Réduction drastique du temps "Sending build context"
+* **Builds parallélisés** : BuildKit optimise automatiquement les étapes
+* **Cache intelligent** : Réutilisation optimisée des layers Docker
+
+== Validation
+
+Pour vérifier l'optimisation :
+
+[source,bash]
+----
+# Vérifier BuildKit
+make check-buildkit
+
+# Tester la taille du contexte
+make test-docker-context
+
+# Build complet optimisé
+make dev
+----
+
+== Impact
+
+* **Développement local** : Démarrage beaucoup plus rapide
+* **Workflow quotidien** : Moins d'attente lors des redéploiements
+* **Ressources système** : Moins de transfert réseau et d'E/S disque
+* **Production** : Aucun impact, optimisations locales uniquement
+
+== Notes Techniques
+
+* Le `.dockerignore` exclut `node_modules` mais le Dockerfile fait toujours `npm install`
+* BuildKit permet des builds parallélisés et un cache plus intelligent
+* La configuration ne modifie que l'environnement de développement local
+* Skaffold utilise automatiquement BuildKit pour tous les services

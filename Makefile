@@ -53,6 +53,8 @@ help: ## Affiche cette aide
 	@echo "$(BLUE)OUTILS DE DIAGNOSTIC :$(NC)"
 	@echo "  $(GREEN)healthcheck$(NC)                Verifie l'etat des services"
 	@echo "  $(GREEN)validate-datasets$(NC)          Valide que les VRAIS datasets Kaggle sont importes"
+	@echo "  $(GREEN)check-buildkit$(NC)             Verifie l'optimisation Docker BuildKit"
+	@echo "  $(GREEN)test-docker-context$(NC)        Teste la taille du contexte Docker frontend"
 	@echo "  $(GREEN)start-portforwards-simple$(NC) Commandes manuelles (si besoin)"
 	@echo ""
 	@echo "$(YELLOW)NOUVEAU SYSTEME UUID - SECURISE ET MAINTENABLE :$(NC)"
@@ -64,7 +66,13 @@ check-prerequisites: ## Vérifie que tous les outils requis sont installés
 	@echo "Verification des prerequis..."
 	@echo "Verification simplifiee pour compatibilite Windows"
 	@echo "Assurez-vous que Docker, Minikube, kubectl, Skaffold et Python sont installes"
+	@$(MAKE) check-buildkit
 	@echo "Tous les prerequis sont presumes satisfaits"
+
+check-buildkit: ## Vérifie et configure Docker BuildKit pour des builds optimisés
+	@echo "$(BLUE)Verification de Docker BuildKit...$(NC)"
+	@echo "$(YELLOW)Verification simplifiee pour compatibilite Git Bash/Windows$(NC)"
+	@powershell.exe -Command "if ([Environment]::GetEnvironmentVariable('DOCKER_BUILDKIT', 'User') -eq '1') { Write-Host '$(GREEN)✅ Docker BuildKit activé (variable utilisateur)$(NC)' } elseif ([Environment]::GetEnvironmentVariable('DOCKER_BUILDKIT', 'Process') -eq '1') { Write-Host '$(GREEN)✅ Docker BuildKit activé (session courante)$(NC)' } else { Write-Host '$(YELLOW)⚠️  Docker BuildKit non activé globalement$(NC)'; Write-Host '$(YELLOW)   Pour l activer définitivement : [Environment]::SetEnvironmentVariable(\"DOCKER_BUILDKIT\", \"1\", \"User\")$(NC)'; Write-Host '$(BLUE)   ✓ BuildKit est déjà activé dans Skaffold pour ce projet$(NC)' }" || echo "$(BLUE)✓ BuildKit est configure dans Skaffold$(NC)"
 
 check-kaggle-credentials: ## Vérifie que les credentials Kaggle sont configurés
 	@echo "$(BLUE)Verification des credentials Kaggle...$(NC)"
@@ -532,6 +540,13 @@ reset-secrets: ## Remet les placeholders dans les fichiers de secrets
 	@echo "$(BLUE)Remise des placeholders...$(NC)"
 	@python scripts/development/reset-placeholders.py
 	@echo "$(GREEN)Placeholders restaures$(NC)"
+
+test-docker-context: ## Teste la taille du contexte Docker du frontend (optimisation)
+	@echo "$(BLUE)Test de la taille du contexte Docker du frontend...$(NC)"
+	@echo "$(YELLOW)Verification de l'optimisation avec .dockerignore...$(NC)"
+	@cd frontend && powershell.exe -Command "$$output = docker build -f Dockerfile . --no-cache --progress=plain 2>&1; $$lines = $$output | Select-String 'Sending build context'; if ($$lines) { $$lines | ForEach-Object { Write-Host $$_.Line } } else { Write-Host '$(YELLOW)Ligne de contexte non trouvée - build peut-être optimisé$(NC)' }"
+	@echo "$(GREEN)Test du contexte Docker terminé$(NC)"
+	@echo "$(BLUE)Objectif: contexte < 50 Mo (vs 3.778GB initialement)$(NC)"
 
 test-ml-pipeline: ## Test rapide du service ML Pipeline
 	@echo "$(BLUE)Test du service ML Pipeline...$(NC)"

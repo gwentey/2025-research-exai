@@ -11,7 +11,7 @@ build:
     push: false
     tryImportMissing: false
     useDockerCLI: true
-    useBuildkit: false
+    useBuildkit: true
   artifacts:
     # Noms d'images de base SANS préfixe
     - image: ibis-x-api-gateway

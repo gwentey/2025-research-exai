@@ -431,27 +431,16 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     }
 
     this.animationId = requestAnimationFrame(() => this.animate());
-    
-    // Debug: log every 120 frames (2 seconds at 60fps)
-    if (this.animationId % 120 === 0) {
-      console.log('🔄 Animation running, rotating group exists:', !!this.rotatingGroup);
-    }
 
-    // Update OrbitControls pour interaction souris
-    if (this.controls) {
-      this.controls.update();
-    }
+    // Update OrbitControls - SIMPLE comme l'exemple !
+    this.controls.update();
 
-    // Rotate the main group automatiquement (toujours actif)
-    if (this.rotatingGroup) {
-      this.rotatingGroup.rotation.x += 0.002;
-      this.rotatingGroup.rotation.y += 0.003;
-    }
+    // Rotate the main group automatiquement - SIMPLE comme l'exemple !
+    this.rotatingGroup.rotation.x += 0.002;
+    this.rotatingGroup.rotation.y += 0.003;
 
-    // Basic rendering without post-processing
-    if (this.renderer && this.scene && this.camera) {
-      this.renderer.render(this.scene, this.camera);
-    }
+    // Render - SIMPLE comme l'exemple !
+    this.renderer.render(this.scene, this.camera);
   }
 
   private showFallback(): void {
