@@ -1,0 +1,35 @@
+# =========================================
+# DOCKERIGNORE ULTRA-CONSERVATEUR
+# Seulement les trucs ÉVIDENTS et LOURDS
+# =========================================
+
+# Node.js - ÉVIDENT (se rebuild automatiquement)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Git - ÉVIDENT (pas nécessaire dans containers)
+.git/
+.gitignore
+
+# Build outputs - ÉVIDENT (générés par le build)
+dist/
+build/
+
+# Cache et temp - ÉVIDENT
+.cache/
+tmp/
+temp/
+
+# Fichiers système - ÉVIDENT
+.DS_Store
+Thumbs.db
+*.tmp
+
+# IDE - ÉVIDENT (pas nécessaire dans containers)
+.vscode/
+.idea/
+
+# Logs - ÉVIDENT
+*.log
+logs/
