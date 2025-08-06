@@ -3,45 +3,45 @@ kind: Config
 metadata:
   name: research-ibis-x
 build:
-  # Pas de defaultRepo global
+  # Configuration mixte : Frontend always rebuild, Backend intelligent
   tagPolicy:
-    inputDigest: {}
-  # Configuration optimisée pour performance maximale en dev local
+    inputDigest: {}  # Checksum basé sur le contenu des fichiers
   local:
     push: false
-    tryImportMissing: true    # Changé: essaie d'importer si manquant
+    tryImportMissing: false    # Sécurisé
     useDockerCLI: true
-    useBuildkit: true
-    concurrency: 2            # Réduit: max 2 builds simultanés
+    useBuildkit: true          # Réactivé pour performance backend
+    concurrency: 2             # 2 builds parallèles
   platforms: ["linux/amd64"] # Platform fixe pour cache optimal
   artifacts:
-    # Ordre optimisé: frontend rapide en premier, puis services backend
+    # Frontend : TOUJOURS rebuild (tu modifies souvent)
     - image: frontend
       context: frontend
       docker:
         dockerfile: Dockerfile
-        noCache: false
+        noCache: true           # TOUJOURS rebuild frontend
         pullParent: false
+
+    
+    # Backend : Checksum intelligent (rebuild seulement si changement)
     - image: ibis-x-api-gateway
       context: api-gateway
       docker:
         dockerfile: Dockerfile
-        noCache: false
+        noCache: false          # Cache autorisé si pas de changement
         pullParent: false
     - image: service-selection
       context: .
       docker:
         dockerfile: service-selection/Dockerfile
-        noCache: false
+        noCache: false          # Cache autorisé si pas de changement
         pullParent: false
     - image: ibis-x-ml-pipeline
       context: .
       docker:
         dockerfile: ml-pipeline-service/Dockerfile
-        noCache: false
+        noCache: false          # Cache autorisé si pas de changement
         pullParent: false
-        buildArgs:
-          ANGULAR_ENV: development
 
 deploy:
   kubectl:
