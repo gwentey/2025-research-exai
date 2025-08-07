@@ -1,0 +1,41 @@
+.flow h2 { 
+  text-align: center; 
+  color: #111827; 
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px; 
+}
+
+.flow-rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .flow-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .flow-rail { grid-template-columns: 1fr; }
+}
+
+.flow-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(17,24,39,0.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.flow-node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(17,24,39,0.08);
+}
+
+.flow-node mat-icon { color: #4f46e5; }
+
+

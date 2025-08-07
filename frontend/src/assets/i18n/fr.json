@@ -1167,6 +1167,62 @@
       "FEATURE_IMPORTANCE": "Importance des caractéristiques",
       "METRICS": "Métriques de Performance",
       "BACK_TO_PROJECT": "Retour au Projet"
+    },
+    "LANDING": {
+      "HERO_TITLE": "Construisez votre pipeline IA en quelques clics",
+      "HERO_SUBTITLE": "Comprenez chaque étape, testez, comparez et améliorez vos modèles.",
+      "CTA_START": "Démarrer une nouvelle expérimentation",
+      "EIGHT_STEPS_TITLE": "Les 8 étapes de la pipeline ML",
+      "FLOW_TITLE": "Visualisation du flux",
+      "FAQ_TITLE": "FAQ",
+      "SEE_EXAMPLE": "Voir un exemple",
+      "FLOW": {
+        "DATASET": "Dataset",
+        "DATASET_TIP": "Données brutes",
+        "CLEAN": "Nettoyage",
+        "CLEAN_TIP": "Prétraitement",
+        "MISSING": "Manquants",
+        "MISSING_TIP": "Imputation",
+        "TASK": "Tâche",
+        "TASK_TIP": "Type de problème",
+        "ALGO": "Algorithme",
+        "ALGO_TIP": "Modèle",
+        "TRAIN": "Train",
+        "TRAIN_TIP": "Entraînement",
+        "EVAL": "Évaluer",
+        "EVAL_TIP": "Métriques",
+        "XAI": "XAI",
+        "XAI_TIP": "Explicabilité"
+      },
+      "STEPS": {
+        "STEP1_TITLE": "Sélection du dataset",
+        "STEP1_DESC": "Choisissez vos données et préparez le contexte.",
+        "STEP2_TITLE": "Nettoyage / traitement",
+        "STEP2_DESC": "Uniformisez, filtrez et corrigez les incohérences.",
+        "STEP3_TITLE": "Analyse des données manquantes",
+        "STEP3_DESC": "Détectez et imputez les valeurs manquantes.",
+        "STEP4_TITLE": "Choix de la tâche ML",
+        "STEP4_DESC": "Classification, régression, clustering, etc.",
+        "STEP5_TITLE": "Sélection de l’algorithme",
+        "STEP5_DESC": "Choix manuel ou AutoML selon votre besoin.",
+        "STEP6_TITLE": "Entraînement",
+        "STEP6_DESC": "Lancez l’apprentissage avec suivi de progression.",
+        "STEP7_TITLE": "Évaluation",
+        "STEP7_DESC": "Comparez les métriques et visualisations clés.",
+        "STEP8_TITLE": "Explicabilité (XAI)",
+        "STEP8_DESC": "Comprenez et expliquez les prédictions."
+      }
+      ,
+      "EXAMPLES": {
+        "STEP1": "Exemple: Sélection d’un dataset éducation (EdNet) avec 5 fichiers.",
+        "STEP2": "Exemple: Normalisation des formats de date et suppression des doublons.",
+        "STEP3": "Exemple: Imputation par médiane sur la colonne 'score'.",
+        "STEP4": "Exemple: Choix de 'Classification' pour prédire la réussite.",
+        "STEP5": "Exemple: Sélection de Random Forest (ou AutoML).",
+        "STEP6": "Exemple: Entraînement avec validation croisée 5-fold.",
+        "STEP7": "Exemple: Comparaison Accuracy, F1-score et matrice de confusion.",
+        "STEP8": "Exemple: Explicabilité SHAP pour les features clés."
+      }
     }
   },
   "ML_STUDIO": {

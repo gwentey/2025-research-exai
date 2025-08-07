@@ -1,0 +1,35 @@
+<section class="hero" @fadeIn>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1>{{ 'ML_PIPELINE.LANDING.HERO_TITLE' | translate }}</h1>
+      <p>{{ 'ML_PIPELINE.LANDING.HERO_SUBTITLE' | translate }}</p>
+      <div class="hero-actions">
+        <button mat-raised-button color="primary" (click)="startClicked.emit()">
+          <mat-icon>rocket_launch</mat-icon>
+          {{ 'ML_PIPELINE.LANDING.CTA_START' | translate }}
+        </button>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="pipeline">
+        <div class="node">1</div>
+        <div class="connector"></div>
+        <div class="node">2</div>
+        <div class="connector"></div>
+        <div class="node">3</div>
+        <div class="connector"></div>
+        <div class="node">4</div>
+        <div class="connector"></div>
+        <div class="node">5</div>
+        <div class="connector"></div>
+        <div class="node">6</div>
+        <div class="connector"></div>
+        <div class="node">7</div>
+        <div class="connector"></div>
+        <div class="node">8</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+

@@ -2,11 +2,12 @@ import { Routes } from '@angular/router';
 import { MlPipelineWizardComponent } from './wizard/ml-pipeline-wizard.component';
 import { MlPipelineDashboardComponent } from './ml-pipeline-dashboard/ml-pipeline-dashboard.component';
 import { MlStudioComponent } from './ml-studio/ml-studio.component';
+import { MlPipelineLandingComponent } from './landing/ml-pipeline-landing.component';
 
 export const ML_PIPELINE_ROUTES: Routes = [
   {
     path: '',
-    component: MlPipelineDashboardComponent,
+    component: MlPipelineLandingComponent,
     data: {
       title: 'ML_PIPELINE',
       breadcrumb: [

@@ -1,0 +1,20 @@
+<div class="steps">
+  <h2>{{ 'ML_PIPELINE.LANDING.EIGHT_STEPS_TITLE' | translate }}</h2>
+  <div class="steps-grid">
+    <mat-card class="step-card" *ngFor="let step of steps" @fadeIn>
+      <div class="step-header">
+        <div class="step-number">{{ step.id }}</div>
+        <mat-icon>{{ step.icon }}</mat-icon>
+      </div>
+      <h3>{{ step.titleKey | translate }}</h3>
+      <p>{{ step.descKey | translate }}</p>
+      <div class="step-actions">
+        <button mat-stroked-button color="primary" (click)="openExample(step)">
+          {{ 'ML_PIPELINE.LANDING.SEE_EXAMPLE' | translate }}
+        </button>
+      </div>
+    </mat-card>
+  </div>
+</div>
+
+

@@ -1,0 +1,13 @@
+<div class="faq">
+  <h2>{{ 'ML_PIPELINE.LANDING.FAQ_TITLE' | translate }}</h2>
+  <mat-accordion>
+    <mat-expansion-panel *ngFor="let f of faqs">
+      <mat-expansion-panel-header>
+        <mat-panel-title>{{ f.q }}</mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>{{ f.a }}</p>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>
+
+

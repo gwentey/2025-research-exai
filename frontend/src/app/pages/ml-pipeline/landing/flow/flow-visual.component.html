@@ -1,0 +1,11 @@
+<div class="flow">
+  <h2>{{ 'ML_PIPELINE.LANDING.FLOW_TITLE' | translate }}</h2>
+  <div class="flow-rail">
+    <div class="flow-node" *ngFor="let n of nodes" [matTooltip]="(n.tipKey | translate)">
+      <mat-icon>{{ n.icon }}</mat-icon>
+      <span>{{ n.labelKey | translate }}</span>
+    </div>
+  </div>
+</div>
+
+

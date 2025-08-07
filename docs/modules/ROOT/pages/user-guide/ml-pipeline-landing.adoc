@@ -1,0 +1,26 @@
+= Nouvelle page vitrine ML Pipeline
+
+La page `/ml-pipeline` présente la pipeline d’apprentissage automatique IBIS-X de manière pédagogique et visuelle.
+
+== Objectifs
+
+- Expliquer les 8 étapes clés : sélection du dataset, nettoyage, données manquantes, choix de la tâche, sélection d’algorithme, entraînement, évaluation, explicabilité (XAI)
+- Guider l’utilisateur vers l’assistant (Wizard) pour démarrer une expérimentation
+
+== Structure UI
+
+- Hero section avec appel à l’action « Démarrer une nouvelle expérimentation »
+- Timeline des 8 étapes (cards numérotées)
+- Visualisation du flux (mini-rail illustrant le passage des données)
+- FAQ repliable
+
+== Navigation
+
+- La route Angular `ml-pipeline` charge la page vitrine.
+- Le bouton principal redirige vers `ml-pipeline-wizard`.
+
+== Internationalisation
+
+- Les textes s’appuient sur `assets/i18n` (FR/EN) et peuvent être enrichis.
+
+

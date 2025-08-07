@@ -16,6 +16,7 @@
 ** xref:user-guide/ml-pipeline.adoc[Pipeline ML]
 ** xref:user-guide/ml-pipeline-usage.adoc[Utilisation du Pipeline ML]
 ** xref:user-guide/ml-pipeline-new-interface.adoc[🎆 Nouvelle Interface ML Pipeline]
+** xref:user-guide/ml-pipeline-landing.adoc[📣 Vitrine ML Pipeline]
 ** xref:user-guide/pipeline-execution.adoc[Exécution des Pipelines]
 ** xref:user-guide/results-interpretation.adoc[Interprétation des Résultats]
 ** xref:user-guide/explainability-reports.adoc[Rapports d'Explicabilité]

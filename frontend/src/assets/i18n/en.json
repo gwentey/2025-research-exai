@@ -1146,6 +1146,62 @@
       "TITLE": "Training Results",
       "METRICS": "Performance Metrics",
       "BACK_TO_PROJECT": "Back to Project"
+    },
+    "LANDING": {
+      "HERO_TITLE": "Build your AI pipeline in minutes",
+      "HERO_SUBTITLE": "Understand every step, test, compare and improve your models.",
+      "CTA_START": "Start a new experiment",
+      "EIGHT_STEPS_TITLE": "The 8 steps of the ML pipeline",
+      "FLOW_TITLE": "Flow visualization",
+      "FAQ_TITLE": "FAQ",
+      "SEE_EXAMPLE": "See an example",
+      "FLOW": {
+        "DATASET": "Dataset",
+        "DATASET_TIP": "Raw data",
+        "CLEAN": "Cleaning",
+        "CLEAN_TIP": "Preprocessing",
+        "MISSING": "Missing",
+        "MISSING_TIP": "Imputation",
+        "TASK": "Task",
+        "TASK_TIP": "Problem type",
+        "ALGO": "Algorithm",
+        "ALGO_TIP": "Model",
+        "TRAIN": "Train",
+        "TRAIN_TIP": "Training",
+        "EVAL": "Evaluate",
+        "EVAL_TIP": "Metrics",
+        "XAI": "XAI",
+        "XAI_TIP": "Explainability"
+      },
+      "STEPS": {
+        "STEP1_TITLE": "Dataset selection",
+        "STEP1_DESC": "Choose your data and set the context.",
+        "STEP2_TITLE": "Cleaning / processing",
+        "STEP2_DESC": "Standardize, filter and fix inconsistencies.",
+        "STEP3_TITLE": "Missing data analysis",
+        "STEP3_DESC": "Detect and impute missing values.",
+        "STEP4_TITLE": "ML task selection",
+        "STEP4_DESC": "Classification, regression, clustering, etc.",
+        "STEP5_TITLE": "Algorithm selection",
+        "STEP5_DESC": "Manual selection or AutoML depending on your needs.",
+        "STEP6_TITLE": "Training",
+        "STEP6_DESC": "Start learning with progress tracking.",
+        "STEP7_TITLE": "Evaluation",
+        "STEP7_DESC": "Compare key metrics and visualizations.",
+        "STEP8_TITLE": "Explainability (XAI)",
+        "STEP8_DESC": "Understand and explain predictions."
+      }
+      ,
+      "EXAMPLES": {
+        "STEP1": "Example: Select an education dataset (EdNet) with 5 files.",
+        "STEP2": "Example: Normalize date formats and remove duplicates.",
+        "STEP3": "Example: Median imputation on 'score' column.",
+        "STEP4": "Example: Choose 'Classification' to predict success.",
+        "STEP5": "Example: Pick Random Forest (or AutoML).",
+        "STEP6": "Example: Train with 5-fold cross-validation.",
+        "STEP7": "Example: Compare Accuracy, F1-score and confusion matrix.",
+        "STEP8": "Example: SHAP explainability for key features."
+      }
     }
   },
   "ML_STUDIO": {

@@ -1,0 +1,73 @@
+.steps h2 {
+  text-align: center;
+  color: #111827;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 8px 0 24px;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1200px) {
+  .steps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .steps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .steps-grid { grid-template-columns: 1fr; }
+}
+
+.step-card {
+  border-radius: 16px;
+  border: 1px solid #eef2f7;
+  background: #ffffff;
+  padding: 14px 16px;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(17,24,39,.08);
+  border-color: #e5eaf0;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5ff;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.step-card h3 {
+  margin: 8px 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.step-card p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.step-actions { margin-top: 8px; }
+
+
