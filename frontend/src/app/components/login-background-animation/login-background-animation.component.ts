@@ -233,8 +233,11 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
       alpha: true // TRANSPARENT !
     });
     this.renderer.setClearColor(0x000000, 0); // Fond transparent
-    this.renderer.setSize(this.maxWidth, this.height);
+    // ✅ RÉDUIRE largeur renderer Three.js pour libérer zone formulaire (ajustement équilibré) !
+    const reducedWidth = Math.floor(this.maxWidth * 0.8); // 80% de largeur pour équilibre parfait
+    this.renderer.setSize(reducedWidth, this.height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    console.log(`🎯 Renderer size: ${reducedWidth}x${this.height} (${this.maxWidth}px reduced to 80% width)`);
     console.log('✅ Renderer created with transparency');
 
     // Setup scene avec fond TRANSPARENT
@@ -243,12 +246,13 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     // PAS de background = transparent !
     console.log('✅ Scene created with transparent background');
     
-    // Setup camera - centrée pour vue générale
+    // Setup camera - centrée pour vue générale avec ASPECT RATIO AJUSTÉ
     console.log('📷 Setting up camera...');
-    this.camera = new THREE.PerspectiveCamera(45, this.maxWidth / this.height, 0.1, 100);
+    // ✅ RÉUTILISER la même variable reducedWidth (déjà calculée)
+    this.camera = new THREE.PerspectiveCamera(45, reducedWidth / this.height, 0.1, 100);
     this.camera.position.set(0, 0, 5); // Caméra centrée
     this.camera.lookAt(0, 0, 0); // Regarde le centre
-    console.log('✅ Camera positioned centrally');
+    console.log(`✅ Camera positioned with corrected aspect ratio: ${reducedWidth}/${this.height}`);
 
     // Setup OrbitControls SIMPLE comme l'exemple qui fonctionne !
     console.log('🖱️ Setting up REAL OrbitControls...');
@@ -284,12 +288,12 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     // OrbitControls opérationnels - debug terminé
     console.log('✅ OrbitControls configured and ready for interaction!');
 
-    // Setup rotating group - DÉCALÉ 15% PLUS VERS LA GAUCHE
+    // Setup rotating group - DÉCALAGE SPHÈRE VERS LA DROITE (dans l'espace 3D)
     console.log('🔄 Creating rotating group...');
     this.rotatingGroup = new THREE.Group();
-    this.rotatingGroup.position.set(-0.75, 0, 0); // Décalage 15% plus vers la gauche : -0.3 - 0.45 = -0.75
+    this.rotatingGroup.position.set(0.1, 0, 0); // Sphère légèrement ramenée vers la gauche (5%) - ÉQUILIBRE PARFAIT !
     this.scene.add(this.rotatingGroup);
-    console.log('✅ Rotating group added to scene (shifted 15% MORE to LEFT)');
+    console.log('✅ Rotating group added to scene (sphere shifted RIGHT in 3D space)');
 
     // Create starfield background - Couleurs Sorbonne
     console.log('⭐ Creating starfield...');
@@ -347,11 +351,11 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   }
 
   private createMainObjects(THREE: any): void {
-    // TAILLES OPTIMISÉES - réduites de 7% pour ajustement final
-    console.log('🎯 Creating objects with sizes reduced by 7%...');
+    // TAILLES AGRANDIES DE 10% (position parfaite + taille optimisée)
+    console.log('🎯 Creating objects with sizes increased by 10%...');
     
-    // Inner icosahedron - PRESQUE TRANSLUCIDE DORÉ SORBONNE TRÈS TRÈS CLAIR (-7%)
-    const innerGeometry = new THREE.IcosahedronGeometry(0.818, 1); // 0.88 * 0.93 = 0.818
+    // Inner icosahedron - PRESQUE TRANSLUCIDE DORÉ SORBONNE TRÈS TRÈS CLAIR (+10% taille)
+    const innerGeometry = new THREE.IcosahedronGeometry(0.9, 1); // 0.818 * 1.1 = 0.9 (+10%)
     const innerMaterial = new THREE.MeshStandardMaterial({
       color: 0xf5f0e8, // DORÉ SORBONNE TRÈS TRÈS CLAIR (presque blanc doré)
       roughness: 0.1, // Très lisse pour effet translucide
@@ -364,8 +368,8 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.rotatingGroup.add(innerMesh);
     console.log('✅ Inner icosahedron created (ultra translucent golden Sorbonne)');
     
-    // Outer wireframe - BLEU SORBONNE (premier plan visible) réduit de 7%
-    const outerGeometry = new THREE.IcosahedronGeometry(0.972, 1); // 1.045 * 0.93 = 0.972
+    // Outer wireframe - BLEU SORBONNE (premier plan visible) +10% taille
+    const outerGeometry = new THREE.IcosahedronGeometry(1.07, 1); // 0.972 * 1.1 = 1.07 (+10%)
     const wireframeMaterial = new THREE.MeshBasicMaterial({
       color: 0x242e54, // BLEU SORBONNE pour premier plan !
       wireframe: true,
@@ -388,7 +392,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     goldenPointsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const goldenPointsMaterial = new THREE.PointsMaterial({
       color: 0xd4a574, // DORÉ SORBONNE - couleur officielle !
-      size: 0.051, // Réduit de 7% : 0.055 * 0.93 = 0.051
+      size: 0.056, // 0.051 * 1.1 = 0.056 (+10%)
       sizeAttenuation: true,
       transparent: true,
       opacity: 0.95 // Bien visibles comme points d'intersections

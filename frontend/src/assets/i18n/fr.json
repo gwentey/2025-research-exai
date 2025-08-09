@@ -1068,6 +1068,41 @@
       "STEP4_TITLE": "Analysez les Résultats",
       "STEP4_DESC": "Explorez les métriques et visualisations détaillées"
     },
+    "PRESENTATION": {
+      "HERO": {
+        "TITLE": "Construisez votre pipeline IA en quelques clics",
+        "SUBTITLE": "Comprenez chaque étape, testez, comparez et améliorez vos modèles d'apprentissage automatique avec IBIS-X.",
+        "START_BUTTON": "Démarrer une nouvelle expérimentation",
+        "EXAMPLES_BUTTON": "Voir des exemples",
+        "FLOW_TEXT": "Flux de données en temps réel"
+      },
+      "STEPS": {
+        "TITLE": "8 Étapes vers l'Excellence IA",
+        "SUBTITLE": "Découvrez notre approche méthodologique pour créer des modèles d'IA performants et explicables",
+        "LEARN_MORE": "En savoir plus"
+      },
+      "VISUALIZATION": {
+        "TITLE": "Visualisation Interactive du Pipeline",
+        "SUBTITLE": "Observez comment vos données se transforment en intelligence artificielle",
+        "DATA_INPUT": "Données d'entrée",
+        "PIPELINE": "Pipeline ML",
+        "AI_MODEL": "Modèle IA",
+        "XAI_OUTPUT": "Explications XAI",
+        "PROCESSING_TIME": "Temps de traitement",
+        "ACCURACY": "Précision moyenne",
+        "AUTOMATION": "Automatisation"
+      },
+      "FAQ": {
+        "TITLE": "Questions Fréquentes",
+        "SUBTITLE": "Tout ce que vous devez savoir sur notre pipeline d'apprentissage automatique"
+      },
+      "CTA": {
+        "TITLE": "Prêt à créer votre première IA ?",
+        "DESCRIPTION": "Rejoignez des milliers d'utilisateurs qui font confiance à IBIS-X pour leurs projets d'intelligence artificielle.",
+        "WIZARD_BUTTON": "Lancer l'Assistant IA",
+        "DATASETS_BUTTON": "Explorer les Datasets"
+      }
+    },
     "STEPS": {
       "DATASET": "Dataset",
       "DATASET_OVERVIEW": "Aperçu du Dataset",
@@ -1106,16 +1141,95 @@
       "TEST_SIZE": "Taille de l'Ensemble de Test",
       "TEST_SIZE_HINT": "Proportion des données réservées pour le test (10-50%)",
       "FEATURE_SCALING": "Normalisation des Caractéristiques",
-      "ENCODING": "Encodage des Variables Catégorielles",
-      "COMPLETENESS": "Complétude",
-      "ACCURACY": "Exactitude",
-      "CONSISTENCY": "Cohérence",
-      "VALIDITY": "Validité",
-      "UNIQUENESS": "Unicité",
-      "SCORE": "Score de Qualité",
-      "GOOD_QUALITY": "Qualité des données optimale pour l'entraînement",
-      "SAMPLES": "échantillons",
-      "FEATURES": "variables"
+              "ENCODING": "Encodage des Variables Catégorielles"
+    },
+    "STEPS": {
+      "STEP1": {
+        "TITLE": "Sélection du Dataset",
+        "DESCRIPTION": "Choisissez le jeu de données parfait pour votre projet IA",
+        "DETAIL1": "Explorez notre collection de datasets soigneusement sélectionnés",
+        "DETAIL2": "Filtrez par domaine, taille et qualité des données",
+        "DETAIL3": "Prévisualisez les données avant de commencer",
+        "EXAMPLE": "Ex: Dataset d'images médicales pour diagnostic IA"
+      },
+      "STEP2": {
+        "TITLE": "Nettoyage des Données",
+        "DESCRIPTION": "Préparez vos données pour un entraînement optimal",
+        "DETAIL1": "Détection automatique des valeurs manquantes",
+        "DETAIL2": "Suppression des doublons et outliers",
+        "DETAIL3": "Normalisation et standardisation des variables",
+        "EXAMPLE": "Ex: Imputation intelligente pour 15% de données manquantes"
+      },
+      "STEP3": {
+        "TITLE": "Analyse des Données Manquantes",
+        "DESCRIPTION": "Analysez et traitez les valeurs manquantes intelligemment",
+        "DETAIL1": "Visualisation des patterns de données manquantes",
+        "DETAIL2": "Stratégies d'imputation personnalisées par colonne",
+        "DETAIL3": "Impact estimé sur la performance du modèle",
+        "EXAMPLE": "Ex: Analyse de corrélation pour stratégie d'imputation"
+      },
+      "STEP4": {
+        "TITLE": "Choix de la Tâche ML",
+        "DESCRIPTION": "Définissez le type de problème à résoudre",
+        "DETAIL1": "Classification binaire ou multi-classes",
+        "DETAIL2": "Régression pour valeurs continues",
+        "DETAIL3": "Clustering pour découverte de patterns",
+        "EXAMPLE": "Ex: Classification d'emails (spam/légitimes)"
+      },
+      "STEP5": {
+        "TITLE": "Sélection de l'Algorithme",
+        "DESCRIPTION": "Choisissez l'algorithme optimal pour votre problème",
+        "DETAIL1": "Recommandations basées sur vos données",
+        "DETAIL2": "Mode AutoML pour sélection automatique",
+        "DETAIL3": "Comparaison de performance entre algorithmes",
+        "EXAMPLE": "Ex: Random Forest vs SVM pour classification d'images"
+      },
+      "STEP6": {
+        "TITLE": "Entraînement du Modèle",
+        "DESCRIPTION": "Laissez notre IA optimiser votre modèle",
+        "DETAIL1": "Optimisation automatique des hyperparamètres",
+        "DETAIL2": "Validation croisée pour robustesse",
+        "DETAIL3": "Monitoring en temps réel de l'entraînement",
+        "EXAMPLE": "Ex: 1000 combinaisons testées en 5 minutes"
+      },
+      "STEP7": {
+        "TITLE": "Évaluation des Performances",
+        "DESCRIPTION": "Mesurez et analysez les performances de votre modèle",
+        "DETAIL1": "Métriques complètes (précision, rappel, F1-score)",
+        "DETAIL2": "Matrices de confusion interactives",
+        "DETAIL3": "Courbes ROC et analyses de performance",
+        "EXAMPLE": "Ex: 94.2% de précision sur données de test"
+      },
+      "STEP8": {
+        "TITLE": "Explicabilité (XAI)",
+        "DESCRIPTION": "Comprenez comment votre IA prend ses décisions",
+        "DETAIL1": "Importance des variables avec SHAP",
+        "DETAIL2": "Explications locales pour chaque prédiction",
+        "DETAIL3": "Visualisations intuitives pour non-experts",
+        "EXAMPLE": "Ex: 'Le modèle se base à 65% sur l'âge du patient'"
+      }
+    },
+    "FAQ": {
+      "Q1": {
+        "QUESTION": "Dois-je connaître le Machine Learning pour utiliser IBIS-X ?",
+        "ANSWER": "Pas du tout ! IBIS-X est conçu pour les non-experts. Notre interface guidée vous accompagne à chaque étape, avec des explications claires et des recommandations automatiques."
+      },
+      "Q2": {
+        "QUESTION": "Combien de temps prend l'entraînement d'un modèle ?",
+        "ANSWER": "Cela dépend de la taille de vos données et de la complexité du modèle. En général, entre 2 et 15 minutes pour la plupart des projets. Notre système optimise automatiquement les performances."
+      },
+      "Q3": {
+        "QUESTION": "Puis-je utiliser mes propres données ?",
+        "ANSWER": "Absolument ! Vous pouvez uploader vos datasets au format CSV, Excel, JSON ou Parquet. Notre système analyse automatiquement la qualité et suggère les prétraitements appropriés."
+      },
+      "Q4": {
+        "QUESTION": "Comment fonctionne l'explicabilité (XAI) ?",
+        "ANSWER": "Nous utilisons SHAP et LIME pour expliquer chaque prédiction. Vous verrez quelles variables influencent le plus les décisions de votre modèle, avec des visualisations simples à comprendre."
+      },
+      "Q5": {
+        "QUESTION": "Mes données sont-elles sécurisées ?",
+        "ANSWER": "La sécurité est notre priorité. Vos données sont chiffrées, stockées sur des serveurs sécurisés, et vous gardez le contrôle total. Nous respectons le RGPD et les standards de sécurité les plus stricts."
+      }
     },
     "ALGORITHM": {
       "TITLE": "Choisir un Algorithme d'Apprentissage",

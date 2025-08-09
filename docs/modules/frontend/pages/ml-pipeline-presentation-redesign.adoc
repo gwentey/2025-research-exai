@@ -1,0 +1,241 @@
+= Refonte de la Page ML Pipeline - Interface Pédagogique Moderne
+:navtitle: ML Pipeline - Nouvelle Interface
+:description: Documentation de la nouvelle page ML Pipeline pédagogique d'IBIS-X
+
+== Vue d'Ensemble
+
+La page `/ml-pipeline` d'IBIS-X a été entièrement repensée pour offrir une expérience pédagogique et visuellement captivante. Cette nouvelle interface présente le pipeline d'apprentissage automatique d'IBIS-X de manière claire et accessible, même pour les non-experts en IA.
+
+== Objectifs de la Refonte
+
+=== Problèmes Identifiés
+* Ancienne page déconnectée du parcours utilisateur principal
+* Interface peu intuitive pour les débutants
+* Manque d'aspect pédagogique et d'explications claires
+* Absence de visualisations engageantes
+
+=== Solutions Apportées
+* Page **pédagogique** expliquant chaque étape du pipeline ML
+* Design **moderne** inspiré des meilleures pratiques SaaS
+* **Animations subtiles** et transitions fluides
+* **Timeline interactive** des 8 étapes du pipeline
+* Section **FAQ** pour répondre aux questions courantes
+* **Visualisation interactive** du flux de données
+
+== Structure de la Nouvelle Page
+
+=== 1. Section Hero
+Une section d'accueil impactante comprenant :
+
+* **Titre principal** : "Construisez votre pipeline IA en quelques clics"
+* **Sous-titre engageant** expliquant la valeur d'IBIS-X
+* **Boutons d'action** pour démarrer ou voir des exemples
+* **Animation de fond** avec particules flottantes
+* **Indicateur de flux** montrant le traitement en temps réel
+
+[source,html]
+----
+<div class="hero-section">
+  <div class="hero-content">
+    <h1>{{ 'ML_PIPELINE.PRESENTATION.HERO.TITLE' | translate }}</h1>
+    <p>{{ 'ML_PIPELINE.PRESENTATION.HERO.SUBTITLE' | translate }}</p>
+    <!-- Boutons d'action -->
+    <!-- Animation de particules -->
+  </div>
+</div>
+----
+
+=== 2. Timeline des 8 Étapes
+
+Présentation visuelle des 8 étapes clés du pipeline ML :
+
+1. **Sélection du Dataset**
+2. **Nettoyage des Données** 
+3. **Analyse des Données Manquantes**
+4. **Choix de la Tâche ML**
+5. **Sélection de l'Algorithme**
+6. **Entraînement du Modèle**
+7. **Évaluation des Performances**
+8. **Explicabilité (XAI)**
+
+Chaque étape comprend :
+* **Icône** représentative
+* **Titre** et description courte
+* **Liste de détails** spécifiques
+* **Exemple concret** d'application
+* **Animation** au survol et lors du défilement
+
+=== 3. Visualisation Interactive
+
+Section bonus présentant le flux de données :
+* **Schéma animé** montrant la transformation des données
+* **Particules en mouvement** symbolisant le flux de données
+* **Métriques en temps réel** (temps de traitement, précision, automatisation)
+* **Nodes interactifs** représentant chaque étape
+
+=== 4. Section FAQ
+
+Accordéon avec les questions fréquentes :
+* "Dois-je connaître le Machine Learning ?"
+* "Combien de temps prend l'entraînement ?"
+* "Puis-je utiliser mes propres données ?"
+* "Comment fonctionne l'explicabilité ?"
+* "Mes données sont-elles sécurisées ?"
+
+=== 5. Call-to-Action Final
+
+Section de conversion finale avec :
+* **Message motivant** pour passer à l'action
+* **Boutons** vers l'assistant IA et l'exploration de datasets
+* **Design** cohérent avec l'identité visuelle d'IBIS-X
+
+== Design System et Styles
+
+=== Palette de Couleurs
+Utilisation de la palette Sorbonne moderne définie dans `_sorbonne-modern-palette.scss` :
+
+* **Bleu Sorbonne** (`#242e54`) pour les éléments principaux
+* **Gradients modernes** pour les sections importantes  
+* **Couleurs chaudes** (`coral`, `peach`, `gold`) pour les accents
+* **Neutres chaleureux** pour les textes et arrière-plans
+
+=== Composants Angular Material
+* `mat-card` pour les containers principales
+* `mat-button` et `mat-raised-button` pour les actions
+* `mat-icon` pour l'iconographie cohérente
+* `mat-expansion-panel` pour la FAQ
+* `mat-progress-bar` pour les indicateurs de progression
+
+=== Animations
+Animations créées avec Angular Animations API :
+
+```typescript
+@Component({
+  animations: [
+    trigger('fadeInUp', [...]),
+    trigger('staggerList', [...]),
+    trigger('slideIn', [...]),
+    trigger('pulse', [...])
+  ]
+})
+```
+
+== Intégration i18n
+
+=== Nouvelles Clés de Traduction
+
+Ajout de clés de traduction complètes dans `fr.json` et `en.json` :
+
+```json
+{
+  "ML_PIPELINE": {
+    "PRESENTATION": {
+      "HERO": {
+        "TITLE": "Construisez votre pipeline IA en quelques clics",
+        "SUBTITLE": "Comprenez chaque étape...",
+        // ...
+      },
+      "STEPS": {
+        "STEP1": {
+          "TITLE": "Sélection du Dataset",
+          // ...
+        }
+      },
+      "FAQ": {
+        "Q1": {
+          "QUESTION": "Dois-je connaître le ML ?",
+          "ANSWER": "Pas du tout ! IBIS-X..."
+        }
+      }
+    }
+  }
+}
+```
+
+== Routing et Navigation
+
+=== Mise à Jour des Routes
+
+Modification de `ml-pipeline.routes.ts` :
+
+```typescript
+export const ML_PIPELINE_ROUTES: Routes = [
+  {
+    path: '',
+    component: MlPipelinePresentationComponent, // Nouvelle page par défaut
+    data: { title: 'ML_PIPELINE' }
+  },
+  {
+    path: 'dashboard',
+    component: MlPipelineDashboardComponent, // Ancien dashboard déplacé
+    data: { title: 'ML_PIPELINE' }
+  },
+  // Autres routes...
+];
+```
+
+=== Navigation Utilisateur
+
+La nouvelle page s'intègre parfaitement dans le parcours utilisateur :
+
+1. **Page d'accueil** → `/ml-pipeline` (présentation)
+2. **Comprendre le processus** → Navigation dans la timeline
+3. **Démarrer un projet** → `/datasets` (sélection de données)
+4. **Lancer le wizard** → `/ml-pipeline/wizard`
+5. **Voir le dashboard** → `/ml-pipeline/dashboard`
+
+== Responsive Design
+
+=== Points de Rupture
+* **Desktop** (≥1200px) : Timeline horizontale, 2 colonnes pour les steps
+* **Tablet** (768px-1199px) : Timeline adaptée, 1 colonne
+* **Mobile** (≤767px) : Timeline verticale, éléments empilés
+
+=== Adaptations Mobiles
+* Réduction de la taille des polices pour le hero
+* Timeline passant en mode vertical avec connector à gauche
+* Boutons d'action en pleine largeur
+* Sections de contenu optimisées pour le scroll vertical
+
+== Performance et Optimisations
+
+=== Lazy Loading
+* Composant standalone pour un chargement optimisé
+* Imports sélectifs des modules Angular Material
+* Images optimisées et compression CSS
+
+=== SEO et Accessibilité
+* Structure sémantique HTML5
+* ARIA labels pour les éléments interactifs
+* Contraste de couleurs conforme WCAG 2.1
+* Navigation au clavier supportée
+
+== Impact Utilisateur
+
+=== Métriques Attendues
+* **Temps de compréhension** réduit de 60%
+* **Taux de conversion** vers le wizard +40%
+* **Satisfaction utilisateur** améliorée (feedback qualitatif)
+* **Réduction du support** grâce à la FAQ intégrée
+
+=== Parcours Utilisateur Optimisé
+1. **Découverte** : Comprendre IBIS-X en 2 minutes
+2. **Apprentissage** : Maîtriser les concepts via la timeline
+3. **Confiance** : FAQ pour lever les objections
+4. **Action** : CTA clairs vers l'expérimentation
+
+== Maintenance et Évolutions
+
+=== Points d'Extension
+* **Nouveaux exemples** dans chaque étape
+* **Vidéos explicatives** intégrables dans les cards
+* **Tour guidé interactif** avec spotlights
+* **Personnalisation** selon le niveau de l'utilisateur
+
+=== Monitoring
+* **Analytics** sur les interactions avec chaque section
+* **Heat maps** pour optimiser le placement des CTA
+* **A/B testing** sur les messages et visuels
+* **Feedback utilisateur** via formulaires intégrés
+
+Cette refonte transforme la page ML Pipeline en véritable **vitrine pédagogique** d'IBIS-X, alliant excellence technique et expérience utilisateur moderne.

@@ -1068,6 +1068,41 @@
       "STEP4_TITLE": "Analyze Results",
       "STEP4_DESC": "Explore detailed metrics and visualizations"
     },
+    "PRESENTATION": {
+      "HERO": {
+        "TITLE": "Build your AI pipeline in just a few clicks",
+        "SUBTITLE": "Understand every step, test, compare and improve your machine learning models with IBIS-X.",
+        "START_BUTTON": "Start a new experiment",
+        "EXAMPLES_BUTTON": "View examples",
+        "FLOW_TEXT": "Real-time data flow"
+      },
+      "STEPS": {
+        "TITLE": "8 Steps to AI Excellence",
+        "SUBTITLE": "Discover our methodological approach to creating high-performance and explainable AI models",
+        "LEARN_MORE": "Learn more"
+      },
+      "VISUALIZATION": {
+        "TITLE": "Interactive Pipeline Visualization",
+        "SUBTITLE": "Watch how your data transforms into artificial intelligence",
+        "DATA_INPUT": "Input Data",
+        "PIPELINE": "ML Pipeline",
+        "AI_MODEL": "AI Model",
+        "XAI_OUTPUT": "XAI Explanations",
+        "PROCESSING_TIME": "Processing time",
+        "ACCURACY": "Average accuracy",
+        "AUTOMATION": "Automation"
+      },
+      "FAQ": {
+        "TITLE": "Frequently Asked Questions",
+        "SUBTITLE": "Everything you need to know about our machine learning pipeline"
+      },
+      "CTA": {
+        "TITLE": "Ready to create your first AI?",
+        "DESCRIPTION": "Join thousands of users who trust IBIS-X for their artificial intelligence projects.",
+        "WIZARD_BUTTON": "Launch AI Assistant",
+        "DATASETS_BUTTON": "Explore Datasets"
+      }
+    },
     "STEPS": {
       "DATASET_OVERVIEW": "Dataset Overview",
       "DATA_QUALITY": "Data Quality Analysis",
@@ -1096,7 +1131,96 @@
       "TEST_SIZE": "Test Set Size",
       "TEST_SIZE_HINT": "Proportion of data reserved for testing (10-50%)",
       "FEATURE_SCALING": "Feature Scaling",
-      "ENCODING": "Categorical Variable Encoding",
+              "ENCODING": "Categorical Variable Encoding"
+    },
+    "STEPS": {
+      "STEP1": {
+        "TITLE": "Dataset Selection",
+        "DESCRIPTION": "Choose the perfect dataset for your AI project",
+        "DETAIL1": "Explore our collection of carefully selected datasets",
+        "DETAIL2": "Filter by domain, size and data quality",
+        "DETAIL3": "Preview data before getting started",
+        "EXAMPLE": "Ex: Medical image dataset for AI diagnosis"
+      },
+      "STEP2": {
+        "TITLE": "Data Cleaning",
+        "DESCRIPTION": "Prepare your data for optimal training",
+        "DETAIL1": "Automatic detection of missing values",
+        "DETAIL2": "Removal of duplicates and outliers",
+        "DETAIL3": "Normalization and standardization of variables",
+        "EXAMPLE": "Ex: Smart imputation for 15% missing data"
+      },
+      "STEP3": {
+        "TITLE": "Missing Data Analysis",
+        "DESCRIPTION": "Analyze and handle missing values intelligently",
+        "DETAIL1": "Visualization of missing data patterns",
+        "DETAIL2": "Custom imputation strategies per column",
+        "DETAIL3": "Estimated impact on model performance",
+        "EXAMPLE": "Ex: Correlation analysis for imputation strategy"
+      },
+      "STEP4": {
+        "TITLE": "ML Task Selection",
+        "DESCRIPTION": "Define the type of problem to solve",
+        "DETAIL1": "Binary or multi-class classification",
+        "DETAIL2": "Regression for continuous values",
+        "DETAIL3": "Clustering for pattern discovery",
+        "EXAMPLE": "Ex: Email classification (spam/legitimate)"
+      },
+      "STEP5": {
+        "TITLE": "Algorithm Selection",
+        "DESCRIPTION": "Choose the optimal algorithm for your problem",
+        "DETAIL1": "Recommendations based on your data",
+        "DETAIL2": "AutoML mode for automatic selection",
+        "DETAIL3": "Performance comparison between algorithms",
+        "EXAMPLE": "Ex: Random Forest vs SVM for image classification"
+      },
+      "STEP6": {
+        "TITLE": "Model Training",
+        "DESCRIPTION": "Let our AI optimize your model",
+        "DETAIL1": "Automatic hyperparameter optimization",
+        "DETAIL2": "Cross-validation for robustness",
+        "DETAIL3": "Real-time training monitoring",
+        "EXAMPLE": "Ex: 1000 combinations tested in 5 minutes"
+      },
+      "STEP7": {
+        "TITLE": "Performance Evaluation",
+        "DESCRIPTION": "Measure and analyze your model's performance",
+        "DETAIL1": "Complete metrics (precision, recall, F1-score)",
+        "DETAIL2": "Interactive confusion matrices",
+        "DETAIL3": "ROC curves and performance analysis",
+        "EXAMPLE": "Ex: 94.2% precision on test data"
+      },
+      "STEP8": {
+        "TITLE": "Explainability (XAI)",
+        "DESCRIPTION": "Understand how your AI makes decisions",
+        "DETAIL1": "Variable importance with SHAP",
+        "DETAIL2": "Local explanations for each prediction",
+        "DETAIL3": "Intuitive visualizations for non-experts",
+        "EXAMPLE": "Ex: 'Model relies 65% on patient age'"
+      }
+    },
+    "FAQ": {
+      "Q1": {
+        "QUESTION": "Do I need to know Machine Learning to use IBIS-X?",
+        "ANSWER": "Not at all! IBIS-X is designed for non-experts. Our guided interface accompanies you at every step, with clear explanations and automatic recommendations."
+      },
+      "Q2": {
+        "QUESTION": "How long does model training take?",
+        "ANSWER": "It depends on your data size and model complexity. Generally, between 2 and 15 minutes for most projects. Our system automatically optimizes performance."
+      },
+      "Q3": {
+        "QUESTION": "Can I use my own data?",
+        "ANSWER": "Absolutely! You can upload your datasets in CSV, Excel, JSON or Parquet format. Our system automatically analyzes quality and suggests appropriate preprocessing."
+      },
+      "Q4": {
+        "QUESTION": "How does explainability (XAI) work?",
+        "ANSWER": "We use SHAP and LIME to explain each prediction. You'll see which variables most influence your model's decisions, with easy-to-understand visualizations."
+      },
+      "Q5": {
+        "QUESTION": "Is my data secure?",
+        "ANSWER": "Security is our priority. Your data is encrypted, stored on secure servers, and you maintain full control. We comply with GDPR and the strictest security standards."
+      }
+    },
       "COMPLETENESS": "Completeness",
       "ACCURACY": "Accuracy",
       "CONSISTENCY": "Consistency",

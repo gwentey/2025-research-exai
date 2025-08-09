@@ -2,10 +2,10 @@
 
 .animation-container {
   position: relative;
-  width: 100%;
+  width: 100%; // ✅ RÉTABLIR largeur conteneur (reducer est fait au niveau Three.js maintenant)
   height: 100%;
-  min-width: 550px;  /* Nouvelle augmentation pour remplir l'espace */
-  max-width: 750px;  /* Nouvelle augmentation pour remplir l'espace */
+  min-width: 550px;  /* Rétabli à la taille parfaite */
+  max-width: 750px;  /* Rétabli à la taille parfaite */
   min-height: 600px; /* Hauteur AUGMENTÉE pour débordement vertical libre */
   overflow: visible; /* ✅ PERMETTRE le débordement de la sphère ! */
   border-radius: 12px;
@@ -24,7 +24,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100%; // ✅ RÉTABLIR largeur canvas complète
     height: 100%;
     transition: opacity 0.8s ease-in-out;
     border-radius: 12px;
@@ -46,7 +46,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100%; // ✅ RÉTABLIR largeur fallback complète
     height: 100%;
     background: linear-gradient(135deg,
       #f8f9fc 0%,

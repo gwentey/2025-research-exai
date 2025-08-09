@@ -1,0 +1,420 @@
+<!-- Page Container -->
+<div class="ml-pipeline-presentation">
+  
+  <!-- Hero Section avec Animation de Pipeline -->
+  <div class="hero-section" [@fadeInUp]>
+    <div class="hero-background">
+      <div class="floating-particle" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]"></div>
+    </div>
+    
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+          <div class="hero-content text-center">
+            
+            <!-- Icône principale avec animation -->
+            <div class="hero-icon-wrapper" [@pulse]="'active'">
+              <div class="hero-icon-glow"></div>
+              <mat-icon class="hero-main-icon">psychology</mat-icon>
+            </div>
+            
+            <!-- Titre principal -->
+            <h1 class="hero-title">
+              {{ 'ML_PIPELINE.PRESENTATION.HERO.TITLE' | translate }}
+            </h1>
+            
+            <!-- Sous-titre -->
+            <p class="hero-subtitle">
+              {{ 'ML_PIPELINE.PRESENTATION.HERO.SUBTITLE' | translate }}
+            </p>
+            
+            <!-- Boutons d'action principaux -->
+            <div class="hero-actions" [@staggerList]>
+              <button 
+                mat-raised-button 
+                color="primary" 
+                size="large"
+                class="cta-button"
+                (click)="startNewExperiment()">
+                <mat-icon class="m-r-8">rocket_launch</mat-icon>
+                {{ 'ML_PIPELINE.PRESENTATION.HERO.START_BUTTON' | translate }}
+              </button>
+              
+              <button 
+                mat-stroked-button 
+                color="primary" 
+                size="large"
+                class="secondary-button"
+                (click)="viewExamples()">
+                <mat-icon class="m-r-8">visibility</mat-icon>
+                {{ 'ML_PIPELINE.PRESENTATION.HERO.EXAMPLES_BUTTON' | translate }}
+              </button>
+            </div>
+            
+            <!-- Indicateurs de flux de données animés -->
+            <div class="pipeline-flow-indicator">
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="flowProgress"
+                class="flow-progress">
+              </mat-progress-bar>
+              <p class="flow-text">
+                {{ 'ML_PIPELINE.PRESENTATION.HERO.FLOW_TEXT' | translate }}
+              </p>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section des 8 Étapes de la Pipeline - Format Serpentin Compact -->
+  <div class="pipeline-steps-section" [@fadeInUp]>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          
+          <!-- En-tête de section -->
+          <div class="section-header">
+            <h2 class="section-title">
+              {{ 'ML_PIPELINE.PRESENTATION.STEPS.TITLE' | translate }}
+            </h2>
+            <p class="section-subtitle">
+              {{ 'ML_PIPELINE.PRESENTATION.STEPS.SUBTITLE' | translate }}
+            </p>
+          </div>
+          
+          <!-- Timeline serpentin avec connexions logiques réelles -->
+          <div class="pipeline-timeline">
+            <div class="timeline-container" [@staggerList]>
+              
+              <!-- Première ligne : Étapes 1 → 2 → 3 -->
+              <div class="timeline-row row-1">
+                <div 
+                  class="step-item step-1"
+                  [class]="getStepClasses(pipelineSteps[0])"
+                  [@slideIn]>
+                  <div class="step-number">{{ pipelineSteps[0].id }}</div>
+                  <mat-icon class="step-icon">{{ pipelineSteps[0].icon }}</mat-icon>
+                  <h3 class="step-title">{{ pipelineSteps[0].title | translate }}</h3>
+                  <p class="step-description">{{ pipelineSteps[0].description | translate }}</p>
+                  <div class="step-example" *ngIf="pipelineSteps[0].example">
+                    {{ pipelineSteps[0].example | translate }}
+                  </div>
+                  <!-- Connexion vers étape 2 -->
+                  <div class="connection-line to-right"></div>
+                </div>
+                
+                <div 
+                  class="step-item step-2"
+                  [class]="getStepClasses(pipelineSteps[1])"
+                  [@slideIn]>
+                  <div class="step-number">{{ pipelineSteps[1].id }}</div>
+                  <mat-icon class="step-icon">{{ pipelineSteps[1].icon }}</mat-icon>
+                  <h3 class="step-title">{{ pipelineSteps[1].title | translate }}</h3>
+                  <p class="step-description">{{ pipelineSteps[1].description | translate }}</p>
+                  <div class="step-example" *ngIf="pipelineSteps[1].example">
+                    {{ pipelineSteps[1].example | translate }}
+                  </div>
+                  <!-- Connexion vers étape 3 -->
+                  <div class="connection-line to-right"></div>
+                </div>
+                
+                <div 
+                  class="step-item step-3"
+                  [class]="getStepClasses(pipelineSteps[2])"
+                  [@slideIn]>
+                  <div class="step-number">{{ pipelineSteps[2].id }}</div>
+                  <mat-icon class="step-icon">{{ pipelineSteps[2].icon }}</mat-icon>
+                  <h3 class="step-title">{{ pipelineSteps[2].title | translate }}</h3>
+                  <p class="step-description">{{ pipelineSteps[2].description | translate }}</p>
+                  <div class="step-example" *ngIf="pipelineSteps[2].example">
+                    {{ pipelineSteps[2].example | translate }}
+                  </div>
+                  <!-- Connexion vers ligne suivante (étape 6) -->
+                  <div class="connection-line to-down-left"></div>
+                </div>
+              </div>
+              
+              <!-- Deuxième ligne : Étapes 6 ← 5 ← 4 (sens inverse pour serpentin) -->
+              <div class="timeline-row row-2 reverse">
+                <div 
+                  class="step-item step-6"
+                  [class]="getStepClasses(pipelineSteps[5])"
+                  [@slideIn]>
+                  <div class="step-number">{{ pipelineSteps[5].id }}</div>
+                  <mat-icon class="step-icon">{{ pipelineSteps[5].icon }}</mat-icon>
+                  <h3 class="step-title">{{ pipelineSteps[5].title | translate }}</h3>
+                  <p class="step-description">{{ pipelineSteps[5].description | translate }}</p>
+                  <div class="step-example" *ngIf="pipelineSteps[5].example">
+                    {{ pipelineSteps[5].example | translate }}
+                  </div>
+                  <!-- Connexion vers étape 5 -->
+                  <div class="connection-line to-left"></div>
+                </div>
+                
+                <div 
+                  class="step-item step-5"
+                  [class]="getStepClasses(pipelineSteps[4])"
+                  [@slideIn]>
+                  <div class="step-number">{{ pipelineSteps[4].id }}</div>
+                  <mat-icon class="step-icon">{{ pipelineSteps[4].icon }}</mat-icon>
+                  <h3 class="step-title">{{ pipelineSteps[4].title | translate }}</h3>
+                  <p class="step-description">{{ pipelineSteps[4].description | translate }}</p>
+                  <div class="step-example" *ngIf="pipelineSteps[4].example">
+                    {{ pipelineSteps[4].example | translate }}
+                  </div>
+                  <!-- Connexion vers étape 4 -->
+                  <div class="connection-line to-left"></div>
+                </div>
+                
+                <div 
+                  class="step-item step-4"
+                  [class]="getStepClasses(pipelineSteps[3])"
+                  [@slideIn]>
+                  <div class="step-number">{{ pipelineSteps[3].id }}</div>
+                  <mat-icon class="step-icon">{{ pipelineSteps[3].icon }}</mat-icon>
+                  <h3 class="step-title">{{ pipelineSteps[3].title | translate }}</h3>
+                  <p class="step-description">{{ pipelineSteps[3].description | translate }}</p>
+                  <div class="step-example" *ngIf="pipelineSteps[3].example">
+                    {{ pipelineSteps[3].example | translate }}
+                  </div>
+                  <!-- Connexion vers ligne suivante (étape 7) -->
+                  <div class="connection-line to-down-right"></div>
+                </div>
+              </div>
+              
+              <!-- Troisième ligne : Étapes 7 → 8 -->
+              <div class="timeline-row row-3">
+                <div 
+                  class="step-item step-7"
+                  [class]="getStepClasses(pipelineSteps[6])"
+                  [@slideIn]>
+                  <div class="step-number">{{ pipelineSteps[6].id }}</div>
+                  <mat-icon class="step-icon">{{ pipelineSteps[6].icon }}</mat-icon>
+                  <h3 class="step-title">{{ pipelineSteps[6].title | translate }}</h3>
+                  <p class="step-description">{{ pipelineSteps[6].description | translate }}</p>
+                  <div class="step-example" *ngIf="pipelineSteps[6].example">
+                    {{ pipelineSteps[6].example | translate }}
+                  </div>
+                  <!-- Connexion vers étape 8 -->
+                  <div class="connection-line to-right final"></div>
+                </div>
+                
+                <div 
+                  class="step-item step-8"
+                  [class]="getStepClasses(pipelineSteps[7])"
+                  [@slideIn]>
+                  <div class="step-number">{{ pipelineSteps[7].id }}</div>
+                  <mat-icon class="step-icon">{{ pipelineSteps[7].icon }}</mat-icon>
+                  <h3 class="step-title">{{ pipelineSteps[7].title | translate }}</h3>
+                  <p class="step-description">{{ pipelineSteps[7].description | translate }}</p>
+                  <div class="step-example" *ngIf="pipelineSteps[7].example">
+                    {{ pipelineSteps[7].example | translate }}
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Visualisation Interactive (Bonus) -->
+  <div class="interactive-visualization-section" [@fadeInUp]>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          
+          <mat-card class="visualization-card cardWithShadow">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon class="m-r-12">timeline</mat-icon>
+                {{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.TITLE' | translate }}
+              </mat-card-title>
+              <mat-card-subtitle>
+                {{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.SUBTITLE' | translate }}
+              </mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="data-flow-visualization">
+                <!-- Représentation visuelle du flux de données -->
+                <div class="flow-container">
+                  
+                  <!-- Point de départ : Données -->
+                  <div class="flow-node data-input">
+                    <mat-icon>storage</mat-icon>
+                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.DATA_INPUT' | translate }}</span>
+                  </div>
+                  
+                  <!-- Flèche animée -->
+                  <div class="flow-arrow">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head"></div>
+                    <div class="flow-particles">
+                      <div class="particle" *ngFor="let p of [1,2,3]"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Pipeline de traitement -->
+                  <div class="flow-node processing-pipeline">
+                    <mat-icon>settings</mat-icon>
+                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.PIPELINE' | translate }}</span>
+                  </div>
+                  
+                  <!-- Flèche animée -->
+                  <div class="flow-arrow">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head"></div>
+                    <div class="flow-particles">
+                      <div class="particle" *ngFor="let p of [1,2,3]"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Résultat : Modèle IA -->
+                  <div class="flow-node ai-model">
+                    <mat-icon>psychology</mat-icon>
+                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.AI_MODEL' | translate }}</span>
+                  </div>
+                  
+                  <!-- Flèche animée -->
+                  <div class="flow-arrow">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head"></div>
+                    <div class="flow-particles">
+                      <div class="particle" *ngFor="let p of [1,2,3]"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Explications XAI -->
+                  <div class="flow-node xai-output">
+                    <mat-icon>insights</mat-icon>
+                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.XAI_OUTPUT' | translate }}</span>
+                  </div>
+                  
+                </div>
+                
+                <!-- Métriques en temps réel -->
+                <div class="flow-metrics">
+                  <div class="metric-item">
+                    <mat-icon>speed</mat-icon>
+                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.PROCESSING_TIME' | translate }}</span>
+                    <strong>~2-5 min</strong>
+                  </div>
+                  <div class="metric-item">
+                    <mat-icon>precision_manufacturing</mat-icon>
+                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.ACCURACY' | translate }}</span>
+                    <strong>85-95%</strong>
+                  </div>
+                  <div class="metric-item">
+                    <mat-icon>auto_fix_high</mat-icon>
+                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.AUTOMATION' | translate }}</span>
+                    <strong>95%</strong>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section FAQ -->
+  <div class="faq-section" [@fadeInUp]>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+          
+          <!-- En-tête FAQ -->
+          <div class="section-header text-center m-b-40">
+            <h2 class="section-title">
+              {{ 'ML_PIPELINE.PRESENTATION.FAQ.TITLE' | translate }}
+            </h2>
+            <p class="section-subtitle">
+              {{ 'ML_PIPELINE.PRESENTATION.FAQ.SUBTITLE' | translate }}
+            </p>
+          </div>
+          
+          <!-- Accordéon FAQ -->
+          <mat-accordion class="faq-accordion">
+            <mat-expansion-panel 
+              *ngFor="let faq of faqItems; let i = index"
+              [expanded]="faq.expanded"
+              (opened)="toggleFAQ(i)"
+              (closed)="toggleFAQ(i)"
+              class="faq-panel">
+              
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon class="faq-icon">help_outline</mat-icon>
+                  {{ faq.question | translate }}
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              
+              <div class="faq-content">
+                <p>{{ faq.answer | translate }}</p>
+              </div>
+              
+            </mat-expansion-panel>
+          </mat-accordion>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call to Action Final -->
+  <div class="final-cta-section" [@fadeInUp]>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+          
+          <mat-card class="cta-card cardWithShadow text-center">
+            <mat-card-content class="p-40">
+              
+              <mat-icon class="cta-icon">rocket_launch</mat-icon>
+              
+              <h3 class="cta-title">
+                {{ 'ML_PIPELINE.PRESENTATION.CTA.TITLE' | translate }}
+              </h3>
+              
+              <p class="cta-description">
+                {{ 'ML_PIPELINE.PRESENTATION.CTA.DESCRIPTION' | translate }}
+              </p>
+              
+              <div class="cta-actions">
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  size="large"
+                  (click)="openWizard()">
+                  <mat-icon class="m-r-8">auto_fix_high</mat-icon>
+                  {{ 'ML_PIPELINE.PRESENTATION.CTA.WIZARD_BUTTON' | translate }}
+                </button>
+                
+                <button 
+                  mat-stroked-button 
+                  color="primary" 
+                  size="large"
+                  (click)="startNewExperiment()">
+                  <mat-icon class="m-r-8">dataset</mat-icon>
+                  {{ 'ML_PIPELINE.PRESENTATION.CTA.DATASETS_BUTTON' | translate }}
+                </button>
+              </div>
+              
+            </mat-card-content>
+          </mat-card>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

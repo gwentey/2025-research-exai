@@ -1,11 +1,29 @@
 import { Routes } from '@angular/router';
 import { MlPipelineWizardComponent } from './wizard/ml-pipeline-wizard.component';
 import { MlPipelineDashboardComponent } from './ml-pipeline-dashboard/ml-pipeline-dashboard.component';
+import { MlPipelinePresentationComponent } from './ml-pipeline-presentation/ml-pipeline-presentation.component';
 import { MlStudioComponent } from './ml-studio/ml-studio.component';
 
 export const ML_PIPELINE_ROUTES: Routes = [
   {
     path: '',
+    component: MlPipelinePresentationComponent,
+    data: {
+      title: 'ML_PIPELINE',
+      breadcrumb: [
+        {
+          label: 'Projets',
+          url: '/projects'
+        },
+        {
+          label: 'ML Pipeline',
+          url: ''
+        }
+      ]
+    }
+  },
+  {
+    path: 'dashboard',
     component: MlPipelineDashboardComponent,
     data: {
       title: 'ML_PIPELINE',
@@ -16,6 +34,10 @@ export const ML_PIPELINE_ROUTES: Routes = [
         },
         {
           label: 'ML Pipeline',
+          url: '../'
+        },
+        {
+          label: 'Dashboard',
           url: ''
         }
       ]
