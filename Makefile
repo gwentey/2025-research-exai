@@ -270,11 +270,11 @@ dev-logs: stop-portforwards ## Lance les port-forwards et reste avec les logs (t
 	@echo "$(BLUE)🚀 LANCEMENT DES LOGS EN TEMPS REEL AVEC PORT-FORWARDS$(NC)"
 	@echo "$(YELLOW)Nettoyage des anciens port-forwards...$(NC)"
 	@echo "$(YELLOW)Lancement des port-forwards...$(NC)"
-	@kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
-	@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
-	@kubectl port-forward -n $(NAMESPACE) service/minio-service $(MINIO_API_PORT):6700 > /dev/null 2>&1 &
-	@kubectl port-forward -n $(NAMESPACE) service/minio-service $(MINIO_CONSOLE_PORT):6701 > /dev/null 2>&1 &
-	@sleep 5
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','$(MINIO_API_PORT):6700'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','$(MINIO_CONSOLE_PORT):6701'"
+	@powershell.exe -Command "Start-Sleep -Seconds 8"
 	@echo "$(GREEN)✅ Port-forwards actifs !$(NC)"
 	@echo ""
 	@echo "$(GREEN)🌐 Application accessible sur :$(NC)"
@@ -566,14 +566,12 @@ start-portforwards-final: ## Solution AUTOMATIQUE - PowerShell direct
 	@kubectl wait --for=condition=ready pod -l app=frontend -n $(NAMESPACE) --timeout=30s || true
 	@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=30s || true
 	@echo "$(YELLOW)Lancement des port-forwards avec PowerShell...$(NC)"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
-	@sleep 2
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
-	@sleep 2
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'; Start-Sleep -Seconds 2"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'; Start-Sleep -Seconds 2"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6700:6700'"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:6701'"
 	@echo "$(YELLOW)Attente etablissement des connexions (10 secondes)...$(NC)"
-	@sleep 10
+	@powershell.exe -Command "Start-Sleep -Seconds 10"
 	@echo ""
 	@echo "$(GREEN)✅ APPLICATION PRETE !$(NC)"
 	@echo ""
