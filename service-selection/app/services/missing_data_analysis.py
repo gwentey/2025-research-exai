@@ -10,7 +10,11 @@ from typing import List, Dict, Any, Tuple
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from .. import models
+# Approche hybride pour gérer les imports en local et dans Docker
+try:
+    from .. import models
+except ImportError:
+    import models
 
 # Import du client de stockage commun
 import sys
@@ -175,8 +179,9 @@ class MissingDataAnalyzer:
         """
         try:
             storage_client = get_storage_client()
-            file_content = storage_client.get_file_content(
-                f"ibis-x-datasets/{file.dataset_id}/{file.file_name_in_storage}"
+            # Utiliser download_file au lieu de get_file_content
+            file_content = storage_client.download_file(
+                f"{file.dataset_id}/{file.file_name_in_storage}"
             )
             
             # Déterminer le format et charger

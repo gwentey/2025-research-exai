@@ -39,6 +39,18 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from common.storage_client import get_storage_client, StorageClientError
 from fastapi.middleware.cors import CORSMiddleware
 
+# Import du sanitiseur JSON
+try:
+    from .utils.json_sanitizer import sanitize_column_stats, process_columns_with_config, DEFAULT_COLUMN_CONFIG
+except ImportError:
+    from utils.json_sanitizer import sanitize_column_stats, process_columns_with_config, DEFAULT_COLUMN_CONFIG
+
+# Import du service d'analyse des données manquantes
+try:
+    from .services.missing_data_analysis import missing_data_analyzer
+except ImportError:
+    from services.missing_data_analysis import missing_data_analyzer
+
 # --- Configuration de l'application FastAPI ---
 
 app = FastAPI(
@@ -155,7 +167,7 @@ def upload_dataset_files(dataset_id: str, files: List[UploadFile]) -> tuple[str,
     
     try:
         storage_client = get_storage_client()
-        storage_path_prefix = f"ibis-x-datasets/{dataset_id}/"
+        storage_path_prefix = f"{dataset_id}/"
         file_metadata_list = []
         
         for file in files:
@@ -1301,17 +1313,48 @@ def create_dataset(
         return db_dataset
         
     except Exception as e:
-        # Rollback de la base de données
-        db.rollback()
-        logger.error(f"Error during dataset creation {dataset_id}: {str(e)}")
+        # Rollback de la base de données de manière sécurisée
+        try:
+            db.rollback()
+            logger.info(f"Database rollback successful for dataset {dataset_id}")
+        except Exception as rollback_error:
+            logger.error(f"Database rollback failed for dataset {dataset_id}: {str(rollback_error)}")
         
-        # Utiliser le gestionnaire d'erreurs centralisé
-        raise errors.handle_upload_error(
-            error=e,
-            dataset_id=dataset_id,
-            storage_path=storage_path,
-            cleanup_func=cleanup_dataset_storage
-        )
+        # Nettoyer le stockage si nécessaire
+        if storage_path:
+            try:
+                cleanup_dataset_storage(storage_path)
+                logger.info(f"Storage cleanup successful for dataset {dataset_id}: {storage_path}")
+            except Exception as cleanup_error:
+                logger.error(f"Storage cleanup failed for dataset {dataset_id}: {str(cleanup_error)}")
+        
+        logger.error(f"Dataset creation failed for {dataset_id}: {str(e)}")
+        
+        # Déterminer le type d'erreur pour une réponse appropriée
+        if "psycopg2.errors.InvalidTextRepresentation" in str(e) or "NaN" in str(e) or "JSON" in str(e):
+            # Erreur spécifique aux données JSON invalides
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": "Erreur de format des données : certaines colonnes contiennent des valeurs non valides (NaN, valeurs infinies).",
+                    "error_code": "INVALID_DATA_FORMAT",
+                    "technical_details": "Les statistiques de colonnes contiennent des valeurs non JSON-compatibles",
+                    "recommendations": [
+                        "Vérifiez que votre fichier ne contient pas de colonnes entièrement vides",
+                        "Supprimez les colonnes 'Unnamed:*' générées automatiquement",
+                        "Assurez-vous que les colonnes numériques contiennent au moins quelques valeurs valides"
+                    ],
+                    "user_action": "Nettoyez votre fichier et réessayez l'upload"
+                }
+            )
+        else:
+            # Utiliser le gestionnaire d'erreurs centralisé pour les autres cas
+            raise errors.handle_upload_error(
+                error=e,
+                dataset_id=dataset_id,
+                storage_path=None,  # Déjà nettoyé ci-dessus
+                cleanup_func=None
+            )
 
 @app.put("/datasets/{dataset_id}", response_model=schemas.DatasetRead)
 def update_dataset(
@@ -1945,7 +1988,8 @@ def generate_dataset_preview(dataset: models.Dataset, db: Session = None) -> sch
         if dataset.storage_path:
             object_path = f"{dataset.storage_path.rstrip('/')}/{main_file.file_name_in_storage}"
         else:
-            object_path = f"ibis-x-datasets/{dataset.id}/{main_file.file_name_in_storage}"
+            # Fallback pour les anciens datasets sans storage_path (éviter duplication)
+            object_path = f"{dataset.id}/{main_file.file_name_in_storage}"
         
         logger.info(f"Téléchargement du fichier pour aperçu: {object_path}")
         file_data = storage_client.download_file(object_path)
@@ -3327,15 +3371,6 @@ def get_missing_data_analysis(
         Analyse complète des données manquantes avec score et suggestions
     """
     try:
-        # Import du service d'analyse
-        try:
-            from .services.missing_data_analysis import missing_data_analyzer
-        except ImportError:
-            import sys
-            import os
-            sys.path.append(os.path.dirname(__file__))
-            from services.missing_data_analysis import missing_data_analyzer
-        
         # Vérifier que le dataset existe
         dataset = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
         if not dataset:
@@ -3385,8 +3420,28 @@ def _analyze_and_save_file_columns(dataset: models.Dataset, db: Session):
             if dataset_file.format.lower() in ['csv', 'parquet']:
                 columns_metadata = _analyze_tabular_file(file_data, dataset_file.format.lower())
                 
-                # Sauvegarder les métadonnées des colonnes
-                for i, col_meta in enumerate(columns_metadata):
+                # Traiter les colonnes avec configuration et avertissements
+                processed_columns, warnings = process_columns_with_config(columns_metadata, DEFAULT_COLUMN_CONFIG)
+                
+                # Logger les avertissements et créer des recommandations
+                if warnings:
+                    logger.warning(f"Colonnes problématiques détectées dans {dataset_file.file_name_in_storage}:")
+                    for warning in warnings:
+                        logger.warning(f"  - {warning['column_name']}: {warning['reason']}")
+                    
+                    # Créer des recommandations utilisateur
+                    try:
+                        from .errors import create_data_quality_recommendations
+                    except ImportError:
+                        from errors import create_data_quality_recommendations
+                    
+                    recommendations = create_data_quality_recommendations(warnings)
+                    logger.info(f"Recommandations qualité: {recommendations['summary']}")
+                    for action in recommendations['actions']:
+                        logger.info(f"  Action recommandée: {action}")
+                
+                # Sauvegarder les métadonnées des colonnes traitées
+                for i, col_meta in enumerate(processed_columns):
                     file_column = models.FileColumn(
                         dataset_file_id=dataset_file.id,
                         column_name=col_meta['name'],
@@ -3484,12 +3539,24 @@ def _analyze_tabular_file(file_data: bytes, file_format: str) -> List[Dict]:
             
             # Statistiques numériques si applicable
             if pd.api.types.is_numeric_dtype(col_data):
-                stats.update({
-                    'min': float(col_data.min()) if not col_data.empty else None,
-                    'max': float(col_data.max()) if not col_data.empty else None,
-                    'mean': float(col_data.mean()) if not col_data.empty else None,
-                    'std': float(col_data.std()) if not col_data.empty else None
-                })
+                # Calculer les statistiques avec gestion des NaN
+                col_min = col_data.min() if not col_data.empty else None
+                col_max = col_data.max() if not col_data.empty else None
+                col_mean = col_data.mean() if not col_data.empty else None
+                col_std = col_data.std() if not col_data.empty else None
+                
+                # Ajouter seulement les valeurs valides (non-NaN)
+                if not pd.isna(col_min):
+                    stats['min'] = float(col_min)
+                if not pd.isna(col_max):
+                    stats['max'] = float(col_max)
+                if not pd.isna(col_mean):
+                    stats['mean'] = float(col_mean)
+                if not pd.isna(col_std):
+                    stats['std'] = float(col_std)
+            
+            # Sanitiser les statistiques avant ajout
+            sanitized_stats = sanitize_column_stats(stats)
             
             columns_metadata.append({
                 'name': col_name,
@@ -3497,7 +3564,7 @@ def _analyze_tabular_file(file_data: bytes, file_format: str) -> List[Dict]:
                 'dtype_interpreted': dtype_interpreted,
                 'has_nulls': has_nulls,
                 'examples': examples,
-                'stats': stats,
+                'stats': sanitized_stats,
                 'row_count': row_count
             })
             

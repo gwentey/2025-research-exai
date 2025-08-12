@@ -81,6 +81,11 @@ def handle_upload_error(
         error_type = "PERMISSION_DENIED"
         user_message = error.message
     
+    elif isinstance(error, DataQualityError):
+        status_code = 400
+        error_type = "DATA_QUALITY_ERROR"
+        user_message = f"Problème de qualité des données: {error.message}"
+    
     elif isinstance(error, HTTPException):
         # Re-lever les HTTPException existantes
         return error
@@ -218,6 +223,10 @@ def validate_metadata_required_fields(metadata: dict) -> None:
             details={"missing_fields": missing_fields}
         )
 
+class DataQualityError(DatasetUploadError):
+    """Erreur liée à la qualité des données."""
+    pass
+
 def create_user_friendly_error_message(error_type: str, details: dict = None) -> str:
     """
     Crée un message d'erreur convivial pour l'utilisateur.
@@ -235,6 +244,8 @@ def create_user_friendly_error_message(error_type: str, details: dict = None) ->
         "CONVERSION_ERROR": "Erreur lors de la conversion de vos fichiers. Vérifiez leur format.",
         "METADATA_VALIDATION_ERROR": "Certaines informations obligatoires sont manquantes ou incorrectes.",
         "PERMISSION_DENIED": "Vous n'avez pas les permissions nécessaires pour cette action.",
+        "DATA_QUALITY_ERROR": "Problème détecté dans la qualité de vos données.",
+        "INVALID_DATA_FORMAT": "Format de données invalide détecté dans votre fichier.",
         "INTERNAL_ERROR": "Une erreur technique inattendue s'est produite. Notre équipe a été notifiée."
     }
     
@@ -246,5 +257,64 @@ def create_user_friendly_error_message(error_type: str, details: dict = None) ->
             base_message += f" Fichier concerné: {details['filename']}"
         elif error_type == "METADATA_VALIDATION_ERROR" and "missing_fields" in details:
             base_message += f" Champs manquants: {', '.join(details['missing_fields'])}"
+        elif error_type == "DATA_QUALITY_ERROR" and "issues" in details:
+            base_message += f" Problèmes détectés: {', '.join(details['issues'])}"
     
     return base_message
+
+def create_data_quality_recommendations(warnings: list) -> dict:
+    """
+    Crée des recommandations utilisateur basées sur les avertissements de qualité.
+    
+    Args:
+        warnings: Liste des avertissements générés lors du traitement
+        
+    Returns:
+        Dictionnaire avec recommandations structurées
+    """
+    recommendations = {
+        'summary': '',
+        'actions': [],
+        'severity': 'info'  # info, warning, error
+    }
+    
+    if not warnings:
+        recommendations['summary'] = 'Aucun problème de qualité détecté.'
+        return recommendations
+    
+    # Analyser les types d'avertissements
+    skipped_columns = [w for w in warnings if w.get('strategy') == 'skip']
+    cleaned_columns = [w for w in warnings if w.get('strategy') == 'clean']
+    
+    if skipped_columns:
+        recommendations['severity'] = 'warning'
+        recommendations['summary'] = f"{len(skipped_columns)} colonne(s) ignorée(s) car vide(s) ou non pertinente(s)."
+        
+        unnamed_cols = [w for w in skipped_columns if w.get('column_name', '').startswith('Unnamed:')]
+        empty_cols = [w for w in skipped_columns if not w.get('column_name', '').startswith('Unnamed:')]
+        
+        if unnamed_cols:
+            recommendations['actions'].append(
+                "Vérifiez que votre fichier CSV n'inclut pas d'index ou de colonnes d'identification inutiles."
+            )
+        
+        if empty_cols:
+            recommendations['actions'].append(
+                f"Colonnes entièrement vides détectées: {', '.join([w['column_name'] for w in empty_cols])}. "
+                "Considérez les supprimer de votre fichier source."
+            )
+    
+    if cleaned_columns:
+        if recommendations['severity'] == 'info':
+            recommendations['severity'] = 'warning'
+        
+        high_null_cols = [w['column_name'] for w in cleaned_columns]
+        recommendations['actions'].append(
+            f"Colonnes avec beaucoup de valeurs manquantes: {', '.join(high_null_cols)}. "
+            "Un prétraitement sera nécessaire avant utilisation en machine learning."
+        )
+    
+    if not recommendations['summary']:
+        recommendations['summary'] = f"{len(warnings)} avertissement(s) de qualité détecté(s)."
+    
+    return recommendations

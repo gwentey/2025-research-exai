@@ -48,8 +48,7 @@ def check_data_already_initialized() -> bool:
         try:
             from . import models, database
         except ImportError:
-            import models
-            import database
+            import models, database
         
         # Vérifier la présence des datasets Kaggle spécifiques
         expected_kaggle_datasets = [
