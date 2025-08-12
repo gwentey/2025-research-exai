@@ -33,57 +33,46 @@ Ce guide documente les solutions aux problèmes récurrents de stabilité des po
 
 == Solutions Implémentées
 
-=== Scripts PowerShell Robustes
+=== Scripts Python Robustes (Nouveau)
 
-==== 1. kill-port-forwards.ps1
-[source,powershell]
+==== 1. fix-portforwards-permanent.py
+[source,bash]
 ----
-# Nettoie TOUS les processus kubectl et libère les ports
-scripts/development/kill-port-forwards.ps1 -Verbose
-----
-
-Fonctionnalités :
-* ✓ Tue tous les processus `kubectl.exe`
-* ✓ Libère les ports 8080, 9000, 6701, etc.
-* ✓ Nettoie aussi les processus Skaffold
-* ✓ Mode `-Force` pour forcer la libération
-
-==== 2. start-port-forwards.ps1
-[source,powershell]
-----
-# Démarre les port-forwards avec retry automatique
-scripts/development/start-port-forwards.ps1
+# Script principal intégré dans make dev
+make dev
 ----
 
 Fonctionnalités :
-* ✓ Vérifie que les ports sont libres avant de démarrer
-* ✓ Retry automatique jusqu'à 3 fois par service
-* ✓ Vérifie que les ports sont vraiment accessibles
-* ✓ Crée un fichier de tracking des PIDs
+* ✓ Nettoie automatiquement les processus `kubectl` zombies
+* ✓ Redémarre tous les port-forwards nécessaires
+* ✓ Vérifie la connectivité de chaque service
+* ✓ Gère les conflits de ports sur Windows
 
-==== 3. stream-logs.ps1
-[source,powershell]
+==== 2. fix-portforwards-dev-safe.py
+[source,bash]
 ----
-# Affiche les logs de manière interruptible
-scripts/development/stream-logs.ps1
-----
-
-Fonctionnalités :
-* ✓ Interruptible avec Ctrl+C
-* ✓ Logs colorés par service
-* ✓ Nettoyage propre à la sortie
-
-==== 4. healthcheck-ports.ps1
-[source,powershell]
-----
-# Vérifie et répare automatiquement les services
-scripts/development/healthcheck-ports.ps1 -AutoFix
+# Version "safe" pour make dev-data
+make dev-data
 ----
 
 Fonctionnalités :
-* ✓ Test de santé HTTP pour chaque service
-* ✓ Réparation automatique si problème détecté
-* ✓ Mode surveillance continue avec `-Continuous`
+* ✓ Démarre uniquement les port-forwards manquants
+* ✓ Ne tue PAS les processus existants (comme les logs)
+* ✓ Compatible avec `make dev` en cours d'exécution
+
+==== 3. Commande manuelle
+[source,bash]
+----
+# Correction immédiate des port-forwards
+make fix-portforwards
+----
+
+Fonctionnalités :
+* ✓ Correction automatique des problèmes de port-forwards
+* ✓ Nettoyage des processus zombies
+* ✓ Redémarrage des services défaillants
+
+NOTE: Les anciens scripts PowerShell ont été remplacés par ces scripts Python plus robustes et intégrés dans le Makefile.
 
 === Commandes Make Améliorées
 

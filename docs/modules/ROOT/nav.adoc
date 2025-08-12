@@ -55,6 +55,7 @@
 ** xref:dev-guide/ci-cd-pipeline.adoc[Pipeline CI/CD]
 ** xref:dev-guide/troubleshooting.adoc[Dépannage]
 ** xref:dev-guide/troubleshooting-port-forwards.adoc[🔧 Résolution Problèmes Port-Forwards]
+** xref:dev-guide/development-scripts.adoc[🛠️ Scripts de Développement]
 ** xref:dev-guide/contributing.adoc[Guide de Contribution]
 
 * Guides de Données

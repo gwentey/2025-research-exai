@@ -1,0 +1,252 @@
+= Scripts de Développement IBIS-X
+:navtitle: Scripts Développement
+:toc:
+:toc-title: Table des matières
+:toclevels: 3
+:icons: font
+
+== Vue d'ensemble
+
+Ce guide documente les scripts Python essentiels pour le développement local d'IBIS-X. Ces scripts sont intégrés dans le Makefile et gèrent automatiquement les port-forwards, la validation des datasets et la gestion des secrets.
+
+== Scripts Essentiels
+
+=== fix-portforwards-permanent.py
+
+**Utilisation :** Script principal intégré dans `make dev`
+
+**Fonctionnalités :**
+* ✅ Nettoie automatiquement les processus `kubectl` zombies
+* ✅ Redémarre tous les port-forwards nécessaires
+* ✅ Vérifie la connectivité de chaque service
+* ✅ Gère les conflits de ports sur Windows
+
+**Intégration :**
+[source,bash]
+----
+# Utilisé automatiquement par make dev
+make dev
+----
+
+**Services gérés :**
+* Frontend (port 8080)
+* API Gateway (port 9000)
+* MinIO (port 6700)
+* PostgreSQL (port 5432)
+* Redis (port 6379)
+
+=== fix-portforwards-dev-safe.py
+
+**Utilisation :** Version "safe" pour `make dev-data`
+
+**Fonctionnalités :**
+* ✅ Démarre uniquement les port-forwards manquants
+* ✅ Ne tue PAS les processus existants (comme les logs)
+* ✅ Compatible avec `make dev` en cours d'exécution
+
+**Intégration :**
+[source,bash]
+----
+# Utilisé automatiquement par make dev-data
+make dev-data
+----
+
+=== validate-kaggle-datasets.py
+
+**Utilisation :** Validation des datasets importés depuis Kaggle
+
+**Fonctionnalités :**
+* ✅ Vérifie que les datasets sont stockés avec des UUIDs
+* ✅ Valide la structure MinIO
+* ✅ Confirme que les fichiers sont au format Parquet
+* ✅ Détecte les fausses données
+
+**Intégration :**
+[source,bash]
+----
+# Utilisé automatiquement par make dev-data
+make dev-data
+----
+
+**Exemple de sortie :**
+[source,bash]
+----
+📊 Dataset: student_performance
+   ID: e76ac7f2-5351-446d-9471-97482e60393d
+   ✅ Storage path contient un UUID
+   ✅ Fichiers Parquet trouvés
+   ✅ Taille totale raisonnable (0.07 MB)
+   ✅ DATASET VALIDE
+----
+
+=== update-local-secrets.py
+
+**Utilisation :** Configuration des secrets depuis fichier `.env`
+
+**Fonctionnalités :**
+* ✅ Lit les variables depuis `.env`
+* ✅ Encode automatiquement en base64
+* ✅ Met à jour les fichiers YAML secrets
+* ✅ Prépare l'environnement pour `make dev`
+
+**Utilisation :**
+[source,bash]
+----
+# Après avoir créé votre fichier .env
+python scripts/development/update-local-secrets.py
+----
+
+**Fichier .env requis :**
+[source,bash]
+----
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ibis_x_dev
+JWT_SECRET_KEY=dev-secret-key-12345
+GOOGLE_CLIENT_ID=votre-google-client-id
+GOOGLE_CLIENT_SECRET=votre-google-client-secret
+OAUTH_REDIRECT_URL=http://localhost:4200/auth/callback
+KAGGLE_USERNAME=votre-username-kaggle
+KAGGLE_KEY=votre-cle-kaggle
+----
+
+=== reset-placeholders.py
+
+**Utilisation :** Nettoyage des secrets avant commit Git
+
+**Fonctionnalités :**
+* ✅ Trouve tous les fichiers `*secrets*.yaml`
+* ✅ Remplace les vraies valeurs par des placeholders
+* ✅ Évite de committer des secrets sensibles
+
+**Utilisation :**
+[source,bash]
+----
+# Nettoyer les secrets avant commit
+python scripts/development/reset-placeholders.py
+----
+
+**Exemple :**
+[source,yaml]
+----
+# AVANT (dangereux pour Git)
+secret-key: ma-vraie-cle-secrete-123
+google-client-id: 123456789-abc.apps.googleusercontent.com
+
+# APRÈS (sûr pour Git)
+secret-key: REPLACE_WITH_SECRET_KEY
+google-client-id: REPLACE_WITH_GOOGLE_CLIENT_ID
+----
+
+== Workflow de Développement
+
+=== Setup Initial
+
+[source,bash]
+----
+# 1. Créer le fichier .env avec vos credentials
+cp .env.example .env
+# Éditer .env avec vos vraies valeurs
+
+# 2. Configurer les secrets
+python scripts/development/update-local-secrets.py
+
+# 3. Lancer le développement local
+make dev
+----
+
+=== Avant Chaque Commit
+
+[source,bash]
+----
+# Nettoyer les secrets
+python scripts/development/reset-placeholders.py
+
+# Commit sécurisé
+git add .
+git commit -m "votre message"
+----
+
+=== Après Pull/Merge
+
+[source,bash]
+----
+# Reconfigurer les secrets locaux
+python scripts/development/update-local-secrets.py
+----
+
+== Dépannage
+
+=== Problème : "Variables manquantes dans .env"
+
+[source,bash]
+----
+# Vérifier votre fichier .env
+cat .env
+
+# Copier depuis l'exemple
+cp .env.example .env
+# Puis éditer avec vos valeurs
+----
+
+=== Problème : "Fichiers secrets non trouvés"
+
+[source,bash]
+----
+# Vérifier la structure
+ls -la k8s/base/*/secrets*.yaml
+ls -la k8s/overlays/*/secrets*.yaml
+----
+
+=== Problème : Secrets non appliqués en local
+
+[source,bash]
+----
+# Re-exécuter la configuration
+python scripts/development/update-local-secrets.py
+
+# Relancer le développement
+make dev-clean  # si nécessaire
+make dev
+----
+
+== Règles de Sécurité
+
+=== ✅ À FAIRE
+* **TOUJOURS** exécuter `reset-placeholders.py` avant commit
+* Garder le fichier `.env` en local uniquement
+* Utiliser des credentials de développement/test
+* Vérifier que `.env` est dans `.gitignore`
+
+=== ❌ À NE JAMAIS FAIRE
+* **JAMAIS** committer le fichier `.env`
+* **JAMAIS** committer des secrets réels dans les YAML
+* **JAMAIS** utiliser des credentials de production en local
+* **JAMAIS** partager le fichier `.env` publiquement
+
+== Fichiers Gérés
+
+Ces scripts modifient automatiquement :
+* `k8s/base/api-gateway/gateway-secrets.yaml`
+* `k8s/base/service-selection/kaggle-secrets.yaml`
+* `k8s/overlays/azure/oauth-redirect-patch.yaml`
+
+== Intégration avec Makefile
+
+Les scripts sont intégrés dans le Makefile pour une utilisation transparente :
+
+[source,makefile]
+----
+# Intégration automatique dans make dev
+dev-logs: stop-portforwards
+	@python scripts/development/fix-portforwards-permanent.py
+
+# Intégration automatique dans make dev-data
+dev-data: check-prerequisites
+	@python scripts/development/fix-portforwards-dev-safe.py
+	@python scripts/development/validate-kaggle-datasets.py
+
+# Commande manuelle pour corriger les port-forwards
+fix-portforwards:
+	@python scripts/development/fix-portforwards-permanent.py
+----
+
+TIP: **Conseil :** Automatisez avec un hook Git pour exécuter `reset-placeholders.py` avant chaque commit !
