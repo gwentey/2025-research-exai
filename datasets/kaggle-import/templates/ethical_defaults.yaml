@@ -58,7 +58,7 @@ healthcare:
   quality:
     data_errors_description: "Données de santé conformes RGPD"
 
-social:
+social-media:
   ethical:
     informed_consent: true
     transparency: true

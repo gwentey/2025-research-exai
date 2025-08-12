@@ -272,8 +272,8 @@ def get_storage_client() -> StorageClient:
             return AzureBlobStorageClient(endpoint, account_name, account_key, container_name)
     
     if storage_type == "minio":
-        # Configuration MinIO - utilise le port 6700 par défaut
-        endpoint = os.environ.get("MINIO_ENDPOINT", "http://minio-service.ibis-x.svc.cluster.local:6700")
+        # Configuration MinIO - utilise le port 80 par défaut (service standard)
+        endpoint = os.environ.get("MINIO_ENDPOINT", "http://minio-service.ibis-x.svc.cluster.local:80")
         access_key = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
         secret_key = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
         

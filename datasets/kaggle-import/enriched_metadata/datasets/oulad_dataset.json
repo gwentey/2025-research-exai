@@ -10,7 +10,7 @@
     "year": 2014,
     "objective": "Analyse de l'apprentissage en ligne dans l'enseignement supérieur. Dataset complet d'analytics d'apprentissage de l'Open University contenant des informations détaillées sur les cours, étudiants, évaluations et interactions avec l'environnement d'apprentissage virtuel.",
     "access": "public",
-    "availability": "online_download",
+    "availability": "online",
     "num_citations": 1800,
     "citation_link": "OULAD-Dataset",
     "sources": "https://www.kaggle.com/datasets/vjcalling/ouladdata",

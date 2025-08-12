@@ -71,6 +71,10 @@ class KaggleMetadataMapperV2:
                 specific_metadata['display_name'] = specific_metadata['dataset_name']
                 # Remplacer dataset_name par l'identifiant technique
                 specific_metadata['dataset_name'] = dataset_name
+            else:
+                # Fallback si dataset_name n'est pas dans les métadonnées spécifiques
+                specific_metadata['display_name'] = dataset_name
+                specific_metadata['dataset_name'] = dataset_name
             
             # 5. Merger les métadonnées (priorité : spécifiques > calculées > techniques)
             final_metadata = {**specific_metadata, **technical_data}
@@ -199,8 +203,10 @@ class KaggleMetadataMapperV2:
                         customized[key] = value.replace(placeholder, replacement)
         
         # Mettre à jour les champs spécifiques
+        display_name = kaggle_metadata.get('title', dataset_config.description)
         customized.update({
-            'dataset_name': kaggle_metadata.get('title', dataset_config.description),
+            'dataset_name': dataset_config.name,  # Identifiant technique
+            'display_name': display_name,         # Nom d'affichage
             'objective': kaggle_metadata.get('description', dataset_config.description),
             'sources': f"Kaggle Dataset: {getattr(dataset_config, 'kaggle_ref', '')}",
             'storage_uri': f"https://www.kaggle.com/datasets/{getattr(dataset_config, 'kaggle_ref', '')}",

@@ -38,8 +38,22 @@ CONFIG_FILE = KAGGLE_IMPORT_DIR / "kaggle_datasets_config.yaml"
 CACHE_DIR = KAGGLE_IMPORT_DIR / "cache"
 LOG_FILE = KAGGLE_IMPORT_DIR / "kaggle_import.log"
 
-# --- Configuration des services locaux (via port-forward) ---
-MINIO_ENDPOINT_URL = os.getenv("MINIO_ENDPOINT", "http://localhost:6700")
+# --- Configuration des services (détection automatique d'environnement) ---
+def get_minio_endpoint():
+    """Détermine l'endpoint MinIO selon l'environnement."""
+    if os.getenv("MINIO_ENDPOINT"):
+        return os.getenv("MINIO_ENDPOINT")
+    
+    # Détection automatique d'environnement
+    current_file = Path(__file__).absolute()
+    if "/app/kaggle-import" in str(current_file):
+        # ENVIRONNEMENT CONTAINER - utiliser le service Kubernetes
+        return "http://minio-service.ibis-x.svc.cluster.local:80"
+    else:
+        # ENVIRONNEMENT LOCAL - utiliser le port-forward
+        return "http://localhost:6700"
+
+MINIO_ENDPOINT_URL = get_minio_endpoint()
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://ibis_x_user:password@localhost:5432/ibis_x_db")
 
 # --- Paramètres de l'application ---

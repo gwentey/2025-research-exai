@@ -23,7 +23,7 @@ datasets:
     
   social_media_addiction:
     kaggle_ref: "adilshamim8/social-media-addiction-vs-relationships"
-    domain: "social-media"
+    domain: "social"
     description: "Social media usage and mental health correlation"
     ml_task: "classification"
     target_column: "addiction_level"

@@ -10,7 +10,7 @@
     "year": 2020,
     "objective": "Prédiction de la réussite aux exercices dans un système de tutorat en ligne. Dataset EdNet pour la recherche en éducation personnalisée et systèmes d'apprentissage adaptatifs.",
     "access": "public",
-    "availability": "online_download",
+    "availability": "online",
     "num_citations": 50,
     "citation_link": "https://www.kaggle.com/competitions/riiid-test-answer-prediction/data",
     "sources": "https://www.kaggle.com/competitions/riiid-test-answer-prediction",

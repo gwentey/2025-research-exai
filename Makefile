@@ -6,7 +6,7 @@ ARGS ?=
 NAMESPACE ?= ibis-x
 TIMEOUT ?= 300s
 
-# Ports MinIO
+# Ports MinIO (standardisés)
 MINIO_API_PORT ?= 6700
 MINIO_CONSOLE_PORT ?= 6701
 
@@ -143,8 +143,8 @@ start-portforwards: stop-portforwards ## Lance les port forwards dans le même t
 	@echo "$(YELLOW)Lancement des port-forwards en arriere-plan...$(NC)"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6700:6700'"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:6701'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6700:80'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:8080'"
 	@echo "$(YELLOW)Attente de l'etablissement des port forwards...$(NC)"
 	@sleep 12
 	@echo "$(YELLOW)Verification des port forwards...$(NC)"
@@ -169,7 +169,7 @@ start-portforwards-resilient: stop-portforwards ## Lance les port forwards FONCT
 	@echo "$(YELLOW)Demarrage direct des port-forwards dans Git Bash...$(NC)"
 	@kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
 	@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
-	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6700:6700
+	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6700:80
 	
 	@echo "$(YELLOW)Attente etablissement des connexions (10 secondes)...$(NC)"
 	@sleep 10
@@ -265,17 +265,15 @@ migrate: wait-services migrate-jobs ## Lance les migrations (attend les services
 
 dev: clean-namespace check-prerequisites update-secrets start-minikube create-namespace docker-env deploy wait-services wait-migrations show-access dev-logs ## Installation complète UUID - Upload datasets via interface utilisateur
 
-dev-logs: stop-portforwards ## Lance les port-forwards et reste avec les logs (target interne pour dev)
+dev-logs: stop-portforwards ## Lance les port-forwards robustes et reste avec les logs (target interne pour dev)
 	@echo ""
-	@echo "$(BLUE)🚀 LANCEMENT DES LOGS EN TEMPS REEL AVEC PORT-FORWARDS$(NC)"
-	@echo "$(YELLOW)Nettoyage des anciens port-forwards...$(NC)"
-	@echo "$(YELLOW)Lancement des port-forwards...$(NC)"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','$(MINIO_API_PORT):6700'"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','$(MINIO_CONSOLE_PORT):6701'"
-	@powershell.exe -Command "Start-Sleep -Seconds 8"
-	@echo "$(GREEN)✅ Port-forwards actifs !$(NC)"
+	@echo "$(BLUE)🚀 LANCEMENT DES PORT-FORWARDS ROBUSTES$(NC)"
+	@echo "$(YELLOW)Nettoyage automatique et démarrage des port-forwards stables...$(NC)"
+	@python scripts/development/fix-portforwards-permanent.py
+	@echo "$(GREEN)✅ Port-forwards robustes démarrés avec succès$(NC)"
+	@powershell.exe -Command "try { Invoke-WebRequest -Uri http://localhost:9000/health -Method GET -TimeoutSec 5 -UseBasicParsing | Out-Null; Write-Host '$(GREEN)✓ API Gateway accessible$(NC)' } catch { Write-Host '$(YELLOW)⚠ API Gateway pas encore prêt - attendez quelques secondes$(NC)' }"
+	@powershell.exe -Command "try { Invoke-WebRequest -Uri http://localhost:8080 -Method GET -TimeoutSec 5 -UseBasicParsing | Out-Null; Write-Host '$(GREEN)✓ Frontend accessible$(NC)' } catch { Write-Host '$(YELLOW)⚠ Frontend pas encore prêt - attendez quelques secondes$(NC)' }"
+	@echo "$(GREEN)✅ Application déployée et accessible !$(NC)"
 	@echo ""
 	@echo "$(GREEN)🌐 Application accessible sur :$(NC)"
 	@echo "  $(GREEN)► Frontend:      http://localhost:8080$(NC)"
@@ -308,7 +306,7 @@ dev-logs: stop-portforwards ## Lance les port-forwards et reste avec les logs (t
 clean-namespace: ## Nettoie le namespace avant de démarrer
 	@echo "$(BLUE)Nettoyage du namespace ibis-x...$(NC)"
 	-@kubectl delete namespace ibis-x --force --grace-period=0 2>$(NULL) || echo "Namespace deja propre"
-	@sleep 3
+	@powershell.exe -Command "Start-Sleep -Seconds 3"
 	@echo "$(GREEN)Namespace nettoye$(NC)"
 
 dev-watch: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy-services-dev wait-services migrate-jobs init-data watch-portforwards ## Mode développement AVANCÉ avec surveillance automatique des fichiers (optionnel)
@@ -350,7 +348,7 @@ logs: ## Affiche les logs en temps réel avec port-forwards automatiques (EXACT 
 	@echo "$(YELLOW)Lancement des port-forwards...$(NC)"
 	@kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
 	@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
-	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6700:6700
+	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6700:80
 	
 	@sleep 3
 	@echo "$(GREEN)✅ Port-forwards actifs !$(NC)"
@@ -384,8 +382,8 @@ quick-logs: ## Affiche les logs dans le même terminal (Ctrl+C pour arrêter)
 stop-portforwards: ## Arrête tous les port forwards actifs PROPREMENT 
 	@echo "$(BLUE)Arret de tous les port forwards et logs...$(NC)"
 	@echo "$(YELLOW)Arret des processus kubectl en arriere-plan...$(NC)"
-	-@pkill -f "kubectl.*port-forward" 2>/dev/null || true
-	@sleep 3
+	-@powershell.exe -Command "Get-Process -Name kubectl -ErrorAction SilentlyContinue | Where-Object { $$_.CommandLine -like '*port-forward*' } | Stop-Process -Force" 2>$(NULL) || echo ""
+	@powershell.exe -Command "Start-Sleep -Seconds 3"
 	@echo "$(GREEN)✓ Tous les port forwards et logs arretes$(NC)"
 
 clean-logs: stop-portforwards ## Nettoie tous les processus kubectl qui traînent (équivalent ancien Ctrl+C)
@@ -428,8 +426,8 @@ fix-portforwards: ## CORRECTION IMMEDIATE - Script automatique qui fonctionne vr
 
 # Cible réutilisable : lance les port-forwards MinIO (API + Console)
 start-minio-portforwards:
-	@kubectl port-forward -n $(NAMESPACE) service/minio-service $(MINIO_API_PORT):6700 > /dev/null 2>&1 &
-	@kubectl port-forward -n $(NAMESPACE) service/minio-service $(MINIO_CONSOLE_PORT):6701 > /dev/null 2>&1 &
+	@kubectl port-forward -n $(NAMESPACE) service/minio-service $(MINIO_API_PORT):80 > /dev/null 2>&1 &
+	@kubectl port-forward -n $(NAMESPACE) service/minio-service $(MINIO_CONSOLE_PORT):8080 > /dev/null 2>&1 &
 	@sleep 2
 
 start-portforwards-simple: ## Port-forwards simples (3 commandes à copier-coller)
@@ -439,8 +437,8 @@ start-portforwards-simple: ## Port-forwards simples (3 commandes à copier-colle
 	@echo ""
 	@echo "$(GREEN)kubectl port-forward -n ibis-x service/frontend 8080:80$(NC)"
 	@echo "$(GREEN)kubectl port-forward -n ibis-x service/api-gateway-service 9000:80$(NC)"  
-	@echo "$(GREEN)kubectl port-forward -n ibis-x service/minio-service 6700:6700
-	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:6701$(NC)"
+	@echo "$(GREEN)kubectl port-forward -n ibis-x service/minio-service 6700:80
+	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:8080$(NC)"
 	@echo ""
 	@echo "$(BLUE)Puis allez sur http://localhost:8080$(NC)"
 
@@ -462,40 +460,15 @@ healthcheck: ## Vérifie l'état de santé des services et port-forwards
 	@echo "$(BLUE)Verification de l'etat des services...$(NC)"
 	@curl -fsS --max-time 2 http://localhost:8080 >/dev/null 2>&1 && echo "$(GREEN)✓ Frontend OK (port 8080)$(NC)" || echo "$(RED)✗ Frontend ECHEC (port 8080)$(NC)"
 	@curl -fsS --max-time 2 http://localhost:9000/health >/dev/null 2>&1 && echo "$(GREEN)✓ API Gateway OK (port 9000)$(NC)" || echo "$(RED)✗ API Gateway ECHEC (port 9000)$(NC)"
-	@curl -fsS --max-time 2 http://localhost:$(MINIO_API_PORT) >/dev/null 2>&1 && echo "$(GREEN)✓ MinIO API OK (port $(MINIO_API_PORT))$(NC)" || echo "$(YELLOW)! MinIO non disponible (port $(MINIO_API_PORT))$(NC)"
+	@curl -fsS --max-time 2 http://localhost:$(MINIO_API_PORT)/minio/health/ready >/dev/null 2>&1 && echo "$(GREEN)✓ MinIO API OK (port $(MINIO_API_PORT))$(NC)" || echo "$(YELLOW)! MinIO non disponible (port $(MINIO_API_PORT))$(NC)"
 
 dev-data: check-kaggle-credentials ## Import automatique des VRAIS datasets Kaggle pour développement local
 	@echo "$(BLUE)🚀 Import automatique des VRAIS datasets Kaggle pour developpement...$(NC)"
 	@echo "$(YELLOW)ATTENTION: Cette operation va telecharger les vrais datasets depuis Kaggle$(NC)"
 	@echo "$(YELLOW)Cela peut prendre plusieurs minutes selon votre connexion internet$(NC)"
-	@echo "$(YELLOW)Verification que l'application IBIS-X est accessible...$(NC)"
-	@curl -fsS --max-time 3 http://localhost:8080 >/dev/null 2>&1 && echo "$(GREEN)✅ IBIS-X Frontend accessible sur localhost:8080$(NC)" || \
-		(curl -fsS --max-time 3 http://localhost:9000/health >/dev/null 2>&1 && echo "$(GREEN)✅ IBIS-X API accessible sur localhost:9000$(NC)" || \
-		echo "$(YELLOW)⚠️ Services pas accessibles - lancement des port-forwards$(NC)")
-	
-	@echo "$(YELLOW)Configuration des port-forwards pour accès local...$(NC)"
-	@echo "$(YELLOW)Arrêt des anciens port-forwards...$(NC)"
-	@-pkill -f "kubectl.*port-forward" 2>/dev/null || true
-	@sleep 2
-	
-	@echo "$(YELLOW)Lancement des port-forwards nécessaires...$(NC)"
-	@kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
-	@kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
-	@$(MAKE) start-minio-portforwards > /dev/null 2>&1 &
-	@kubectl port-forward -n $(NAMESPACE) service/postgresql-service 5432:5432 > /dev/null 2>&1 &
-	
-	@echo "$(YELLOW)Attente que les services soient prêts à accepter les connexions...$(NC)"
-	@bash -c ' \
-		for i in $$(seq 1 30); do \
-			if curl -fsS --max-time 2 http://localhost:9000/health >/dev/null 2>&1 && \
-			   curl -fsS --max-time 2 http://localhost:$(MINIO_API_PORT) >/dev/null 2>&1 && \
-			   nc -z localhost 5432 >/dev/null 2>&1; then \
-				echo "$(GREEN)✅ Tous les services sont accessibles !$(NC)"; \
-				break; \
-			fi; \
-			echo "Attente des services... ($$i/30)"; \
-			sleep 2; \
-		done'
+	@echo "$(YELLOW)Verification et démarrage automatique des port-forwards (safe pour logs)...$(NC)"
+	@python scripts/development/fix-portforwards-dev-safe.py
+	@echo "$(GREEN)✅ Tous les services sont accessibles et prêts !$(NC)"
 	
 	@echo "$(YELLOW)Lancement de l'import Kaggle avec structure UUID...$(NC)"
 	@cd datasets/kaggle-import && python main.py --force-refresh $(ARGS)
@@ -568,8 +541,8 @@ start-portforwards-final: ## Solution AUTOMATIQUE - PowerShell direct
 	@echo "$(YELLOW)Lancement des port-forwards avec PowerShell...$(NC)"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'; Start-Sleep -Seconds 2"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'; Start-Sleep -Seconds 2"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6700:6700'"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:6701'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6700:80'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:8080'"
 	@echo "$(YELLOW)Attente etablissement des connexions (10 secondes)...$(NC)"
 	@powershell.exe -Command "Start-Sleep -Seconds 10"
 	@echo ""
@@ -590,8 +563,8 @@ start-portforwards-auto: ## Lance automatiquement les port-forwards avec PowerSh
 	@echo "$(YELLOW)Lancement des port-forwards en arriere-plan...$(NC)"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6700:6700'"
-	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:6701'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6700:80'"
+	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:8080'"
 	@sleep 3
 	@echo "$(GREEN)✅ Port-forwards lances automatiquement !$(NC)"
 	@echo "$(GREEN)  ► Frontend:      http://localhost:8080$(NC)"

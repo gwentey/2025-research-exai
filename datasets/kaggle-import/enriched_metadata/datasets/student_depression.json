@@ -10,7 +10,7 @@
     "year": 2024,
     "objective": "Analyzing mental health trends and predictors among students. Analyse de santé mentale se concentrant sur la dépression chez les étudiants pour soutenir les interventions en santé mentale dans les institutions éducatives.",
     "access": "public",
-    "availability": "online_download",
+    "availability": "online",
     "num_citations": 0,
     "citation_link": null,
     "sources": "https://www.kaggle.com/datasets/adilshamim8/student-depression-dataset",

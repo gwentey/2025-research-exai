@@ -10,7 +10,7 @@
     "year": 2018,
     "objective": "Understand influence of parents background, test preparation on students performance. Analyse complète des performances étudiantes en mathématiques, lecture et écriture selon différents groupes démographiques.",
     "access": "public",
-    "availability": "online_download",
+    "availability": "online",
     "num_citations": 0,
     "citation_link": "http://roycekimmons.com/tools/generated_data/exams",
     "sources": "https://www.kaggle.com/datasets/spscientist/students-performance-in-exams",

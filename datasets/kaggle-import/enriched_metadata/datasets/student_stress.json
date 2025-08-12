@@ -10,7 +10,7 @@
     "year": 2023,
     "objective": "Understanding what impacts stress levels among engineering students based on sleep, headaches, academic performance, study load, extracurricular activities. Analyse des facteurs contribuant aux niveaux de stress étudiant pour interventions de bien-être éducatif.",
     "access": "public",
-    "availability": "online_download",
+    "availability": "online",
     "num_citations": 0,
     "citation_link": null,
     "sources": "https://www.kaggle.com/datasets/samyakb/student-stress-factors",
