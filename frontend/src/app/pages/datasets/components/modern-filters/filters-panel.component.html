@@ -8,7 +8,8 @@
     <div class="header-content">
       <div class="header-main">
         <div class="header-icon-wrapper">
-          <mat-icon class="panel-icon">tune</mat-icon>
+          <!-- REMPLACEMENT RADICAL: span au lieu de mat-icon -->
+          <span class="forced-tune-icon">tune</span>
         </div>
         <div class="header-text">
           <h2 class="panel-title">{{ 'DATASETS.FILTERS.MODERN.TITLE' | translate }}</h2>
@@ -27,12 +28,8 @@
       </div>
     </div>
 
-    <!-- Chips des filtres actifs - repositionnés -->
+    <!-- Chips des filtres actifs - clean et organisé -->
     <div class="active-filters-section" *ngIf="hasActiveFilters()">
-      <div class="filters-indicator">
-        <mat-icon class="indicator-icon">filter_list</mat-icon>
-        <span class="indicator-text">{{ getActiveFiltersCount() }} filtre(s) actif(s)</span>
-      </div>
       <app-filter-chip-bar
         [activeFilters]="getActiveFiltersForChips()"
         (removeFilter)="removeFilter($event)"

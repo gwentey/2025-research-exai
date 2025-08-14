@@ -1,0 +1,164 @@
+// ===============================================
+// ULTRA FORCE 48PX - DERNIÈRE SOLUTION
+// ===============================================
+
+:host {
+  .modern-search-toolbar {
+    // RESET COMPLET - TOUS LES ÉLÉMENTS À 48PX
+    * {
+      box-sizing: border-box !important;
+    }
+
+    // FORCE GLOBALE - TOUS LES INPUTS ET SELECTS
+    input,
+    select,
+    button,
+    .mat-mdc-form-field,
+    .mat-mdc-text-field-wrapper,
+    .mat-mdc-form-field-flex,
+    .mat-mdc-form-field-infix,
+    .mat-mdc-select,
+    .mat-mdc-select-trigger,
+    .mat-button-toggle,
+    .mat-mdc-button {
+      height: 48px !important;
+      max-height: 48px !important;
+      min-height: 48px !important;
+      line-height: 48px !important;
+    }
+
+    // SUPPRESSION BRUTALE DE TOUS LES ÉLÉMENTS INDÉSIRABLES
+    .mat-mdc-form-field-subscript-wrapper,
+    .mat-mdc-form-field-bottom-align,
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-error-wrapper,
+    .mat-mdc-form-field-required-marker {
+      display: none !important;
+      height: 0 !important;
+      visibility: hidden !important;
+      position: absolute !important;
+      left: -9999px !important;
+    }
+
+    // CONTENEURS SPÉCIFIQUES
+    .search-group,
+    .filters-group,
+    .view-controls-group,
+    .secondary-actions {
+      height: 48px !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+
+    // CHAMPS SPÉCIFIQUES AVEC SÉLECTEURS ULTRA-PRÉCIS
+    .modern-search-field {
+      height: 48px !important;
+      width: 300px !important;
+
+      .mat-mdc-form-field {
+        height: 48px !important;
+
+        .mat-mdc-text-field-wrapper {
+          height: 48px !important;
+
+          .mat-mdc-form-field-flex {
+            height: 48px !important;
+
+            .mat-mdc-form-field-infix {
+              height: 48px !important;
+              padding-top: 0 !important;
+              padding-bottom: 0 !important;
+              border-top: none !important;
+
+              input {
+                height: 48px !important;
+                line-height: 48px !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .modern-sort-field {
+      height: 48px !important;
+      width: 216px !important;
+
+      .mat-mdc-form-field {
+        height: 48px !important;
+
+        .mat-mdc-text-field-wrapper {
+          height: 48px !important;
+
+          .mat-mdc-form-field-flex {
+            height: 48px !important;
+
+            .mat-mdc-form-field-infix {
+              height: 48px !important;
+              padding-top: 0 !important;
+              padding-bottom: 0 !important;
+
+              .mat-mdc-select {
+                height: 48px !important;
+                line-height: 48px !important;
+
+                .mat-mdc-select-trigger {
+                  height: 48px !important;
+                  line-height: 48px !important;
+                }
+
+                .mat-mdc-select-value {
+                  height: 48px !important;
+                  line-height: 48px !important;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .modern-filters-btn {
+      height: 48px !important;
+      width: auto !important;
+      padding: 0 20px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: 2px solid #e2e8f0 !important;
+      background: #f8fafc !important;
+    }
+
+    .modern-view-toggle {
+      height: 48px !important;
+
+      .mat-button-toggle {
+        width: 48px !important;
+        height: 48px !important;
+        border: none !important;
+
+        .mat-button-toggle-label-content {
+          height: 48px !important;
+          line-height: 48px !important;
+          padding: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+      }
+    }
+
+    .refresh-btn {
+      width: 48px !important;
+      height: 48px !important;
+      border: 2px solid #e2e8f0 !important;
+      background: #f8fafc !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+  }
+}

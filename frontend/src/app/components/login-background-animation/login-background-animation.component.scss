@@ -20,6 +20,73 @@
   pointer-events: auto !important;
   touch-action: none !important; // Bloquer interactions touch par défaut
 
+  // ✨ ==== LOADER MODERNE ÉLÉGANT ====
+  .modern-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent; // ✅ COMPLÈTEMENT TRANSPARENT - pas de carré blanc !
+    border-radius: 12px;
+    z-index: 10;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.fade-out {
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+
+        .loader-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      .sorbonne-spinner {
+        position: relative;
+        width: 60px;
+        height: 60px;
+
+        .spinner-ring {
+          position: absolute;
+          border: 2px solid transparent;
+          border-radius: 50%;
+          animation: sorbonne-spin 2s linear infinite;
+
+          &:nth-child(1) {
+            width: 60px;
+            height: 60px;
+            border-top-color: #242e54; // Bleu Sorbonne
+            animation-delay: 0s;
+          }
+
+          &:nth-child(2) {
+            width: 45px;
+            height: 45px;
+            top: 7.5px;
+            left: 7.5px;
+            border-right-color: #d4a574; // Doré Sorbonne
+            animation-delay: -0.4s;
+            animation-direction: reverse;
+          }
+
+          &:nth-child(3) {
+            width: 30px;
+            height: 30px;
+            top: 15px;
+            left: 15px;
+            border-bottom-color: #5c6fb3; // Bleu clair Sorbonne
+            animation-delay: -0.8s;
+          }
+        }
+      }
+    }
+  }
+
   .three-canvas {
     position: absolute;
     top: 0;
@@ -190,9 +257,49 @@
   }
 }
 
+// ✨ ==== ANIMATIONS MODERNES POUR LE LOADER ====
+
+// Animation de rotation des anneaux du spinner
+@keyframes sorbonne-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Animation des points de chargement - SUPPRIMÉE (plus utilisée)
+
+// Animation d'apparition du loader
+@keyframes loader-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 // Performance optimizations
 .animation-container {
   will-change: auto;
+
+  .modern-loader {
+    will-change: opacity;
+    transform: translateZ(0); // Force GPU acceleration
+    animation: loader-fade-in 0.4s ease-out;
+
+    .sorbonne-spinner {
+      will-change: transform;
+
+      .spinner-ring {
+        will-change: transform;
+      }
+    }
+  }
 
   .three-canvas {
     will-change: opacity;
@@ -202,5 +309,75 @@
   .fallback-gradient {
     will-change: opacity;
     transform: translateZ(0); // Force GPU acceleration
+  }
+}
+
+// ✨ Responsive design pour le loader
+@media (max-width: 768px) {
+  .animation-container {
+    .modern-loader {
+      .loader-content {
+        .sorbonne-spinner {
+          width: 45px;
+          height: 45px;
+
+          .spinner-ring {
+            &:nth-child(1) {
+              width: 45px;
+              height: 45px;
+            }
+
+            &:nth-child(2) {
+              width: 34px;
+              height: 34px;
+              top: 5.5px;
+              left: 5.5px;
+            }
+
+            &:nth-child(3) {
+              width: 23px;
+              height: 23px;
+              top: 11px;
+              left: 11px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// ✨ Mode sombre support - SIMPLIFIÉ (plus de texte)
+@media (prefers-color-scheme: dark) {
+  .animation-container {
+    .modern-loader {
+      background: transparent; // ✅ RESTER TRANSPARENT même en mode sombre !
+    }
+  }
+}
+
+// ✨ Réduction de mouvement - version simplifiée du loader (plus de texte à gérer)
+@media (prefers-reduced-motion: reduce) {
+  .animation-container {
+    .modern-loader {
+      .sorbonne-spinner .spinner-ring {
+        animation: none !important;
+
+        &:nth-child(1) {
+          border-top-color: #242e54;
+          border-right-color: transparent;
+          border-bottom-color: transparent;
+          border-left-color: transparent;
+        }
+
+        &:nth-child(2) {
+          opacity: 0.6;
+        }
+
+        &:nth-child(3) {
+          opacity: 0.3;
+        }
+      }
+    }
   }
 }

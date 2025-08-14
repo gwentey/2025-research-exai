@@ -8,12 +8,28 @@ declare var THREE: any;
 @Component({
   selector: 'app-login-background-animation',
   standalone: true,
-  template: `
+    template: `
     <div class="animation-container" [class.mobile-fallback]="isMobile">
+      <!-- ✨ Loader moderne élégant -->
+      <div class="modern-loader"
+           [style.opacity]="loaderOpacity"
+           [class.fade-out]="isLoaderFadingOut">
+        <div class="loader-content">
+          <div class="sorbonne-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Animation 3D Three.js -->
       <canvas #threeCanvas
               class="three-canvas"
               [style.opacity]="canvasOpacity">
       </canvas>
+
+      <!-- Fallback gradient (transparent par défaut) -->
       <div class="fallback-gradient"
            [class.active-fallback]="showColoredFallback"
            [style.opacity]="fallbackOpacity"></div>
@@ -43,6 +59,10 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   public canvasOpacity = 0;
   public fallbackOpacity = 0; // ✅ Commencer transparent, pas de fond bleu au chargement
   public showColoredFallback = false; // ✅ Contrôler si le gradient coloré doit s'afficher
+
+  // ✨ Loader moderne
+  public loaderOpacity = 1; // ✅ Commencer avec le loader visible
+  public isLoaderFadingOut = false;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -312,10 +332,12 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.setupBasicEventListeners();
     console.log('✅ Event listeners set up');
 
-    // Start animation
+    // Start animation avec transition fluide du loader
     console.log('🎨 Showing canvas and starting animation...');
-    this.canvasOpacity = 1;
-    this.fallbackOpacity = 0;
+
+    // ✨ Transition fluide : cacher le loader puis montrer l'animation
+    this.hideLoaderAndShowAnimation();
+
     this.isAnimating = true;
     console.log('🔄 Animation status:', this.isAnimating);
     console.log('🎯 Rotating group exists:', !!this.rotatingGroup);
@@ -450,15 +472,39 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.renderer.render(this.scene, this.camera);
   }
 
-  private showFallback(): void {
+    private showFallback(): void {
     console.log('🔙 Animation failed, staying transparent (no blue background)');
     this.canvasOpacity = 0;
     // ✅ Rester transparent au lieu de montrer le gradient bleu !
     this.fallbackOpacity = 0;
     this.showColoredFallback = false; // ✅ Pas de gradient coloré
 
+    // ✨ Cacher le loader même en cas d'échec
+    this.hideLoaderAndShowAnimation();
+
     // ✅ OPTION : Décommentez la ligne suivante si vous voulez un fallback coloré en cas d'échec critique
     // this.showColoredFallback = true; this.fallbackOpacity = 1;
+  }
+
+  // ✨ Fonction pour gérer la transition fluide du loader vers l'animation
+  private hideLoaderAndShowAnimation(): void {
+    console.log('✨ Starting loader fade-out transition...');
+
+    // Démarrer l'animation de fade-out du loader
+    this.isLoaderFadingOut = true;
+
+    // Après 600ms (durée de l'animation de fade-out), cacher complètement le loader
+    setTimeout(() => {
+      this.loaderOpacity = 0;
+      console.log('✅ Loader hidden');
+    }, 600);
+
+    // Faire apparaître l'animation 3D avec un petit délai pour une transition fluide
+    setTimeout(() => {
+      this.canvasOpacity = 1;
+      this.fallbackOpacity = 0;
+      console.log('✅ 3D animation visible');
+    }, 300);
   }
 
   private cleanup(): void {

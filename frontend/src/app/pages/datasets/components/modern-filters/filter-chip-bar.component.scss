@@ -61,10 +61,22 @@
   }
 
   .clear-all-btn {
-    @include tokens.filters-button-secondary;
-    font-size: var(--filters-font-size-xs);
-    padding: var(--filters-space-xs) var(--filters-space-sm);
+    // STYLE SIMPLE SANS ENCADRÉ
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: #dc2626 !important;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 12px;
     min-height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
 
     @include tokens.filters-mobile-only {
       align-self: flex-end;
@@ -76,9 +88,21 @@
       }
     }
 
+    mat-icon {
+      color: #dc2626 !important;
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
     &:hover {
-      color: var(--filters-text-error);
-      border-color: var(--filters-border-error);
+      background: rgba(220, 38, 38, 0.1) !important;
+      color: #dc2626 !important;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 }
@@ -96,8 +120,10 @@
     .chips-set {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--filters-space-sm);
+      gap: 12px; // ESPACEMENT FIXE PLUS GÉNÉREUX
       align-items: center;
+      margin: 0;
+      padding: 0;
     }
   }
 
@@ -121,45 +147,76 @@
 // ==================================================
 
 .filter-chip {
-  @include tokens.filters-chip;
-  height: 32px;
-  font-size: var(--filters-font-size-sm);
-  max-width: 200px;
-  transition: all var(--filters-transition-fast);
-  animation: filters-chip-appear 0.2s var(--filters-transition-base);
+  // STYLE MAT-CHIP RESTAURÉ AVEC ARRONDI
+  background: rgba(79, 70, 229, 0.1) !important;
+  color: #4f46e5 !important;
+  border: 1px solid rgba(79, 70, 229, 0.2) !important;
+  border-radius: 24px !important; // ARRONDI RESTAURÉ
 
-  // Couleurs par type de filtre
+  height: 36px; // HAUTEUR PLUS GÉNÉREUSE
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  max-width: 250px; // LARGEUR PLUS GÉNÉREUSE
+  min-width: auto;
+  transition: all 0.2s ease !important;
+  animation: filters-chip-appear 0.2s ease;
+
+  // ESPACEMENT INTERNE AMÉLIORÉ
+  padding: 8px 12px 8px 16px !important;
+  margin: 0 4px 4px 0 !important; // MARGE EXTERNE POUR ÉVITER CHEVAUCHEMENT
+
+  // POSITIONNEMENT POUR ÉVITER SUPERPOSITION
+  position: relative !important;
+  z-index: 1 !important;
+
+  // FLEXBOX POUR ORGANISATION INTERNE
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+
+  // RESET Material Angular Chips si conflit
+  &.mat-chip,
+  &.mat-mdc-chip {
+    background: rgba(79, 70, 229, 0.1) !important;
+    color: #4f46e5 !important;
+    border-radius: 24px !important;
+  }
+
+  // Couleurs par type de filtre - ARRONDI MAINTENU
   &[data-filter-key*="name"],
   &[data-filter-key*="objective"] {
-    background: rgba(36, 46, 84, 0.1);
-    color: var(--filters-primary);
-    border-color: rgba(36, 46, 84, 0.2);
+    background: rgba(36, 46, 84, 0.1) !important;
+    color: #242e54 !important;
+    border: 1px solid rgba(36, 46, 84, 0.2) !important;
+    border-radius: 24px !important;
 
     &:hover {
-      background: rgba(36, 46, 84, 0.15);
+      background: rgba(36, 46, 84, 0.15) !important;
     }
   }
 
   &[data-filter-key*="domain"],
   &[data-filter-key*="task"] {
-    background: rgba(78, 205, 196, 0.1);
-    color: var(--filters-accent);
-    border-color: rgba(78, 205, 196, 0.2);
+    background: rgba(34, 197, 94, 0.1) !important;
+    color: #16a34a !important;
+    border: 1px solid rgba(34, 197, 94, 0.2) !important;
+    border-radius: 24px !important;
 
     &:hover {
-      background: rgba(78, 205, 196, 0.15);
+      background: rgba(34, 197, 94, 0.15) !important;
     }
   }
 
   &[data-filter-key*="instances"],
   &[data-filter-key*="features"],
   &[data-filter-key*="year"] {
-    background: rgba(245, 158, 11, 0.1);
-    color: #d97706;
-    border-color: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #d97706 !important;
+    border: 1px solid rgba(245, 158, 11, 0.2) !important;
+    border-radius: 24px !important;
 
     &:hover {
-      background: rgba(245, 158, 11, 0.15);
+      background: rgba(245, 158, 11, 0.15) !important;
     }
   }
 
@@ -167,12 +224,13 @@
   &[data-filter-key*="quality"],
   &[data-filter-key*="is_"],
   &[data-filter-key*="has_"] {
-    background: rgba(34, 197, 94, 0.1);
-    color: #16a34a;
-    border-color: rgba(34, 197, 94, 0.2);
+    background: rgba(168, 85, 247, 0.1) !important;
+    color: #7c3aed !important;
+    border: 1px solid rgba(168, 85, 247, 0.2) !important;
+    border-radius: 24px !important;
 
     &:hover {
-      background: rgba(34, 197, 94, 0.15);
+      background: rgba(168, 85, 247, 0.15) !important;
     }
   }
 
@@ -186,16 +244,40 @@
   .chip-remove-btn {
     color: inherit;
     opacity: 0.7;
-    transition: opacity var(--filters-transition-fast);
+    transition: all 0.2s ease;
+
+    // ÉVITER LES SUPERPOSITIONS
+    position: relative !important;
+    z-index: 10 !important;
+    margin-left: 8px !important;
+    padding: 2px !important;
+    border-radius: 50% !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    mat-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
 
     &:hover {
       opacity: 1;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(220, 38, 38, 0.9) !important;
+      color: white !important;
+      transform: scale(1.1) !important;
     }
 
     &:focus-visible {
       outline: 2px solid currentColor;
       outline-offset: 1px;
+    }
+
+    &:active {
+      transform: scale(0.95) !important;
     }
   }
 

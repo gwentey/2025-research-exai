@@ -98,6 +98,115 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
     this.canUploadDatasets$ = this.roleService.canUploadDatasets();
 
     this.loadDatasets();
+
+    // FORCE DIMENSIONS VIA JAVASCRIPT - SOLUTION NUCLÉAIRE
+    setTimeout(() => {
+      this.forceDimensions();
+      // Re-force toutes les 500ms pour s'assurer que ça tient
+      setInterval(() => {
+        this.forceDimensions();
+      }, 500);
+    }, 100);
+  }
+
+    /**
+   * Force toutes les dimensions à 48px via JavaScript - VERSION NUCLÉAIRE
+   */
+  private forceDimensions(): void {
+    console.log('🚀 DÉBUT FORCE NUCLÉAIRE DES DIMENSIONS');
+
+    // TOUS LES SÉLECTEURS POSSIBLES POUR MATERIAL DESIGN
+    const allSelectors = [
+      // Barre de recherche - TOUS LES NIVEAUX
+      '.modern-search-field',
+      '.modern-search-field .mat-mdc-form-field',
+      '.modern-search-field .mat-mdc-text-field-wrapper',
+      '.modern-search-field .mat-mdc-form-field-flex',
+      '.modern-search-field .mat-mdc-form-field-infix',
+      '.modern-search-field input',
+      '.modern-search-field .mdc-text-field',
+      // Dropdown tri - TOUS LES NIVEAUX
+      '.modern-sort-field',
+      '.modern-sort-field .mat-mdc-form-field',
+      '.modern-sort-field .mat-mdc-text-field-wrapper',
+      '.modern-sort-field .mat-mdc-form-field-flex',
+      '.modern-sort-field .mat-mdc-form-field-infix',
+      '.modern-sort-field .mat-mdc-select',
+      '.modern-sort-field .mat-mdc-select-trigger',
+      '.modern-sort-field .mdc-text-field',
+      // Boutons
+      '.modern-filters-btn',
+      '.refresh-btn',
+      '.modern-view-toggle',
+      '.modern-view-toggle .mat-button-toggle'
+    ];
+
+    allSelectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      console.log(`🎯 Selector: ${selector} - ${elements.length} éléments trouvés`);
+
+            elements.forEach((element: any, index) => {
+        if (element) {
+          const oldHeight = element.offsetHeight;
+
+          // FORCE HAUTEUR SEULEMENT - PAS LES AUTRES PROPS POUR BOUTONS
+          element.style.setProperty('height', '48px', 'important');
+          element.style.setProperty('max-height', '48px', 'important');
+          element.style.setProperty('min-height', '48px', 'important');
+
+          // FORCE PLUS AGGRESSIVE SEULEMENT POUR LES FORM FIELDS
+          if (element.classList.contains('mat-mdc-form-field') ||
+              element.querySelector('.mat-mdc-form-field') ||
+              selector.includes('search-field') ||
+              selector.includes('sort-field')) {
+            element.style.setProperty('line-height', '48px', 'important');
+            element.style.setProperty('box-sizing', 'border-box', 'important');
+            element.style.setProperty('padding-top', '0', 'important');
+            element.style.setProperty('padding-bottom', '0', 'important');
+            element.style.setProperty('margin-top', '0', 'important');
+            element.style.setProperty('margin-bottom', '0', 'important');
+            element.style.setProperty('border-top', '0', 'important');
+            element.style.setProperty('border-bottom', '0', 'important');
+          }
+
+          // POUR LES BOUTONS - JUSTE CENTRER LE CONTENU
+          if (element.classList.contains('modern-filters-btn') ||
+              element.classList.contains('refresh-btn') ||
+              element.classList.contains('mat-button-toggle')) {
+            element.style.setProperty('display', 'flex', 'important');
+            element.style.setProperty('align-items', 'center', 'important');
+            element.style.setProperty('justify-content', 'center', 'important');
+            // PAS DE LINE-HEIGHT FORCÉ POUR LES BOUTONS
+          }
+
+          const newHeight = element.offsetHeight;
+          console.log(`   📏 Élément ${index}: ${oldHeight}px → ${newHeight}px`);
+
+          // SUPPRESSION BRUTALE DES SUBSCRIPTS (SEULEMENT FORM FIELDS)
+          if (selector.includes('search-field') || selector.includes('sort-field')) {
+            const subscripts = element.querySelectorAll('.mat-mdc-form-field-subscript-wrapper, .mat-mdc-form-field-bottom-align, .mat-mdc-form-field-hint-wrapper, .mat-mdc-form-field-error-wrapper');
+            subscripts.forEach((sub: any) => {
+              sub.style.setProperty('display', 'none', 'important');
+              sub.style.setProperty('height', '0', 'important');
+              sub.style.setProperty('visibility', 'hidden', 'important');
+            });
+          }
+        }
+      });
+    });
+
+    // OVERRIDE GLOBAL DE TOUS LES MAT-FORM-FIELD
+    const allMatFields = document.querySelectorAll('.mat-mdc-form-field');
+    console.log(`🔧 Force globale sur ${allMatFields.length} mat-form-field`);
+    allMatFields.forEach((field: any) => {
+      if (field.closest('.modern-search-toolbar')) {
+        field.style.setProperty('height', '48px', 'important');
+        field.style.setProperty('max-height', '48px', 'important');
+        field.style.setProperty('min-height', '48px', 'important');
+      }
+    });
+
+    console.log('✅ FORCE NUCLÉAIRE TERMINÉE');
   }
 
   ngOnDestroy(): void {
@@ -411,6 +520,8 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
    */
   onViewChange(view: any): void {
     this.viewMode = view.value;
+    // Force dimensions après changement
+    setTimeout(() => this.forceDimensions(), 50);
   }
 
   /**
@@ -419,6 +530,8 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   onSortChange(event: any): void {
     this.currentSort = event.value;
     this.loadDatasets();
+    // Force dimensions après changement
+    setTimeout(() => this.forceDimensions(), 50);
   }
 
   /**
@@ -495,6 +608,13 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
    */
   trackByDataset(index: number, dataset: Dataset): string {
     return dataset.id;
+  }
+
+  /**
+   * Tracking function pour les chips de filtres
+   */
+  trackByFilterChip(index: number, filter: FilterChip): string {
+    return filter.key;
   }
 
   // === GESTION MODAL DE FILTRAGE ===

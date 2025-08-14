@@ -1,6 +1,15 @@
 // Styles pour la liste des datasets alignés avec les projets
 // Utilise les classes globales Material et Bootstrap
 
+// Import du toolbar de recherche moderne
+@use './components/modern-search-toolbar.scss';
+// FORCE BRUTALE hauteur 48px
+@use './components/force-height-48px.scss';
+// ULTRA FORCE - DERNIÈRE SOLUTION
+@use './components/ultra-force-48px.scss';
+// SOLUTION NUCLÉAIRE - FORCE ABSOLUE
+@use './components/nuclear-force-48px.scss';
+
 .container-fluid {
   .search-field {
     min-width: 300px;
@@ -735,7 +744,12 @@
 }
 
 .filters-modal {
-  background: white;
+  // FORCE THÈME CLAIR ULTRA-BRUTAL SUR TOUTE LA MODAL
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+  color-scheme: light !important;
+
   border-radius: 16px;
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
@@ -747,20 +761,35 @@
   display: flex;
   flex-direction: column;
 
+  // ANTI-MODE SOMBRE GLOBAL SUR TOUTE LA MODAL
+  filter: none !important;
+  -webkit-filter: none !important;
+
+  // FORCE TOUS LES ÉLÉMENTS EN THÈME CLAIR
+  *, *::before, *::after {
+    color-scheme: light !important;
+    background-color: transparent !important;
+    color: #1a202c !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
+
   // Header simplifié - juste le bouton fermer
   .modal-header.modern-header {
     background: transparent;
     border-bottom: none;
-    padding: 16px 20px 0px;
+    padding: 20px 20px 0px; // PLUS D'ESPACE EN HAUT
     position: relative;
 
     .header-actions-only {
       display: flex;
       justify-content: flex-end;
+      align-items: flex-start;
+      padding: 0;
 
-      .close-btn {
-        width: 40px;
-        height: 40px;
+            .close-btn {
+        width: 40px !important;
+        height: 40px !important;
         border-radius: 12px;
         color: #64748b !important;
         background: #f8fafc !important;
@@ -768,6 +797,13 @@
         transition: all 0.2s ease;
         position: relative;
         z-index: 10;
+
+        // CENTRAGE PARFAIT de l'icône
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        margin: 0 8px 0 0 !important; // MARGE DROITE POUR PAS ÊTRE COLLÉ
 
         &:hover {
           background: #f1f5f9 !important;
@@ -778,9 +814,45 @@
         }
 
         mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
+          font-size: 20px !important;
+          width: 20px !important;
+          height: 20px !important;
+
+          // FORCE ABSOLUE pour Material Icons
+          opacity: 1 !important;
+          visibility: visible !important;
+          display: inline-block !important;
+
+          // POSITIONNEMENT PRÉCIS
+          vertical-align: middle !important;
+          position: relative !important;
+
+          // RESET COMPLET Material Icons
+          font-family: 'Material Icons' !important;
+          font-weight: normal !important;
+          font-style: normal !important;
+          line-height: 1 !important;
+          letter-spacing: normal !important;
+          text-transform: none !important;
+          white-space: nowrap !important;
+          word-wrap: normal !important;
+          direction: ltr !important;
+          text-rendering: optimizeLegibility !important;
+          -webkit-font-feature-settings: 'liga' !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+
+          // FORCE CONTENU
+          &:before {
+            content: 'close' !important;
+            font-family: 'Material Icons' !important;
+            color: #64748b !important;
+            font-size: 20px !important;
+          }
+        }
+
+        &:hover mat-icon:before {
+          color: #475569 !important;
         }
       }
     }

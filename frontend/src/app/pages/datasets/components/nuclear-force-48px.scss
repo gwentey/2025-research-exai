@@ -1,0 +1,360 @@
+// ===============================================
+// SOLUTION NUCLÉAIRE - FORCE 48PX ABSOLUE
+// ===============================================
+
+// SELECTOR ULTRA-SPÉCIFIQUE pour override Material Design
+.modern-search-toolbar {
+
+    // =============================================
+  // BARRE DE RECHERCHE - FORCE ABSOLUE 400x48 (AGRANDIE)
+  // =============================================
+
+  .modern-search-field {
+    width: 400px !important;
+    height: 48px !important;
+    max-height: 48px !important;
+    min-height: 48px !important;
+
+    // CIBLAGE PRÉCIS DE TOUS LES NIVEAUX MATERIAL
+    &.mat-mdc-form-field {
+      height: 48px !important;
+      max-height: 48px !important;
+      min-height: 48px !important;
+      line-height: 48px !important;
+    }
+
+    .mat-mdc-form-field {
+      height: 48px !important;
+      max-height: 48px !important;
+      min-height: 48px !important;
+      line-height: 48px !important;
+
+      &.mat-form-field {
+        height: 48px !important;
+        max-height: 48px !important;
+        min-height: 48px !important;
+      }
+
+      .mat-mdc-text-field-wrapper {
+        height: 48px !important;
+        max-height: 48px !important;
+        min-height: 48px !important;
+
+        .mdc-text-field {
+          height: 48px !important;
+          max-height: 48px !important;
+          min-height: 48px !important;
+
+          &.mat-mdc-form-field-input-control {
+            height: 48px !important;
+            max-height: 48px !important;
+            min-height: 48px !important;
+          }
+        }
+
+        .mat-mdc-form-field-flex {
+          height: 48px !important;
+          max-height: 48px !important;
+          min-height: 48px !important;
+          align-items: center !important;
+
+          .mat-mdc-form-field-infix {
+            height: 48px !important;
+            max-height: 48px !important;
+            min-height: 48px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            border-top: 0 !important;
+            border-bottom: 0 !important;
+
+            input {
+              height: 48px !important;
+              max-height: 48px !important;
+              min-height: 48px !important;
+              line-height: 48px !important;
+              padding-top: 0 !important;
+              padding-bottom: 0 !important;
+              margin-top: 0 !important;
+              margin-bottom: 0 !important;
+              border: none !important;
+
+              &.mat-mdc-input-element {
+                height: 48px !important;
+                max-height: 48px !important;
+                min-height: 48px !important;
+                line-height: 48px !important;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // SUPPRESSION TOTALE DES SUBSCRIPTS
+    .mat-mdc-form-field-subscript-wrapper,
+    .mat-mdc-form-field-bottom-align,
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-error-wrapper {
+      display: none !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 0 !important;
+      visibility: hidden !important;
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+    }
+  }
+
+  // =============================================
+  // DROPDOWN TRI - FORCE ABSOLUE 216x48
+  // =============================================
+
+  .modern-sort-field {
+    width: 216px !important;
+    height: 48px !important;
+    max-height: 48px !important;
+    min-height: 48px !important;
+
+    &.mat-mdc-form-field {
+      height: 48px !important;
+      max-height: 48px !important;
+      min-height: 48px !important;
+    }
+
+    .mat-mdc-form-field {
+      height: 48px !important;
+      max-height: 48px !important;
+      min-height: 48px !important;
+
+      .mat-mdc-text-field-wrapper {
+        height: 48px !important;
+        max-height: 48px !important;
+        min-height: 48px !important;
+
+        .mdc-text-field {
+          height: 48px !important;
+          max-height: 48px !important;
+          min-height: 48px !important;
+        }
+
+        .mat-mdc-form-field-flex {
+          height: 48px !important;
+          max-height: 48px !important;
+          min-height: 48px !important;
+          align-items: center !important;
+
+          .mat-mdc-form-field-infix {
+            height: 48px !important;
+            max-height: 48px !important;
+            min-height: 48px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+
+            .mat-mdc-select {
+              height: 48px !important;
+              max-height: 48px !important;
+              min-height: 48px !important;
+              line-height: 48px !important;
+
+              .mat-mdc-select-trigger {
+                height: 48px !important;
+                max-height: 48px !important;
+                min-height: 48px !important;
+                line-height: 48px !important;
+
+                .mat-mdc-select-value {
+                  height: 48px !important;
+                  line-height: 48px !important;
+                }
+
+                .mat-mdc-select-arrow-wrapper {
+                  height: 48px !important;
+                  line-height: 48px !important;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // SUPPRESSION TOTALE DES SUBSCRIPTS POUR SELECT
+    .mat-mdc-form-field-subscript-wrapper,
+    .mat-mdc-form-field-bottom-align,
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-error-wrapper {
+      display: none !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 0 !important;
+      visibility: hidden !important;
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+    }
+  }
+
+    // =============================================
+  // BOUTONS - FORCE 48PX AVEC APPARENCE NATIVE
+  // =============================================
+
+  .modern-filters-btn {
+    height: 48px !important;
+    max-height: 48px !important;
+    min-height: 48px !important;
+    width: auto !important;
+    // ON GARDE L'APPARENCE NATIVE MATERIAL
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    // ANNULER LES OVERRIDES AGRESSIFS QUI CRÉENT DES ENCADRÉS
+    // Pas de border/outline/box-shadow forcé
+    border: unset !important;
+    outline: unset !important;
+    box-shadow: unset !important;
+
+    .btn-content {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      // Pas de line-height forcé dans le contenu
+    }
+  }
+
+  .refresh-btn {
+    width: 48px !important;
+    height: 48px !important;
+    max-height: 48px !important;
+    min-height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    // PRÉSERVER L'APPARENCE NATIVE MATERIAL
+    border: unset !important;
+    outline: unset !important;
+    box-shadow: unset !important;
+
+    &.mat-mdc-icon-button {
+      width: 48px !important;
+      height: 48px !important;
+      max-height: 48px !important;
+      min-height: 48px !important;
+
+      // Pas d'override agressif pour garder l'apparence Material native
+      border: unset !important;
+      outline: unset !important;
+      box-shadow: unset !important;
+      background: unset !important;
+    }
+  }
+
+  // =============================================
+  // VIEW TOGGLE - FORCE 48PX AVEC STYLE NATIF
+  // =============================================
+
+  .modern-view-toggle {
+    height: 48px !important;
+    max-height: 48px !important;
+    min-height: 48px !important;
+
+    &.mat-button-toggle-group {
+      height: 48px !important;
+      max-height: 48px !important;
+      min-height: 48px !important;
+
+      // PRÉSERVER LES STYLES NATIFS DU TOGGLE GROUP
+      border: unset !important;
+      outline: unset !important;
+      box-shadow: unset !important;
+    }
+
+    .mat-button-toggle {
+      width: 48px !important;
+      height: 48px !important;
+      max-height: 48px !important;
+      min-height: 48px !important;
+
+      // PRÉSERVER L'APPARENCE MATERIAL NATIVE
+      border: unset !important;
+      outline: unset !important;
+      box-shadow: unset !important;
+
+      &.mat-button-toggle-checked,
+      &:not(.mat-button-toggle-checked) {
+        width: 48px !important;
+        height: 48px !important;
+        max-height: 48px !important;
+        min-height: 48px !important;
+
+        // Garder les styles de sélection natifs
+        border: unset !important;
+        outline: unset !important;
+        box-shadow: unset !important;
+      }
+
+            .mat-button-toggle-label-content {
+        height: 48px !important;
+        max-height: 48px !important;
+        min-height: 48px !important;
+        line-height: normal !important; // Line-height normal
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        // Pas d'override de padding/margin pour garder l'apparence native
+        padding: 8px !important; // PADDING POUR ÉVITER QUE L'ICÔNE SOIT COUPÉE
+        margin: unset !important;
+
+        // AJUSTER LA TAILLE DES ICÔNES
+        mat-icon {
+          font-size: 20px !important;
+          width: 20px !important;
+          height: 20px !important;
+          line-height: 20px !important;
+        }
+      }
+    }
+  }
+}
+
+// =============================================
+// OVERRIDE GLOBAL POUR TOUTE L'APPLICATION
+// =============================================
+
+// Force pour tous les mat-form-field dans la toolbar
+.modern-search-toolbar .mat-mdc-form-field {
+  height: 48px !important;
+  max-height: 48px !important;
+  min-height: 48px !important;
+
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none !important;
+    height: 0 !important;
+  }
+}
+
+// Force spéciale pour les éléments avec IDs ou classes Angular générées
+[id*="mat-"] {
+  .modern-search-toolbar & {
+    height: 48px !important;
+    max-height: 48px !important;
+    min-height: 48px !important;
+  }
+}
+
+// Override ultra-spécifique pour Material Components
+.mdc-text-field,
+.mdc-select {
+  .modern-search-toolbar & {
+    height: 48px !important;
+    max-height: 48px !important;
+    min-height: 48px !important;
+  }
+}

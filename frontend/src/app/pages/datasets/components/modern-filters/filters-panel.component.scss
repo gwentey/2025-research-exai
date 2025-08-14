@@ -91,7 +91,7 @@
       gap: 20px;
       flex: 1;
 
-      .header-icon-wrapper {
+                  .header-icon-wrapper {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -101,11 +101,52 @@
         border-radius: 16px;
         box-shadow: 0 4px 16px rgba(79, 70, 229, 0.2);
 
-        .panel-icon {
+                .forced-tune-icon {
+          // CSS ULTRA-BRUTAL ANTI MODE SOMBRE
+          font-family: 'Material Icons' !important;
           color: #ffffff !important;
-          font-size: 28px;
-          width: 28px;
-          height: 28px;
+          font-size: 28px !important;
+          font-weight: normal !important;
+          font-style: normal !important;
+          display: block !important;
+          line-height: 1 !important;
+          letter-spacing: normal !important;
+          text-transform: none !important;
+          white-space: nowrap !important;
+          word-wrap: normal !important;
+          direction: ltr !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+
+          // ANTI-MODE SOMBRE ULTRA BRUTAL
+          filter: none !important;
+          -webkit-filter: none !important;
+          color-scheme: light !important;
+          background: transparent !important;
+          text-shadow: none !important;
+
+          // FORCE COULEUR CONTRE DARK MODE
+          color: white !important;
+          fill: white !important;
+          stroke: white !important;
+
+          // RENDU OPTIMAL
+          text-rendering: optimizeLegibility !important;
+          -webkit-font-feature-settings: 'liga' !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+
+          // CENTRAGE PARFAIT
+          width: 28px !important;
+          height: 28px !important;
+          text-align: center !important;
+          vertical-align: middle !important;
+
+          // OVERRIDE STATES HOVER/FOCUS/ACTIVE
+          &:hover, &:focus, &:active, &:visited {
+            color: #ffffff !important;
+            opacity: 1 !important;
+          }
         }
       }
 
@@ -167,35 +208,59 @@
 
   .active-filters-section {
     border-top: 1px solid #f1f5f9;
-    padding-top: 20px;
-    margin-top: 4px;
-
-    .filters-indicator {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      padding: 12px 16px;
-      background: #f8fafc;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-
-      .indicator-icon {
-        color: #4f46e5 !important;
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
-
-      .indicator-text {
-        font-size: 14px;
-        font-weight: 600;
-        color: #475569 !important;
-      }
-    }
+    padding: 24px 0 0 0;
+    margin-top: 8px;
 
     .modern-chip-bar {
-      // Styles pour les chips héritent du composant existant
+      // Espacement propre pour les chips
+      ::ng-deep {
+        .filter-chip-bar {
+          background: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 12px !important;
+          padding: 20px !important;
+
+          .chip-bar-header {
+            margin-bottom: 16px !important;
+
+            .header-info {
+              .info-icon {
+                color: #4f46e5 !important;
+                font-size: 18px !important;
+                width: 18px !important;
+                height: 18px !important;
+              }
+
+              .info-text {
+                font-size: 14px !important;
+                font-weight: 600 !important;
+                color: #475569 !important;
+              }
+            }
+
+            .clear-all-btn {
+              // Styles déjà définis dans le composant
+            }
+          }
+
+          .chips-container {
+            gap: 12px !important;
+
+            .visible-chips {
+              .chips-set {
+                gap: 10px !important;
+
+                .filter-chip {
+                  margin: 0 !important;
+                  // Éviter les chevauchements
+                  position: relative !important;
+                  z-index: 1 !important;
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
