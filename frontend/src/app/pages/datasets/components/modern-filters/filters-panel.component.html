@@ -1,0 +1,122 @@
+<!-- Panel de Filtres SaaS Moderne -->
+<div class="modern-filters-panel"
+     [class.expanded]="isExpanded"
+     [class.loading]="isLoading">
+
+  <!-- Header principal modernisé -->
+  <div class="panel-header">
+    <div class="header-content">
+      <div class="header-main">
+        <div class="header-icon-wrapper">
+          <mat-icon class="panel-icon">tune</mat-icon>
+        </div>
+        <div class="header-text">
+          <h2 class="panel-title">{{ 'DATASETS.FILTERS.MODERN.TITLE' | translate }}</h2>
+          <p class="panel-subtitle">{{ 'DATASETS.FILTERS.MODERN.SUBTITLE' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button mat-icon-button
+                class="reset-btn"
+                (click)="resetAllFilters()"
+                [disabled]="!hasActiveFilters()"
+                matTooltip="Réinitialiser tous les filtres">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chips des filtres actifs - repositionnés -->
+    <div class="active-filters-section" *ngIf="hasActiveFilters()">
+      <div class="filters-indicator">
+        <mat-icon class="indicator-icon">filter_list</mat-icon>
+        <span class="indicator-text">{{ getActiveFiltersCount() }} filtre(s) actif(s)</span>
+      </div>
+      <app-filter-chip-bar
+        [activeFilters]="getActiveFiltersForChips()"
+        (removeFilter)="removeFilter($event)"
+        (clearAll)="resetAllFilters()"
+        class="modern-chip-bar">
+      </app-filter-chip-bar>
+    </div>
+  </div>
+
+  <!-- Contenu des formulaires -->
+  <div class="panel-content" *ngIf="isExpanded">
+    <form [formGroup]="filterForm" class="filters-form">
+
+      <!-- Groupes de filtres -->
+      <div class="filter-groups">
+        <app-filter-group
+          *ngFor="let group of filterGroups; trackBy: trackByGroupId"
+          [groupConfig]="group"
+          [formGroup]="filterForm"
+          [expanded]="group.expanded"
+          [hasActiveFilters]="hasActiveFiltersInGroup(group.id)"
+          (toggleExpansion)="toggleGroupExpansion(group.id)"
+          (resetGroup)="resetFilterGroup(group.id)">
+        </app-filter-group>
+      </div>
+
+      <!-- Résultats en temps réel -->
+      <div class="results-section" *ngIf="hasActiveFilters()">
+        <div class="results-card">
+          <div class="results-header">
+            <mat-icon>search</mat-icon>
+            <span class="results-title">Résultats</span>
+          </div>
+          <div class="results-content">
+            <div class="result-stat">
+              <span class="stat-number">{{ getEstimatedResultsCount() }}</span>
+              <span class="stat-label">datasets trouvés</span>
+            </div>
+            <div class="filter-progress">
+              <span class="progress-label">Filtres configurés</span>
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="getFilterCompletionPercentage()"></div>
+              </div>
+              <span class="progress-text">{{ getFilterCompletionPercentage() }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Footer avec actions -->
+  <div class="panel-footer" *ngIf="isExpanded">
+    <div class="footer-content">
+      <div class="footer-stats">
+        <span class="filter-count">{{ getActiveFiltersCount() }} filtre(s) actif(s)</span>
+      </div>
+
+      <div class="footer-actions">
+                <button mat-stroked-button
+                class="cancel-btn"
+                (click)="closePanel()">
+          Annuler
+        </button>
+
+                <button mat-flat-button
+                color="primary"
+                class="apply-btn"
+                (click)="applyFilters()"
+                [disabled]="!hasActiveFilters()">
+          <mat-icon>check</mat-icon>
+          Appliquer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-content">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span class="loading-text">Chargement...</span>
+    </div>
+  </div>
+
+</div>

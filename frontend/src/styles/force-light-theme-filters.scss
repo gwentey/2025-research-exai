@@ -1,0 +1,207 @@
+// ===============================================
+// FORCE THÈME CLAIR ULTRA-AGRESSIF POUR LES FILTRES
+// SUPPRIME ABSOLUMENT TOUT LE NOIR !
+// ===============================================
+
+// SÉLECTEURS SPÉCIFIQUES AUX FILTRES
+.filters-modal-overlay,
+.filters-modal,
+.modern-filters-panel,
+.modern-filter-group {
+
+  // FORCE THÈME CLAIR SUR ABSOLUMENT TOUT
+  *, *::before, *::after {
+    color-scheme: light !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #1a202c !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  // CONTENEURS PRINCIPAUX EN BLANC FORCÉ
+  div, section, article, header, footer, main, aside, nav {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #1a202c !important;
+  }
+
+  // TEXTES EN SOMBRE FORCÉ
+  span, p, h1, h2, h3, h4, h5, h6, label, strong, em, small {
+    color: #1a202c !important;
+    background: transparent !important;
+  }
+
+  // ICÔNES EN COULEUR VISIBLE FORCÉE
+  mat-icon, .mat-icon, i, svg {
+    color: #4f46e5 !important;
+    fill: #4f46e5 !important;
+    background: transparent !important;
+  }
+
+  // BOUTONS EN BLANC FORCÉ
+  button, .mat-mdc-button, .mat-mdc-icon-button, .mat-button,
+  .mat-mdc-outlined-button, .mat-mdc-raised-button {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #4f46e5 !important;
+    border: 1px solid #e2e8f0 !important;
+
+    mat-icon, .mat-icon {
+      color: #4f46e5 !important;
+    }
+  }
+
+  // CHAMPS DE FORMULAIRE EN BLANC FORCÉ
+  input, textarea, select {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1a202c !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  // COMPOSANTS MATERIAL EN BLANC FORCÉ
+  .mat-mdc-form-field, .mat-form-field {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1a202c !important;
+
+    .mdc-text-field, .mat-mdc-text-field-wrapper {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a202c !important;
+    }
+
+    .mat-mdc-input-element, .mat-input-element {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a202c !important;
+    }
+
+    .mdc-floating-label, .mat-mdc-floating-label {
+      color: #64748b !important;
+      background: transparent !important;
+    }
+
+    .mdc-notched-outline, .mat-mdc-notched-outline {
+      border-color: #e2e8f0 !important;
+
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__trailing,
+      .mdc-notched-outline__notch {
+        border-color: #e2e8f0 !important;
+        background: transparent !important;
+      }
+    }
+  }
+
+  // SELECT EN BLANC FORCÉ
+  .mat-mdc-select, .mat-select {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1a202c !important;
+
+    .mat-mdc-select-trigger {
+      color: #1a202c !important;
+      background: transparent !important;
+    }
+
+    .mat-mdc-select-arrow {
+      color: #64748b !important;
+    }
+  }
+
+  // SLIDE TOGGLE EN BLANC FORCÉ
+  .mat-mdc-slide-toggle, .mat-slide-toggle {
+    color: #1a202c !important;
+
+    .mdc-switch {
+      background: transparent !important;
+    }
+
+    .mdc-switch__track {
+      background-color: #e2e8f0 !important;
+      border-color: #e2e8f0 !important;
+    }
+
+    .mdc-switch__handle {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+
+    .mdc-switch__ripple {
+      background: transparent !important;
+    }
+  }
+
+  // CHIPS/TAGS EN BLANC FORCÉ
+  .mat-mdc-chip, .mat-chip {
+    background: #f1f5f9 !important;
+    background-color: #f1f5f9 !important;
+    color: #1a202c !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  // CARTES EN BLANC FORCÉ
+  .mat-mdc-card, .mat-card {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1a202c !important;
+  }
+
+  // SLIDERS EN COULEUR FORCÉE
+  .mat-mdc-slider, .mat-slider {
+    color: #4f46e5 !important;
+
+    .mdc-slider__track,
+    .mat-slider-track {
+      background-color: #e2e8f0 !important;
+    }
+
+    .mdc-slider__track--active,
+    .mat-slider-track-fill {
+      background-color: #4f46e5 !important;
+    }
+
+    .mdc-slider__thumb,
+    .mat-slider-thumb {
+      background-color: #4f46e5 !important;
+      border-color: #4f46e5 !important;
+    }
+  }
+
+  // SUPPRIME TOUTE BORDURE OU OMBRE SOMBRE
+  .mat-elevation-z1,
+  .mat-elevation-z2,
+  .mat-elevation-z3,
+  .mat-elevation-z4,
+  .mat-elevation-z5 {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+// FORCE GLOBAL POUR LES OVERLAYS MATERIAL QUI PEUVENT APPARAITRE
+.cdk-overlay-container {
+  .mat-mdc-menu-panel,
+  .mat-mdc-select-panel,
+  .mat-mdc-autocomplete-panel {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1a202c !important;
+    border: 1px solid #e2e8f0 !important;
+
+    .mat-mdc-option,
+    .mat-option {
+      background: #ffffff !important;
+      color: #1a202c !important;
+
+      &:hover {
+        background: #f1f5f9 !important;
+      }
+
+      &.mat-selected {
+        background: #eff6ff !important;
+        color: #1a202c !important;
+      }
+    }
+  }
+}

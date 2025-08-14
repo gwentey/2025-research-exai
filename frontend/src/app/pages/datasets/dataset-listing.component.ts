@@ -20,7 +20,7 @@ import { DatasetService } from '../../services/dataset.service';
 import { RoleService } from '../../services/role.service';
 import { Dataset, DatasetFilterCriteria, PaginationParams } from '../../models/dataset.models';
 import { DatasetCardComponent } from './components/dataset-card.component';
-import { DatasetFiltersComponent } from './components/dataset-filters.component';
+import { FiltersPanelComponent } from './components/modern-filters/filters-panel.component';
 
 interface FilterChip {
   key: string;
@@ -49,7 +49,7 @@ interface FilterChip {
     MatPaginatorModule,
     MatTooltipModule,
     DatasetCardComponent,
-    DatasetFiltersComponent,
+    FiltersPanelComponent,
     TranslateModule
   ],
   templateUrl: './dataset-listing.component.html',
@@ -68,7 +68,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   // Données
   datasets: Dataset[] = [];
   totalDatasets = 0;
-  
+
   // État de chargement
   isLoading = false;
   error: string | null = null;
@@ -96,13 +96,47 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Initialiser les permissions
     this.canUploadDatasets$ = this.roleService.canUploadDatasets();
-    
+
     this.loadDatasets();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+
+    // Nettoyage : retirer la classe modal-open et restaurer sidebar
+    document.body.classList.remove('modal-open');
+
+    // Retirer le CSS injecté
+    this.removeHideSidebarCSS();
+
+    // Restaurer les styles si nécessaire
+    const sidebarSelectors = [
+      '.mat-drawer-inner-container',
+      '.mat-drawer-container .mat-drawer',
+      '.mat-sidenav-container .mat-sidenav',
+      '.mat-drawer',
+      '.mat-sidenav',
+      'app-sidebar',
+      '.flex-layout',
+      '.branding',
+      '.mat-nav-list',
+      '.sidebar-list',
+      '.profile-bar'
+    ];
+
+    sidebarSelectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(el => {
+        if (el instanceof HTMLElement) {
+          el.style.display = '';
+          el.style.visibility = '';
+          el.style.opacity = '';
+          el.style.zIndex = '';
+          el.style.pointerEvents = '';
+        }
+      });
+    });
   }
 
   /**
@@ -282,60 +316,60 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
       case 'search':
         this.quickSearchTerm = '';
         break;
-        
+
       case 'domain':
         delete newFilters.domain;
         break;
-        
+
       case 'task':
         delete newFilters.task;
         break;
-        
+
       case 'instances':
         delete newFilters.instances_number_min;
         delete newFilters.instances_number_max;
         break;
-        
+
       case 'features':
         delete newFilters.features_number_min;
         delete newFilters.features_number_max;
         break;
-        
+
       case 'year':
         delete newFilters.year_min;
         delete newFilters.year_max;
         break;
-        
+
       case 'ethical_score':
         delete newFilters.ethical_score_min;
         break;
-        
+
       case 'representativity':
         delete newFilters.representativity_level;
         break;
-        
+
       case 'is_split':
         delete newFilters.is_split;
         break;
-        
+
       case 'is_anonymized':
         delete newFilters.is_anonymized;
         break;
-        
+
       case 'has_temporal_factors':
         delete newFilters.has_temporal_factors;
         break;
-        
+
       case 'is_public':
         delete newFilters.is_public;
         break;
-        
+
       default:
         // Fallback pour les autres filtres
         delete (newFilters as any)[filter.key];
         break;
     }
-    
+
     this.currentFilters = newFilters;
     this.loadDatasets();
   }
@@ -355,7 +389,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   onQuickSearch(event: any): void {
     const searchTerm = event.target.value;
     this.quickSearchTerm = searchTerm;
-    
+
     // Debounce la recherche
     setTimeout(() => {
       if (this.quickSearchTerm === searchTerm) {
@@ -418,7 +452,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   onSelectDataset(dataset: Dataset): void {
     console.log('Dataset sélectionné:', dataset);
     console.log('Navigation vers ML Pipeline wizard...');
-    
+
     // Navigation vers le wizard ML Pipeline avec le dataset sélectionné
     this.router.navigate(['/ml-pipeline-wizard'], {
       queryParams: {
@@ -466,12 +500,135 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   // === GESTION MODAL DE FILTRAGE ===
 
   /**
+   * Injecte du CSS pour masquer le sidebar de force
+   */
+  private injectHideSidebarCSS(): void {
+    // Supprimer le style existant s'il y en a un
+    const existingStyle = document.getElementById('hide-sidebar-style');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+
+    // Créer un nouveau style
+    const style = document.createElement('style');
+    style.id = 'hide-sidebar-style';
+        style.innerHTML = `
+      /* MASQUAGE SIDEBAR ULTRA-AGRESSIF SUR MOBILE/TABLETTE */
+      @media (max-width: 992px) {
+        body.modal-open .mat-drawer-inner-container,
+        body.modal-open .mat-drawer-container .mat-drawer,
+        body.modal-open .mat-sidenav-container .mat-sidenav,
+        body.modal-open .mat-drawer,
+        body.modal-open .mat-sidenav,
+        body.modal-open app-sidebar,
+        body.modal-open .flex-layout,
+        body.modal-open .branding,
+        body.modal-open .mat-nav-list,
+        body.modal-open .sidebar-list,
+        body.modal-open .profile-bar,
+        body.modal-open [class*="ng-tns-c"] {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          z-index: -99999 !important;
+          position: absolute !important;
+          left: -9999px !important;
+          width: 0 !important;
+          height: 0 !important;
+          pointer-events: none !important;
+          transform: translateX(-200vw) !important;
+        }
+      }
+
+      /* FORÇAGE GLOBAL POUR TOUS LES ÉCRANS SI NÉCESSAIRE */
+      body.modal-open .mat-drawer-inner-container,
+      body.modal-open .mat-drawer-container .mat-drawer {
+        z-index: -99999 !important;
+      }
+    `;
+
+    // Ajouter le style au head
+    document.head.appendChild(style);
+    console.log('🎨 CSS injecté pour masquer sidebar');
+  }
+
+  /**
+   * Retire le CSS d'injection pour masquer le sidebar
+   */
+  private removeHideSidebarCSS(): void {
+    const style = document.getElementById('hide-sidebar-style');
+    if (style) {
+      style.remove();
+      console.log('🗑️ CSS de masquage sidebar retiré');
+    }
+  }
+
+  /**
    * Ouvre la modal de filtrage
    */
   openFiltersModal(): void {
     this.tempFilters = { ...this.currentFilters };
     this.previewCount = null;
     this.showFiltersModal = true;
+
+    // Ajouter classe pour masquer sidebar sur mobile
+    document.body.classList.add('modal-open');
+
+    // INJECTION CSS DIRECTE pour forcer le masquage
+    this.injectHideSidebarCSS();
+
+                // MASQUAGE JavaScript ULTRA-AGRESSIF SUR MOBILE
+    const isMobile = window.innerWidth <= 992; // Élargi la détection mobile
+
+    setTimeout(() => {
+      console.log('🔥 MASQUAGE SIDEBAR - Largeur écran:', window.innerWidth, 'Mobile:', isMobile);
+
+      const sidebarSelectors = [
+        '.mat-drawer-inner-container',
+        '.mat-drawer-container .mat-drawer',
+        '.mat-sidenav-container .mat-sidenav',
+        '.mat-drawer',
+        '.mat-sidenav',
+        'app-sidebar',
+        '.flex-layout',
+        '.branding',
+        '.mat-nav-list',
+        '.sidebar-list',
+        '.profile-bar',
+        '[class*="ng-tns-c"]'
+      ];
+
+      let hiddenCount = 0;
+      sidebarSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+          if (el instanceof HTMLElement) {
+            if (isMobile) {
+              // MASQUAGE BRUTAL sur mobile
+              el.style.display = 'none !important';
+              el.style.visibility = 'hidden !important';
+              el.style.opacity = '0 !important';
+              el.style.zIndex = '-99999 !important';
+              el.style.position = 'absolute !important';
+              el.style.left = '-9999px !important';
+              el.style.pointerEvents = 'none !important';
+              el.style.width = '0 !important';
+              el.style.height = '0 !important';
+              el.style.transform = 'translateX(-200vw) !important';
+              hiddenCount++;
+              console.log('🚫 MASQUÉ:', selector, el);
+            }
+          }
+        });
+      });
+
+      console.log('✅ Total éléments masqués:', hiddenCount);
+
+      if (!isMobile) {
+        console.log('🖥️ Grand écran - Sidebar préservé');
+      }
+    }, 100); // Délai plus long pour s'assurer que le DOM est prêt
+
     // Calculer le preview initial
     setTimeout(() => this.updatePreviewCount(), 100);
   }
@@ -483,6 +640,40 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
     this.showFiltersModal = false;
     this.tempFilters = {};
     this.previewCount = null;
+
+    // Retirer classe pour réafficher sidebar
+    document.body.classList.remove('modal-open');
+
+    // Retirer le CSS injecté
+    this.removeHideSidebarCSS();
+
+        // RESTAURATION : Réafficher les éléments sidebar (si masqués)
+    const sidebarSelectors = [
+      '.mat-drawer-inner-container',
+      '.mat-drawer-container .mat-drawer',
+      '.mat-sidenav-container .mat-sidenav',
+      '.mat-drawer',
+      '.mat-sidenav',
+      'app-sidebar',
+      '.mat-nav-list',
+      '.sidebar-list',
+      '.profile-bar'
+    ];
+
+    sidebarSelectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(el => {
+        if (el instanceof HTMLElement) {
+          el.style.display = '';
+          el.style.visibility = '';
+          el.style.opacity = '';
+          el.style.zIndex = '';
+          el.style.pointerEvents = '';
+        }
+      });
+    });
+
+    console.log('🔄 Sidebar restauré après fermeture modal');
   }
 
   /**
@@ -523,7 +714,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
    */
   private updatePreviewCount(): void {
     const hasFilters = Object.keys(this.tempFilters).length > 0;
-    
+
     if (!hasFilters) {
       // Aucun filtre = nombre total actuel
       this.previewCount = this.totalDatasets || 0;
@@ -532,7 +723,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
 
     // Préparer les filtres temporaires pour le preview
     const previewFilters: DatasetFilterCriteria = { ...this.tempFilters };
-    
+
     // Ajouter la recherche rapide si présente
     if (this.quickSearchTerm) {
       previewFilters.dataset_name = this.quickSearchTerm;
@@ -577,7 +768,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
 
     // Préparer les filtres
     const filters: DatasetFilterCriteria = { ...this.currentFilters };
-    
+
     // Ajouter la recherche rapide si présente
     if (this.quickSearchTerm) {
       filters.dataset_name = this.quickSearchTerm;
@@ -616,4 +807,4 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   // Note: Le filtrage côté client a été supprimé.
   // Toute la logique de filtrage et de scoring est maintenant gérée côté backend
   // dans le service-selection via les endpoints /datasets et /datasets/score
-} 
+}

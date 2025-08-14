@@ -10,18 +10,20 @@ declare var THREE: any;
   standalone: true,
   template: `
     <div class="animation-container" [class.mobile-fallback]="isMobile">
-      <canvas #threeCanvas 
+      <canvas #threeCanvas
               class="three-canvas"
               [style.opacity]="canvasOpacity">
       </canvas>
-      <div class="fallback-gradient" [style.opacity]="fallbackOpacity"></div>
+      <div class="fallback-gradient"
+           [class.active-fallback]="showColoredFallback"
+           [style.opacity]="fallbackOpacity"></div>
     </div>
   `,
   styleUrls: ['./login-background-animation.component.scss']
 })
 export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   @ViewChild('threeCanvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
-  
+
   @Input() animationType: 'sorbonne-3d' | 'fallback' = 'sorbonne-3d';
   @Input() maxWidth: number = 600;
   @Input() height: number = 450;
@@ -39,7 +41,8 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   // Responsive et performance
   public isMobile = false;
   public canvasOpacity = 0;
-  public fallbackOpacity = 1;
+  public fallbackOpacity = 0; // ✅ Commencer transparent, pas de fond bleu au chargement
+  public showColoredFallback = false; // ✅ Contrôler si le gradient coloré doit s'afficher
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -50,15 +53,15 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     console.log('🚀 LOGIN ANIMATION COMPONENT STARTING...');
     console.log('Platform:', this.platformId);
     console.log('Canvas ref:', this.canvasRef);
-    
+
     if (isPlatformBrowser(this.platformId)) {
       console.log('✅ Platform is browser, proceeding...');
       this.checkMobileDevice();
-      
+
       // FORCER l'animation même sur mobile pour debug
       console.log('🔧 FORCING Three.js load (debug mode)...');
       this.isMobile = false; // FORCER pour debug
-      
+
       this.loadThreeJS();
     } else {
       console.log('❌ Not browser platform, showing fallback');
@@ -72,11 +75,10 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
 
   private checkMobileDevice(): void {
     this.isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+
     if (this.isMobile) {
-      // Sur mobile, on montre juste le gradient statique
-      this.canvasOpacity = 0;
-      this.fallbackOpacity = 1;
+      // Sur mobile, on montre le gradient statique seulement en dernier recours
+      console.log('📱 Mobile detected, will show fallback if Three.js fails');
       return;
     }
   }
@@ -98,27 +100,27 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     try {
       // Load EVERYTHING as ES6 modules (EXACTLY like the working example)
       console.log('📦 Loading Three.js + OrbitControls as ES6 modules...');
-      
+
       const moduleScript = document.createElement('script');
       moduleScript.type = 'module';
       moduleScript.innerHTML = `
         // Import EXACTLY like the working example
         import * as THREE from 'https://cdn.skypack.dev/three@0.136.0/build/three.module.js';
         import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/controls/OrbitControls.js';
-        
+
         // Attach to window SEPARATELY (THREE is not extensible!)
         window.THREE = THREE;
         window.OrbitControls = OrbitControls; // ✅ SÉPARÉ !
-        
+
         console.log('✅ Three.js + OrbitControls loaded as ES6 modules!', {
           THREE: !!window.THREE,
           OrbitControls: !!window.OrbitControls
         });
-        
+
         // Notify Angular that everything is ready
         window.dispatchEvent(new CustomEvent('threeAndOrbitControlsReady'));
       `;
-      
+
       await new Promise((resolve, reject) => {
         const handleReady = () => {
           if ((window as any).THREE && (window as any).OrbitControls) {
@@ -129,21 +131,21 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
             reject(new Error('THREE or OrbitControls not found after ready event'));
           }
         };
-        
+
         window.addEventListener('threeAndOrbitControlsReady', handleReady);
-        
+
         moduleScript.onerror = (error) => {
           console.error('❌ Failed to load Three.js module:', error);
           window.removeEventListener('threeAndOrbitControlsReady', handleReady);
           reject(new Error('Failed to load Three.js module'));
         };
-        
+
         // Timeout de sécurité
         setTimeout(() => {
           window.removeEventListener('threeAndOrbitControlsReady', handleReady);
           reject(new Error('Three.js module loading timeout'));
         }, 15000);
-        
+
         document.head.appendChild(moduleScript);
         console.log('📦 Three.js ES6 module script injected');
       });
@@ -159,7 +161,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
           this.showFallback();
         }
       }, 100);
-      
+
     } catch (error) {
       console.error('❌ Failed to load Three.js:', error);
       this.showFallback();
@@ -218,16 +220,16 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     console.log('🎬 Setting up Three.js scene...');
     console.log('Canvas element:', this.canvasRef?.nativeElement);
     console.log('Canvas size:', this.maxWidth, 'x', this.height);
-    
+
     this.canvas = this.canvasRef.nativeElement;
-    
+
     if (!this.canvas) {
       throw new Error('Canvas element not found!');
     }
-    
+
     // Setup renderer avec fond TRANSPARENT
     console.log('🖥️ Creating WebGL renderer...');
-    this.renderer = new THREE.WebGLRenderer({ 
+    this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
       alpha: true // TRANSPARENT !
@@ -245,7 +247,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.scene = new THREE.Scene();
     // PAS de background = transparent !
     console.log('✅ Scene created with transparent background');
-    
+
     // Setup camera - centrée pour vue générale avec ASPECT RATIO AJUSTÉ
     console.log('📷 Setting up camera...');
     // ✅ RÉUTILISER la même variable reducedWidth (déjà calculée)
@@ -258,7 +260,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     console.log('🖱️ Setting up REAL OrbitControls...');
     const OrbitControls = (window as any).OrbitControls; // ✅ SÉPARÉ de THREE !
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    
+
     // Configuration pour activer l'interaction souris SANS LIMITES !
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.1;
@@ -267,7 +269,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.controls.enablePan = false;    // ❌ DÉSACTIVER pan (déplacement)
     this.controls.rotateSpeed = 1.0;    // Sensibilité rotation
     this.controls.zoomSpeed = 1.2;      // Sensibilité zoom
-    
+
     // ✅ SUPPRIMER toutes les limites pour liberté totale !
     this.controls.minDistance = 0;     // Pas de limite zoom avant
     this.controls.maxDistance = Infinity; // Pas de limite zoom arrière
@@ -275,7 +277,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     this.controls.maxPolarAngle = Math.PI; // Rotation verticale libre
     this.controls.minAzimuthAngle = -Infinity; // Rotation horizontale libre
     this.controls.maxAzimuthAngle = Infinity;  // Rotation horizontale libre
-    
+
     console.log('✅ REAL OrbitControls configured for mouse interaction!', {
       enableRotate: this.controls.enableRotate,
       enableZoom: this.controls.enableZoom,
@@ -299,17 +301,17 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     console.log('⭐ Creating starfield...');
     this.createStarfield(THREE);
     console.log('✅ Starfield created');
-    
+
     // Create main objects - Couleurs Sorbonne
     console.log('🎯 Creating main 3D objects...');
     this.createMainObjects(THREE);
     console.log('✅ Main objects created');
-    
+
     // Setup basic event listeners (without shockwave for now)
     console.log('🖱️ Setting up event listeners...');
     this.setupBasicEventListeners();
     console.log('✅ Event listeners set up');
-    
+
     // Start animation
     console.log('🎨 Showing canvas and starting animation...');
     this.canvasOpacity = 1;
@@ -329,13 +331,13 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     const starGeometry = new THREE.BufferGeometry();
     const starCount = 200; // Réduit pour discrétion
     const starsPositions = new Float32Array(starCount * 3);
-    
+
     for (let i = 0; i < starCount * 3; i++) {
       starsPositions[i] = (Math.random() - 0.5) * 80; // Zone réduite
     }
-    
+
     starGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
-    
+
     // Étoiles BLANC/GRIS TRÈS SUBTIL
     const starMaterial = new THREE.PointsMaterial({
       color: 0xf0f0f0, // BLANC CASSÉ très discret
@@ -344,7 +346,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
       transparent: true,
       opacity: 0.2 // ULTRA discrètes pour harmonie
     });
-    
+
     const stars = new THREE.Points(starGeometry, starMaterial);
     this.scene.add(stars);
     console.log('✅ Subtle white starfield created');
@@ -353,7 +355,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   private createMainObjects(THREE: any): void {
     // TAILLES AGRANDIES DE 10% (position parfaite + taille optimisée)
     console.log('🎯 Creating objects with sizes increased by 10%...');
-    
+
     // Inner icosahedron - PRESQUE TRANSLUCIDE DORÉ SORBONNE TRÈS TRÈS CLAIR (+10% taille)
     const innerGeometry = new THREE.IcosahedronGeometry(0.9, 1); // 0.818 * 1.1 = 0.9 (+10%)
     const innerMaterial = new THREE.MeshStandardMaterial({
@@ -367,7 +369,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     const innerMesh = new THREE.Mesh(innerGeometry, innerMaterial);
     this.rotatingGroup.add(innerMesh);
     console.log('✅ Inner icosahedron created (ultra translucent golden Sorbonne)');
-    
+
     // Outer wireframe - BLEU SORBONNE (premier plan visible) +10% taille
     const outerGeometry = new THREE.IcosahedronGeometry(1.07, 1); // 0.972 * 1.1 = 1.07 (+10%)
     const wireframeMaterial = new THREE.MeshBasicMaterial({
@@ -379,7 +381,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     const wireframeMesh = new THREE.Mesh(outerGeometry, wireframeMaterial);
     this.rotatingGroup.add(wireframeMesh);
     console.log('✅ Wireframe created (Sorbonne blue, +15% bigger)');
-    
+
     // Points DORÉS SORBONNE aux intersections/vertices - COMME DEMANDÉ !
     console.log('✨ Creating GOLDEN SORBONNE intersection points...');
     const positions = [];
@@ -387,7 +389,7 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     for (let i = 0; i < posAttr.count; i++) {
       positions.push(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
     }
-    
+
     const goldenPointsGeometry = new THREE.BufferGeometry();
     goldenPointsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const goldenPointsMaterial = new THREE.PointsMaterial({
@@ -400,21 +402,21 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
     const goldenPoints = new THREE.Points(goldenPointsGeometry, goldenPointsMaterial);
     this.rotatingGroup.add(goldenPoints);
     console.log('✅ Golden Sorbonne intersection points created!');
-    
+
     // Add lighting (optimisé pour doré translucide très clair)
     const light = new THREE.PointLight(0xffffff, 0.6); // LUMIÈRE DOUCE pour révéler le doré
     light.position.set(3, 2, 4); // Position pour éclairer délicatement
     this.scene.add(light);
-    
+
     // Ambient light dorée très subtile pour harmonie
     const ambientLight = new THREE.AmbientLight(0xfaf8f5, 0.4); // Ambiant doré très clair
     this.scene.add(ambientLight);
-    
+
     // Lumière dorée d'appoint pour révéler la translucidité
     const goldenLight = new THREE.PointLight(0xf5f0e8, 0.2); // DORÉ TRÈS SUBTIL
     goldenLight.position.set(-1, 1, 2); // Proche du centre translucide
     this.scene.add(goldenLight);
-    
+
     console.log('✅ Lighting optimized for ultra translucent golden');
   }
 
@@ -449,9 +451,14 @@ export class LoginBackgroundAnimationComponent implements OnInit, OnDestroy {
   }
 
   private showFallback(): void {
-    console.log('🔙 Showing fallback (animation failed)');
+    console.log('🔙 Animation failed, staying transparent (no blue background)');
     this.canvasOpacity = 0;
-    this.fallbackOpacity = 1;
+    // ✅ Rester transparent au lieu de montrer le gradient bleu !
+    this.fallbackOpacity = 0;
+    this.showColoredFallback = false; // ✅ Pas de gradient coloré
+
+    // ✅ OPTION : Décommentez la ligne suivante si vous voulez un fallback coloré en cas d'échec critique
+    // this.showColoredFallback = true; this.fallbackOpacity = 1;
   }
 
   private cleanup(): void {

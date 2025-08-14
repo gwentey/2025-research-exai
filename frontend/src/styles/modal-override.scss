@@ -1,0 +1,83 @@
+// ====================================
+// MASQUAGE FORCÉ DU SIDEBAR SUR MOBILE
+// ====================================
+
+// CSS ULTRA-AGRESSIF - MASQUAGE TOTAL SUR MOBILE/TABLETTE
+@media (max-width: 992px) {
+  body.modal-open {
+    overflow: hidden !important;
+
+    // MASQUAGE BRUTAL DE TOUS LES SIDEBARS POSSIBLES
+    .mat-drawer-inner-container,
+    .mat-drawer-container .mat-drawer,
+    .mat-sidenav-container .mat-sidenav,
+    .mat-drawer-side,
+    .mat-drawer,
+    .mat-sidenav,
+    app-sidebar,
+    .flex-layout,
+    .branding,
+    .mat-nav-list,
+    .sidebar-list,
+    .profile-bar,
+    [class*="ng-tns-c"],
+    [class*="sidebar"],
+    [class*="drawer"],
+    [class*="sidenav"],
+    [class*="nav-list"] {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      z-index: -99999 !important;
+      transform: translateX(-300vw) !important;
+      pointer-events: none !important;
+      position: absolute !important;
+      left: -9999px !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    // Réajustement TOTAL du contenu principal
+    .mat-drawer-content,
+    .mat-sidenav-content,
+    .mat-drawer-container,
+    .mat-sidenav-container {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      width: 100% !important;
+      transform: translateX(0) !important;
+    }
+  }
+}
+
+// CSS GLOBAL ULTRA-AGRESSIF - Force le masquage PARTOUT
+@media (max-width: 992px) {
+  body.modal-open {
+    // Masquer TOUS les éléments contenant ces mots dans les classes
+    * {
+      &[class*="mat-drawer"],
+      &[class*="mat-sidenav"],
+      &[class*="sidebar"],
+      &[class*="nav-list"],
+      &[class*="profile-bar"],
+      &[class*="branding"],
+      &[class*="ng-tns-c"] {
+        display: none !important;
+        z-index: -99999 !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        transform: translateX(-300vw) !important;
+        position: absolute !important;
+        left: -9999px !important;
+      }
+    }
+  }
+}
+
+// PLAN C : Masquage GLOBAL sans media query pour forcer sur tous écrans si nécessaire
+body.modal-open {
+  .mat-drawer-inner-container,
+  .mat-drawer-container .mat-drawer {
+    z-index: -99999 !important;
+  }
+}

@@ -1,0 +1,85 @@
+<!-- Barre des Filtres Actifs -->
+<div class="filter-chip-bar"
+     [class.compact]="compact"
+     [attr.aria-label]="'DATASETS.FILTERS.ACTIVE_FILTERS_LABEL' | translate">
+
+  <!-- Header de la barre -->
+  <div class="chip-bar-header">
+    <div class="header-info">
+      <mat-icon class="info-icon" [attr.aria-hidden]="true">filter_list</mat-icon>
+      <span class="info-text">
+        {{ 'DATASETS.FILTERS.ACTIVE_FILTERS' | translate: {count: activeFilters.length} }}
+      </span>
+    </div>
+
+    <!-- Bouton Effacer Tout -->
+    <button mat-button
+            *ngIf="showClearAll && activeFilters.length > 0"
+            (click)="onClearAll()"
+            [matTooltip]="'DATASETS.FILTERS.CLEAR_ALL_TOOLTIP' | translate"
+            class="clear-all-btn"
+            [attr.aria-label]="'DATASETS.FILTERS.CLEAR_ALL' | translate">
+      <mat-icon>clear_all</mat-icon>
+      <span class="btn-text">{{ 'DATASETS.FILTERS.CLEAR_ALL' | translate }}</span>
+    </button>
+  </div>
+
+  <!-- Container des Chips -->
+  <div class="chips-container" *ngIf="activeFilters.length > 0">
+
+    <!-- Chips Visibles -->
+    <div class="visible-chips">
+      <mat-chip-set class="chips-set" [attr.aria-label]="'DATASETS.FILTERS.ACTIVE_CHIPS_LABEL' | translate">
+
+        <mat-chip *ngFor="let chip of visibleChips; trackBy: trackByChip"
+                  [removable]="chip.removable !== false"
+                  [color]="getChipColor(chip.key)"
+                  (removed)="onRemoveFilter(chip.key)"
+                  [matTooltip]="chip.tooltip || chip.label"
+                  class="filter-chip"
+                  [attr.aria-label]="'DATASETS.FILTERS.CHIP_LABEL' | translate: {filter: chip.label}"
+                  [attr.data-filter-key]="chip.key">
+
+          <!-- Icône du chip -->
+          <mat-icon matChipAvatar [attr.aria-hidden]="true">{{ getChipIcon(chip.key) }}</mat-icon>
+
+          <!-- Label du chip -->
+          <span class="chip-label">{{ chip.label }}</span>
+
+          <!-- Bouton de suppression -->
+          <button matChipRemove
+                  [attr.aria-label]="'DATASETS.FILTERS.REMOVE_CHIP' | translate: {filter: chip.label}"
+                  class="chip-remove-btn">
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+
+      </mat-chip-set>
+    </div>
+
+    <!-- Indicateur des Chips Cachées -->
+    <div class="hidden-chips-indicator"
+         *ngIf="hasHiddenChips"
+         [matTooltip]="hiddenChipsTooltip"
+         [attr.aria-label]="'DATASETS.FILTERS.HIDDEN_CHIPS' | translate: {count: hiddenChipsCount}">
+
+      <mat-chip class="more-chip" disabled>
+        <mat-icon matChipAvatar>more_horiz</mat-icon>
+        <span>+{{ hiddenChipsCount }}</span>
+      </mat-chip>
+
+    </div>
+
+  </div>
+
+  <!-- Message Vide (État par défaut) -->
+  <div class="empty-state"
+       *ngIf="activeFilters.length === 0"
+       [attr.aria-label]="'DATASETS.FILTERS.NO_ACTIVE_FILTERS' | translate">
+
+    <mat-icon class="empty-icon">filter_alt_off</mat-icon>
+    <span class="empty-text">{{ 'DATASETS.FILTERS.NO_ACTIVE_FILTERS' | translate }}</span>
+
+  </div>
+
+</div>

@@ -1,0 +1,222 @@
+<!-- Formulaire SaaS Moderne Simple -->
+<div class="modern-filter-group" [attr.data-group-id]="groupConfig.id">
+
+  <!-- Header simple et élégant -->
+  <div class="filter-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">{{ groupConfig.icon }}</mat-icon>
+      <div class="header-info">
+        <h3 class="header-title">{{ groupConfig.titleKey | translate }}</h3>
+        <p class="header-subtitle">{{ groupConfig.descriptionKey | translate }}</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button
+        class="toggle-btn"
+        (click)="onToggleExpansion()"
+        [class.expanded]="expanded">
+        <mat-icon>{{ expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenu du formulaire TOUJOURS VISIBLE -->
+  <div class="filter-content" [class.expanded]="expanded">
+
+    <!-- ============= RECHERCHE TEXTUELLE ============= -->
+    <div *ngIf="groupConfig.id === 'text-search'" class="form-section" [formGroup]="formGroup">
+      <div class="input-group">
+        <label class="input-label">Nom du dataset</label>
+        <mat-form-field appearance="outline" class="modern-input">
+          <input matInput
+                 formControlName="dataset_name"
+                 placeholder="Rechercher par nom..."
+                 [attr.aria-label]="'Nom du dataset'">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Objectif</label>
+        <mat-form-field appearance="outline" class="modern-input">
+          <textarea matInput
+                    formControlName="objective"
+                    placeholder="Décrivez l'objectif recherché..."
+                    rows="3"
+                    [attr.aria-label]="'Objectif du dataset'"></textarea>
+          <mat-icon matSuffix>description</mat-icon>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- ============= DOMAINES ET TÂCHES ============= -->
+    <div *ngIf="groupConfig.id === 'categories'" class="form-section" [formGroup]="formGroup">
+
+      <!-- Sélection de domaines avec cartes -->
+      <div class="input-group">
+        <label class="input-label">
+          <mat-icon>domain</mat-icon>
+          Domaines d'application
+        </label>
+        <div class="cards-grid">
+          <div *ngFor="let domain of availableDomains"
+               class="domain-card"
+               [class.selected]="isDomainSelected(domain)"
+               (click)="toggleDomain(domain)">
+            <mat-icon class="card-icon">{{ getDomainIcon(domain) }}</mat-icon>
+            <span class="card-label">{{ domain }}</span>
+            <mat-icon *ngIf="isDomainSelected(domain)" class="check-icon">check_circle</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sélection de tâches ML -->
+      <div class="input-group">
+        <label class="input-label">
+          <mat-icon>psychology</mat-icon>
+          Types de tâches ML
+        </label>
+        <mat-form-field appearance="outline" class="modern-input">
+          <mat-select formControlName="task" multiple>
+            <mat-option *ngFor="let task of availableTasks" [value]="task">
+              <mat-icon>{{ getTaskIcon(task) }}</mat-icon>
+              {{ task }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- ============= CARACTÉRISTIQUES NUMÉRIQUES ============= -->
+    <div *ngIf="groupConfig.id === 'numerical'" class="form-section" [formGroup]="formGroup">
+
+      <!-- Nombre d'instances avec slider moderne -->
+      <div class="input-group">
+        <label class="input-label">
+          <mat-icon>storage</mat-icon>
+          Nombre d'instances
+        </label>
+        <div class="slider-container">
+          <div class="slider-header">
+            <span class="slider-label">Min: {{ getInstancesMin() | number }}</span>
+            <span class="slider-label">Max: {{ getInstancesMax() | number }}</span>
+          </div>
+          <div class="dual-range">
+            <input type="range"
+                   class="range-slider range-min"
+                   [min]="instancesRange.min"
+                   [max]="instancesRange.max"
+                   [value]="getInstancesMin()"
+                   (input)="onInstancesMinChange($event)">
+            <input type="range"
+                   class="range-slider range-max"
+                   [min]="instancesRange.min"
+                   [max]="instancesRange.max"
+                   [value]="getInstancesMax()"
+                   (input)="onInstancesMaxChange($event)">
+          </div>
+          <div class="range-values">
+            <span class="range-min-val">{{ instancesRange.min | number }}</span>
+            <span class="range-max-val">{{ instancesRange.max | number }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nombre de features -->
+      <div class="input-group">
+        <label class="input-label">
+          <mat-icon>view_column</mat-icon>
+          Nombre de caractéristiques
+        </label>
+        <div class="range-inputs">
+          <mat-form-field appearance="outline" class="range-field">
+            <mat-label>Minimum</mat-label>
+            <input matInput type="number"
+                   formControlName="features_number_min"
+                   [min]="featuresRange.min"
+                   [max]="featuresRange.max">
+          </mat-form-field>
+          <span class="range-separator">–</span>
+          <mat-form-field appearance="outline" class="range-field">
+            <mat-label>Maximum</mat-label>
+            <input matInput type="number"
+                   formControlName="features_number_max"
+                   [min]="featuresRange.min"
+                   [max]="featuresRange.max">
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============= CRITÈRES DE QUALITÉ ============= -->
+    <div *ngIf="groupConfig.id === 'quality'" class="form-section" [formGroup]="formGroup">
+
+      <!-- Toggles modernes pour les critères booléens -->
+      <div class="toggles-grid">
+        <div class="toggle-item">
+          <mat-slide-toggle formControlName="is_split" class="modern-toggle">
+            <div class="toggle-content">
+              <mat-icon>call_split</mat-icon>
+              <div class="toggle-text">
+                <span class="toggle-label">Dataset divisé</span>
+                <span class="toggle-desc">Train/Test séparés</span>
+              </div>
+            </div>
+          </mat-slide-toggle>
+        </div>
+
+        <div class="toggle-item">
+          <mat-slide-toggle formControlName="is_anonymized" class="modern-toggle">
+            <div class="toggle-content">
+              <mat-icon>privacy_tip</mat-icon>
+              <div class="toggle-text">
+                <span class="toggle-label">Données anonymisées</span>
+                <span class="toggle-desc">Protection des données</span>
+              </div>
+            </div>
+          </mat-slide-toggle>
+        </div>
+
+        <div class="toggle-item">
+          <mat-slide-toggle formControlName="has_temporal_factors" class="modern-toggle">
+            <div class="toggle-content">
+              <mat-icon>schedule</mat-icon>
+              <div class="toggle-text">
+                <span class="toggle-label">Facteurs temporels</span>
+                <span class="toggle-desc">Données horodatées</span>
+              </div>
+            </div>
+          </mat-slide-toggle>
+        </div>
+
+        <div class="toggle-item">
+          <mat-slide-toggle formControlName="is_public" class="modern-toggle">
+            <div class="toggle-content">
+              <mat-icon>public</mat-icon>
+              <div class="toggle-text">
+                <span class="toggle-label">Accès public</span>
+                <span class="toggle-desc">Librement accessible</span>
+              </div>
+            </div>
+          </mat-slide-toggle>
+        </div>
+      </div>
+
+      <!-- Score éthique -->
+      <div class="input-group">
+        <label class="input-label">
+          <mat-icon>verified_user</mat-icon>
+          Score éthique minimum
+        </label>
+        <mat-form-field appearance="outline" class="modern-input">
+          <input matInput type="number"
+                 formControlName="ethical_score_min"
+                 min="0" max="100"
+                 placeholder="Score sur 100">
+          <span matSuffix>%</span>
+        </mat-form-field>
+      </div>
+    </div>
+
+  </div>
+</div>

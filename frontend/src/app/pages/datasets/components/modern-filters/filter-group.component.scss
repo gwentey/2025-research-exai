@@ -1,0 +1,698 @@
+// ===============================================
+// FORMULAIRE SAAS MODERNE - STYLE STRIPE/LINEAR - FORCE THÈME CLAIR
+// ===============================================
+
+.modern-filter-group {
+  // FORCE THÈME CLAIR ULTRA-AGRESSIF - SUPRIME TOUT LE NOIR !
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+  color-scheme: light !important;
+
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  // FORCE ABSOLUMENT TOUT EN THÈME CLAIR - AUCUN NOIR AUTORISÉ
+  *, *::before, *::after {
+    color-scheme: light !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #1a202c !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  // FORCE LES ICÔNES EN COULEUR VISIBLE
+  mat-icon, .mat-icon, i {
+    color: #4f46e5 !important;
+    background: transparent !important;
+  }
+
+  // FORCE LES BOUTONS EN BLANC
+  button, .mat-mdc-button, .mat-mdc-icon-button {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #4f46e5 !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  // FORCE TOUS LES CONTENEURS
+  div, section, span, p, h1, h2, h3, h4, h5, h6, label {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: inherit !important;
+  }
+
+  &:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+// ===============================================
+// HEADER SECTION
+// ===============================================
+
+.filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+
+  // FORCE TOUT LE CONTENU DU HEADER EN BLANC
+  *, *::before, *::after {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #1a202c !important;
+  }
+
+  mat-icon, .mat-icon {
+    color: #4f46e5 !important;
+    background: transparent !important;
+  }
+
+  button {
+    background: #ffffff !important;
+    color: #64748b !important;
+    border: none !important;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .header-icon {
+      color: #4f46e5;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .header-info {
+      .header-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 4px 0;
+      }
+
+      .header-subtitle {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0;
+      }
+    }
+  }
+
+  .header-actions {
+    .toggle-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: #f8fafc;
+      border-radius: 6px;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background: #e2e8f0;
+        color: #475569;
+      }
+
+      &.expanded {
+        background: #4f46e5;
+        color: white;
+      }
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+// ===============================================
+// CONTENU DU FORMULAIRE
+// ===============================================
+
+.filter-content {
+  padding: 24px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  background: #ffffff !important;
+  color: #1a202c !important;
+
+  &.expanded {
+    max-height: 1000px;
+    padding: 24px;
+  }
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #ffffff !important;
+  color: #1a202c !important;
+
+    // FORCE ULTRA-AGRESSIF - TOUS LES COMPOSANTS MATERIAL EN BLANC !
+  ::ng-deep .mat-mdc-form-field,
+  ::ng-deep .mat-form-field {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1a202c !important;
+
+    .mdc-text-field,
+    .mat-mdc-text-field-wrapper {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a202c !important;
+    }
+
+    .mat-mdc-input-element,
+    .mat-input-element,
+    input, textarea {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a202c !important;
+      border-color: #e2e8f0 !important;
+    }
+
+    .mdc-floating-label,
+    .mat-mdc-floating-label {
+      color: #64748b !important;
+      background: transparent !important;
+    }
+
+    .mdc-line-ripple,
+    .mat-mdc-line-ripple {
+      background-color: #4f46e5 !important;
+    }
+
+    .mdc-notched-outline,
+    .mat-mdc-notched-outline {
+      border-color: #e2e8f0 !important;
+    }
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__trailing,
+    .mdc-notched-outline__notch {
+      border-color: #e2e8f0 !important;
+      background: transparent !important;
+    }
+  }
+
+  ::ng-deep .mat-mdc-select,
+  ::ng-deep .mat-select {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1a202c !important;
+
+    .mat-mdc-select-trigger {
+      color: #1a202c !important;
+      background: transparent !important;
+    }
+  }
+
+  ::ng-deep .mat-mdc-slide-toggle,
+  ::ng-deep .mat-slide-toggle {
+    color: #1a202c !important;
+
+    .mdc-switch {
+      background: transparent !important;
+    }
+
+    .mdc-switch__track {
+      background-color: #e2e8f0 !important;
+    }
+
+    .mdc-switch__handle {
+      background-color: #ffffff !important;
+    }
+  }
+
+  // FORCE LES ICÔNES MATERIAL
+  ::ng-deep mat-icon,
+  ::ng-deep .mat-icon {
+    color: #4f46e5 !important;
+    background: transparent !important;
+  }
+
+  // FORCE TOUS LES AUTRES ÉLÉMENTS
+  ::ng-deep div, ::ng-deep span, ::ng-deep p, ::ng-deep label {
+    background: transparent !important;
+    color: inherit !important;
+  }
+
+  // OPTIMISATION POUR ÉCRANS LARGES - Plus d'espace horizontal
+  @media (min-width: 1200px) {
+    gap: 32px;
+
+    // Layout en grille pour les sections numériques et qualité
+    &:has(.slider-container, .toggles-grid) {
+      .input-group {
+        margin-bottom: 24px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+// ===============================================
+// GROUPES D'INPUTS
+// ===============================================
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .input-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #6b7280;
+    }
+  }
+}
+
+// ===============================================
+// INPUTS MODERNES
+// ===============================================
+
+.modern-input {
+  ::ng-deep .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      background: #ffffff;
+      border-radius: 8px;
+    }
+
+    .mdc-notched-outline {
+      border-color: #d1d5db;
+    }
+
+    &:hover .mdc-notched-outline {
+      border-color: #9ca3af;
+    }
+
+    &.mat-focused .mdc-notched-outline {
+      border-color: #4f46e5;
+      border-width: 2px;
+    }
+
+    .mat-mdc-form-field-hint,
+    .mat-mdc-form-field-error {
+      font-size: 12px;
+    }
+  }
+}
+
+// ===============================================
+// CARTES DE DOMAINES
+// ===============================================
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+
+  // AMÉLIORATION POUR GRAND ÉCRAN - Équilibré
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 16px;
+  }
+}
+
+.domain-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    border-color: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  }
+
+  &.selected {
+    border-color: #4f46e5;
+    background: #eef2ff;
+
+    .card-icon {
+      color: #4f46e5;
+    }
+
+    .check-icon {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      color: #10b981;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .card-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: #6b7280;
+    transition: color 0.2s ease;
+  }
+
+  .card-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    text-align: center;
+    line-height: 1.2;
+  }
+}
+
+// ===============================================
+// SLIDER DUAL-RANGE MODERNE
+// ===============================================
+
+.slider-container {
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .slider-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4f46e5;
+      padding: 4px 8px;
+      background: #eef2ff;
+      border-radius: 4px;
+    }
+  }
+
+  .dual-range {
+    position: relative;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    margin: 20px 0;
+
+    .range-slider {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 6px;
+      background: none;
+      pointer-events: none;
+      -webkit-appearance: none;
+      appearance: none;
+
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #4f46e5;
+        cursor: pointer;
+        pointer-events: all;
+        border: 3px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      &::-moz-range-thumb {
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #4f46e5;
+        cursor: pointer;
+        pointer-events: all;
+        border: 3px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+
+  .range-values {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+
+    .range-min-val,
+    .range-max-val {
+      font-size: 12px;
+      color: #6b7280;
+    }
+  }
+}
+
+// ===============================================
+// INPUTS DE RANGE
+// ===============================================
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  .range-field {
+    flex: 1;
+  }
+
+  .range-separator {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 0 4px;
+  }
+}
+
+// ===============================================
+// TOGGLES MODERNES
+// ===============================================
+
+.toggles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+
+  // AMÉLIORATION POUR GRAND ÉCRAN - Plus de colonnes
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+
+  @media (min-width: 1300px) {
+    grid-template-columns: repeat(3, 1fr); // 3 colonnes sur grand écran (plus équilibré)
+    gap: 20px;
+  }
+}
+
+.toggle-item {
+  .modern-toggle {
+    ::ng-deep .mat-mdc-slide-toggle {
+      .mdc-switch {
+        --mdc-switch-selected-track-color: #4f46e5;
+        --mdc-switch-selected-handle-color: #ffffff;
+        --mdc-switch-selected-hover-track-color: #4338ca;
+        --mdc-switch-unselected-track-color: #e5e7eb;
+        --mdc-switch-unselected-handle-color: #ffffff;
+      }
+    }
+
+    .toggle-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #d1d5db;
+        background: #f9fafb;
+      }
+
+      mat-icon {
+        color: #6b7280;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      .toggle-text {
+        flex: 1;
+
+        .toggle-label {
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
+          color: #374151;
+          margin-bottom: 2px;
+        }
+
+        .toggle-desc {
+          display: block;
+          font-size: 12px;
+          color: #6b7280;
+        }
+      }
+    }
+  }
+}
+
+// ===============================================
+// RESPONSIVE
+// ===============================================
+
+@media (max-width: 768px) {
+  .filter-header {
+    padding: 16px 20px;
+
+    .header-left {
+      gap: 12px;
+
+      .header-info .header-title {
+        font-size: 15px;
+      }
+    }
+  }
+
+  .filter-content {
+    padding: 20px;
+
+    &.expanded {
+      padding: 20px;
+    }
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .domain-card {
+    padding: 12px 8px;
+  }
+
+  .toggles-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .range-inputs {
+    flex-direction: column;
+    gap: 12px;
+
+    .range-separator {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+// ===============================================
+// ANIMATIONS
+// ===============================================
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.domain-card {
+  animation: slideIn 0.3s ease;
+}
+
+.toggle-item {
+  animation: slideIn 0.3s ease;
+}
+
+// ===============================================
+// ÉTATS FOCUSÉS
+// ===============================================
+
+.domain-card:focus,
+.toggle-item:focus {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+// ===============================================
+// THÈME SOMBRE (OPTIONNEL)
+// ===============================================
+
+@media (prefers-color-scheme: dark) {
+  .modern-filter-group {
+    background: #1e293b;
+    border-color: #334155;
+
+    .filter-header {
+      background: #0f172a;
+      border-color: #334155;
+
+      .header-title {
+        color: #f1f5f9;
+      }
+
+      .header-subtitle {
+        color: #94a3b8;
+      }
+    }
+
+    .input-label {
+      color: #e2e8f0;
+    }
+
+    .domain-card {
+      background: #334155;
+      border-color: #475569;
+      color: #e2e8f0;
+
+      &.selected {
+        background: #1e1b4b;
+        border-color: #4f46e5;
+      }
+    }
+  }
+}

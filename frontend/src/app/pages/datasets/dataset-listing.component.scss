@@ -4,7 +4,7 @@
 .container-fluid {
   .search-field {
     min-width: 300px;
-    
+
     .mat-mdc-form-field-subscript-wrapper {
       display: none;
     }
@@ -12,7 +12,7 @@
 
   .sort-field {
     min-width: 180px;
-    
+
     .mat-mdc-form-field-subscript-wrapper {
       display: none;
     }
@@ -22,10 +22,10 @@
     .mat-button-toggle {
       min-width: 44px;
       height: 44px;
-      
+
       .mat-button-toggle-label-content {
         line-height: 44px;
-        
+
         mat-icon {
           font-size: 20px;
           height: 20px;
@@ -60,26 +60,26 @@
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
     transition: all var(--transition-fast);
-    
+
     &:hover {
       background: rgba(var(--color-primary-rgb), 0.15);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
-    
+
     .chip-icon {
       font-size: 16px;
       height: 16px;
       width: 16px;
       color: #1976d2;
     }
-    
+
     .chip-label {
       font-size: 13px;
       font-weight: 500;
       color: #1976d2;
     }
-    
+
     .chip-remove-btn {
       display: inline-flex;
       align-items: center;
@@ -91,7 +91,7 @@
       margin-left: 4px;
       background: rgba(25, 118, 210, 0.15);
       transition: all 0.2s ease;
-      
+
       mat-icon {
         font-size: 14px;
         height: 14px;
@@ -99,16 +99,16 @@
         color: #1976d2;
         transition: all 0.2s ease;
       }
-      
+
       &:hover {
         background: rgba(244, 67, 54, 0.9);
         transform: scale(1.1);
-        
+
         mat-icon {
           color: white;
         }
       }
-      
+
       &:active {
         transform: scale(0.95);
       }
@@ -162,16 +162,63 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000; // Z-INDEX ÉLEVÉ pour passer au-dessus du sidebar
   backdrop-filter: blur(4px);
   padding: 20px;
 }
 
+// MASQUAGE SIDEBAR MOBILE ULTRA-SPÉCIFIQUE
+@media (max-width: 992px) {
+  body.modal-open {
+    overflow: hidden !important;
+
+    // MASQUAGE BRUTAL de TOUS les éléments sidebar sur mobile
+    .mat-drawer-container .mat-drawer,
+    .mat-sidenav-container .mat-sidenav,
+    .mat-drawer,
+    .mat-sidenav,
+    app-sidebar,
+    .mat-nav-list,
+    .sidebar-list,
+    .profile-bar,
+    .branding,
+    .flex-layout,
+    .mat-drawer-inner-container,
+    [class*="ng-tns-c"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      z-index: -99999 !important;
+      position: absolute !important;
+      left: -9999px !important;
+      width: 0 !important;
+      height: 0 !important;
+      pointer-events: none !important;
+      transform: translateX(-200vw) !important;
+    }
+
+    // Réajuster COMPLÈTEMENT le contenu principal
+    .mat-drawer-content,
+    .mat-sidenav-content,
+    .mat-drawer-container,
+    .mat-sidenav-container {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      width: 100% !important;
+      transform: translateX(0) !important;
+    }
+  }
+}
+
 .filters-modal {
-  background: var(--bg-primary);
+  // FORCE THÈME CLAIR - Ignore les préférences du navigateur
+  background: #ffffff !important;
+  color: #1a202c !important;
+  color-scheme: light !important;
+
   border-radius: var(--radius-xl);
-  max-width: 1200px; // Beaucoup plus large
-  width: 95%;
+  max-width: 1100px; // TAILLE RAISONNABLE - Comme le contenu central
+  width: 90%; // Largeur plus modérée
   max-height: 90vh;
   overflow: hidden;
   display: flex;
@@ -179,6 +226,45 @@
   // Ombres prononcées comme demandé dans le plan
   box-shadow: var(--shadow-2xl);
   animation: modalSlideIn var(--transition-slow) var(--ease-out);
+
+  // FORCE ULTRA-AGRESSIF - SUPRIME TOUT LE NOIR !
+  *, *::before, *::after {
+    color-scheme: light !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #1a202c !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  // FORCE TOUTES LES ICÔNES EN COULEUR VISIBLE
+  mat-icon, .mat-icon, i {
+    color: #4f46e5 !important;
+    background: transparent !important;
+  }
+
+  // FORCE TOUS LES BOUTONS
+  button, .mat-mdc-button, .mat-mdc-icon-button, .mat-button {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #4f46e5 !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  // FORCE TOUS LES CONTENEURS
+  div, section, span, p, h1, h2, h3, h4, h5, h6, label, article, header, footer {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: inherit !important;
+  }
+
+  // FORCE TOUS LES COMPOSANTS MATERIAL
+  .mat-mdc-form-field, .mat-form-field,
+  .mat-mdc-select, .mat-select,
+  .mat-mdc-slide-toggle, .mat-slide-toggle {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1a202c !important;
+  }
 
   .modal-header {
     display: flex;
@@ -215,7 +301,7 @@
       color: white;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      
+
       &:hover {
         background: rgba(255, 255, 255, 0.2);
         transform: scale(1.05);
@@ -248,7 +334,7 @@
     &::-webkit-scrollbar-thumb {
       background: rgba(0, 0, 0, 0.2);
       border-radius: 6px;
-      
+
       &:hover {
         background: rgba(0, 0, 0, 0.3);
       }
@@ -274,24 +360,24 @@
            gap: 32px;
            display: flex;
            flex-direction: column;
-          
+
           .filter-card {
             background: white;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             border-radius: 12px;
             border: 1px solid rgba(0, 0, 0, 0.06);
             transition: all 0.2s ease;
-            
+
             &:hover {
               box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
               transform: translateY(-2px);
             }
-            
+
             .card-header {
               padding: 24px 28px 20px 28px;
               background: linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(21, 101, 192, 0.05) 100%);
               border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-              
+
               h3 {
                 font-size: 18px;
                 font-weight: 600;
@@ -300,7 +386,7 @@
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                
+
                 mat-icon {
                   font-size: 20px;
                   height: 20px;
@@ -367,10 +453,10 @@
         font-weight: 500;
         height: 44px;
         font-size: 14px;
-        
+
         &.mat-raised-button {
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          
+
           &:hover {
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
             transform: translateY(-1px);
@@ -406,6 +492,14 @@
         }
       }
     }
+  }
+}
+
+// Responsive pour tablettes - GARDE UNE LARGEUR RAISONNABLE
+@media (max-width: 1024px) and (min-width: 769px) {
+  .filters-modal {
+    max-width: 92%;
+    width: 92%;
   }
 }
 
@@ -536,14 +630,31 @@
       padding: 20px 16px;
 
       .modal-filters {
-        ::ng-deep .modern-filters .filters-body {
-          .filter-card {
-            .card-header {
-              padding: 16px 20px 12px 20px;
+        width: 100%;
+
+        // Intégration avec le nouveau système de filtres moderne
+        ::ng-deep {
+          .modern-filters-panel {
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+
+            .filters-header {
+              display: none; // Masquer le header car on utilise celui de la modal
             }
 
-            .card-content {
-              padding: 20px 16px;
+            .filters-content {
+              padding: 0;
+            }
+
+            .active-filters-bar {
+              margin-bottom: 24px;
+              border-radius: 8px;
+            }
+
+            .filters-footer {
+              border-radius: 0;
+              margin: 24px -20px -20px -20px; // Étendre jusqu'aux bords de la modal
             }
           }
         }
@@ -595,11 +706,433 @@
   .upload-fab {
     bottom: 16px;
     right: 16px;
-    
+
     mat-icon {
       font-size: 20px;
       width: 20px;
       height: 20px;
     }
   }
-} 
+}
+
+// ==================================================
+// MODAL DE FILTRES MODERNE
+// ==================================================
+
+.filters-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000; // Z-INDEX ÉLEVÉ pour passer au-dessus du sidebar
+  padding: 20px;
+}
+
+.filters-modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 1100px; // TAILLE OPTIMALE - Comme le contenu principal
+  width: 90%; // Largeur raisonnable
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  // Header simplifié - juste le bouton fermer
+  .modal-header.modern-header {
+    background: transparent;
+    border-bottom: none;
+    padding: 16px 20px 0px;
+    position: relative;
+
+    .header-actions-only {
+      display: flex;
+      justify-content: flex-end;
+
+      .close-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        color: #64748b !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        transition: all 0.2s ease;
+        position: relative;
+        z-index: 10;
+
+        &:hover {
+          background: #f1f5f9 !important;
+          color: #475569 !important;
+          border-color: #cbd5e1 !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(71, 85, 105, 0.1);
+        }
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+  }
+
+  // Corps de la modal
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    margin-top: -16px; // Compenser l'espace du header supprimé
+
+    .modal-filters {
+      ::ng-deep {
+        .modern-filters-panel {
+          border: none;
+          box-shadow: none;
+          border-radius: 0;
+
+          .panel-header {
+            padding-top: 32px; // Ajouter plus d'espace en haut
+          }
+
+          .active-filters-bar {
+            margin: 24px 32px 0 32px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+
+            .chip-bar-header {
+              margin-bottom: 12px;
+
+              .header-info {
+                .info-icon {
+                  color: #242e54;
+                }
+
+                .info-text {
+                  color: #1a1a17;
+                  font-weight: 500;
+                }
+              }
+
+              .clear-all-btn {
+                background: transparent;
+                color: #dc2626;
+                border: 1px solid #fca5a5;
+
+                &:hover {
+                  background: rgba(239, 68, 68, 0.1);
+                  border-color: #dc2626;
+                }
+              }
+            }
+
+            .filter-chip {
+              background: #242e54;
+              color: white;
+              border: none;
+
+              &:hover {
+                background: #1a2040;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(36, 46, 84, 0.3);
+              }
+
+              .chip-remove-btn {
+                color: white;
+                opacity: 0.8;
+
+                &:hover {
+                  opacity: 1;
+                  background: rgba(255, 255, 255, 0.2);
+                }
+              }
+            }
+          }
+
+          .filters-content {
+            padding: 32px;
+
+            .filter-group-container {
+              margin-bottom: 24px;
+              border: 1px solid #e5e7eb;
+              border-radius: 12px;
+              overflow: hidden;
+              transition: all 0.2s ease;
+
+              &:hover {
+                border-color: #242e54;
+                box-shadow: 0 4px 12px rgba(36, 46, 84, 0.1);
+              }
+
+              &.has-active-filters {
+                border-color: #242e54;
+                box-shadow: 0 0 0 1px rgba(36, 46, 84, 0.1);
+              }
+
+              .group-header {
+                background: #fafaf9;
+                padding: 20px 24px;
+
+                .header-left {
+                  .section-icon {
+                    color: #242e54;
+                  }
+
+                  .section-info {
+                    .section-title {
+                      color: #1a1a17;
+                      font-size: 16px;
+                      font-weight: 600;
+                    }
+
+                    .section-description {
+                      color: #57574f;
+                      font-size: 13px;
+                    }
+                  }
+                }
+
+                .header-right {
+                  .active-badge {
+                    background: #242e54;
+                  }
+
+                  .expand-icon {
+                    color: #57574f;
+                  }
+                }
+
+                &:hover {
+                  background: rgba(36, 46, 84, 0.05);
+                }
+              }
+
+              .group-content {
+                padding: 24px;
+                background: white;
+              }
+            }
+          }
+
+          .filters-footer {
+            border-top: 1px solid #e5e7eb;
+            background: #fafaf9;
+            padding: 20px 32px;
+            margin: 0;
+
+            .footer-content {
+              .filters-summary {
+                .summary-icon {
+                  color: #242e54;
+                }
+
+                .summary-text {
+                  color: #1a1a17;
+                  font-weight: 500;
+                }
+              }
+
+              .footer-actions {
+                .cancel-btn {
+                  background: transparent;
+                  color: #57574f;
+                  border: 1px solid #d1d5db;
+
+                  &:hover {
+                    background: rgba(87, 87, 79, 0.1);
+                    border-color: #57574f;
+                  }
+                }
+
+                .apply-btn {
+                  background: #242e54;
+                  color: white;
+                  border: none;
+
+                  &:hover {
+                    background: #1a2040;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(36, 46, 84, 0.3);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Aperçu des résultats
+  .modal-preview {
+    padding: 16px 32px;
+    background: #f0f9ff;
+    border-top: 1px solid #e0f2fe;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    mat-icon {
+      color: #0369a1;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    span {
+      color: #0c4a6e;
+      font-weight: 500;
+      font-size: 14px;
+    }
+  }
+
+  // Footer avec actions
+  .modal-footer {
+    padding: 20px 32px;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .modal-actions-left {
+      .reset-btn {
+        background: transparent;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: #dc2626;
+        }
+      }
+    }
+
+    .modal-actions-right {
+      display: flex;
+      gap: 12px;
+
+      .cancel-btn {
+        background: transparent;
+        color: #57574f;
+        border: 1px solid #d1d5db;
+
+        &:hover {
+          background: rgba(87, 87, 79, 0.1);
+          border-color: #57574f;
+        }
+      }
+
+      .apply-btn {
+        background: #242e54;
+        color: white;
+        border: none;
+
+        &:hover {
+          background: #1a2040;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(36, 46, 84, 0.3);
+        }
+      }
+    }
+  }
+}
+
+// Responsive pour la modal
+@media (max-width: 768px) {
+  .filters-modal-overlay {
+    padding: 12px;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+
+  .filters-modal {
+    max-height: 95vh;
+    border-radius: 12px;
+
+    .modal-header.modern-header {
+      padding: 20px 24px;
+
+      .header-content {
+        .header-left {
+          gap: 12px;
+
+          .header-text {
+            .header-title {
+              font-size: 18px;
+            }
+
+            .header-subtitle {
+              font-size: 13px;
+            }
+          }
+        }
+      }
+    }
+
+    .modal-body {
+      .modal-filters {
+        ::ng-deep {
+          .modern-filters-panel {
+            .active-filters-bar {
+              margin: 20px 24px 0 24px;
+              padding: 12px;
+            }
+
+            .filters-content {
+              padding: 24px;
+
+              .filter-group-container {
+                margin-bottom: 20px;
+
+                .group-header {
+                  padding: 16px 20px;
+                }
+
+                .group-content {
+                  padding: 20px;
+                }
+              }
+            }
+
+            .filters-footer {
+              padding: 16px 24px;
+            }
+          }
+        }
+      }
+    }
+
+    .modal-preview {
+      padding: 12px 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      flex-direction: column;
+      gap: 12px;
+
+      .modal-actions-left,
+      .modal-actions-right {
+        width: 100%;
+        justify-content: center;
+
+        button {
+          flex: 1;
+          max-width: 200px;
+        }
+      }
+    }
+  }
+}

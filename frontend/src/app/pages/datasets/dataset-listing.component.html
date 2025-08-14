@@ -24,17 +24,17 @@
             <div class="d-flex align-items-center gap-12">
               <!-- Barre de recherche rapide -->
               <mat-form-field appearance="outline" class="search-field" color="primary">
-                <input 
-                  matInput 
+                <input
+                  matInput
                   [(ngModel)]="quickSearchTerm"
                   (input)="onQuickSearch($event)"
                   [placeholder]="'DATASETS.LISTING.SEARCH_PLACEHOLDER' | translate"
                   autocomplete="off">
                 <mat-icon matPrefix>search</mat-icon>
-                <button 
-                  *ngIf="quickSearchTerm" 
-                  mat-icon-button 
-                  matSuffix 
+                <button
+                  *ngIf="quickSearchTerm"
+                  mat-icon-button
+                  matSuffix
                   (click)="clearQuickSearch()"
                   [matTooltip]="'COMMON.CLEAR' | translate">
                   <mat-icon>clear</mat-icon>
@@ -42,8 +42,8 @@
               </mat-form-field>
 
               <!-- Bouton Filtres avec indicateur -->
-              <button 
-                mat-raised-button 
+              <button
+                mat-raised-button
                 color="primary"
                 (click)="openFiltersModal()"
                 class="m-r-8"
@@ -56,8 +56,8 @@
               </button>
 
               <!-- Contrôles d'affichage -->
-              <mat-button-toggle-group 
-                [(value)]="viewMode" 
+              <mat-button-toggle-group
+                [(value)]="viewMode"
                 (change)="onViewChange($event)"
                 class="view-toggle m-r-8">
                 <mat-button-toggle value="grid" [matTooltip]="'DATASETS.LISTING.GRID_VIEW' | translate">
@@ -83,8 +83,8 @@
               </mat-form-field>
 
               <!-- Refresh -->
-              <button 
-                mat-icon-button 
+              <button
+                mat-icon-button
                 (click)="refreshDatasets()"
                 [matTooltip]="'COMMON.REFRESH' | translate"
                 color="primary">
@@ -109,12 +109,12 @@
                 <span>{{ 'DATASETS.FILTERS.ACTIVE_FILTERS_COUNT' | translate: {count: getActiveFiltersCount()} }}</span>
               </div>
               <div class="d-flex flex-wrap gap-8">
-                <div 
-                  *ngFor="let filter of getActiveFiltersChips()" 
+                <div
+                  *ngFor="let filter of getActiveFiltersChips()"
                   class="custom-filter-chip">
                   <mat-icon class="chip-icon">{{ filter.icon }}</mat-icon>
                   <span class="chip-label">{{ filter.label }}</span>
-                  <span 
+                  <span
                     class="chip-remove-btn"
                     (click)="removeFilter(filter)"
                     [title]="'Supprimer ce filtre: ' + filter.label">
@@ -123,8 +123,8 @@
                 </div>
               </div>
             </div>
-            <button 
-              mat-button 
+            <button
+              mat-button
               color="warn"
               (click)="clearAllFilters()">
               <mat-icon class="m-r-4">clear_all</mat-icon>
@@ -215,7 +215,7 @@
 
   <!-- Grille des datasets -->
   <div class="row" *ngIf="!isLoading && !error && datasets.length > 0">
-    <div class="col-lg-4 col-md-6 col-sm-12 m-b-20" 
+    <div class="col-lg-4 col-md-6 col-sm-12 m-b-20"
          *ngFor="let dataset of datasets; trackBy: trackByDataset"
          [class.col-lg-12]="viewMode === 'list'">
       <app-dataset-card
@@ -252,26 +252,27 @@
 <!-- Modal de Filtrage -->
 <div class="filters-modal-overlay" *ngIf="showFiltersModal" (click)="closeFiltersModal()">
   <div class="filters-modal" (click)="$event.stopPropagation()">
-    <!-- Header de la modal -->
-    <div class="modal-header">
-      <div class="modal-title">
-        <mat-icon>tune</mat-icon>
-        <h2>{{ 'DATASETS.FILTERS.TITLE' | translate }}</h2>
+    <!-- Header simplifié sans doublon -->
+    <div class="modal-header modern-header">
+      <div class="header-actions-only">
+        <button mat-icon-button (click)="closeFiltersModal()" class="close-btn">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
-      <button mat-icon-button (click)="closeFiltersModal()" class="close-btn">
-        <mat-icon>close</mat-icon>
-      </button>
     </div>
 
     <!-- Corps de la modal -->
     <div class="modal-body">
-      <app-dataset-filters
+      <app-filters-panel
         [initialFilters]="tempFilters"
         [autoApply]="false"
         [showApplyButton]="false"
+        [collapsible]="false"
+        [showActiveFiltersBar]="true"
+        [layout]="'vertical'"
         (filtersChange)="onFiltersPreview($event)"
         class="modal-filters">
-      </app-dataset-filters>
+      </app-filters-panel>
     </div>
 
     <!-- Aperçu des résultats -->
@@ -283,8 +284,8 @@
     <!-- Footer avec actions -->
     <div class="modal-footer">
       <div class="modal-actions-left">
-        <button 
-          mat-button 
+        <button
+          mat-button
           color="warn"
           (click)="resetFiltersModal()"
           [disabled]="!hasActiveFilters()">
@@ -292,13 +293,13 @@
           Tout effacer
         </button>
       </div>
-      
+
       <div class="modal-actions-right">
         <button mat-button (click)="closeFiltersModal()">
           Annuler
         </button>
-        <button 
-          mat-raised-button 
+        <button
+          mat-raised-button
           color="primary"
           (click)="applyFiltersModal()"
           [disabled]="!hasFilterChanges()">
@@ -310,14 +311,14 @@
   </div>
 
   <!-- Bouton flottant d'upload (visible seulement pour ADMIN et CONTRIBUTEUR) -->
-  <button 
+  <button
     *ngIf="canUploadDatasets$ | async"
-    mat-fab 
-    color="primary" 
+    mat-fab
+    color="primary"
     class="upload-fab"
     (click)="uploadDataset()"
     matTooltip="{{ 'DATASETS.UPLOAD.TOOLTIP' | translate }}"
     matTooltipPosition="left">
     <mat-icon>add</mat-icon>
   </button>
-</div> 
+</div>

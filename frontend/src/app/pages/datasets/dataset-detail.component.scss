@@ -978,19 +978,19 @@
           border-radius: 6px;
           overflow: hidden;
           background-color: rgba(0, 0, 0, 0.1) !important;
-          
+
           .mdc-linear-progress__bar-inner {
             border-radius: 6px;
           }
-          
+
           &.mat-primary .mdc-linear-progress__bar-inner {
             background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%) !important;
           }
-          
+
           &.mat-accent .mdc-linear-progress__bar-inner {
             background: linear-gradient(90deg, #2196f3 0%, #21cbf3 100%) !important;
           }
-          
+
           &.mat-warn .mdc-linear-progress__bar-inner {
             background: linear-gradient(90deg, #ff9800 0%, #f57c00 100%) !important;
           }
@@ -1069,7 +1069,7 @@
   .file-selector {
     width: 100%;
   }
-  
+
   .file-details {
     width: 100%;
   }
@@ -1077,7 +1077,7 @@
   .selector-card {
     border-radius: 12px;
     max-height: 400px;
-    
+
     @media (min-width: 1200px) {
       max-height: 500px;
     }
@@ -1238,9 +1238,13 @@
     margin-bottom: 2rem;
 
     .preview-info-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      color: white !important;
       border-radius: 12px;
+
+      .mat-mdc-card-content {
+        color: white !important;
+      }
 
       .preview-stats {
         display: flex;
@@ -1255,18 +1259,22 @@
           gap: 0.5rem;
 
           mat-icon {
-            font-size: 2rem;
-            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            color: rgba(255, 255, 255, 0.8) !important;
           }
 
           .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
+            color: white !important;
           }
 
           .stat-label {
             font-size: 0.9rem;
             opacity: 0.8;
+            color: white !important;
           }
         }
       }
@@ -1637,10 +1645,10 @@
 
         .hero-nav {
           margin-bottom: 1.5rem;
-          
+
           .breadcrumb {
             font-size: 0.8rem;
-            
+
             .breadcrumb-current {
               display: none; // Cache le nom complet sur mobile pour économiser l'espace
             }
@@ -1859,11 +1867,11 @@
     .particle {
       animation: none !important;
     }
-    
+
     .icon-glow {
       animation: none !important;
     }
-    
+
     .circle-progress {
       animation: none !important;
     }
@@ -1900,10 +1908,5 @@
     box-shadow: 0 0 0 5px rgba(102, 126, 234, 0.3);
   }
 
-  // Support screen readers
-  .quality-circle-modern {
-    &[aria-label] {
-      // Assure que le score est bien annoncé par les screen readers
-    }
-  }
+  // Support screen readers - le score est bien annoncé par les screen readers via l'attribut aria-label
 }

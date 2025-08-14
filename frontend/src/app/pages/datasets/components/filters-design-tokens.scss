@@ -1,0 +1,823 @@
+// ==================================================
+// DESIGN TOKENS RÉVOLUTIONNAIRES - MODULE FILTRES ULTRA-MODERNE
+// ==================================================
+// Design system 2025 avec glassmorphism, micro-interactions et neumorphism
+// Inspiration : Apple Vision Pro, Linear, Figma, Notion moderne
+
+// ==================================================
+// VARIABLES HÉRITÉES ENRICHIES DE LA PALETTE SORBONNE
+// ==================================================
+$sorbonne-primary: #242e54;      // Bleu Sorbonne principal
+$sorbonne-secondary: #9d876a;    // Beige Sorbonne
+$sorbonne-accent: #4ecdc4;       // Teal moderne signature
+$modern-neutral-0: #ffffff;      // Blanc pur
+$modern-neutral-25: #fefefe;     // Blanc presque pur
+$modern-neutral-50: #fafaf9;     // Fond très clair chaud
+$modern-neutral-100: #f5f5f3;    // Fond clair chaud
+$modern-neutral-150: #f0f0ee;    // Fond intermédiaire
+$modern-neutral-200: #e8e8e5;    // Bordures légères
+$modern-neutral-300: #d4d4d1;    // Bordures moyennes
+$modern-neutral-400: #a3a39e;    // Éléments désactivés
+$modern-neutral-500: #737369;    // Texte placeholder
+$modern-neutral-600: #57574f;    // Texte secondaire
+$modern-neutral-700: #3f3f37;    // Texte principal sombre
+$modern-neutral-800: #2a2a24;    // Texte très sombre
+$modern-neutral-900: #1a1a17;    // Texte principal
+
+// ==================================================
+// TOKENS RÉVOLUTIONNAIRES - GLASSMORPHISM & NEUMORPHISM
+// ==================================================
+
+:root {
+  // Couleurs principales réinventées
+  --filters-primary: #{$sorbonne-primary};           // Bleu Sorbonne signature
+  --filters-secondary: #{$sorbonne-secondary};       // Beige chaleureux
+  --filters-accent: #{$sorbonne-accent};             // Teal signature
+  --filters-accent-soft: #7dd3d8;                    // Teal doux hover
+  --filters-accent-bright: #3be9de;                  // Teal électrique pour focus
+  --filters-accent-muted: rgba(78, 205, 196, 0.1);   // Teal ultra-subtil
+
+  // === GLASSMORPHISM RÉVOLUTIONNAIRE ===
+  --filters-glass-primary: rgba(255, 255, 255, 0.85);     // Verre principal
+  --filters-glass-secondary: rgba(255, 255, 255, 0.7);    // Verre secondaire
+  --filters-glass-accent: rgba(78, 205, 196, 0.15);       // Verre coloré
+  --filters-glass-blur-sm: blur(8px);                     // Flou léger
+  --filters-glass-blur-md: blur(12px);                    // Flou moyen
+  --filters-glass-blur-lg: blur(20px);                    // Flou intense
+  --filters-glass-border: rgba(255, 255, 255, 0.3);       // Bordures vitrées
+
+  // === NEUMORPHISM SUBTIL ===
+  --filters-neuro-bg: #{$modern-neutral-25};              // Fond neuro
+  --filters-neuro-light: rgba(255, 255, 255, 0.8);        // Ombre claire
+  --filters-neuro-dark: rgba(0, 0, 0, 0.05);              // Ombre sombre
+  --filters-neuro-inset-light: inset 2px 2px 5px rgba(255, 255, 255, 0.7);
+  --filters-neuro-inset-dark: inset -2px -2px 5px rgba(0, 0, 0, 0.03);
+
+  // Backgrounds ultra-modernes
+  --filters-bg-primary: #{$modern-neutral-0};             // Blanc pur absolu
+  --filters-bg-secondary: #{$modern-neutral-25};          // Blanc presque pur
+  --filters-bg-tertiary: #{$modern-neutral-50};           // Fond très doux
+  --filters-bg-quaternary: #{$modern-neutral-100};        // Fond subtil
+  --filters-bg-overlay: rgba(250, 250, 249, 0.95);        // Overlay chaud
+  --filters-bg-card: var(--filters-glass-primary);        // Cartes vitrées
+  --filters-bg-section: var(--filters-glass-secondary);   // Sections translucides
+  --filters-bg-elevated: rgba(255, 255, 255, 0.95);       // Éléments surélevés
+
+  // Textes avec hiérarchie claire et contrastes AA
+  --filters-text-primary: #{$modern-neutral-900};    // Texte principal (contraste 16.74:1)
+  --filters-text-secondary: #{$modern-neutral-600};  // Texte secondaire (contraste 7.45:1)
+  --filters-text-tertiary: #6b7280;                  // Texte tertiaire (contraste 4.54:1)
+  --filters-text-muted: #9ca3af;                     // Texte atténué (contraste 2.84:1)
+  --filters-text-placeholder: #666666;               // Placeholder très visible (contraste 6.26:1)
+  --filters-text-accent: var(--filters-primary);     // Texte d'accent
+  --filters-text-success: #059669;                   // Texte de succès
+  --filters-text-warning: #d97706;                   // Texte d'avertissement
+  --filters-text-error: #dc2626;                     // Texte d'erreur
+
+  // Bordures subtiles et modernes
+  --filters-border-light: #{$modern-neutral-200};    // Bordures très légères
+  --filters-border-medium: #d1d5db;                  // Bordures moyennes
+  --filters-border-strong: #9ca3af;                  // Bordures marquées
+  --filters-border-accent: var(--filters-accent);    // Bordures d'accent
+  --filters-border-focus: var(--filters-primary);    // Bordures de focus
+  --filters-border-error: #fca5a5;                   // Bordures d'erreur
+
+  // === OMBRES RÉVOLUTIONNAIRES & ÉLÉVATIONS ===
+  --filters-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  --filters-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --filters-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --filters-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --filters-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --filters-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+
+  // Ombres spécialisées ultra-modernes
+  --filters-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --filters-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --filters-shadow-active: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
+  --filters-shadow-focus: 0 0 0 3px rgba(78, 205, 196, 0.15), 0 0 0 1px rgba(78, 205, 196, 0.3);
+  --filters-shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.15);
+  --filters-shadow-neuro: 4px 4px 8px rgba(0, 0, 0, 0.03), -4px -4px 8px rgba(255, 255, 255, 0.8);
+  --filters-shadow-neuro-inset: inset 2px 2px 4px rgba(0, 0, 0, 0.02), inset -2px -2px 4px rgba(255, 255, 255, 0.9);
+
+  // Ombres colorées pour états spéciaux
+  --filters-shadow-accent: 0 4px 20px rgba(78, 205, 196, 0.2);
+  --filters-shadow-primary: 0 4px 20px rgba(36, 46, 84, 0.15);
+  --filters-shadow-success: 0 4px 20px rgba(5, 150, 105, 0.15);
+  --filters-shadow-warning: 0 4px 20px rgba(217, 119, 6, 0.15);
+  --filters-shadow-error: 0 4px 20px rgba(220, 38, 38, 0.15);
+
+  // Radius cohérent avec l'application
+  --filters-radius-xs: 4px;
+  --filters-radius-sm: 6px;
+  --filters-radius-md: 8px;
+  --filters-radius-lg: 12px;
+  --filters-radius-xl: 16px;
+  --filters-radius-full: 9999px;
+
+  // Espacement systématique (échelle 8px)
+  --filters-space-xs: 4px;
+  --filters-space-sm: 8px;
+  --filters-space-md: 16px;
+  --filters-space-lg: 24px;
+  --filters-space-xl: 32px;
+  --filters-space-2xl: 48px;
+
+  // === TRANSITIONS & ANIMATIONS RÉVOLUTIONNAIRES ===
+  // Courbes de Bézier inspirées d'Apple et Linear
+  --filters-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);           // Ultra fluide
+  --filters-ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);          // Naturel
+  --filters-ease-out-circ: cubic-bezier(0, 0.55, 0.45, 1);          // Organique
+  --filters-ease-in-out-back: cubic-bezier(0.68, -0.55, 0.265, 1.55); // Playful
+  --filters-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);   // Ressort
+
+  // Durées d'animation calibrées
+  --filters-transition-instant: 100ms var(--filters-ease-out-expo);  // Micro-interactions
+  --filters-transition-fast: 200ms var(--filters-ease-out-quart);    // Hover, focus
+  --filters-transition-base: 300ms var(--filters-ease-out-expo);     // Transitions principales
+  --filters-transition-slow: 500ms var(--filters-ease-out-circ);     // Transformations complexes
+  --filters-transition-spring: 400ms var(--filters-ease-spring);     // Effets playful
+
+  // Délais d'animation staggerés
+  --filters-stagger-sm: 50ms;
+  --filters-stagger-md: 100ms;
+  --filters-stagger-lg: 150ms;
+
+  // Typographie moderne et lisible
+  --filters-font-family: var(--font-family-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif);
+  --filters-font-size-xs: 0.75rem;     // 12px
+  --filters-font-size-sm: 0.875rem;    // 14px
+  --filters-font-size-base: 1rem;      // 16px
+  --filters-font-size-lg: 1.125rem;    // 18px
+  --filters-font-size-xl: 1.25rem;     // 20px
+  --filters-font-size-2xl: 1.5rem;     // 24px
+
+  --filters-font-weight-normal: 400;
+  --filters-font-weight-medium: 500;
+  --filters-font-weight-semibold: 600;
+  --filters-font-weight-bold: 700;
+
+  --filters-line-height-tight: 1.25;
+  --filters-line-height-normal: 1.5;
+  --filters-line-height-relaxed: 1.625;
+
+  // États interactifs
+  --filters-hover-bg: rgba(78, 205, 196, 0.08);      // Hover très subtil
+  --filters-active-bg: rgba(78, 205, 196, 0.12);     // État actif
+  --filters-focus-ring: rgba(36, 46, 84, 0.2);       // Ring de focus
+  --filters-disabled-opacity: 0.5;                   // Opacité désactivé
+
+  // Z-index pour le module
+  --filters-z-dropdown: 1000;
+  --filters-z-sticky: 1020;
+  --filters-z-modal: 1050;
+  --filters-z-tooltip: 1070;
+}
+
+// ==================================================
+// MIXINS RÉVOLUTIONNAIRES POUR COMPOSANTS ULTRA-MODERNES
+// ==================================================
+
+// === GLASSMORPHISM CARD RÉVOLUTIONNAIRE ===
+@mixin filters-glass-card {
+  background: var(--filters-glass-primary);
+  backdrop-filter: var(--filters-glass-blur-md);
+  -webkit-backdrop-filter: var(--filters-glass-blur-md);
+  border: 1px solid var(--filters-glass-border);
+  border-radius: var(--filters-radius-xl);
+  box-shadow: var(--filters-shadow-glass);
+  transition: all var(--filters-transition-base);
+  position: relative;
+  overflow: hidden;
+
+  // Effet de brillance subtile
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: left var(--filters-transition-slow);
+  }
+
+  &:hover {
+    background: var(--filters-glass-secondary);
+    box-shadow: var(--filters-shadow-hover), var(--filters-shadow-accent);
+    transform: translateY(-2px) scale(1.002);
+    border-color: rgba(78, 205, 196, 0.3);
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(1.001);
+    box-shadow: var(--filters-shadow-active);
+  }
+}
+
+// === NEUMORPHISM CARD MODERNE ===
+@mixin filters-neuro-card {
+  background: var(--filters-neuro-bg);
+  border: none;
+  border-radius: var(--filters-radius-xl);
+  box-shadow: var(--filters-shadow-neuro);
+  transition: all var(--filters-transition-base);
+
+  &:hover {
+    box-shadow: var(--filters-shadow-neuro-inset);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    box-shadow: var(--filters-shadow-neuro-inset);
+    transform: translateY(0);
+  }
+}
+
+// === CARD STANDARD AMÉLIORÉE ===
+@mixin filters-card {
+  @include filters-glass-card;
+}
+
+// === FLOATING CARD AVEC ÉLÉVATION ===
+@mixin filters-floating-card {
+  @include filters-glass-card;
+  box-shadow: var(--filters-shadow-xl);
+
+  &:hover {
+    box-shadow: var(--filters-shadow-2xl), var(--filters-shadow-accent);
+    transform: translateY(-4px) scale(1.005);
+  }
+}
+
+@mixin filters-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--filters-space-sm);
+  padding: var(--filters-space-md) var(--filters-space-lg);
+  background: var(--filters-bg-section);
+  border-bottom: 1px solid var(--filters-border-light);
+
+  .section-icon {
+    color: var(--filters-text-accent);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .section-title {
+    font-size: var(--filters-font-size-lg);
+    font-weight: var(--filters-font-weight-semibold);
+    color: var(--filters-text-primary);
+    margin: 0;
+  }
+
+  .section-description {
+    font-size: var(--filters-font-size-sm);
+    color: var(--filters-text-secondary);
+    margin: 0;
+  }
+}
+
+@mixin filters-input-modern {
+  width: 100%;
+  padding: var(--filters-space-md);
+  border: 1px solid var(--filters-border-medium);
+  border-radius: var(--filters-radius-md);
+  font-size: var(--filters-font-size-sm);
+  font-family: var(--filters-font-family);
+  background: var(--filters-bg-primary);
+  color: var(--filters-text-primary);
+  transition: all var(--filters-transition-fast);
+
+  &::placeholder {
+    color: var(--filters-text-placeholder);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--filters-border-focus);
+    box-shadow: var(--filters-shadow-focus);
+  }
+
+  &:disabled {
+    opacity: var(--filters-disabled-opacity);
+    cursor: not-allowed;
+    background: var(--filters-bg-tertiary);
+  }
+}
+
+// === BOUTON PRIMAIRE RÉVOLUTIONNAIRE ===
+@mixin filters-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--filters-space-sm);
+  padding: var(--filters-space-md) var(--filters-space-xl);
+  background: linear-gradient(135deg, var(--filters-accent) 0%, var(--filters-accent-soft) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--filters-radius-lg);
+  font-size: var(--filters-font-size-sm);
+  font-weight: var(--filters-font-weight-semibold);
+  letter-spacing: 0.025em;
+  cursor: pointer;
+  transition: all var(--filters-transition-fast);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--filters-shadow-md);
+
+  // Effet de brillance au hover
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: left var(--filters-transition-base);
+  }
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--filters-accent-bright) 0%, var(--filters-accent) 100%);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--filters-shadow-lg), var(--filters-shadow-accent);
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: var(--filters-shadow-md);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--filters-shadow-focus), var(--filters-shadow-lg);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    background: var(--filters-border-medium);
+    box-shadow: none;
+  }
+}
+
+// === BOUTON GLASS RÉVOLUTIONNAIRE ===
+@mixin filters-button-glass {
+  @include filters-button-primary;
+  background: var(--filters-glass-primary);
+  backdrop-filter: var(--filters-glass-blur-sm);
+  -webkit-backdrop-filter: var(--filters-glass-blur-sm);
+  color: var(--filters-text-primary);
+  border: 1px solid var(--filters-glass-border);
+  box-shadow: var(--filters-shadow-glass);
+
+  &:hover:not(:disabled) {
+    background: var(--filters-glass-secondary);
+    color: var(--filters-accent);
+    border-color: rgba(78, 205, 196, 0.3);
+  }
+}
+
+@mixin filters-button-secondary {
+  @include filters-button-primary;
+  background: transparent;
+  color: var(--filters-text-secondary);
+  border: 1px solid var(--filters-border-medium);
+
+  &:hover:not(:disabled) {
+    background: var(--filters-hover-bg);
+    border-color: var(--filters-border-accent);
+    color: var(--filters-text-primary);
+  }
+}
+
+@mixin filters-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--filters-space-xs);
+  padding: var(--filters-space-xs) var(--filters-space-sm);
+  background: var(--filters-bg-tertiary);
+  color: var(--filters-text-secondary);
+  border: 1px solid var(--filters-border-light);
+  border-radius: var(--filters-radius-full);
+  font-size: var(--filters-font-size-xs);
+  font-weight: var(--filters-font-weight-medium);
+  transition: all var(--filters-transition-fast);
+
+  &.active {
+    background: var(--filters-accent);
+    color: white;
+    border-color: var(--filters-accent);
+  }
+
+  &.removable {
+    padding-right: var(--filters-space-xs);
+
+    .remove-icon {
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity var(--filters-transition-fast);
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+@mixin filters-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--filters-space-lg);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--filters-transition-fast);
+
+  &:hover {
+    background: var(--filters-hover-bg);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--filters-space-md);
+
+    .section-icon {
+      color: var(--filters-text-accent);
+      font-size: 20px;
+    }
+
+    .section-info {
+      text-align: left;
+
+      .section-title {
+        font-size: var(--filters-font-size-lg);
+        font-weight: var(--filters-font-weight-semibold);
+        color: var(--filters-text-primary);
+        margin: 0 0 2px 0;
+      }
+
+      .section-description {
+        font-size: var(--filters-font-size-sm);
+        color: var(--filters-text-secondary);
+        margin: 0;
+      }
+    }
+  }
+
+  .expand-icon {
+    color: var(--filters-text-tertiary);
+    transition: transform var(--filters-transition-base);
+
+    &.expanded {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// ==================================================
+// CLASSES UTILITAIRES POUR LE MODULE
+// ==================================================
+
+.filters-card {
+  @include filters-card;
+}
+
+.filters-section-header {
+  @include filters-section-header;
+}
+
+.filters-input-modern {
+  @include filters-input-modern;
+}
+
+.filters-button-primary {
+  @include filters-button-primary;
+}
+
+.filters-button-secondary {
+  @include filters-button-secondary;
+}
+
+.filters-chip {
+  @include filters-chip;
+}
+
+.filters-accordion-header {
+  @include filters-accordion-header;
+}
+
+// ==================================================
+// ANIMATIONS RÉVOLUTIONNAIRES ULTRA-FLUIDES
+// ==================================================
+
+// === ENTRÉES SOPHISTIQUÉES ===
+@keyframes filters-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes filters-slide-down {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-12px) scale(0.95);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    max-height: 800px;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes filters-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// === CHIPS & ÉLÉMENTS INTERACTIFS ===
+@keyframes filters-chip-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(-2deg);
+    filter: blur(2px);
+  }
+  50% {
+    transform: scale(1.05) rotate(1deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0);
+  }
+}
+
+@keyframes filters-chip-remove {
+  from {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+    filter: blur(1px);
+  }
+}
+
+// === EFFETS GLASSMORPHISM ===
+@keyframes filters-glass-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes filters-floating {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+// === MICRO-INTERACTIONS ===
+@keyframes filters-pulse-accent {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(78, 205, 196, 0);
+  }
+}
+
+@keyframes filters-rotate-gentle {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes filters-scale-bounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// === STAGGER EFFECTS ===
+@keyframes filters-stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// === LOADING SOPHISTIQUÉ ===
+@keyframes filters-loading-dots {
+  0%, 20% {
+    color: var(--filters-accent);
+    transform: scale(1);
+  }
+  50% {
+    color: var(--filters-accent-bright);
+    transform: scale(1.2);
+  }
+  80%, 100% {
+    color: var(--filters-accent);
+    transform: scale(1);
+  }
+}
+
+// === CLASSES D'ANIMATION RÉVOLUTIONNAIRES ===
+.filters-fade-in {
+  animation: filters-fade-in 400ms var(--filters-ease-out-expo);
+}
+
+.filters-slide-down {
+  animation: filters-slide-down 350ms var(--filters-ease-out-expo);
+}
+
+.filters-slide-up {
+  animation: filters-slide-up 300ms var(--filters-ease-out-quart);
+}
+
+.filters-chip-appear {
+  animation: filters-chip-appear 250ms var(--filters-ease-spring);
+}
+
+.filters-chip-remove {
+  animation: filters-chip-remove 200ms var(--filters-ease-out-expo);
+}
+
+.filters-glass-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: filters-glass-shimmer 2s linear infinite;
+}
+
+.filters-floating {
+  animation: filters-floating 3s ease-in-out infinite;
+}
+
+.filters-pulse-accent {
+  animation: filters-pulse-accent 2s ease-in-out infinite;
+}
+
+.filters-loading-dots {
+  animation: filters-loading-dots 1.4s ease-in-out infinite;
+}
+
+.filters-rotate-loading {
+  animation: filters-rotate-gentle 1s linear infinite;
+}
+
+.filters-scale-bounce {
+  animation: filters-scale-bounce 0.6s var(--filters-ease-spring);
+}
+
+// === STAGGER ANIMATIONS ===
+.filters-stagger-in {
+  animation: filters-stagger-in 400ms var(--filters-ease-out-expo);
+
+  &:nth-child(1) { animation-delay: 0ms; }
+  &:nth-child(2) { animation-delay: var(--filters-stagger-sm); }
+  &:nth-child(3) { animation-delay: var(--filters-stagger-md); }
+  &:nth-child(4) { animation-delay: var(--filters-stagger-lg); }
+  &:nth-child(5) { animation-delay: 200ms; }
+  &:nth-child(6) { animation-delay: 250ms; }
+}
+
+// === MICRO-INTERACTIONS AVANCÉES ===
+.filters-hover-lift {
+  transition: all var(--filters-transition-fast);
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--filters-shadow-hover);
+  }
+}
+
+.filters-hover-glow {
+  transition: all var(--filters-transition-fast);
+
+  &:hover {
+    box-shadow: var(--filters-shadow-accent);
+    filter: brightness(1.1);
+  }
+}
+
+.filters-focus-ring {
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--filters-shadow-focus);
+    transform: scale(1.02);
+  }
+}
+
+// ==================================================
+// RESPONSIVE UTILITIES
+// ==================================================
+
+// Breakpoints alignés sur l'application
+$filters-breakpoint-mobile: 375px;
+$filters-breakpoint-tablet: 768px;
+$filters-breakpoint-laptop: 1024px;
+$filters-breakpoint-desktop: 1280px;
+$filters-breakpoint-wide: 1440px;
+
+@mixin filters-mobile-only {
+  @media (max-width: #{$filters-breakpoint-tablet - 1px}) {
+    @content;
+  }
+}
+
+@mixin filters-tablet-up {
+  @media (min-width: #{$filters-breakpoint-tablet}) {
+    @content;
+  }
+}
+
+@mixin filters-laptop-up {
+  @media (min-width: #{$filters-breakpoint-laptop}) {
+    @content;
+  }
+}
+
+@mixin filters-desktop-up {
+  @media (min-width: #{$filters-breakpoint-desktop}) {
+    @content;
+  }
+}
+
+@mixin filters-wide-up {
+  @media (min-width: #{$filters-breakpoint-wide}) {
+    @content;
+  }
+}
+
+// ==================================================
+// NOTES D'UTILISATION
+// ==================================================
+// 1. Utiliser --filters-primary uniquement pour éléments d'identité Sorbonne
+// 2. Privilégier --filters-accent pour les interactions et actions
+// 3. Respecter la hiérarchie typographique définie
+// 4. Utiliser les mixins pour garantir la cohérence
+// 5. Tester les contrastes AA sur tous les éléments de texte

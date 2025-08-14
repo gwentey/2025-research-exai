@@ -479,7 +479,17 @@
       "DATE_LABEL": "Date Range",
       "DOMAIN_LABEL": "Domain",
       "RESET": "Reset Filters",
-      "ACTIVE_FILTERS_COUNT": "{{count}} active filter(s):"
+      "ACTIVE_FILTERS_COUNT": "{{count}} active filter(s):",
+      "MODERN": {
+        "TITLE": "Smart Filters",
+        "SUBTITLE": "Find the perfect dataset with precision",
+        "SUMMARY": "{{count}} criteria configured",
+        "LOADING": "Optimizing results...",
+        "PROGRESS": "Configuration: {{percentage}}%",
+        "LIVE_PREVIEW": "Live Preview",
+        "ESTIMATED_RESULTS": "{{count}} estimated result(s)",
+        "OPTIMIZATION_COMPLETE": "Optimization complete!"
+      }
     }
   },
   "PROFILE": {
@@ -667,7 +677,7 @@
     "WELCOME": "Welcome to IBIS-X Platform",
     "METRICS": {
       "DATASETS_AVAILABLE": "Datasets Available",
-      "ACTIVE_PROJECTS": "Active Projects", 
+      "ACTIVE_PROJECTS": "Active Projects",
       "MODELS_TRAINED": "Models Trained",
       "EXPLANATIONS_GENERATED": "Explanations Generated"
     },
@@ -696,7 +706,7 @@
     "PROJECT": {
       "VIEW": "View Project",
       "EDIT": "Edit",
-      "DELETE": "Delete", 
+      "DELETE": "Delete",
       "CONFIGURED": "Configured",
       "NOT_CONFIGURED": "Not Configured",
       "NO_DESCRIPTION": "No description available",
@@ -747,7 +757,7 @@
     },
     "USER": {
       "FIRST_NAME_LABEL": "First Name",
-      "LAST_NAME_LABEL": "Last Name", 
+      "LAST_NAME_LABEL": "Last Name",
       "EMAIL_LABEL": "Email Address",
       "USERNAME_LABEL": "Username",
       "PASSWORD_LABEL": "Password",
@@ -1492,7 +1502,7 @@
   },
   "PAGE_TITLES": {
     "DASHBOARD": "Dashboard",
-    "DATASETS": "Datasets", 
+    "DATASETS": "Datasets",
     "DATASET_DETAIL": "Dataset details",
     "DATASET_METADATA": "Dataset metadata",
     "PROJECTS": "Projects",
@@ -1642,7 +1652,7 @@
     "COMPLETED": "completed",
     "TABS": {
       "GENERAL": "General",
-      "TECHNICAL": "Technical", 
+      "TECHNICAL": "Technical",
       "QUALITY": "Quality",
       "ETHICS": "Ethics",
       "DOCUMENTATION": "Documentation"

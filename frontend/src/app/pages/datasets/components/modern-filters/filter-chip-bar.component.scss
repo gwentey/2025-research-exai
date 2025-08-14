@@ -1,0 +1,411 @@
+// Utilisation des tokens de design spécifiques au module
+@use '../filters-design-tokens.scss' as tokens;
+
+// ==================================================
+// COMPOSANT BARRE DES FILTRES ACTIFS
+// ==================================================
+
+.filter-chip-bar {
+  background: var(--filters-bg-secondary);
+  border-radius: var(--filters-radius-md);
+  padding: var(--filters-space-md) var(--filters-space-lg);
+  transition: all var(--filters-transition-base);
+
+  &.compact {
+    padding: var(--filters-space-sm) var(--filters-space-md);
+
+    .chip-bar-header {
+      margin-bottom: var(--filters-space-sm);
+    }
+
+    .filter-chip {
+      height: 28px;
+      font-size: var(--filters-font-size-xs);
+    }
+  }
+}
+
+// ==================================================
+// HEADER DE LA BARRE
+// ==================================================
+
+.chip-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--filters-space-md);
+
+  @include tokens.filters-mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--filters-space-sm);
+  }
+
+  .header-info {
+    display: flex;
+    align-items: center;
+    gap: var(--filters-space-sm);
+
+    .info-icon {
+      color: var(--filters-text-accent);
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .info-text {
+      font-size: var(--filters-font-size-sm);
+      font-weight: var(--filters-font-weight-medium);
+      color: var(--filters-text-primary);
+    }
+  }
+
+  .clear-all-btn {
+    @include tokens.filters-button-secondary;
+    font-size: var(--filters-font-size-xs);
+    padding: var(--filters-space-xs) var(--filters-space-sm);
+    min-height: 32px;
+
+    @include tokens.filters-mobile-only {
+      align-self: flex-end;
+    }
+
+    .btn-text {
+      @include tokens.filters-mobile-only {
+        display: none;
+      }
+    }
+
+    &:hover {
+      color: var(--filters-text-error);
+      border-color: var(--filters-border-error);
+    }
+  }
+}
+
+// ==================================================
+// CONTAINER DES CHIPS
+// ==================================================
+
+.chips-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--filters-space-md);
+
+  .visible-chips {
+    .chips-set {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--filters-space-sm);
+      align-items: center;
+    }
+  }
+
+  .hidden-chips-indicator {
+    display: flex;
+    align-items: center;
+
+    .more-chip {
+      opacity: 0.7;
+      cursor: help;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// ==================================================
+// STYLES DES CHIPS DE FILTRES
+// ==================================================
+
+.filter-chip {
+  @include tokens.filters-chip;
+  height: 32px;
+  font-size: var(--filters-font-size-sm);
+  max-width: 200px;
+  transition: all var(--filters-transition-fast);
+  animation: filters-chip-appear 0.2s var(--filters-transition-base);
+
+  // Couleurs par type de filtre
+  &[data-filter-key*="name"],
+  &[data-filter-key*="objective"] {
+    background: rgba(36, 46, 84, 0.1);
+    color: var(--filters-primary);
+    border-color: rgba(36, 46, 84, 0.2);
+
+    &:hover {
+      background: rgba(36, 46, 84, 0.15);
+    }
+  }
+
+  &[data-filter-key*="domain"],
+  &[data-filter-key*="task"] {
+    background: rgba(78, 205, 196, 0.1);
+    color: var(--filters-accent);
+    border-color: rgba(78, 205, 196, 0.2);
+
+    &:hover {
+      background: rgba(78, 205, 196, 0.15);
+    }
+  }
+
+  &[data-filter-key*="instances"],
+  &[data-filter-key*="features"],
+  &[data-filter-key*="year"] {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border-color: rgba(245, 158, 11, 0.2);
+
+    &:hover {
+      background: rgba(245, 158, 11, 0.15);
+    }
+  }
+
+  &[data-filter-key*="score"],
+  &[data-filter-key*="quality"],
+  &[data-filter-key*="is_"],
+  &[data-filter-key*="has_"] {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+    border-color: rgba(34, 197, 94, 0.2);
+
+    &:hover {
+      background: rgba(34, 197, 94, 0.15);
+    }
+  }
+
+  .chip-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+  }
+
+  .chip-remove-btn {
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity var(--filters-transition-fast);
+
+    &:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 1px;
+    }
+  }
+
+  // États d'interaction
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--filters-shadow-sm);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--filters-border-focus);
+    outline-offset: 2px;
+  }
+}
+
+// ==================================================
+// ÉTAT VIDE
+// ==================================================
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--filters-space-xl) var(--filters-space-md);
+  text-align: center;
+  opacity: 0.6;
+
+  .empty-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--filters-text-tertiary);
+    margin-bottom: var(--filters-space-sm);
+  }
+
+  .empty-text {
+    font-size: var(--filters-font-size-sm);
+    color: var(--filters-text-tertiary);
+    font-style: italic;
+  }
+}
+
+// ==================================================
+// RESPONSIVE ADAPTATIONS
+// ==================================================
+
+@include tokens.filters-mobile-only {
+  .filter-chip-bar {
+    padding: var(--filters-space-md);
+    border-radius: var(--filters-radius-sm);
+  }
+
+  .chips-container {
+    .visible-chips {
+      .chips-set {
+        gap: var(--filters-space-xs);
+      }
+    }
+  }
+
+  .filter-chip {
+    height: 28px;
+    font-size: var(--filters-font-size-xs);
+    max-width: 160px;
+
+    .chip-label {
+      max-width: 120px;
+    }
+  }
+}
+
+@include tokens.filters-tablet-up {
+  .chips-container {
+    .visible-chips {
+      .chips-set {
+        gap: var(--filters-space-sm);
+      }
+    }
+  }
+}
+
+// ==================================================
+// ANIMATIONS SPÉCIFIQUES
+// ==================================================
+
+// Animation d'apparition des chips
+@keyframes chip-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+// Animation de suppression des chips
+@keyframes chip-slide-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    max-width: 200px;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+    max-width: 0;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.filter-chip {
+  &.ng-enter {
+    animation: chip-slide-in 0.3s var(--filters-transition-base);
+  }
+
+  &.ng-leave {
+    animation: chip-slide-out 0.2s var(--filters-transition-base);
+  }
+}
+
+// ==================================================
+// ACCESSIBILITÉ
+// ==================================================
+
+// Amélioration du contraste pour les utilisateurs avec besoins spéciaux
+@media (prefers-contrast: high) {
+  .filter-chip {
+    border-width: 2px;
+    font-weight: var(--filters-font-weight-semibold);
+  }
+
+  .clear-all-btn {
+    border-width: 2px;
+  }
+}
+
+// Support pour les utilisateurs préférant les animations réduites
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip {
+    animation: none !important;
+    transition: none !important;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  .clear-all-btn {
+    transition: none !important;
+  }
+}
+
+// Amélioration de la lisibilité pour les grandes tailles de police
+@media (min-resolution: 2dppx) {
+  .filter-chip {
+    .chip-label {
+      font-weight: var(--filters-font-weight-medium);
+    }
+  }
+}
+
+// ==================================================
+// VARIANTES DE LAYOUT
+// ==================================================
+
+// Version compacte pour les espaces restreints
+.filter-chip-bar.compact {
+  .empty-state {
+    padding: var(--filters-space-md);
+
+    .empty-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+// Version inline pour intégration dans d'autres composants
+.filter-chip-bar.inline {
+  background: transparent;
+  padding: 0;
+
+  .chip-bar-header {
+    margin-bottom: var(--filters-space-sm);
+  }
+}
+
+// ==================================================
+// INTERACTIONS TACTILES (MOBILE/TABLETTE)
+// ==================================================
+
+@media (hover: none) and (pointer: coarse) {
+  .filter-chip {
+    // Augmenter la zone de touch pour mobile
+    min-height: 36px;
+    padding: var(--filters-space-sm) var(--filters-space-md);
+
+    .chip-remove-btn {
+      min-width: 32px;
+      min-height: 32px;
+    }
+  }
+
+  .clear-all-btn {
+    min-height: 40px;
+    padding: var(--filters-space-sm) var(--filters-space-md);
+  }
+}
