@@ -40,6 +40,7 @@
 ** xref:dev-guide/nouvelle-identite-visuelle-sorbonne.adoc[🎨 Nouvelle Identité Visuelle Sorbonne]
 ** xref:dev-guide/palette-sorbonne-moderne.adoc[🌟 Palette Sorbonne+ Moderne et Chaleureuse]
 ** xref:frontend/login-background-animation.adoc[🚀 Animation de Fond de Connexion IA]
+** xref:frontend/view-toggle-widget-improvements.adoc[🔧 Améliorations Widget Vue Grille/Liste]
 ** xref:dev-guide/frontend-production-config-test.adoc[🧪 Test Configuration Frontend Production]
 ** xref:dev-guide/frontend-production-auto-rebuild.adoc[🔄 Auto-Rebuild Frontend Production]
 ** xref:dev-guide/backend-api-development.adoc[Développement API Backend]

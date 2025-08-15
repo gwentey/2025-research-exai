@@ -263,43 +263,82 @@
     height: 48px !important;
     max-height: 48px !important;
     min-height: 48px !important;
+    width: 112px !important; // LARGEUR AUGMENTÉE
+    // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
 
     &.mat-button-toggle-group {
       height: 48px !important;
       max-height: 48px !important;
       min-height: 48px !important;
+      width: 112px !important; // LARGEUR AUGMENTÉE
+      // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
 
-      // PRÉSERVER LES STYLES NATIFS DU TOGGLE GROUP
-      border: unset !important;
-      outline: unset !important;
-      box-shadow: unset !important;
+      // SUPPRESSION CHECKBOX GLOBALE
+      .mat-button-toggle-checkbox-wrapper,
+      .mat-pseudo-checkbox {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        z-index: -9999 !important;
+      }
     }
 
     .mat-button-toggle {
-      width: 48px !important;
+      width: 56px !important; // LARGEUR AUGMENTÉE PAR BOUTON
       height: 48px !important;
       max-height: 48px !important;
       min-height: 48px !important;
+      position: relative !important;
+      // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
 
-      // PRÉSERVER L'APPARENCE MATERIAL NATIVE
-      border: unset !important;
-      outline: unset !important;
-      box-shadow: unset !important;
+      // SUPPRESSION CHECKBOX SPÉCIFIQUE
+      .mat-button-toggle-checkbox-wrapper,
+      .mat-pseudo-checkbox,
+      .mat-button-toggle-checkbox-wrapper .mat-pseudo-checkbox {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        z-index: -9999 !important;
+      }
 
       &.mat-button-toggle-checked,
       &:not(.mat-button-toggle-checked) {
-        width: 48px !important;
+        width: 56px !important; // LARGEUR AUGMENTÉE PAR BOUTON
         height: 48px !important;
         max-height: 48px !important;
         min-height: 48px !important;
+        // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
 
-        // Garder les styles de sélection natifs
-        border: unset !important;
-        outline: unset !important;
-        box-shadow: unset !important;
+        // SUPPRESSION CHECKBOX POUR TOUS LES ÉTATS
+        .mat-button-toggle-checkbox-wrapper,
+        .mat-pseudo-checkbox {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
       }
 
-            .mat-button-toggle-label-content {
+      .mat-button-toggle-label-content {
         height: 48px !important;
         max-height: 48px !important;
         min-height: 48px !important;
@@ -307,17 +346,34 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-
-        // Pas d'override de padding/margin pour garder l'apparence native
-        padding: 8px !important; // PADDING POUR ÉVITER QUE L'ICÔNE SOIT COUPÉE
+        padding: 0 !important; // PAS DE PADDING POUR ÉVITER LES DÉCALAGES
         margin: unset !important;
+        position: relative !important;
+        text-align: center !important;
+        overflow: hidden !important;
+        // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
 
-        // AJUSTER LA TAILLE DES ICÔNES
+        // AJUSTER LA TAILLE DES ICÔNES ET CENTRAGE PARFAIT
         mat-icon {
-          font-size: 20px !important;
-          width: 20px !important;
-          height: 20px !important;
-          line-height: 20px !important;
+          font-size: 22px !important;
+          width: 22px !important;
+          height: 22px !important;
+          line-height: 22px !important;
+          // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+          animation: none !important;
+          transition: none !important;
+          position: absolute !important;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important; // CENTRAGE PARFAIT
+          margin: 0 !important;
+          padding: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
       }
     }

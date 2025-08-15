@@ -12,27 +12,12 @@
                 <div class="toolbar-left">
                   <!-- Groupe de recherche DÉPLACÉ À GAUCHE -->
                   <div class="search-group">
-                    <mat-form-field
-                      appearance="outline"
-                      class="modern-search-field"
-                      color="primary"
-                      style="height: 48px !important; max-height: 48px !important; min-height: 48px !important;">
-                      <input
-                        matInput
-                        [(ngModel)]="quickSearchTerm"
-                        (input)="onQuickSearch($event)"
-                        [placeholder]="'DATASETS.LISTING.SEARCH_PLACEHOLDER' | translate"
-                        autocomplete="off"
-                        style="height: 48px !important; line-height: 48px !important;">
-                      <button
-                        *ngIf="quickSearchTerm"
-                        mat-icon-button
-                        matSuffix
-                        (click)="clearQuickSearch()"
-                        [matTooltip]="'COMMON.CLEAR' | translate">
-                        <mat-icon>clear</mat-icon>
-                      </button>
-                    </mat-form-field>
+                    <app-custom-search-field
+                      [(ngModel)]="quickSearchTerm"
+                      [placeholder]="'DATASETS.LISTING.SEARCH_PLACEHOLDER' | translate"
+                      (inputChange)="onQuickSearch($event)"
+                      (clear)="clearQuickSearch()">
+                    </app-custom-search-field>
                   </div>
                 </div>
 
@@ -40,73 +25,35 @@
                 <div class="toolbar-right">
                   <!-- Groupe de filtres -->
                   <div class="filters-group">
-                    <button
-                      class="modern-filters-btn"
-                      (click)="openFiltersModal()"
-                      [class.has-filters]="hasActiveFilters()"
-                      style="height: 48px !important; max-height: 48px !important; min-height: 48px !important;">
-                      <div class="btn-content">
-                        <mat-icon class="btn-icon">tune</mat-icon>
-                        <span class="btn-text">{{ 'COMMON.FILTER' | translate }}</span>
-                      </div>
-                      <span *ngIf="hasActiveFilters()" class="filters-badge">
-                        {{ getActiveFiltersCount() }}
-                      </span>
-                    </button>
+                    <app-custom-filter-button
+                      [buttonText]="'COMMON.FILTER' | translate"
+                      [hasActiveFilters]="hasActiveFilters()"
+                      [filterCount]="getActiveFiltersCount()"
+                      (click)="openFiltersModal()">
+                    </app-custom-filter-button>
                   </div>
 
                   <!-- Groupe de contrôles d'affichage -->
                   <div class="view-controls-group">
-                    <mat-button-toggle-group
+                    <app-custom-view-toggle
                       [(value)]="viewMode"
-                      (change)="onViewChange($event)"
-                      class="modern-view-toggle"
-                      style="height: 48px !important; max-height: 48px !important; min-height: 48px !important;">
-                      <mat-button-toggle
-                        value="grid"
-                        [matTooltip]="'DATASETS.LISTING.GRID_VIEW' | translate"
-                        style="height: 48px !important; max-height: 48px !important; min-height: 48px !important; width: 48px !important;">
-                        <mat-icon>grid_view</mat-icon>
-                      </mat-button-toggle>
-                      <mat-button-toggle
-                        value="list"
-                        [matTooltip]="'DATASETS.LISTING.LIST_VIEW' | translate"
-                        style="height: 48px !important; max-height: 48px !important; min-height: 48px !important; width: 48px !important;">
-                        <mat-icon>view_list</mat-icon>
-                      </mat-button-toggle>
-                    </mat-button-toggle-group>
+                      (valueChange)="onCustomViewChange($event)">
+                    </app-custom-view-toggle>
 
-                    <mat-form-field
-                      appearance="outline"
-                      class="modern-sort-field"
-                      color="primary"
-                      style="height: 48px !important; max-height: 48px !important; min-height: 48px !important;">
-                      <mat-label>{{ 'DATASETS.LISTING.SORT_BY' | translate }}</mat-label>
-                      <mat-select
-                        [(value)]="currentSort"
-                        (selectionChange)="onSortChange($event)"
-                        style="height: 48px !important; line-height: 48px !important;">
-                        <mat-option value="dataset_name">{{ 'DATASETS.SORT.DATASET_NAME' | translate }}</mat-option>
-                        <mat-option value="year">{{ 'DATASETS.SORT.YEAR' | translate }}</mat-option>
-                        <mat-option value="instances_number">{{ 'DATASETS.SORT.INSTANCES_NUMBER' | translate }}</mat-option>
-                        <mat-option value="features_number">{{ 'DATASETS.SORT.FEATURES_NUMBER' | translate }}</mat-option>
-                        <mat-option value="num_citations">{{ 'DATASETS.SORT.NUM_CITATIONS' | translate }}</mat-option>
-                        <mat-option value="created_at">{{ 'DATASETS.SORT.CREATED_AT' | translate }}</mat-option>
-                        <mat-option value="updated_at">{{ 'DATASETS.SORT.UPDATED_AT' | translate }}</mat-option>
-                      </mat-select>
-                    </mat-form-field>
+                    <app-custom-sort-select
+                      [options]="sortOptions"
+                      [(ngModel)]="currentSort"
+                      (selectionChange)="onSortChange($event)">
+                    </app-custom-sort-select>
                   </div>
 
                   <!-- Actions secondaires -->
                   <div class="secondary-actions">
-                    <button
-                      mat-icon-button
-                      class="refresh-btn"
-                      (click)="refreshDatasets()"
-                      [matTooltip]="'COMMON.REFRESH' | translate"
-                      style="width: 48px !important; height: 48px !important; max-height: 48px !important; min-height: 48px !important;">
-                      <mat-icon>refresh</mat-icon>
-                    </button>
+                    <app-custom-refresh-button
+                      [tooltipText]="'COMMON.REFRESH' | translate"
+                      [isLoading]="isLoading"
+                      (click)="refreshDatasets()">
+                    </app-custom-refresh-button>
                   </div>
                 </div>
               </div>

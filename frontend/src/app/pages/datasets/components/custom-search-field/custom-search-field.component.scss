@@ -1,0 +1,175 @@
+// ===============================================
+// CUSTOM SEARCH FIELD - COMPOSANT PROPRE SANS MATERIAL
+// ===============================================
+
+.custom-search-field {
+  width: 100%;
+  min-width: 450px;
+
+  .search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 48px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+
+    &:hover {
+      border-color: #cbd5e1;
+    }
+
+    &:focus-within {
+      border-color: #242e54; // Bleu Sorbonne
+      box-shadow: 0 0 0 3px rgba(36, 46, 84, 0.1);
+    }
+
+    .search-input {
+      flex: 1;
+      height: 100%;
+      padding: 0 16px;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 16px;
+      color: #1e293b;
+
+      &::placeholder {
+        color: #94a3b8;
+        font-size: 16px;
+      }
+
+      // Suppression de tous les styles par défaut du navigateur
+      &:focus {
+        outline: none;
+        box-shadow: none;
+      }
+
+      // Styles autocomplete
+      &:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+        -webkit-text-fill-color: #1e293b !important;
+      }
+    }
+
+    .clear-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin-right: 4px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #f1f5f9;
+        color: #242e54; // Bleu Sorbonne
+
+        mat-icon {
+          transform: scale(1.1);
+        }
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        transition: transform 0.2s ease;
+      }
+    }
+  }
+
+  // États d'erreur (pour plus tard si nécessaire)
+  &.error {
+    .search-input-container {
+      border-color: #ef4444;
+
+      &:focus-within {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+    }
+  }
+
+  // État désactivé
+  &.disabled {
+    .search-input-container {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      cursor: not-allowed;
+
+      .search-input {
+        color: #94a3b8;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// RESPONSIVE
+@media (max-width: 768px) {
+  .custom-search-field {
+    min-width: 250px;
+
+    .search-input-container {
+      height: 44px;
+
+      .search-input {
+        font-size: 14px;
+        padding: 0 12px;
+
+        &::placeholder {
+          font-size: 14px;
+        }
+      }
+
+      .clear-button {
+        width: 36px;
+        height: 36px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-search-field {
+    min-width: 200px;
+
+    .search-input-container {
+      height: 40px;
+
+      .search-input {
+        font-size: 14px;
+        padding: 0 10px;
+      }
+
+      .clear-button {
+        width: 32px;
+        height: 32px;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+}

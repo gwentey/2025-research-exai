@@ -105,19 +105,19 @@
        flex: 0 0 auto;
        min-width: auto;
        display: flex;
-       align-items: center;
+       align-items: flex-end; // Alignement sur la base pour cohérence
        gap: 12px;
        height: 48px; // HAUTEUR FIXE pour alignement parfait
 
        // Groupe de recherche dans la section gauche
        .search-group {
          display: flex;
-         align-items: center;
+         align-items: flex-end; // Alignement sur la base
          height: 48px;
 
-         .modern-search-field {
-           min-width: 400px; // BARRE AGRANDIE
-           width: 400px; // LARGEUR FIXE AGRANDIE
+           .modern-search-field {
+    min-width: 500px; // BARRE AGRANDIE
+                       width: 500px; // LARGEUR FIXE AGRANDIE
            height: 48px !important; // HAUTEUR FIXE BRUTALE
            max-height: 48px !important;
            min-height: 48px !important;
@@ -158,7 +158,7 @@
     // Section droite - alignement parfait
     .toolbar-right {
       display: flex;
-      align-items: center;
+      align-items: flex-end; // Alignement sur la base pour tous les composants
       justify-content: flex-end;
       gap: 16px;
       flex-wrap: wrap;
@@ -170,7 +170,7 @@
       // Groupe de filtres - alignement parfait
       .filters-group {
         display: flex;
-        align-items: center;
+        align-items: flex-end; // Alignement sur la base
         height: 48px;
 
         .modern-filters-btn {
@@ -255,31 +255,56 @@
       // Groupe de contrôles d'affichage - alignement parfait
       .view-controls-group {
         display: flex;
-        align-items: center;
+        align-items: flex-end; // Alignement sur la base
         gap: 12px;
         height: 48px;
 
                  .modern-view-toggle {
-           border-radius: 10px;
+           border-radius: 12px;
            overflow: hidden;
            border: 2px solid #e2e8f0;
            height: 48px !important; // HAUTEUR FIXE BRUTALE
            max-height: 48px !important;
            min-height: 48px !important;
+           width: 112px !important; // LARGEUR AUGMENTÉE POUR ÉVITER LA COUPURE
            display: flex !important;
            align-items: center !important;
+           // PAS DE BOX-SHADOW QUI BOUGE
+
+           // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+           animation: none !important;
+           transition: none !important;
+           transform: none !important;
 
            ::ng-deep .mat-button-toggle {
              border: none !important;
              background: #ffffff !important;
              color: #64748b !important;
-             width: 48px !important;
+             width: 56px !important; // LARGEUR AUGMENTÉE PAR BOUTON
              height: 48px !important; // HAUTEUR FIXE BRUTALE
              max-height: 48px !important;
              min-height: 48px !important;
              display: flex !important;
              align-items: center !important;
              justify-content: center !important;
+             // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+             transition: none !important;
+             animation: none !important;
+             transform: none !important;
+             position: relative !important;
+
+             // SUPPRESSION COMPLÈTE DU CHECKBOX
+             .mat-button-toggle-checkbox-wrapper,
+             .mat-pseudo-checkbox,
+             .mat-button-toggle-checkbox-wrapper .mat-pseudo-checkbox {
+               display: none !important;
+               visibility: hidden !important;
+               opacity: 0 !important;
+               width: 0 !important;
+               height: 0 !important;
+               position: absolute !important;
+               z-index: -9999 !important;
+             }
 
              .mat-button-toggle-label-content {
                line-height: 48px !important;
@@ -291,26 +316,86 @@
                justify-content: center !important;
                padding: 0 !important;
                margin: 0 !important;
+               position: relative !important;
+               text-align: center !important;
+               overflow: hidden !important;
 
                mat-icon {
-                 font-size: 20px !important;
-                 height: 20px !important;
-                 width: 20px !important;
+                 font-size: 22px !important;
+                 height: 22px !important;
+                 width: 22px !important;
                  color: #64748b !important;
+                 // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+                 transition: none !important;
+                 animation: none !important;
+                 position: absolute !important;
+                 top: 50% !important;
+                 left: 50% !important;
+                 transform: translate(-50%, -50%) !important;
+                 margin: 0 !important;
+                 padding: 0 !important;
+                 display: flex !important;
+                 align-items: center !important;
+                 justify-content: center !important;
                }
              }
 
-                         &.mat-button-toggle-checked {
-              background: #242e54 !important; // BLEU SORBONNE
-              color: #ffffff !important;
+             &.mat-button-toggle-checked {
+               background: #242e54 !important; // BLEU SORBONNE
+               color: #ffffff !important;
+               // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+               transition: none !important;
+               animation: none !important;
+               transform: none !important;
 
-              mat-icon {
-                color: #ffffff !important;
-              }
-            }
+               .mat-button-toggle-label-content mat-icon {
+                 color: #ffffff !important;
+                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+                 transform: translate(-50%, -50%) !important; // MAINTENIR LE CENTRAGE
+                 // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+                 transition: none !important;
+                 animation: none !important;
+               }
+
+               // SUPPRESSION COMPLÈTE DU CHECKBOX POUR L'ÉTAT CHECKED AUSSI
+               .mat-button-toggle-checkbox-wrapper,
+               .mat-pseudo-checkbox {
+                 display: none !important;
+                 visibility: hidden !important;
+                 opacity: 0 !important;
+                 width: 0 !important;
+                 height: 0 !important;
+               }
+             }
 
              &:hover:not(.mat-button-toggle-checked) {
                background: #f8fafc !important;
+               // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+               transition: none !important;
+               animation: none !important;
+               transform: none !important;
+
+               .mat-button-toggle-label-content mat-icon {
+                 color: #242e54 !important;
+                 transform: translate(-50%, -50%) !important; // MAINTENIR LE CENTRAGE
+                 // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+                 transition: none !important;
+                 animation: none !important;
+               }
+             }
+
+             &:active {
+               // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+               transition: none !important;
+               animation: none !important;
+               transform: none !important;
+
+               .mat-button-toggle-label-content mat-icon {
+                 transform: translate(-50%, -50%) !important; // MAINTENIR LE CENTRAGE
+                 // SUPPRESSION ULTRA-AGGRESSIVE DE TOUTES LES ANIMATIONS
+                 transition: none !important;
+                 animation: none !important;
+               }
              }
            }
          }
@@ -404,7 +489,7 @@
              // Actions secondaires - alignement parfait
        .secondary-actions {
          display: flex;
-         align-items: center;
+         align-items: flex-end; // Alignement sur la base
          height: 48px;
 
          .refresh-btn {
@@ -453,7 +538,7 @@
         // Recherche maintenant dans toolbar-left
 
         .view-controls-group .modern-sort-field {
-          min-width: 150px;
+          min-width: 250px;
         }
       }
     }
@@ -494,7 +579,7 @@
           gap: 8px;
 
           .modern-sort-field {
-            min-width: 120px;
+            min-width: 200px;
           }
         }
       }

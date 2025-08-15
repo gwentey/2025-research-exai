@@ -1,0 +1,75 @@
+// ===============================================
+// CUSTOM SORT SELECT - COMPOSANT PROPRE SANS MATERIAL
+// ===============================================
+
+.custom-sort-select {
+  position: relative;
+  width: 280px;
+  min-width: 250px;
+
+  .select-label {
+    display: none; // Masquer le label pour l'alignement
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 6px;
+    padding-left: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .select-container {
+    height: 48px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #cbd5e1;
+    }
+
+    &.open {
+      border-color: #242e54; // Bleu Sorbonne
+      box-shadow: 0 0 0 3px rgba(36, 46, 84, 0.1);
+    }
+
+    .select-value {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+      padding: 0 16px;
+
+      .selected-text {
+        flex: 1;
+        font-size: 16px;
+        color: #1e293b;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .dropdown-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        color: #64748b;
+        transition: transform 0.2s ease;
+
+        &.rotated {
+          transform: rotate(180deg);
+        }
+      }
+    }
+  }
+}
+
+// ===============================================
+// STYLES GLOBAUX POUR LE DROPDOWN CRÉÉ DANS LE BODY
+// Ces styles s'appliquent aux éléments créés dynamiquement
+// ===============================================
+
+// Note: Ces styles sont appliqués via JavaScript inline
+// pour éviter les conflits avec d'autres composants

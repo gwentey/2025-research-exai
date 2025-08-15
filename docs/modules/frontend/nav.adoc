@@ -1,0 +1,5 @@
+* Améliorations Frontend
+** xref:breadcrumb-modern-design.adoc[Design Moderne du Breadcrumb]
+** xref:login-background-animation.adoc[Animation d'Arrière-plan de Connexion]
+** xref:ml-pipeline-cleaning-interface.adoc[Interface de Nettoyage ML Pipeline]
+** xref:view-toggle-widget-improvements.adoc[Améliorations du Widget Vue Grille/Liste]

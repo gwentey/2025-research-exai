@@ -1,0 +1,221 @@
+// ===============================================
+// CUSTOM REFRESH BUTTON - COMPOSANT PROPRE SANS MATERIAL
+// ===============================================
+
+.custom-refresh-button {
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+
+    // État normal
+    &:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+
+      .refresh-icon {
+        color: #242e54; // Bleu Sorbonne
+        transform: scale(1.1);
+      }
+    }
+
+    // État avec focus
+    &:focus {
+      border-color: #242e54; // Bleu Sorbonne
+      box-shadow: 0 0 0 3px rgba(36, 46, 84, 0.1);
+    }
+
+    // État actif (pressé)
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .refresh-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      color: #64748b;
+      transition: all 0.2s ease;
+
+      &.spinning {
+        animation: spin 1s linear infinite;
+        color: #242e54; // Bleu Sorbonne
+      }
+    }
+
+    // État de chargement
+    &.loading {
+      border-color: #242e54; // Bleu Sorbonne
+      background: #f0f7ff;
+      cursor: not-allowed;
+
+      &:hover {
+        border-color: #242e54;
+        background: #f0f7ff;
+        transform: none;
+      }
+    }
+
+    // État désactivé
+    &:disabled {
+      border-color: #e2e8f0;
+      background: #f8fafc;
+      cursor: not-allowed;
+      opacity: 0.6;
+
+      .refresh-icon {
+        color: #94a3b8;
+      }
+
+      &:hover {
+        border-color: #e2e8f0;
+        background: #f8fafc;
+        transform: none;
+
+        .refresh-icon {
+          color: #94a3b8;
+          transform: none;
+        }
+      }
+    }
+
+    // Animation de rotation pour le loading
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    // Effet de ripple au clic (optionnel)
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(36, 46, 84, 0.1);
+      transform: translate(-50%, -50%);
+      transition: width 0.3s ease, height 0.3s ease;
+    }
+
+    &:active:not(:disabled)::before {
+      width: 48px;
+      height: 48px;
+    }
+  }
+}
+
+// RESPONSIVE
+@media (max-width: 768px) {
+  .custom-refresh-button {
+    .refresh-btn {
+      width: 44px;
+      height: 44px;
+
+      .refresh-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+
+      &:active:not(:disabled)::before {
+        width: 44px;
+        height: 44px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-refresh-button {
+    .refresh-btn {
+      width: 40px;
+      height: 40px;
+
+      .refresh-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:active:not(:disabled)::before {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  }
+}
+
+// Variantes de couleurs (pour usage futur)
+.custom-refresh-button {
+  // Variante primaire
+  &.primary {
+    .refresh-btn {
+      background: #242e54; // Bleu Sorbonne
+      border-color: #242e54;
+
+      .refresh-icon {
+        color: #ffffff;
+      }
+
+      &:hover:not(:disabled) {
+        background: #1e2749;
+        border-color: #1e2749;
+
+        .refresh-icon {
+          color: #ffffff;
+        }
+      }
+
+      &.loading {
+        background: #242e54;
+        border-color: #242e54;
+      }
+    }
+  }
+
+  // Variante succès (pour indiquer une actualisation réussie)
+  &.success {
+    .refresh-btn {
+      background: #22c55e;
+      border-color: #22c55e;
+
+      .refresh-icon {
+        color: #ffffff;
+      }
+
+      &:hover:not(:disabled) {
+        background: #16a34a;
+        border-color: #16a34a;
+      }
+    }
+  }
+
+  // Variante erreur (pour indiquer une erreur d'actualisation)
+  &.error {
+    .refresh-btn {
+      background: #ef4444;
+      border-color: #ef4444;
+
+      .refresh-icon {
+        color: #ffffff;
+      }
+
+      &:hover:not(:disabled) {
+        background: #dc2626;
+        border-color: #dc2626;
+      }
+    }
+  }
+}

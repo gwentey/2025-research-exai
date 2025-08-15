@@ -5,10 +5,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+// import { MatInputModule } from '@angular/material/input'; // Plus nécessaire avec composants custom
+// import { MatFormFieldModule } from '@angular/material/form-field'; // Plus nécessaire avec composants custom
+// import { MatSelectModule } from '@angular/material/select'; // Plus nécessaire avec composants custom
+// import { MatButtonToggleModule } from '@angular/material/button-toggle'; // Plus nécessaire avec composant custom
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -21,6 +21,11 @@ import { RoleService } from '../../services/role.service';
 import { Dataset, DatasetFilterCriteria, PaginationParams } from '../../models/dataset.models';
 import { DatasetCardComponent } from './components/dataset-card.component';
 import { FiltersPanelComponent } from './components/modern-filters/filters-panel.component';
+import { CustomViewToggleComponent, ViewMode } from './components/custom-view-toggle/custom-view-toggle.component';
+import { CustomSearchFieldComponent } from './components/custom-search-field/custom-search-field.component';
+import { CustomSortSelectComponent, SortOption } from './components/custom-sort-select/custom-sort-select.component';
+import { CustomFilterButtonComponent } from './components/custom-filter-button/custom-filter-button.component';
+import { CustomRefreshButtonComponent } from './components/custom-refresh-button/custom-refresh-button.component';
 
 interface FilterChip {
   key: string;
@@ -40,16 +45,21 @@ interface FilterChip {
     MatButtonModule,
     MatCardModule,
     MatIconModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatButtonToggleModule,
+    // MatInputModule, // Plus nécessaire avec composants custom
+    // MatFormFieldModule, // Plus nécessaire avec composants custom
+    // MatSelectModule, // Plus nécessaire avec composants custom
+    // MatButtonToggleModule, // Plus nécessaire avec composant custom
     MatChipsModule,
     MatProgressSpinnerModule,
     MatPaginatorModule,
     MatTooltipModule,
     DatasetCardComponent,
     FiltersPanelComponent,
+    CustomViewToggleComponent,
+    CustomSearchFieldComponent,
+    CustomSortSelectComponent,
+    CustomFilterButtonComponent,
+    CustomRefreshButtonComponent,
     TranslateModule
   ],
   templateUrl: './dataset-listing.component.html',
@@ -87,7 +97,18 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   pageSize = 24;
 
   // Affichage
-  viewMode: 'grid' | 'list' = 'grid';
+  viewMode: ViewMode = 'grid';
+
+  // Options de tri pour le composant custom
+  sortOptions: SortOption[] = [
+    { value: 'dataset_name', label: 'Nom du dataset', translationKey: 'DATASETS.SORT.DATASET_NAME' },
+    { value: 'year', label: 'Année', translationKey: 'DATASETS.SORT.YEAR' },
+    { value: 'instances_number', label: 'Nombre d\'instances', translationKey: 'DATASETS.SORT.INSTANCES_NUMBER' },
+    { value: 'features_number', label: 'Nombre de features', translationKey: 'DATASETS.SORT.FEATURES_NUMBER' },
+    { value: 'num_citations', label: 'Nombre de citations', translationKey: 'DATASETS.SORT.NUM_CITATIONS' },
+    { value: 'created_at', label: 'Date de création', translationKey: 'DATASETS.SORT.CREATED_AT' },
+    { value: 'updated_at', label: 'Dernière mise à jour', translationKey: 'DATASETS.SORT.UPDATED_AT' }
+  ];
 
   // Permissions
   canUploadDatasets$: Observable<boolean>;
@@ -99,115 +120,15 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
 
     this.loadDatasets();
 
-    // FORCE DIMENSIONS VIA JAVASCRIPT - SOLUTION NUCLÉAIRE
-    setTimeout(() => {
-      this.forceDimensions();
-      // Re-force toutes les 500ms pour s'assurer que ça tient
-      setInterval(() => {
-        this.forceDimensions();
-      }, 500);
-    }, 100);
+    // Plus besoin de forcer les dimensions avec les composants custom !
   }
 
-    /**
-   * Force toutes les dimensions à 48px via JavaScript - VERSION NUCLÉAIRE
-   */
-  private forceDimensions(): void {
-    console.log('🚀 DÉBUT FORCE NUCLÉAIRE DES DIMENSIONS');
+    // ========================================
+  // SUPPRIMÉ : Plus besoin de JavaScript sale !
+  // Les composants custom gèrent leurs dimensions proprement
+  // ========================================
 
-    // TOUS LES SÉLECTEURS POSSIBLES POUR MATERIAL DESIGN
-    const allSelectors = [
-      // Barre de recherche - TOUS LES NIVEAUX
-      '.modern-search-field',
-      '.modern-search-field .mat-mdc-form-field',
-      '.modern-search-field .mat-mdc-text-field-wrapper',
-      '.modern-search-field .mat-mdc-form-field-flex',
-      '.modern-search-field .mat-mdc-form-field-infix',
-      '.modern-search-field input',
-      '.modern-search-field .mdc-text-field',
-      // Dropdown tri - TOUS LES NIVEAUX
-      '.modern-sort-field',
-      '.modern-sort-field .mat-mdc-form-field',
-      '.modern-sort-field .mat-mdc-text-field-wrapper',
-      '.modern-sort-field .mat-mdc-form-field-flex',
-      '.modern-sort-field .mat-mdc-form-field-infix',
-      '.modern-sort-field .mat-mdc-select',
-      '.modern-sort-field .mat-mdc-select-trigger',
-      '.modern-sort-field .mdc-text-field',
-      // Boutons
-      '.modern-filters-btn',
-      '.refresh-btn',
-      '.modern-view-toggle',
-      '.modern-view-toggle .mat-button-toggle'
-    ];
 
-    allSelectors.forEach(selector => {
-      const elements = document.querySelectorAll(selector);
-      console.log(`🎯 Selector: ${selector} - ${elements.length} éléments trouvés`);
-
-            elements.forEach((element: any, index) => {
-        if (element) {
-          const oldHeight = element.offsetHeight;
-
-          // FORCE HAUTEUR SEULEMENT - PAS LES AUTRES PROPS POUR BOUTONS
-          element.style.setProperty('height', '48px', 'important');
-          element.style.setProperty('max-height', '48px', 'important');
-          element.style.setProperty('min-height', '48px', 'important');
-
-          // FORCE PLUS AGGRESSIVE SEULEMENT POUR LES FORM FIELDS
-          if (element.classList.contains('mat-mdc-form-field') ||
-              element.querySelector('.mat-mdc-form-field') ||
-              selector.includes('search-field') ||
-              selector.includes('sort-field')) {
-            element.style.setProperty('line-height', '48px', 'important');
-            element.style.setProperty('box-sizing', 'border-box', 'important');
-            element.style.setProperty('padding-top', '0', 'important');
-            element.style.setProperty('padding-bottom', '0', 'important');
-            element.style.setProperty('margin-top', '0', 'important');
-            element.style.setProperty('margin-bottom', '0', 'important');
-            element.style.setProperty('border-top', '0', 'important');
-            element.style.setProperty('border-bottom', '0', 'important');
-          }
-
-          // POUR LES BOUTONS - JUSTE CENTRER LE CONTENU
-          if (element.classList.contains('modern-filters-btn') ||
-              element.classList.contains('refresh-btn') ||
-              element.classList.contains('mat-button-toggle')) {
-            element.style.setProperty('display', 'flex', 'important');
-            element.style.setProperty('align-items', 'center', 'important');
-            element.style.setProperty('justify-content', 'center', 'important');
-            // PAS DE LINE-HEIGHT FORCÉ POUR LES BOUTONS
-          }
-
-          const newHeight = element.offsetHeight;
-          console.log(`   📏 Élément ${index}: ${oldHeight}px → ${newHeight}px`);
-
-          // SUPPRESSION BRUTALE DES SUBSCRIPTS (SEULEMENT FORM FIELDS)
-          if (selector.includes('search-field') || selector.includes('sort-field')) {
-            const subscripts = element.querySelectorAll('.mat-mdc-form-field-subscript-wrapper, .mat-mdc-form-field-bottom-align, .mat-mdc-form-field-hint-wrapper, .mat-mdc-form-field-error-wrapper');
-            subscripts.forEach((sub: any) => {
-              sub.style.setProperty('display', 'none', 'important');
-              sub.style.setProperty('height', '0', 'important');
-              sub.style.setProperty('visibility', 'hidden', 'important');
-            });
-          }
-        }
-      });
-    });
-
-    // OVERRIDE GLOBAL DE TOUS LES MAT-FORM-FIELD
-    const allMatFields = document.querySelectorAll('.mat-mdc-form-field');
-    console.log(`🔧 Force globale sur ${allMatFields.length} mat-form-field`);
-    allMatFields.forEach((field: any) => {
-      if (field.closest('.modern-search-toolbar')) {
-        field.style.setProperty('height', '48px', 'important');
-        field.style.setProperty('max-height', '48px', 'important');
-        field.style.setProperty('min-height', '48px', 'important');
-      }
-    });
-
-    console.log('✅ FORCE NUCLÉAIRE TERMINÉE');
-  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -516,12 +437,19 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Changement de vue
+   * Changement de vue avec le composant custom
+   */
+  onCustomViewChange(viewMode: ViewMode): void {
+    this.viewMode = viewMode;
+    console.log('Vue changée vers:', viewMode);
+  }
+
+  /**
+   * Changement de vue (ancienne méthode Material, gardée pour compatibilité)
    */
   onViewChange(view: any): void {
     this.viewMode = view.value;
-    // Force dimensions après changement
-    setTimeout(() => this.forceDimensions(), 50);
+    // Plus besoin de forcer les dimensions avec les composants custom !
   }
 
   /**
@@ -530,8 +458,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   onSortChange(event: any): void {
     this.currentSort = event.value;
     this.loadDatasets();
-    // Force dimensions après changement
-    setTimeout(() => this.forceDimensions(), 50);
+    // Plus besoin de forcer les dimensions avec les composants custom !
   }
 
   /**

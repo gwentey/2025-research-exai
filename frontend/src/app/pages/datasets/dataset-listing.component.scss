@@ -10,6 +10,23 @@
 // SOLUTION NUCLÉAIRE - FORCE ABSOLUE
 @use './components/nuclear-force-48px.scss';
 
+// ===============================================
+// SUPPRESSION GLOBALE DES CHECKBOXES POUR VIEW TOGGLE
+// ===============================================
+
+// ===============================================
+// COMPOSANT CUSTOM VIEW TOGGLE REMPLACE TOUT LE CODE MATERIAL
+// ===============================================
+
+// Tous les styles sont maintenant dans le composant custom
+// Plus besoin de forcer les styles Material Angular
+
+// ===============================================
+// STYLES POUR LE COMPOSANT CUSTOM VIEW TOGGLE
+// ===============================================
+
+// Plus besoin de styles spécifiques ici car le composant custom gère tout
+
 .container-fluid {
   .search-field {
     min-width: 300px;
