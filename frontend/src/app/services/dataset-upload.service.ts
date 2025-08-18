@@ -112,7 +112,7 @@ export interface DatasetMetadata {
 export class DatasetUploadService {
   private apiUrl = environment.apiUrl;
   private uploadProgressSubject = new BehaviorSubject<UploadProgress | null>(null);
-  
+
   // Cache pour les brouillons
   private readonly DRAFT_STORAGE_KEY = 'ibis-x-dataset-draft';
 
@@ -130,7 +130,7 @@ export class DatasetUploadService {
    */
   previewFiles(files: File[]): Observable<PreviewResponse> {
     const formData = new FormData();
-    
+
     files.forEach(file => {
       formData.append('files', file);
     });
@@ -168,7 +168,7 @@ export class DatasetUploadService {
    */
   uploadDataset(metadata: DatasetMetadata, files: File[]): Observable<any> {
     const formData = new FormData();
-    
+
     // Ajouter les métadonnées
     Object.keys(metadata).forEach(key => {
       const value = (metadata as any)[key];
@@ -180,7 +180,7 @@ export class DatasetUploadService {
         }
       }
     });
-    
+
     // Ajouter les fichiers
     files.forEach(file => {
       formData.append('files', file);
@@ -237,45 +237,45 @@ export class DatasetUploadService {
   validateFiles(files: File[]): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     // Formats supportés
     const supportedFormats = ['csv', 'xlsx', 'xls', 'json', 'xml', 'parquet'];
-    
-    // Taille maximale par fichier (100MB)
-    const maxFileSize = 100 * 1024 * 1024;
-    
+
+    // Taille maximale par fichier (25MB - limite PoC)
+    const maxFileSize = 25 * 1024 * 1024;
+
     // Nombre maximum de fichiers
     const maxFiles = 10;
-    
+
     if (files.length === 0) {
       errors.push('Aucun fichier sélectionné');
     }
-    
+
     if (files.length > maxFiles) {
       errors.push(`Trop de fichiers sélectionnés (maximum: ${maxFiles})`);
     }
-    
+
     files.forEach((file, index) => {
       const extension = file.name.split('.').pop()?.toLowerCase();
-      
+
       if (!extension || !supportedFormats.includes(extension)) {
         errors.push(`Fichier ${index + 1}: Format non supporté (.${extension})`);
       }
-      
+
       if (file.size > maxFileSize) {
-        errors.push(`Fichier ${index + 1}: Taille trop importante (max: 100MB)`);
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        errors.push(
+          `📁 "${file.name}" : ${fileSizeMB}MB > 25MB limite PoC`
+        );
       }
-      
+
       if (file.size === 0) {
         errors.push(`Fichier ${index + 1}: Fichier vide`);
       }
-      
-      // Avertissements
-      if (file.size > 10 * 1024 * 1024) { // > 10MB
-        warnings.push(`Fichier ${index + 1}: Fichier volumineux, la conversion peut prendre du temps`);
-      }
+
+
     });
-    
+
     return {
       isValid: errors.length === 0,
       errors,
@@ -310,7 +310,7 @@ export class DatasetUploadService {
         const savedAt = new Date(draft.savedAt);
         const now = new Date();
         const hoursDiff = (now.getTime() - savedAt.getTime()) / (1000 * 60 * 60);
-        
+
         if (hoursDiff < 24) {
           delete draft.savedAt;
           return draft;
@@ -358,7 +358,7 @@ export class DatasetUploadService {
   parseBackendError(error: any): { message: string; isRetryable: boolean } {
     // Tenter d'extraire les détails d'erreur structurés
     let errorDetail = error.error;
-    
+
     if (typeof errorDetail === 'string') {
       try {
         errorDetail = JSON.parse(errorDetail);
@@ -370,7 +370,7 @@ export class DatasetUploadService {
         };
       }
     }
-    
+
     // Messages d'erreur spécifiques par type
     if (errorDetail && errorDetail.error_code) {
       switch (errorDetail.error_code) {
@@ -379,31 +379,31 @@ export class DatasetUploadService {
             message: errorDetail.message || 'Un ou plusieurs fichiers ne respectent pas les critères requis.',
             isRetryable: false
           };
-          
+
         case 'STORAGE_ERROR':
           return {
             message: 'Erreur lors de la sauvegarde. Veuillez réessayer dans quelques instants.',
             isRetryable: true
           };
-          
+
         case 'CONVERSION_ERROR':
           return {
             message: errorDetail.message || 'Erreur lors de la conversion de vos fichiers. Vérifiez leur format.',
             isRetryable: false
           };
-          
+
         case 'METADATA_VALIDATION_ERROR':
           return {
             message: errorDetail.message || 'Certaines informations obligatoires sont manquantes.',
             isRetryable: false
           };
-          
+
         case 'PERMISSION_DENIED':
           return {
             message: 'Vous n\'avez pas les permissions nécessaires pour cette action.',
             isRetryable: false
           };
-          
+
         case 'UNSUPPORTED_FORMAT':
           if (errorDetail.details?.supported_formats) {
             return {
@@ -412,16 +412,14 @@ export class DatasetUploadService {
             };
           }
           break;
-          
+
         case 'FILE_TOO_LARGE':
-          if (errorDetail.details?.max_size_mb) {
-            return {
-              message: `Fichier trop volumineux. Taille maximale: ${errorDetail.details.max_size_mb}MB`,
-              isRetryable: false
-            };
-          }
-          break;
-          
+        case 'FILE_TOO_LARGE_POC':
+          return {
+            message: `📁 Fichier trop volumineux (limite 25MB pour cette version PoC)`,
+            isRetryable: false
+          };
+
         case 'EMPTY_FILE':
           return {
             message: 'Un ou plusieurs fichiers sont vides. Veuillez sélectionner des fichiers valides.',
@@ -429,7 +427,7 @@ export class DatasetUploadService {
           };
       }
     }
-    
+
     // Messages par code de statut HTTP
     if (error.status) {
       switch (error.status) {
@@ -438,37 +436,37 @@ export class DatasetUploadService {
             message: 'Données invalides. Vérifiez vos fichiers et métadonnées.',
             isRetryable: false
           };
-          
+
         case 401:
           return {
             message: 'Session expirée. Veuillez vous reconnecter.',
             isRetryable: false
           };
-          
+
         case 403:
           return {
             message: 'Accès refusé. Vous devez être administrateur ou contributeur.',
             isRetryable: false
           };
-          
+
         case 413:
           return {
             message: 'Fichiers trop volumineux. Réduisez la taille ou le nombre de fichiers.',
             isRetryable: false
           };
-          
+
         case 429:
           return {
             message: 'Trop de requêtes. Veuillez patienter avant de réessayer.',
             isRetryable: true
           };
-          
+
         case 500:
           return {
             message: 'Erreur serveur temporaire. Veuillez réessayer dans quelques instants.',
             isRetryable: true
           };
-          
+
         case 502:
         case 503:
         case 504:
@@ -478,7 +476,7 @@ export class DatasetUploadService {
           };
       }
     }
-    
+
     // Message par défaut
     return {
       message: errorDetail?.message || error.message || 'Une erreur inattendue s\'est produite.',
