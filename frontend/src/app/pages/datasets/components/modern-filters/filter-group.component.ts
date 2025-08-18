@@ -173,6 +173,28 @@ export class FilterGroupComponent implements OnInit {
   }
 
   // ===============================================
+  // MÉTHODES POUR LES CRITÈRES DE QUALITÉ
+  // ===============================================
+
+  /**
+   * Vérifie si un critère de qualité est sélectionné
+   */
+  isQualityCriterionSelected(criterion: string): boolean {
+    const control = this.formGroup.get(criterion);
+    return control ? control.value === true : false;
+  }
+
+  /**
+   * Toggle la sélection d'un critère de qualité
+   */
+  toggleQualityCriterion(criterion: string): void {
+    const control = this.formGroup.get(criterion);
+    if (control) {
+      control.setValue(!control.value);
+    }
+  }
+
+  // ===============================================
   // MÉTHODES POUR LES SLIDERS
   // ===============================================
 

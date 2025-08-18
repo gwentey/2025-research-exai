@@ -181,15 +181,6 @@
 <!-- Modal de Filtrage -->
 <div class="filters-modal-overlay" *ngIf="showFiltersModal" (click)="closeFiltersModal()">
   <div class="filters-modal" (click)="$event.stopPropagation()">
-    <!-- Header simplifié sans doublon -->
-    <div class="modal-header modern-header">
-      <div class="header-actions-only">
-        <button mat-icon-button (click)="closeFiltersModal()" class="close-btn">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-    </div>
-
     <!-- Corps de la modal -->
     <div class="modal-body">
       <app-filters-panel
@@ -200,6 +191,7 @@
         [showActiveFiltersBar]="true"
         [layout]="'vertical'"
         (filtersChange)="onFiltersPreview($event)"
+        (filtersClear)="closeFiltersModal()"
         class="modal-filters">
       </app-filters-panel>
     </div>

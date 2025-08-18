@@ -747,6 +747,7 @@
       "BACHELOR": "Licence",
       "MASTER": "Master",
       "PHD": "Doctorat",
+      "ENGINEER": "Ingénieur",
       "OTHER": "Autre"
     },
     "AI_FAMILIARITY": {
@@ -1389,6 +1390,69 @@
       "FEATURE_IMPORTANCE": "Importance des caractéristiques",
       "METRICS": "Métriques de Performance",
       "BACK_TO_PROJECT": "Retour au Projet"
+    },
+    "MODERN": {
+      "STATUS_BADGE": "Propulsé par l'IA",
+      "HERO": {
+        "TITLE": "Créez des modèles IA puissants en minutes, pas en heures",
+        "SUBTITLE": "Transformez vos données en insights avec notre pipeline d'apprentissage automatique guidé. Aucun code requis.",
+        "START_BUTTON": "Commencer maintenant",
+        "VIEW_EXAMPLES": "Voir des exemples"
+      },
+      "HOW_IT_WORKS": {
+        "TITLE": "Comment ça fonctionne",
+        "SUBTITLE": "Quatre étapes simples pour créer votre modèle d'apprentissage automatique"
+      },
+      "STEPS": {
+        "UPLOAD": {
+          "TITLE": "Téléchargez vos données",
+          "DESCRIPTION": "Commencez par télécharger votre jeu de données. Nous supportons CSV, Excel et autres formats courants.",
+          "DETAIL1": "Validation automatique des données",
+          "DETAIL2": "Détection intelligente des colonnes"
+        },
+        "CONFIGURE": {
+          "TITLE": "Configurez votre modèle",
+          "DESCRIPTION": "Sélectionnez votre variable cible et laissez notre système recommander les meilleurs paramètres.",
+          "DETAIL1": "Prétraitement intelligent",
+          "DETAIL2": "Sélection automatique d'algorithme"
+        },
+        "TRAIN": {
+          "TITLE": "Entraînez votre modèle",
+          "DESCRIPTION": "Regardez notre IA entraîner votre modèle en utilisant les meilleures pratiques de l'industrie.",
+          "DETAIL1": "Suivi du progrès en temps réel",
+          "DETAIL2": "Réglage automatique des hyperparamètres"
+        },
+        "RESULTS": {
+          "TITLE": "Analysez les résultats",
+          "DESCRIPTION": "Obtenez des insights complets avec des visualisations et métriques de performance.",
+          "DETAIL1": "Visualisations interactives",
+          "DETAIL2": "Insights d'IA explicable"
+        }
+      },
+      "FEATURES": {
+        "FAST": {
+          "TITLE": "Ultra rapide",
+          "DESCRIPTION": "Obtenez des résultats en minutes avec notre pipeline ML optimisé"
+        },
+        "SMART": {
+          "TITLE": "Propulsé par l'IA",
+          "DESCRIPTION": "L'automatisation intelligente gère les décisions complexes pour vous"
+        },
+        "RELIABLE": {
+          "TITLE": "Prêt pour l'entreprise",
+          "DESCRIPTION": "Conçu avec la sécurité et la scalabilité à l'esprit"
+        },
+        "INSIGHTS": {
+          "TITLE": "IA explicable",
+          "DESCRIPTION": "Comprenez exactement comment votre modèle fait ses prédictions"
+        }
+      },
+      "CTA": {
+        "TITLE": "Prêt à commencer ?",
+        "SUBTITLE": "Rejoignez des milliers d'utilisateurs qui créent des modèles ML avec notre plateforme",
+        "START_BUTTON": "Commencer",
+        "LEARN_MORE": "En savoir plus"
+      }
     }
   },
   "ML_STUDIO": {

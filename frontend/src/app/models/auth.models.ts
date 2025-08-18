@@ -161,5 +161,6 @@ export enum EducationLevel {
   BACHELOR = 'bachelor',
   MASTER = 'master',
   PHD = 'phd',
+  ENGINEER = 'engineer',
   OTHER = 'other'
-} 
+}

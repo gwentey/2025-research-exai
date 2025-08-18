@@ -2,4 +2,6 @@
 ** xref:breadcrumb-modern-design.adoc[Design Moderne du Breadcrumb]
 ** xref:login-background-animation.adoc[Animation d'Arrière-plan de Connexion]
 ** xref:ml-pipeline-cleaning-interface.adoc[Interface de Nettoyage ML Pipeline]
+** xref:ml-pipeline-modern-interface.adoc[Interface ML Pipeline Moderne]
+** xref:ml-pipeline-revolutionary-interface.adoc[Interface ML Pipeline Révolutionnaire]
 ** xref:view-toggle-widget-improvements.adoc[Améliorations du Widget Vue Grille/Liste]

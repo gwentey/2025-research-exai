@@ -60,6 +60,7 @@ export class OnboardingWizardComponent implements OnInit {
     { value: EducationLevel.BACHELOR, key: 'BACHELOR' },
     { value: EducationLevel.MASTER, key: 'MASTER' },
     { value: EducationLevel.PHD, key: 'PHD' },
+    { value: EducationLevel.ENGINEER, key: 'ENGINEER' },
     { value: EducationLevel.OTHER, key: 'OTHER' }
   ];
 
@@ -232,4 +233,4 @@ export class OnboardingWizardComponent implements OnInit {
     }
     return '';
   }
-} 
+}

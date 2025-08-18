@@ -148,19 +148,11 @@ export class FiltersPanelComponent implements OnInit, OnDestroy {
   // Configuration des groupes de filtres - TOUS EXPANDED POUR UNE EXPÉRIENCE MODERNE
   filterGroups = [
     {
-      id: 'text-search',
-      titleKey: 'DATASETS.FILTERS.GROUPS.TEXT_SEARCH.TITLE',
-      descriptionKey: 'DATASETS.FILTERS.GROUPS.TEXT_SEARCH.DESCRIPTION',
-      icon: 'search',
-      expanded: true,
-      fields: ['dataset_name', 'objective']
-    },
-    {
       id: 'categories',
       titleKey: 'DATASETS.FILTERS.GROUPS.CATEGORIES.TITLE',
       descriptionKey: 'DATASETS.FILTERS.GROUPS.CATEGORIES.DESCRIPTION',
       icon: 'category',
-      expanded: true, // RÉVOLUTIONNAIRE : Toujours visible
+      expanded: true,
       fields: ['domain', 'task']
     },
     {
@@ -168,7 +160,7 @@ export class FiltersPanelComponent implements OnInit, OnDestroy {
       titleKey: 'DATASETS.FILTERS.GROUPS.NUMERICAL.TITLE',
       descriptionKey: 'DATASETS.FILTERS.GROUPS.NUMERICAL.DESCRIPTION',
       icon: 'analytics',
-      expanded: true, // RÉVOLUTIONNAIRE : Toujours visible
+      expanded: true,
       fields: ['instances_number_min', 'instances_number_max', 'features_number_min', 'features_number_max', 'year_min', 'year_max']
     },
     {
@@ -176,7 +168,7 @@ export class FiltersPanelComponent implements OnInit, OnDestroy {
       titleKey: 'DATASETS.FILTERS.GROUPS.QUALITY.TITLE',
       descriptionKey: 'DATASETS.FILTERS.GROUPS.QUALITY.DESCRIPTION',
       icon: 'verified',
-      expanded: true, // RÉVOLUTIONNAIRE : Toujours visible
+      expanded: true,
       fields: ['ethical_score_min', 'representativity_level', 'is_split', 'is_anonymized', 'has_temporal_factors', 'is_public']
     }
   ];
@@ -196,10 +188,6 @@ export class FiltersPanelComponent implements OnInit, OnDestroy {
    */
   private initializeForm(): void {
     this.filterForm = this.fb.group({
-      // Recherche textuelle
-      dataset_name: [this.initialFilters.dataset_name || ''],
-      objective: [this.initialFilters.objective || ''],
-
       // Domaines et tâches
       domain: [this.initialFilters.domain || []],
       task: [this.initialFilters.task || []],
@@ -232,7 +220,7 @@ export class FiltersPanelComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         takeUntil(this.destroy$)
       )
-      .subscribe(value => {
+      .subscribe((value: any) => {
         const filters = this.buildFiltersFromForm(value);
         this.filtersChange.emit(filters);
 
@@ -301,10 +289,6 @@ export class FiltersPanelComponent implements OnInit, OnDestroy {
    */
   private generateFilterLabel(key: string, value: any): string {
     switch (key) {
-      case 'dataset_name':
-        return `Nom: "${value}"`;
-      case 'objective':
-        return `Objectif: "${value}"`;
       case 'domain':
         return Array.isArray(value) ? `Domaines (${value.length})` : `Domaine: ${value}`;
       case 'task':
@@ -365,8 +349,6 @@ export class FiltersPanelComponent implements OnInit, OnDestroy {
 
     // Réinitialiser explicitement les valeurs par défaut
     this.filterForm.patchValue({
-      dataset_name: '',
-      objective: '',
       domain: [],
       task: [],
       instances_number_min: null,

@@ -3,13 +3,12 @@
      [class.expanded]="isExpanded"
      [class.loading]="isLoading">
 
-  <!-- Header principal modernisé -->
+  <!-- Header principal modernisé style Stripe/Linear -->
   <div class="panel-header">
     <div class="header-content">
       <div class="header-main">
         <div class="header-icon-wrapper">
-          <!-- REMPLACEMENT RADICAL: span au lieu de mat-icon -->
-          <span class="forced-tune-icon">tune</span>
+          <mat-icon class="header-icon">tune</mat-icon>
         </div>
         <div class="header-text">
           <h2 class="panel-title">{{ 'DATASETS.FILTERS.MODERN.TITLE' | translate }}</h2>
@@ -24,6 +23,13 @@
                 [disabled]="!hasActiveFilters()"
                 matTooltip="Réinitialiser tous les filtres">
           <mat-icon>refresh</mat-icon>
+        </button>
+
+        <button mat-icon-button
+                class="close-btn"
+                (click)="closePanel()"
+                matTooltip="Fermer">
+          <mat-icon>close</mat-icon>
         </button>
       </div>
     </div>

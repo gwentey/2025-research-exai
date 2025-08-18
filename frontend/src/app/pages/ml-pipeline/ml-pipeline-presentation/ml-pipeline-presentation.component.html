@@ -1,419 +1,472 @@
-<!-- Page Container -->
+<!-- Page Container avec design équilibré moderne -->
 <div class="ml-pipeline-presentation">
-  
-  <!-- Hero Section avec Animation de Pipeline -->
-  <div class="hero-section" [@fadeInUp]>
-    <div class="hero-background">
-      <div class="floating-particle" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]"></div>
-    </div>
-    
-    <div class="container-fluid">
-      <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-8">
-          <div class="hero-content text-center">
-            
-            <!-- Icône principale avec animation -->
-            <div class="hero-icon-wrapper" [@pulse]="'active'">
-              <div class="hero-icon-glow"></div>
-              <mat-icon class="hero-main-icon">psychology</mat-icon>
-            </div>
-            
-            <!-- Titre principal -->
-            <h1 class="hero-title">
-              {{ 'ML_PIPELINE.PRESENTATION.HERO.TITLE' | translate }}
-            </h1>
-            
-            <!-- Sous-titre -->
-            <p class="hero-subtitle">
-              {{ 'ML_PIPELINE.PRESENTATION.HERO.SUBTITLE' | translate }}
-            </p>
-            
-            <!-- Boutons d'action principaux -->
-            <div class="hero-actions" [@staggerList]>
-              <button 
-                mat-raised-button 
-                color="primary" 
-                size="large"
-                class="cta-button"
-                (click)="startNewExperiment()">
-                <mat-icon class="m-r-8">rocket_launch</mat-icon>
-                {{ 'ML_PIPELINE.PRESENTATION.HERO.START_BUTTON' | translate }}
-              </button>
-              
-              <button 
-                mat-stroked-button 
-                color="primary" 
-                size="large"
-                class="secondary-button"
-                (click)="viewExamples()">
-                <mat-icon class="m-r-8">visibility</mat-icon>
-                {{ 'ML_PIPELINE.PRESENTATION.HERO.EXAMPLES_BUTTON' | translate }}
-              </button>
-            </div>
-            
-            <!-- Indicateurs de flux de données animés -->
-            <div class="pipeline-flow-indicator">
-              <mat-progress-bar 
-                mode="determinate" 
-                [value]="flowProgress"
-                class="flow-progress">
-              </mat-progress-bar>
-              <p class="flow-text">
-                {{ 'ML_PIPELINE.PRESENTATION.HERO.FLOW_TEXT' | translate }}
-              </p>
-            </div>
-            
-          </div>
+
+  <!-- Hero Section Élégante -->
+  <div class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+
+        <!-- Badge subtil avec micro-animation -->
+        <div class="status-badge">
+          <div class="badge-dot"></div>
+          <span>{{ 'ML_PIPELINE.MODERN.STATUS_BADGE' | translate }}</span>
         </div>
+
+                        <!-- Titre principal avec gradient subtil -->
+        <h1 class="hero-title">
+          Let AI guide you to build powerful models
+        </h1>
+
+        <!-- Sous-titre élégant -->
+        <p class="hero-subtitle">
+          Chat with our AI assistant to create machine learning models. Just like having a data science expert by your side, explaining everything in simple terms.
+        </p>
+
+        <!-- Actions avec design Linear -->
+        <div class="hero-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            class="primary-action"
+            (click)="startNewExperiment()">
+            {{ 'ML_PIPELINE.MODERN.HERO.START_BUTTON' | translate }}
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+
+          <button
+            mat-stroked-button
+            class="secondary-action"
+            (click)="viewExamples()">
+            {{ 'ML_PIPELINE.MODERN.HERO.VIEW_EXAMPLES' | translate }}
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
 
-  <!-- Section des 8 Étapes de la Pipeline - Format Serpentin Compact -->
-  <div class="pipeline-steps-section" [@fadeInUp]>
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-lg-12">
-          
-          <!-- En-tête de section -->
-          <div class="section-header">
-            <h2 class="section-title">
-              {{ 'ML_PIPELINE.PRESENTATION.STEPS.TITLE' | translate }}
-            </h2>
-            <p class="section-subtitle">
-              {{ 'ML_PIPELINE.PRESENTATION.STEPS.SUBTITLE' | translate }}
-            </p>
+  <!-- Code Flow Section - Concept Original -->
+  <div class="code-flow-section">
+    <div class="container">
+
+            <!-- En-tête élégant -->
+      <div class="section-header">
+        <h2 class="section-title">How our AI guides you</h2>
+        <p class="section-subtitle">A simple conversation that transforms your data into insights</p>
+      </div>
+
+      <!-- AI Chat Interface -->
+      <div class="chat-interface-container">
+        <div class="chat-header">
+          <div class="ai-avatar">
+            <mat-icon>smart_toy</mat-icon>
           </div>
-          
-          <!-- Timeline serpentin avec connexions logiques réelles -->
-          <div class="pipeline-timeline">
-            <div class="timeline-container" [@staggerList]>
-              
-              <!-- Première ligne : Étapes 1 → 2 → 3 -->
-              <div class="timeline-row row-1">
-                <div 
-                  class="step-item step-1"
-                  [class]="getStepClasses(pipelineSteps[0])"
-                  [@slideIn]>
-                  <div class="step-number">{{ pipelineSteps[0].id }}</div>
-                  <mat-icon class="step-icon">{{ pipelineSteps[0].icon }}</mat-icon>
-                  <h3 class="step-title">{{ pipelineSteps[0].title | translate }}</h3>
-                  <p class="step-description">{{ pipelineSteps[0].description | translate }}</p>
-                  <div class="step-example" *ngIf="pipelineSteps[0].example">
-                    {{ pipelineSteps[0].example | translate }}
-                  </div>
-                  <!-- Connexion vers étape 2 -->
-                  <div class="connection-line to-right"></div>
-                </div>
-                
-                <div 
-                  class="step-item step-2"
-                  [class]="getStepClasses(pipelineSteps[1])"
-                  [@slideIn]>
-                  <div class="step-number">{{ pipelineSteps[1].id }}</div>
-                  <mat-icon class="step-icon">{{ pipelineSteps[1].icon }}</mat-icon>
-                  <h3 class="step-title">{{ pipelineSteps[1].title | translate }}</h3>
-                  <p class="step-description">{{ pipelineSteps[1].description | translate }}</p>
-                  <div class="step-example" *ngIf="pipelineSteps[1].example">
-                    {{ pipelineSteps[1].example | translate }}
-                  </div>
-                  <!-- Connexion vers étape 3 -->
-                  <div class="connection-line to-right"></div>
-                </div>
-                
-                <div 
-                  class="step-item step-3"
-                  [class]="getStepClasses(pipelineSteps[2])"
-                  [@slideIn]>
-                  <div class="step-number">{{ pipelineSteps[2].id }}</div>
-                  <mat-icon class="step-icon">{{ pipelineSteps[2].icon }}</mat-icon>
-                  <h3 class="step-title">{{ pipelineSteps[2].title | translate }}</h3>
-                  <p class="step-description">{{ pipelineSteps[2].description | translate }}</p>
-                  <div class="step-example" *ngIf="pipelineSteps[2].example">
-                    {{ pipelineSteps[2].example | translate }}
-                  </div>
-                  <!-- Connexion vers ligne suivante (étape 6) -->
-                  <div class="connection-line to-down-left"></div>
-                </div>
-              </div>
-              
-              <!-- Deuxième ligne : Étapes 6 ← 5 ← 4 (sens inverse pour serpentin) -->
-              <div class="timeline-row row-2 reverse">
-                <div 
-                  class="step-item step-6"
-                  [class]="getStepClasses(pipelineSteps[5])"
-                  [@slideIn]>
-                  <div class="step-number">{{ pipelineSteps[5].id }}</div>
-                  <mat-icon class="step-icon">{{ pipelineSteps[5].icon }}</mat-icon>
-                  <h3 class="step-title">{{ pipelineSteps[5].title | translate }}</h3>
-                  <p class="step-description">{{ pipelineSteps[5].description | translate }}</p>
-                  <div class="step-example" *ngIf="pipelineSteps[5].example">
-                    {{ pipelineSteps[5].example | translate }}
-                  </div>
-                  <!-- Connexion vers étape 5 -->
-                  <div class="connection-line to-left"></div>
-                </div>
-                
-                <div 
-                  class="step-item step-5"
-                  [class]="getStepClasses(pipelineSteps[4])"
-                  [@slideIn]>
-                  <div class="step-number">{{ pipelineSteps[4].id }}</div>
-                  <mat-icon class="step-icon">{{ pipelineSteps[4].icon }}</mat-icon>
-                  <h3 class="step-title">{{ pipelineSteps[4].title | translate }}</h3>
-                  <p class="step-description">{{ pipelineSteps[4].description | translate }}</p>
-                  <div class="step-example" *ngIf="pipelineSteps[4].example">
-                    {{ pipelineSteps[4].example | translate }}
-                  </div>
-                  <!-- Connexion vers étape 4 -->
-                  <div class="connection-line to-left"></div>
-                </div>
-                
-                <div 
-                  class="step-item step-4"
-                  [class]="getStepClasses(pipelineSteps[3])"
-                  [@slideIn]>
-                  <div class="step-number">{{ pipelineSteps[3].id }}</div>
-                  <mat-icon class="step-icon">{{ pipelineSteps[3].icon }}</mat-icon>
-                  <h3 class="step-title">{{ pipelineSteps[3].title | translate }}</h3>
-                  <p class="step-description">{{ pipelineSteps[3].description | translate }}</p>
-                  <div class="step-example" *ngIf="pipelineSteps[3].example">
-                    {{ pipelineSteps[3].example | translate }}
-                  </div>
-                  <!-- Connexion vers ligne suivante (étape 7) -->
-                  <div class="connection-line to-down-right"></div>
-                </div>
-              </div>
-              
-              <!-- Troisième ligne : Étapes 7 → 8 -->
-              <div class="timeline-row row-3">
-                <div 
-                  class="step-item step-7"
-                  [class]="getStepClasses(pipelineSteps[6])"
-                  [@slideIn]>
-                  <div class="step-number">{{ pipelineSteps[6].id }}</div>
-                  <mat-icon class="step-icon">{{ pipelineSteps[6].icon }}</mat-icon>
-                  <h3 class="step-title">{{ pipelineSteps[6].title | translate }}</h3>
-                  <p class="step-description">{{ pipelineSteps[6].description | translate }}</p>
-                  <div class="step-example" *ngIf="pipelineSteps[6].example">
-                    {{ pipelineSteps[6].example | translate }}
-                  </div>
-                  <!-- Connexion vers étape 8 -->
-                  <div class="connection-line to-right final"></div>
-                </div>
-                
-                <div 
-                  class="step-item step-8"
-                  [class]="getStepClasses(pipelineSteps[7])"
-                  [@slideIn]>
-                  <div class="step-number">{{ pipelineSteps[7].id }}</div>
-                  <mat-icon class="step-icon">{{ pipelineSteps[7].icon }}</mat-icon>
-                  <h3 class="step-title">{{ pipelineSteps[7].title | translate }}</h3>
-                  <p class="step-description">{{ pipelineSteps[7].description | translate }}</p>
-                  <div class="step-example" *ngIf="pipelineSteps[7].example">
-                    {{ pipelineSteps[7].example | translate }}
-                  </div>
-                </div>
-              </div>
-              
+          <div class="chat-info">
+            <div class="ai-name">IBIS-X AI Assistant</div>
+            <div class="ai-status">
+              <span class="status-dot"></span>
+              <span>Ready to help</span>
             </div>
           </div>
-          
+          <div class="chat-controls">
+            <button mat-icon-button class="play-button" (click)="playConversation()" [disabled]="isPlaying">
+              <mat-icon>{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Section Visualisation Interactive (Bonus) -->
-  <div class="interactive-visualization-section" [@fadeInUp]>
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-lg-12">
-          
-          <mat-card class="visualization-card cardWithShadow">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon class="m-r-12">timeline</mat-icon>
-                {{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.TITLE' | translate }}
-              </mat-card-title>
-              <mat-card-subtitle>
-                {{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.SUBTITLE' | translate }}
-              </mat-card-subtitle>
-            </mat-card-header>
-            
-            <mat-card-content>
-              <div class="data-flow-visualization">
-                <!-- Représentation visuelle du flux de données -->
-                <div class="flow-container">
-                  
-                  <!-- Point de départ : Données -->
-                  <div class="flow-node data-input">
-                    <mat-icon>storage</mat-icon>
-                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.DATA_INPUT' | translate }}</span>
+                <div class="chat-conversation">
+
+          <!-- Step 1: Dataset -->
+          <div class="conversation-step"
+               [class.active]="activeStep >= 0"
+               [class.completed]="completedSteps.includes(0)"
+               (click)="triggerStep(0)">
+
+            <div class="ai-message">
+              <div class="message-avatar">
+                <mat-icon>smart_toy</mat-icon>
+              </div>
+              <div class="message-bubble ai-bubble">
+                <div class="message-text">
+                  Hi! I'm your AI assistant. Let's build your first model together! 🎯
+                  <br><br>
+                  <strong>First, I need to understand your data.</strong> What would you like to analyze?
+                </div>
+                <div class="message-time">Just now</div>
+              </div>
+            </div>
+
+            <div class="user-message" [class.visible]="activeStep >= 0">
+              <div class="message-bubble user-bubble">
+                <div class="message-text">
+                  I have customer data and want to predict who might buy our product
+                </div>
+                <div class="message-time">Just now</div>
+              </div>
+              <div class="message-avatar user-avatar">
+                <mat-icon>person</mat-icon>
+              </div>
+            </div>
+
+            <div class="ai-response" [class.visible]="activeStep >= 0">
+              <div class="message-avatar">
+                <mat-icon>smart_toy</mat-icon>
+              </div>
+              <div class="message-bubble ai-bubble">
+                <div class="message-text">
+                  Perfect! That's a <strong>classification problem</strong>. I'll help you:
+                  <div class="step-pills">
+                    <span class="pill">📊 Choose your dataset</span>
+                    <span class="pill">✨ Check data quality automatically</span>
                   </div>
-                  
-                  <!-- Flèche animée -->
-                  <div class="flow-arrow">
-                    <div class="arrow-line"></div>
-                    <div class="arrow-head"></div>
-                    <div class="flow-particles">
-                      <div class="particle" *ngFor="let p of [1,2,3]"></div>
+                </div>
+                <div class="message-actions">
+                  <button mat-stroked-button class="message-action">Browse Datasets</button>
+                  <button mat-stroked-button class="message-action">Upload My Data</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+                              <!-- Step 2-3: Cleaning & Objective -->
+          <div class="conversation-step"
+               [class.active]="activeStep >= 1"
+               [class.completed]="completedSteps.includes(1)"
+               (click)="triggerStep(1)">
+
+            <div class="ai-message">
+              <div class="message-avatar">
+                <mat-icon>smart_toy</mat-icon>
+              </div>
+              <div class="message-bubble ai-bubble">
+                <div class="message-text">
+                  Great choice! I've analyzed your data and found some opportunities:
+                  <div class="data-insights">
+                    <div class="insight-card">
+                      <mat-icon>cleaning_services</mat-icon>
+                      <span>I can fix 23 missing values automatically</span>
+                    </div>
+                    <div class="insight-card">
+                      <mat-icon>remove_red_eye</mat-icon>
+                      <span>5 outliers detected - should I handle them?</span>
                     </div>
                   </div>
-                  
-                  <!-- Pipeline de traitement -->
-                  <div class="flow-node processing-pipeline">
-                    <mat-icon>settings</mat-icon>
-                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.PIPELINE' | translate }}</span>
-                  </div>
-                  
-                  <!-- Flèche animée -->
-                  <div class="flow-arrow">
-                    <div class="arrow-line"></div>
-                    <div class="arrow-head"></div>
-                    <div class="flow-particles">
-                      <div class="particle" *ngFor="let p of [1,2,3]"></div>
-                    </div>
-                  </div>
-                  
-                  <!-- Résultat : Modèle IA -->
-                  <div class="flow-node ai-model">
-                    <mat-icon>psychology</mat-icon>
-                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.AI_MODEL' | translate }}</span>
-                  </div>
-                  
-                  <!-- Flèche animée -->
-                  <div class="flow-arrow">
-                    <div class="arrow-line"></div>
-                    <div class="arrow-head"></div>
-                    <div class="flow-particles">
-                      <div class="particle" *ngFor="let p of [1,2,3]"></div>
-                    </div>
-                  </div>
-                  
-                  <!-- Explications XAI -->
-                  <div class="flow-node xai-output">
-                    <mat-icon>insights</mat-icon>
-                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.XAI_OUTPUT' | translate }}</span>
-                  </div>
-                  
-                </div>
-                
-                <!-- Métriques en temps réel -->
-                <div class="flow-metrics">
-                  <div class="metric-item">
-                    <mat-icon>speed</mat-icon>
-                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.PROCESSING_TIME' | translate }}</span>
-                    <strong>~2-5 min</strong>
-                  </div>
-                  <div class="metric-item">
-                    <mat-icon>precision_manufacturing</mat-icon>
-                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.ACCURACY' | translate }}</span>
-                    <strong>85-95%</strong>
-                  </div>
-                  <div class="metric-item">
-                    <mat-icon>auto_fix_high</mat-icon>
-                    <span>{{ 'ML_PIPELINE.PRESENTATION.VISUALIZATION.AUTOMATION' | translate }}</span>
-                    <strong>95%</strong>
-                  </div>
+                  <strong>What exactly do you want to predict?</strong>
                 </div>
               </div>
-            </mat-card-content>
-          </mat-card>
-          
-        </div>
-      </div>
-    </div>
-  </div>
+            </div>
 
-  <!-- Section FAQ -->
-  <div class="faq-section" [@fadeInUp]>
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          
-          <!-- En-tête FAQ -->
-          <div class="section-header text-center m-b-40">
-            <h2 class="section-title">
-              {{ 'ML_PIPELINE.PRESENTATION.FAQ.TITLE' | translate }}
-            </h2>
-            <p class="section-subtitle">
-              {{ 'ML_PIPELINE.PRESENTATION.FAQ.SUBTITLE' | translate }}
-            </p>
+            <div class="user-message" [class.visible]="activeStep >= 1">
+              <div class="message-bubble user-bubble">
+                <div class="message-text">
+                  I want to predict which customers will purchase within 30 days
+                </div>
+              </div>
+              <div class="message-avatar user-avatar">
+                <mat-icon>person</mat-icon>
+              </div>
+            </div>
+
+            <div class="ai-response" [class.visible]="activeStep >= 1">
+              <div class="message-avatar">
+                <mat-icon>smart_toy</mat-icon>
+              </div>
+              <div class="message-bubble ai-bubble">
+                <div class="message-text">
+                  Perfect! 🎯 That's a <strong>binary classification</strong>.
+                  <br><br>
+                  I'll clean your data and prepare it for the best algorithms. Ready to continue?
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <!-- Accordéon FAQ -->
-          <mat-accordion class="faq-accordion">
-            <mat-expansion-panel 
-              *ngFor="let faq of faqItems; let i = index"
-              [expanded]="faq.expanded"
-              (opened)="toggleFAQ(i)"
-              (closed)="toggleFAQ(i)"
-              class="faq-panel">
-              
-              <mat-expansion-panel-header>
-                <mat-panel-title>
-                  <mat-icon class="faq-icon">help_outline</mat-icon>
-                  {{ faq.question | translate }}
-                </mat-panel-title>
-              </mat-expansion-panel-header>
-              
-              <div class="faq-content">
-                <p>{{ faq.answer | translate }}</p>
+
+                    <!-- Step 4-5: Division & Preparation -->
+          <div class="conversation-step"
+               [class.active]="activeStep >= 2"
+               [class.completed]="completedSteps.includes(2)"
+               (click)="triggerStep(2)">
+
+            <div class="ai-message">
+              <div class="message-avatar">
+                <mat-icon>smart_toy</mat-icon>
               </div>
-              
-            </mat-expansion-panel>
-          </mat-accordion>
-          
+              <div class="message-bubble ai-bubble">
+                <div class="message-text">
+                  Now I need to prepare your data properly. Think of it like preparing ingredients for cooking! 👨‍🍳
+                  <div class="preparation-visual">
+                    <div class="prep-step">
+                      <span class="prep-icon">🍎</span>
+                      <span class="prep-text">80% for training (teaching the AI)</span>
+                    </div>
+                    <div class="prep-step">
+                      <span class="prep-icon">🧪</span>
+                      <span class="prep-text">20% for testing (checking if it learned)</span>
+                    </div>
+                    <div class="prep-step">
+                      <span class="prep-icon">✨</span>
+                      <span class="prep-text">Auto-encode categories into numbers</span>
+                    </div>
+                  </div>
+                  Should I proceed with these smart defaults?
+                </div>
+              </div>
+            </div>
+
+            <div class="user-message" [class.visible]="activeStep >= 2">
+              <div class="message-bubble user-bubble">
+                <div class="message-text">
+                  Yes, that sounds perfect! How do you choose the best algorithm?
+                </div>
+              </div>
+              <div class="message-avatar user-avatar">
+                <mat-icon>person</mat-icon>
+              </div>
+            </div>
+          </div>
+
+                              <!-- Step 6-8: Algorithm, Parameters & Training -->
+          <div class="conversation-step"
+               [class.active]="activeStep >= 3"
+               [class.completed]="completedSteps.includes(3)"
+               (click)="triggerStep(3)">
+
+            <div class="ai-message">
+              <div class="message-avatar">
+                <mat-icon>smart_toy</mat-icon>
+              </div>
+              <div class="message-bubble ai-bubble">
+                <div class="message-text">
+                  I'll test 3 different AI algorithms to find the best one for your data:
+                  <div class="algorithm-race">
+                    <div class="algorithm-card">
+                      <div class="algo-icon">🌳</div>
+                      <div class="algo-info">
+                        <strong>Random Forest</strong>
+                        <span>Good for explaining decisions</span>
+                      </div>
+                      <div class="algo-score">89%</div>
+                    </div>
+                    <div class="algorithm-card winner">
+                      <div class="algo-icon">⚡</div>
+                      <div class="algo-info">
+                        <strong>XGBoost</strong>
+                        <span>Best performance</span>
+                      </div>
+                      <div class="algo-score">94%</div>
+                    </div>
+                    <div class="algorithm-card">
+                      <div class="algo-icon">🧠</div>
+                      <div class="algo-info">
+                        <strong>Neural Network</strong>
+                        <span>Complex patterns</span>
+                      </div>
+                      <div class="algo-score">91%</div>
+                    </div>
+                  </div>
+                  <strong>XGBoost wins!</strong> Now training your final model...
+                </div>
+              </div>
+            </div>
+
+            <div class="training-progress" [class.visible]="activeStep >= 3">
+              <div class="progress-circle">
+                <svg viewBox="0 0 100 100">
+                  <circle class="progress-bg" cx="50" cy="50" r="45"></circle>
+                  <circle class="progress-fill" cx="50" cy="50" r="45" [style.stroke-dashoffset]="progressOffset"></circle>
+                </svg>
+                <div class="progress-text">
+                  <span class="progress-number">{{ trainingProgress }}%</span>
+                  <span class="progress-label">Training</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- XAI Explanation Results -->
+          <div class="conversation-step final-step" [class.active]="showOutput">
+
+            <div class="ai-message celebration">
+              <div class="message-avatar">
+                <mat-icon>smart_toy</mat-icon>
+              </div>
+              <div class="message-bubble ai-bubble success-bubble">
+                <div class="message-text">
+                  🎉 <strong>Your model is ready!</strong> Here's what I learned:
+
+                  <div class="model-insights">
+                    <div class="insight-metric">
+                      <div class="metric-icon">🎯</div>
+                      <div class="metric-content">
+                        <strong>{{ finalAccuracy }}% Accuracy</strong>
+                        <span>Very reliable predictions</span>
+                      </div>
+                    </div>
+                    <div class="insight-metric">
+                      <div class="metric-icon">🧠</div>
+                      <div class="metric-content">
+                        <strong>Top 3 Important Factors:</strong>
+                        <span>Purchase history, Age, Website time</span>
+                      </div>
+                    </div>
+                    <div class="insight-metric">
+                      <div class="metric-icon">📊</div>
+                      <div class="metric-content">
+                        <strong>Explainable Predictions</strong>
+                        <span>I can show you WHY for each decision</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  Want to try it on new customers or see detailed explanations?
+                </div>
+                <div class="message-actions celebration-actions">
+                  <button mat-flat-button color="primary" class="success-action">
+                    <mat-icon>play_arrow</mat-icon>
+                    Try Predictions
+                  </button>
+                  <button mat-stroked-button class="explain-action">
+                    <mat-icon>visibility</mat-icon>
+                    Show Me Why
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
+
+                <!-- Conversation Controls -->
+        <div class="chat-controls-bottom">
+          <div class="conversation-progress">
+            <span class="progress-text">Conversation Progress</span>
+            <div class="progress-indicator">
+              <div class="progress-bar" [style.width.%]="codeProgress"></div>
+            </div>
+            <span class="progress-steps">{{ completedSteps.length }}/4 steps</span>
+          </div>
+          <button
+            mat-stroked-button
+            class="restart-conversation"
+            (click)="resetCodeAnimation()">
+            <mat-icon>refresh</mat-icon>
+            Restart Conversation
+          </button>
+        </div>
+
       </div>
+
     </div>
   </div>
 
-  <!-- Call to Action Final -->
-  <div class="final-cta-section" [@fadeInUp]>
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          
-          <mat-card class="cta-card cardWithShadow text-center">
-            <mat-card-content class="p-40">
-              
-              <mat-icon class="cta-icon">rocket_launch</mat-icon>
-              
-              <h3 class="cta-title">
-                {{ 'ML_PIPELINE.PRESENTATION.CTA.TITLE' | translate }}
-              </h3>
-              
-              <p class="cta-description">
-                {{ 'ML_PIPELINE.PRESENTATION.CTA.DESCRIPTION' | translate }}
-              </p>
-              
-              <div class="cta-actions">
-                <button 
-                  mat-raised-button 
-                  color="primary" 
-                  size="large"
-                  (click)="openWizard()">
-                  <mat-icon class="m-r-8">auto_fix_high</mat-icon>
-                  {{ 'ML_PIPELINE.PRESENTATION.CTA.WIZARD_BUTTON' | translate }}
-                </button>
-                
-                <button 
-                  mat-stroked-button 
-                  color="primary" 
-                  size="large"
-                  (click)="startNewExperiment()">
-                  <mat-icon class="m-r-8">dataset</mat-icon>
-                  {{ 'ML_PIPELINE.PRESENTATION.CTA.DATASETS_BUTTON' | translate }}
-                </button>
-              </div>
-              
-            </mat-card-content>
-          </mat-card>
-          
+  <!-- Features Grid Style Linear -->
+  <div class="features-section">
+    <div class="container">
+
+      <!-- Grid de Features Élégant -->
+      <div class="features-grid">
+
+        <div class="feature-card" (mouseenter)="onFeatureHover(0)" (mouseleave)="onFeatureLeave(0)">
+          <div class="feature-icon-wrapper">
+            <div class="icon-background"></div>
+            <mat-icon class="feature-icon">mouse</mat-icon>
+          </div>
+          <h3 class="feature-title">No-Code Interface</h3>
+          <p class="feature-description">Build ML models with clicks and drags. No programming knowledge required whatsoever.</p>
+          <div class="feature-metric">
+            <span class="metric-value">0</span>
+            <span class="metric-label">lines of code</span>
+          </div>
+        </div>
+
+        <div class="feature-card" (mouseenter)="onFeatureHover(1)" (mouseleave)="onFeatureLeave(1)">
+          <div class="feature-icon-wrapper">
+            <div class="icon-background"></div>
+            <mat-icon class="feature-icon">visibility</mat-icon>
+          </div>
+          <h3 class="feature-title">Explainable AI</h3>
+          <p class="feature-description">Understand every prediction with visual explanations. See exactly why your model made each decision.</p>
+          <div class="feature-metric">
+            <span class="metric-value">100%</span>
+            <span class="metric-label">transparent</span>
+          </div>
+        </div>
+
+        <div class="feature-card" (mouseenter)="onFeatureHover(2)" (mouseleave)="onFeatureLeave(2)">
+          <div class="feature-icon-wrapper">
+            <div class="icon-background"></div>
+            <mat-icon class="feature-icon">auto_fix_high</mat-icon>
+          </div>
+          <h3 class="feature-title">AutoML Magic</h3>
+          <p class="feature-description">Our AI handles the complexity - algorithm selection, parameter tuning, and optimization automatically.</p>
+          <div class="feature-metric">
+            <span class="metric-value">8</span>
+            <span class="metric-label">guided steps</span>
+          </div>
+        </div>
+
+        <div class="feature-card" (mouseenter)="onFeatureHover(3)" (mouseleave)="onFeatureLeave(3)">
+          <div class="feature-icon-wrapper">
+            <div class="icon-background"></div>
+            <mat-icon class="feature-icon">speed</mat-icon>
+          </div>
+          <h3 class="feature-title">Instant Results</h3>
+          <p class="feature-description">From data upload to deployed model in minutes. Real-time performance metrics and visual feedback.</p>
+          <div class="feature-metric">
+            <span class="metric-value">5min</span>
+            <span class="metric-label">avg. training</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CTA Section Élégante -->
+  <div class="cta-section">
+    <div class="container">
+
+      <div class="cta-content">
+        <h2 class="cta-title">Ready to build your first AI model?</h2>
+        <p class="cta-subtitle">Join thousands of users creating explainable AI models without writing a single line of code</p>
+
+        <!-- Stats Preview Subtiles -->
+        <div class="stats-preview">
+          <div class="stat-item">
+            <span class="stat-number" [class.animated]="statsAnimated">2,847</span>
+            <span class="stat-label">models trained</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" [class.animated]="statsAnimated">94%</span>
+            <span class="stat-label">avg. accuracy</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" [class.animated]="statsAnimated">45s</span>
+            <span class="stat-label">avg. training time</span>
+          </div>
+        </div>
+
+                <div class="cta-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            class="primary-action"
+            (click)="startNewExperiment()">
+            Start Training Your Model
+            <mat-icon>rocket_launch</mat-icon>
+          </button>
+
+          <button
+            mat-stroked-button
+            class="secondary-action"
+            (click)="openWizard()">
+            See Explainability Demo
+          </button>
         </div>
       </div>
+
     </div>
   </div>
 

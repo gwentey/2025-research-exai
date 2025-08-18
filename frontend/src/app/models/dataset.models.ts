@@ -19,7 +19,7 @@ export interface Dataset {
   citation_link?: string;
   sources?: string;
   storage_uri?: string;
-  
+
   // === CARACTÉRISTIQUES TECHNIQUES ===
   instances_number?: number;
   features_description?: string;
@@ -39,7 +39,7 @@ export interface Dataset {
   external_documentation_available?: boolean;
   documentation_link?: string;
   task?: string[];
-  
+
   // === CRITÈRES ÉTHIQUES ===
   informed_consent?: boolean;
   transparency?: boolean;
@@ -52,7 +52,7 @@ export interface Dataset {
   record_keeping_policy_exists?: boolean;
   purpose_limitation_respected?: boolean;
   accountability_defined?: boolean;
-  
+
   // === TIMESTAMPS ===
   created_at: string;
   updated_at: string;
@@ -121,12 +121,14 @@ export interface DatasetScored extends Dataset {
  * Interface pour les critères de filtrage
  */
 export interface DatasetFilterCriteria {
-  // Filtres textuels
+  // Filtres de recherche textuelle
   dataset_name?: string;
   objective?: string;
+
+  // Filtres catégoriels
   domain?: string[];
   task?: string[];
-  
+
   // Filtres numériques
   instances_number_min?: number;
   instances_number_max?: number;
@@ -134,16 +136,16 @@ export interface DatasetFilterCriteria {
   features_number_max?: number;
   year_min?: number;
   year_max?: number;
-  
+
   // Filtres de qualité et éthique
   ethical_score_min?: number;
   representativity_level?: string;
-  
+
   // Filtres booléens techniques
   has_missing_values?: boolean;
   split?: boolean;
   anonymization_applied?: boolean;
-  
+
   // Filtres éthiques booléens
   informed_consent?: boolean;
   transparency?: boolean;
@@ -154,7 +156,7 @@ export interface DatasetFilterCriteria {
   record_keeping_policy_exists?: boolean;
   purpose_limitation_respected?: boolean;
   accountability_defined?: boolean;
-  
+
   // Filtres raccourcis pour l'interface moderne
   is_split?: boolean;
   is_anonymized?: boolean;
@@ -307,7 +309,7 @@ export interface ColumnStatistics {
   null_count: number;
   unique_count?: number;
   is_pii: boolean;
-  
+
   // Statistiques numériques
   mean?: number;
   std?: number;
@@ -316,13 +318,13 @@ export interface ColumnStatistics {
   median?: number;
   q1?: number;
   q3?: number;
-  
+
   // Statistiques catégorielles
   top_values?: { value: any; count: number; percentage: number }[];
-  
+
   // Distribution
   histogram?: { bins: number[]; counts: number[] };
-  
+
   // Exemples de valeurs
   sample_values: any[];
 }
@@ -348,7 +350,7 @@ export interface DatasetQualityMetrics {
   accuracy: number;
   timeliness: number;
   ethical_compliance: number;
-  
+
   // Détails par critère
   missing_data_impact: number;
   outliers_percentage: number;

@@ -57,9 +57,10 @@
 .panel-header {
   background: #ffffff !important;
   background-color: #ffffff !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  padding: 24px;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding: 20px 24px;
   color: #1a202c !important;
+  position: relative;
 
   // FORCE TOUT EN BLANC DANS LE HEADER
   *, *::before, *::after {
@@ -81,89 +82,72 @@
 
   .header-content {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 
     .header-main {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
       flex: 1;
 
                   .header-icon-wrapper {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        border-radius: 16px;
-        box-shadow: 0 4px 16px rgba(79, 70, 229, 0.2);
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+        transition: all 0.2s ease;
 
-                .forced-tune-icon {
-          // CSS ULTRA-BRUTAL ANTI MODE SOMBRE
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+        }
+
+        .header-icon {
+          color: #6366f1 !important;
+          font-size: 24px !important;
+          width: 24px !important;
+          height: 24px !important;
+          font-weight: 400 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
           font-family: 'Material Icons' !important;
-          color: #ffffff !important;
-          font-size: 28px !important;
-          font-weight: normal !important;
           font-style: normal !important;
-          display: block !important;
           line-height: 1 !important;
-          letter-spacing: normal !important;
           text-transform: none !important;
-          white-space: nowrap !important;
+          letter-spacing: normal !important;
           word-wrap: normal !important;
+          white-space: nowrap !important;
           direction: ltr !important;
-          opacity: 1 !important;
-          visibility: visible !important;
-
-          // ANTI-MODE SOMBRE ULTRA BRUTAL
-          filter: none !important;
-          -webkit-filter: none !important;
-          color-scheme: light !important;
-          background: transparent !important;
-          text-shadow: none !important;
-
-          // FORCE COULEUR CONTRE DARK MODE
-          color: white !important;
-          fill: white !important;
-          stroke: white !important;
-
-          // RENDU OPTIMAL
-          text-rendering: optimizeLegibility !important;
-          -webkit-font-feature-settings: 'liga' !important;
           -webkit-font-smoothing: antialiased !important;
+          text-rendering: optimizeLegibility !important;
           -moz-osx-font-smoothing: grayscale !important;
-
-          // CENTRAGE PARFAIT
-          width: 28px !important;
-          height: 28px !important;
-          text-align: center !important;
-          vertical-align: middle !important;
-
-          // OVERRIDE STATES HOVER/FOCUS/ACTIVE
-          &:hover, &:focus, &:active, &:visited {
-            color: #ffffff !important;
-            opacity: 1 !important;
-          }
+          font-feature-settings: 'liga' !important;
         }
       }
 
       .header-text {
         .panel-title {
-          font-size: 24px;
-          font-weight: 700;
-          color: #1e293b !important;
-          margin: 0 0 6px 0;
+          font-size: 22px;
+          font-weight: 600;
+          color: #111827 !important;
+          margin: 0 0 4px 0;
           letter-spacing: -0.025em;
+          line-height: 1.3;
         }
 
         .panel-subtitle {
-          font-size: 15px;
-          color: #64748b !important;
+          font-size: 14px;
+          color: #6b7280 !important;
           margin: 0;
-          line-height: 1.4;
+          line-height: 1.5;
+          font-weight: 400;
         }
       }
     }
@@ -174,9 +158,9 @@
       align-self: flex-start;
 
       .reset-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
         color: #64748b !important;
         background: #f8fafc !important;
         border: 1px solid #e2e8f0 !important;
@@ -187,7 +171,7 @@
           color: #dc2626 !important;
           border-color: #fecaca !important;
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+          box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
         }
 
         &:disabled {
@@ -198,18 +182,42 @@
         }
 
         mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .close-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        color: #64748b !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #f1f5f9 !important;
+          color: #374151 !important;
+          border-color: #d1d5db !important;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(55, 65, 81, 0.15);
+        }
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
         }
       }
     }
   }
 
   .active-filters-section {
-    border-top: 1px solid #f1f5f9;
-    padding: 24px 0 0 0;
-    margin-top: 8px;
+    border-top: 1px solid #f3f4f6;
+    padding: 16px 0 0 0;
+    margin-top: 0;
 
     .modern-chip-bar {
       // Espacement propre pour les chips
@@ -272,21 +280,24 @@
 .panel-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0;
+  padding: 24px;
   background: #ffffff !important;
   color: #1a202c !important;
 
   .filters-form {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 16px;
+    max-width: 100%;
+    margin: 0 auto;
 
     .filter-groups {
       display: flex;
       flex-direction: column;
-      gap: 0;
+      gap: 12px;
+      padding: 0 8px;
 
-            // Layout simple et clean - pas de complexité excessive
+      // Layout simple et clean avec espacement moderne
     }
   }
 }
@@ -296,7 +307,8 @@
 // ===============================================
 
 .results-section {
-  padding: 24px;
+  padding: 20px 24px;
+  margin: 16px 0 0 0;
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
 
@@ -391,7 +403,8 @@
 .panel-footer {
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
-  padding: 20px 24px;
+  padding: 20px 32px;
+  margin-top: auto;
 
   .footer-content {
     display: flex;
@@ -490,7 +503,7 @@
 
 @media (max-width: 768px) {
   .panel-header {
-    padding: 20px 16px;
+    padding: 16px 20px;
 
     .header-content {
       margin-bottom: 12px;
@@ -527,8 +540,21 @@
     }
   }
 
+  .panel-content {
+    padding: 16px 20px;
+
+    .filters-form {
+      gap: 12px;
+
+      .filter-groups {
+        padding: 0 4px;
+        gap: 8px;
+      }
+    }
+  }
+
   .panel-footer {
-    padding: 16px;
+    padding: 16px 20px;
 
     .footer-content {
       flex-direction: column;

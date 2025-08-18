@@ -151,54 +151,56 @@
     <!-- ============= CRITÈRES DE QUALITÉ ============= -->
     <div *ngIf="groupConfig.id === 'quality'" class="form-section" [formGroup]="formGroup">
 
-      <!-- Toggles modernes pour les critères booléens -->
-      <div class="toggles-grid">
-        <div class="toggle-item">
-          <mat-slide-toggle formControlName="is_split" class="modern-toggle">
-            <div class="toggle-content">
-              <mat-icon>call_split</mat-icon>
-              <div class="toggle-text">
-                <span class="toggle-label">Dataset divisé</span>
-                <span class="toggle-desc">Train/Test séparés</span>
-              </div>
+      <!-- Cartes toggle modernes pour les critères booléens -->
+      <div class="input-group">
+        <label class="input-label">
+          <mat-icon>verified</mat-icon>
+          Critères de qualité des données
+        </label>
+        <div class="quality-cards-grid">
+          <div class="quality-card"
+               [class.selected]="isQualityCriterionSelected('is_split')"
+               (click)="toggleQualityCriterion('is_split')">
+            <mat-icon class="card-icon">call_split</mat-icon>
+            <div class="card-content">
+              <span class="card-label">Dataset divisé</span>
+              <span class="card-desc">Train/Test séparés</span>
             </div>
-          </mat-slide-toggle>
-        </div>
+            <mat-icon *ngIf="isQualityCriterionSelected('is_split')" class="check-icon">check_circle</mat-icon>
+          </div>
 
-        <div class="toggle-item">
-          <mat-slide-toggle formControlName="is_anonymized" class="modern-toggle">
-            <div class="toggle-content">
-              <mat-icon>privacy_tip</mat-icon>
-              <div class="toggle-text">
-                <span class="toggle-label">Données anonymisées</span>
-                <span class="toggle-desc">Protection des données</span>
-              </div>
+          <div class="quality-card"
+               [class.selected]="isQualityCriterionSelected('is_anonymized')"
+               (click)="toggleQualityCriterion('is_anonymized')">
+            <mat-icon class="card-icon">privacy_tip</mat-icon>
+            <div class="card-content">
+              <span class="card-label">Données anonymisées</span>
+              <span class="card-desc">Protection des données</span>
             </div>
-          </mat-slide-toggle>
-        </div>
+            <mat-icon *ngIf="isQualityCriterionSelected('is_anonymized')" class="check-icon">check_circle</mat-icon>
+          </div>
 
-        <div class="toggle-item">
-          <mat-slide-toggle formControlName="has_temporal_factors" class="modern-toggle">
-            <div class="toggle-content">
-              <mat-icon>schedule</mat-icon>
-              <div class="toggle-text">
-                <span class="toggle-label">Facteurs temporels</span>
-                <span class="toggle-desc">Données horodatées</span>
-              </div>
+          <div class="quality-card"
+               [class.selected]="isQualityCriterionSelected('has_temporal_factors')"
+               (click)="toggleQualityCriterion('has_temporal_factors')">
+            <mat-icon class="card-icon">schedule</mat-icon>
+            <div class="card-content">
+              <span class="card-label">Facteurs temporels</span>
+              <span class="card-desc">Données horodatées</span>
             </div>
-          </mat-slide-toggle>
-        </div>
+            <mat-icon *ngIf="isQualityCriterionSelected('has_temporal_factors')" class="check-icon">check_circle</mat-icon>
+          </div>
 
-        <div class="toggle-item">
-          <mat-slide-toggle formControlName="is_public" class="modern-toggle">
-            <div class="toggle-content">
-              <mat-icon>public</mat-icon>
-              <div class="toggle-text">
-                <span class="toggle-label">Accès public</span>
-                <span class="toggle-desc">Librement accessible</span>
-              </div>
+          <div class="quality-card"
+               [class.selected]="isQualityCriterionSelected('is_public')"
+               (click)="toggleQualityCriterion('is_public')">
+            <mat-icon class="card-icon">public</mat-icon>
+            <div class="card-content">
+              <span class="card-label">Accès public</span>
+              <span class="card-desc">Librement accessible</span>
             </div>
-          </mat-slide-toggle>
+            <mat-icon *ngIf="isQualityCriterionSelected('is_public')" class="check-icon">check_circle</mat-icon>
+          </div>
         </div>
       </div>
 

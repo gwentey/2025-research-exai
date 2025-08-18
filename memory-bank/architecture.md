@@ -204,14 +204,19 @@ graph LR
         *   [✅] **Traductions Complètes** : Support FR/EN pour tout le module ML Pipeline.
         *   [✅] **Auto-Connexion Post-Inscription (2025-01-27)** : Amélioration UX majeure du flux d'inscription avec connexion automatique.
         *   [✅] **Amélioration Affichage Crédits Profil (2025-01-29)** : Optimisation du style du texte d'explication des crédits ML dans le profil utilisateur pour une meilleure hiérarchie visuelle.
-        *   [✅] **Interface ML Pipeline Moderne (2025-01-11)** : Refonte complète de l'interface ML avec design SaaS moderne :
-            *   **Dashboard ML Pipeline** : Hero section animée, stats temps réel, présentation algorithmes
-            *   **ML Studio** : Interface 4 étapes avec presets, animations fluides, guidance utilisateur
-            *   **Visualisations Avancées** : Graphique qualité radar, timeline expériences, métriques interactives
-            *   **Animations Modernes** : Particules flottantes, transitions CSS3, feedback visuel temps réel
-            *   **UX Révolutionnaire** : Approche "outil" plutôt que formulaire, process guidé intuitif
-            *   **Design Inspiré SaaS** : Interface comparable à MailJet/Trello, entièrement responsive
-            *   **Composants Créés** : `ml-pipeline-dashboard`, `ml-studio`, `experiment-results`, `experiments-list`
+        *   [✅] **Interface ML Pipeline Code Flow (2025-01-29)** : Innovation équilibrée combinant élégance Linear/Stripe et concept Code Flow révolutionnaire :
+            *   **Hero Section Élégante** : Design épuré avec badge animé, typographie soignée, gradient subtil
+            *   **Code Flow Concept** : Éditeur de code interactif expliquant la ML pipeline comme du Python
+            *   **Terminal Authentique** : Interface VS Code complète avec header, contrôles, syntax highlighting
+            *   **Animation Progressive** : Révélation des étapes par clics avec transitions fluides
+            *   **Syntaxe Highlighting** : Coloration Python réaliste (functions, operators, strings, comments)
+            *   **Output Terminal** : Affichage résultats avec prompt shell et messages de succès
+            *   **Contrôles Lecture** : Play/Pause/Reset pour démonstration automatique avec progress bar
+            *   **Features Grid** : Cards élégantes style Linear avec micro-animations hover
+            *   **CTA Section** : Appel à l'action avec stats preview et design Stripe-inspired
+            *   **Innovation Pédagogique** : Première plateforme expliquant ML via métaphore code interactive
+            *   **Design Équilibré** : Sophistication technique + accessibilité + professionnalisme
+            *   **Performance Optimisée** : Code épuré, animations ciblées, responsive parfait
         *   [⬜] Service et Module XAI **non implémentés**.
         *   [⬜] Déploiement K8s non configuré.
 
