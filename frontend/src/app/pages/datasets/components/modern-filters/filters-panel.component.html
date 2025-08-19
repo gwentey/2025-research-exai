@@ -62,57 +62,12 @@
         </app-filter-group>
       </div>
 
-      <!-- Résultats en temps réel -->
-      <div class="results-section" *ngIf="hasActiveFilters()">
-        <div class="results-card">
-          <div class="results-header">
-            <mat-icon>search</mat-icon>
-            <span class="results-title">Résultats</span>
-          </div>
-          <div class="results-content">
-            <div class="result-stat">
-              <span class="stat-number">{{ getEstimatedResultsCount() }}</span>
-              <span class="stat-label">datasets trouvés</span>
-            </div>
-            <div class="filter-progress">
-              <span class="progress-label">Filtres configurés</span>
-              <div class="progress-bar">
-                <div class="progress-fill" [style.width.%]="getFilterCompletionPercentage()"></div>
-              </div>
-              <span class="progress-text">{{ getFilterCompletionPercentage() }}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
     </form>
   </div>
 
-  <!-- Footer avec actions -->
-  <div class="panel-footer" *ngIf="isExpanded">
-    <div class="footer-content">
-      <div class="footer-stats">
-        <span class="filter-count">{{ getActiveFiltersCount() }} filtre(s) actif(s)</span>
-      </div>
 
-      <div class="footer-actions">
-                <button mat-stroked-button
-                class="cancel-btn"
-                (click)="closePanel()">
-          Annuler
-        </button>
-
-                <button mat-flat-button
-                color="primary"
-                class="apply-btn"
-                (click)="applyFilters()"
-                [disabled]="!hasActiveFilters()">
-          <mat-icon>check</mat-icon>
-          Appliquer
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Loading overlay -->
   <div class="loading-overlay" *ngIf="isLoading">

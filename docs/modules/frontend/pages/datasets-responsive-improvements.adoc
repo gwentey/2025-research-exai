@@ -1,0 +1,171 @@
+= Améliorations Responsive de la Page Datasets
+:page-description: Documentation des améliorations responsive apportées à la page datasets pour une meilleure compatibilité sur toutes les tailles d'écran PC
+:page-keywords: responsive, datasets, css, angular material, toolbar
+
+== Vue d'ensemble
+
+La page datasets (`/datasets`) a été améliorée pour offrir une meilleure expérience responsive sur toutes les tailles d'écran PC. Les problèmes principaux identifiés étaient liés aux largeurs fixes en pixels qui cassaient la mise en page sur les petits écrans.
+
+== Problèmes Identifiés
+
+=== Largeurs Fixes Problématiques
+
+Les composants de la toolbar de recherche moderne utilisaient des largeurs fixes qui ne s'adaptaient pas aux petits écrans :
+
+* **Champ de recherche** : 500px de largeur fixe
+* **Champ de tri** : 216px de largeur fixe  
+* **Toggle de vue** : 112px de largeur fixe
+* **Total** : ~850px minimum, dépassant la largeur disponible sur écrans < 1024px
+
+=== Conséquences
+
+* Menu principal (`mat-mdc-card`) écrasé sur petits écrans
+* Éléments de toolbar qui débordent du conteneur
+* Interface inutilisable sur écrans PC de petite taille
+
+== Solutions Implémentées
+
+=== 1. Conversion vers un Système Flexible
+
+==== Toolbar de Recherche Moderne (`modern-search-toolbar.scss`)
+
+[source,scss]
+----
+// AVANT - Largeurs fixes
+.modern-search-field {
+  min-width: 500px;
+  width: 500px; // PROBLÉMATIQUE
+}
+
+// APRÈS - Largeurs flexibles
+.modern-search-field {
+  min-width: 320px; // Largeur minimale raisonnable
+  width: 100%; // Largeur flexible
+  max-width: 500px; // Limite maximale sur grands écrans
+}
+----
+
+==== Custom Search Field (`custom-search-field.component.scss`)
+
+[source,scss]
+----
+// AVANT
+.custom-search-field {
+  min-width: 450px; // PROBLÉMATIQUE
+}
+
+// APRÈS
+.custom-search-field {
+  min-width: 280px; // Largeur minimale réduite
+  max-width: 100%; // S'adapte au conteneur parent
+}
+----
+
+=== 2. Structure Flexbox Améliorée
+
+==== Sections Gauche et Droite
+
+[source,scss]
+----
+.toolbar-left {
+  flex: 1 1 auto; // Permet de grandir et rétrécir
+  min-width: 280px;
+  max-width: 600px;
+}
+
+.toolbar-right {
+  flex: 0 0 auto; // Taille fixe pour les contrôles
+  gap: 12px; // Gap réduit
+}
+----
+
+=== 3. Breakpoints Granulaires
+
+==== Nouveaux Points de Rupture
+
+* **1200px** : Écrans larges - Optimisation de l'espace
+* **1024px** : Écrans moyens - Réduction progressive
+* **900px** : Nouveau breakpoint pour écrans moyens/petits
+* **768px** : Tablettes - Layout vertical
+* **480px** : Mobiles - Optimisation maximale
+
+==== Exemple de Media Query
+
+[source,scss]
+----
+@media (max-width: 900px) {
+  .modern-search-toolbar {
+    .toolbar-content {
+      gap: 10px;
+      
+      .toolbar-left {
+        min-width: 220px;
+        max-width: 300px;
+      }
+      
+      .toolbar-right {
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+    }
+  }
+}
+----
+
+== Avantages des Améliorations
+
+=== Flexibilité
+* **Adaptation automatique** à la largeur du conteneur
+* **Utilisation optimale** de l'espace disponible
+* **Dégradation progressive** sur petits écrans
+
+=== Performance
+* **Élimination des débordements** horizontaux
+* **Réduction des calculs** de largeur fixes
+* **Fluidité** sur toutes les tailles d'écran
+
+=== Maintenabilité
+* **Système cohérent** de breakpoints
+* **Styles plus prédictibles** et maintenables
+* **Facilité d'ajout** de nouveaux composants
+
+== Tests Recommandés
+
+=== Tailles d'Écran à Tester
+
+1. **1920px+** : Écrans larges (desktop)
+2. **1366px** : Laptops standards
+3. **1024px** : Tablettes en paysage/petits laptops
+4. **768px** : Tablettes en portrait
+5. **480px** : Grands smartphones
+6. **320px** : Petits smartphones
+
+=== Points de Vérification
+
+* [ ] Aucun débordement horizontal
+* [ ] Tous les éléments restent cliquables
+* [ ] Texte lisible sur toutes les tailles
+* [ ] Alignement cohérent des composants
+* [ ] Transitions fluides entre breakpoints
+
+== Notes Techniques
+
+=== Classes CSS Clés
+
+* `.modern-search-toolbar` : Container principal
+* `.toolbar-left` : Section de recherche (flexible)
+* `.toolbar-right` : Section de contrôles (fixe)
+* `.modern-search-field` : Champ de recherche principal
+
+=== Flexbox Properties Utilisées
+
+* `flex: 1 1 auto` : Éléments qui peuvent grandir/rétrécir
+* `flex: 0 0 auto` : Éléments de taille fixe
+* `min-width` / `max-width` : Contraintes de largeur
+* `gap` : Espacement entre éléments
+
+=== Considerations Futures
+
+* Possibilité d'ajouter des **breakpoints intermédiaires** si nécessaire
+* **Tests utilisateur** sur différents appareils
+* **Optimisation** continue basée sur les retours

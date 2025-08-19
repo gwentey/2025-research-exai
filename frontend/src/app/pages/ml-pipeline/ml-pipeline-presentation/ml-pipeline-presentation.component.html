@@ -1,421 +1,419 @@
-<!-- Page Container avec design équilibré moderne -->
+<!-- ML Pipeline Dashboard Page -->
 <div class="ml-pipeline-presentation">
 
-  <!-- Hero Section Élégante -->
+  <!-- Hero Section avec Overview -->
   <div class="hero-section">
     <div class="container">
       <div class="hero-content">
 
-        <!-- Badge subtil avec micro-animation -->
+        <!-- Badge et titre -->
         <div class="status-badge">
           <div class="badge-dot"></div>
-          <span>{{ 'ML_PIPELINE.MODERN.STATUS_BADGE' | translate }}</span>
-        </div>
+          <span>Machine Learning Pipeline</span>
+            </div>
 
-                        <!-- Titre principal avec gradient subtil -->
-        <h1 class="hero-title">
-          Let AI guide you to build powerful models
-        </h1>
+            <h1 class="hero-title">
+          Train AI models with visual guidance
+            </h1>
 
-        <!-- Sous-titre élégant -->
-        <p class="hero-subtitle">
-          Chat with our AI assistant to create machine learning models. Just like having a data science expert by your side, explaining everything in simple terms.
-        </p>
+            <p class="hero-subtitle">
+          From data to deployed model in 8 guided steps. Understand every decision with explainable AI.
+            </p>
 
-        <!-- Actions avec design Linear -->
+        <!-- Quick Actions -->
         <div class="hero-actions">
-          <button
+              <button
             mat-flat-button
-            color="primary"
+                color="primary"
             class="primary-action"
-            (click)="startNewExperiment()">
-            {{ 'ML_PIPELINE.MODERN.HERO.START_BUTTON' | translate }}
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
+                (click)="startNewExperiment()">
+            <mat-icon>add</mat-icon>
+            New Experiment
+              </button>
 
-          <button
-            mat-stroked-button
+              <button
+                mat-stroked-button
             class="secondary-action"
-            (click)="viewExamples()">
-            {{ 'ML_PIPELINE.MODERN.HERO.VIEW_EXAMPLES' | translate }}
-          </button>
-        </div>
+            (click)="viewTutorials()">
+            <mat-icon>play_circle</mat-icon>
+            Watch Tutorials
+              </button>
+            </div>
 
       </div>
+
+      <!-- User Status Panel -->
+      <div class="user-status-panel">
+        <div class="status-card credits-card">
+          <div class="card-icon">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Available Credits</div>
+            <div class="card-value">{{ userCredits || 0 }}</div>
+            <div class="card-subtitle">For model training</div>
+          </div>
+          <button mat-stroked-button class="card-action" (click)="refillCredits()">
+            <mat-icon>add</mat-icon>
+            Refill
+          </button>
+            </div>
+
+        <div class="status-card experiments-card">
+          <div class="card-icon">
+            <mat-icon>science</mat-icon>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Running Experiments</div>
+            <div class="card-value">{{ runningExperiments.length }}</div>
+            <div class="card-subtitle">In progress</div>
+          </div>
+          <button mat-stroked-button class="card-action" (click)="viewExperiments()">
+            <mat-icon>visibility</mat-icon>
+            View All
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Code Flow Section - Concept Original -->
-  <div class="code-flow-section">
+  <!-- Pipeline Overview Schema -->
+  <div class="pipeline-schema-section">
     <div class="container">
 
-            <!-- En-tête élégant -->
-      <div class="section-header">
-        <h2 class="section-title">How our AI guides you</h2>
-        <p class="section-subtitle">A simple conversation that transforms your data into insights</p>
+          <div class="section-header">
+        <h2 class="section-title">The 8-Step ML Pipeline</h2>
+        <p class="section-subtitle">Your journey from raw data to intelligent predictions</p>
+          </div>
+
+      <!-- Visual Pipeline Flow -->
+      <div class="pipeline-flow">
+
+        <!-- Step 1 -->
+        <div class="pipeline-step" (click)="focusStep(0)">
+          <div class="step-number">1</div>
+          <div class="step-icon">
+            <mat-icon>storage</mat-icon>
+          </div>
+          <div class="step-content">
+            <h3>Dataset</h3>
+            <p>Choose or upload your data</p>
+          </div>
+          <div class="step-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+                  </div>
+                </div>
+
+        <!-- Step 2 -->
+        <div class="pipeline-step" (click)="focusStep(1)">
+          <div class="step-number">2</div>
+          <div class="step-icon">
+            <mat-icon>cleaning_services</mat-icon>
+          </div>
+          <div class="step-content">
+            <h3>Cleaning</h3>
+            <p>Fix missing values & outliers</p>
+          </div>
+          <div class="step-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+                  </div>
+                </div>
+
+        <!-- Step 3 -->
+        <div class="pipeline-step" (click)="focusStep(2)">
+          <div class="step-number">3</div>
+          <div class="step-icon">
+            <mat-icon>flag</mat-icon>
+          </div>
+          <div class="step-content">
+            <h3>Objective</h3>
+            <p>Define what to predict</p>
+                  </div>
+          <div class="step-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+                </div>
+              </div>
+
+        <!-- Step 4 -->
+        <div class="pipeline-step" (click)="focusStep(3)">
+          <div class="step-number">4</div>
+          <div class="step-icon">
+            <mat-icon>call_split</mat-icon>
+          </div>
+          <div class="step-content">
+            <h3>Division</h3>
+            <p>Split train/test data</p>
+          </div>
+          <div class="step-arrow">
+            <mat-icon>arrow_downward</mat-icon>
+                  </div>
+                </div>
+
+        <!-- Step 5 -->
+        <div class="pipeline-step" (click)="focusStep(4)">
+          <div class="step-number">5</div>
+          <div class="step-icon">
+            <mat-icon>transform</mat-icon>
+          </div>
+          <div class="step-content">
+            <h3>Preparation</h3>
+            <p>Feature engineering</p>
+          </div>
+          <div class="step-arrow">
+            <mat-icon>arrow_back</mat-icon>
+                  </div>
+                </div>
+
+        <!-- Step 6 -->
+        <div class="pipeline-step" (click)="focusStep(5)">
+          <div class="step-number">6</div>
+          <div class="step-icon">
+            <mat-icon>psychology</mat-icon>
+          </div>
+          <div class="step-content">
+            <h3>Algorithm</h3>
+            <p>AI model selection</p>
+                  </div>
+          <div class="step-arrow">
+            <mat-icon>arrow_back</mat-icon>
+                </div>
+              </div>
+
+        <!-- Step 7 -->
+        <div class="pipeline-step" (click)="focusStep(6)">
+          <div class="step-number">7</div>
+          <div class="step-icon">
+            <mat-icon>tune</mat-icon>
+          </div>
+          <div class="step-content">
+            <h3>Parameters</h3>
+            <p>Optimize settings</p>
+          </div>
+          <div class="step-arrow">
+            <mat-icon>arrow_back</mat-icon>
+                  </div>
+                </div>
+
+        <!-- Step 8 -->
+        <div class="pipeline-step final-step" (click)="focusStep(7)">
+          <div class="step-number">8</div>
+          <div class="step-icon">
+            <mat-icon>fitness_center</mat-icon>
+                  </div>
+          <div class="step-content">
+            <h3>Training</h3>
+            <p>Learn & explain</p>
+                </div>
+              </div>
+
       </div>
 
-      <!-- AI Chat Interface -->
-      <div class="chat-interface-container">
-        <div class="chat-header">
-          <div class="ai-avatar">
-            <mat-icon>smart_toy</mat-icon>
-          </div>
-          <div class="chat-info">
-            <div class="ai-name">IBIS-X AI Assistant</div>
-            <div class="ai-status">
-              <span class="status-dot"></span>
-              <span>Ready to help</span>
-            </div>
-          </div>
-          <div class="chat-controls">
-            <button mat-icon-button class="play-button" (click)="playConversation()" [disabled]="isPlaying">
-              <mat-icon>{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+      <!-- Step Details Panel -->
+      <div class="step-details-panel" [class.visible]="focusedStep !== null">
+        <div class="panel-content" *ngIf="focusedStep !== null">
+          <div class="panel-header">
+            <h3>{{ getStepTitle(focusedStep) }}</h3>
+            <button mat-icon-button (click)="closeFocus()">
+              <mat-icon>close</mat-icon>
             </button>
           </div>
+          <div class="panel-body">
+            <p>{{ getStepDescription(focusedStep) }}</p>
+            <div class="step-features" *ngIf="getStepFeatures(focusedStep)">
+              <h4>Key Features:</h4>
+              <ul>
+                <li *ngFor="let feature of getStepFeatures(focusedStep)">{{ feature }}</li>
+              </ul>
+            </div>
+          </div>
         </div>
-
-                <div class="chat-conversation">
-
-          <!-- Step 1: Dataset -->
-          <div class="conversation-step"
-               [class.active]="activeStep >= 0"
-               [class.completed]="completedSteps.includes(0)"
-               (click)="triggerStep(0)">
-
-            <div class="ai-message">
-              <div class="message-avatar">
-                <mat-icon>smart_toy</mat-icon>
-              </div>
-              <div class="message-bubble ai-bubble">
-                <div class="message-text">
-                  Hi! I'm your AI assistant. Let's build your first model together! 🎯
-                  <br><br>
-                  <strong>First, I need to understand your data.</strong> What would you like to analyze?
-                </div>
-                <div class="message-time">Just now</div>
-              </div>
-            </div>
-
-            <div class="user-message" [class.visible]="activeStep >= 0">
-              <div class="message-bubble user-bubble">
-                <div class="message-text">
-                  I have customer data and want to predict who might buy our product
-                </div>
-                <div class="message-time">Just now</div>
-              </div>
-              <div class="message-avatar user-avatar">
-                <mat-icon>person</mat-icon>
-              </div>
-            </div>
-
-            <div class="ai-response" [class.visible]="activeStep >= 0">
-              <div class="message-avatar">
-                <mat-icon>smart_toy</mat-icon>
-              </div>
-              <div class="message-bubble ai-bubble">
-                <div class="message-text">
-                  Perfect! That's a <strong>classification problem</strong>. I'll help you:
-                  <div class="step-pills">
-                    <span class="pill">📊 Choose your dataset</span>
-                    <span class="pill">✨ Check data quality automatically</span>
-                  </div>
-                </div>
-                <div class="message-actions">
-                  <button mat-stroked-button class="message-action">Browse Datasets</button>
-                  <button mat-stroked-button class="message-action">Upload My Data</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-                              <!-- Step 2-3: Cleaning & Objective -->
-          <div class="conversation-step"
-               [class.active]="activeStep >= 1"
-               [class.completed]="completedSteps.includes(1)"
-               (click)="triggerStep(1)">
-
-            <div class="ai-message">
-              <div class="message-avatar">
-                <mat-icon>smart_toy</mat-icon>
-              </div>
-              <div class="message-bubble ai-bubble">
-                <div class="message-text">
-                  Great choice! I've analyzed your data and found some opportunities:
-                  <div class="data-insights">
-                    <div class="insight-card">
-                      <mat-icon>cleaning_services</mat-icon>
-                      <span>I can fix 23 missing values automatically</span>
-                    </div>
-                    <div class="insight-card">
-                      <mat-icon>remove_red_eye</mat-icon>
-                      <span>5 outliers detected - should I handle them?</span>
-                    </div>
-                  </div>
-                  <strong>What exactly do you want to predict?</strong>
-                </div>
-              </div>
-            </div>
-
-            <div class="user-message" [class.visible]="activeStep >= 1">
-              <div class="message-bubble user-bubble">
-                <div class="message-text">
-                  I want to predict which customers will purchase within 30 days
-                </div>
-              </div>
-              <div class="message-avatar user-avatar">
-                <mat-icon>person</mat-icon>
-              </div>
-            </div>
-
-            <div class="ai-response" [class.visible]="activeStep >= 1">
-              <div class="message-avatar">
-                <mat-icon>smart_toy</mat-icon>
-              </div>
-              <div class="message-bubble ai-bubble">
-                <div class="message-text">
-                  Perfect! 🎯 That's a <strong>binary classification</strong>.
-                  <br><br>
-                  I'll clean your data and prepare it for the best algorithms. Ready to continue?
-                </div>
-              </div>
-            </div>
-          </div>
-
-                    <!-- Step 4-5: Division & Preparation -->
-          <div class="conversation-step"
-               [class.active]="activeStep >= 2"
-               [class.completed]="completedSteps.includes(2)"
-               (click)="triggerStep(2)">
-
-            <div class="ai-message">
-              <div class="message-avatar">
-                <mat-icon>smart_toy</mat-icon>
-              </div>
-              <div class="message-bubble ai-bubble">
-                <div class="message-text">
-                  Now I need to prepare your data properly. Think of it like preparing ingredients for cooking! 👨‍🍳
-                  <div class="preparation-visual">
-                    <div class="prep-step">
-                      <span class="prep-icon">🍎</span>
-                      <span class="prep-text">80% for training (teaching the AI)</span>
-                    </div>
-                    <div class="prep-step">
-                      <span class="prep-icon">🧪</span>
-                      <span class="prep-text">20% for testing (checking if it learned)</span>
-                    </div>
-                    <div class="prep-step">
-                      <span class="prep-icon">✨</span>
-                      <span class="prep-text">Auto-encode categories into numbers</span>
-                    </div>
-                  </div>
-                  Should I proceed with these smart defaults?
-                </div>
-              </div>
-            </div>
-
-            <div class="user-message" [class.visible]="activeStep >= 2">
-              <div class="message-bubble user-bubble">
-                <div class="message-text">
-                  Yes, that sounds perfect! How do you choose the best algorithm?
-                </div>
-              </div>
-              <div class="message-avatar user-avatar">
-                <mat-icon>person</mat-icon>
-              </div>
-            </div>
-          </div>
-
-                              <!-- Step 6-8: Algorithm, Parameters & Training -->
-          <div class="conversation-step"
-               [class.active]="activeStep >= 3"
-               [class.completed]="completedSteps.includes(3)"
-               (click)="triggerStep(3)">
-
-            <div class="ai-message">
-              <div class="message-avatar">
-                <mat-icon>smart_toy</mat-icon>
-              </div>
-              <div class="message-bubble ai-bubble">
-                <div class="message-text">
-                  I'll test 3 different AI algorithms to find the best one for your data:
-                  <div class="algorithm-race">
-                    <div class="algorithm-card">
-                      <div class="algo-icon">🌳</div>
-                      <div class="algo-info">
-                        <strong>Random Forest</strong>
-                        <span>Good for explaining decisions</span>
-                      </div>
-                      <div class="algo-score">89%</div>
-                    </div>
-                    <div class="algorithm-card winner">
-                      <div class="algo-icon">⚡</div>
-                      <div class="algo-info">
-                        <strong>XGBoost</strong>
-                        <span>Best performance</span>
-                      </div>
-                      <div class="algo-score">94%</div>
-                    </div>
-                    <div class="algorithm-card">
-                      <div class="algo-icon">🧠</div>
-                      <div class="algo-info">
-                        <strong>Neural Network</strong>
-                        <span>Complex patterns</span>
-                      </div>
-                      <div class="algo-score">91%</div>
-                    </div>
-                  </div>
-                  <strong>XGBoost wins!</strong> Now training your final model...
-                </div>
-              </div>
-            </div>
-
-            <div class="training-progress" [class.visible]="activeStep >= 3">
-              <div class="progress-circle">
-                <svg viewBox="0 0 100 100">
-                  <circle class="progress-bg" cx="50" cy="50" r="45"></circle>
-                  <circle class="progress-fill" cx="50" cy="50" r="45" [style.stroke-dashoffset]="progressOffset"></circle>
-                </svg>
-                <div class="progress-text">
-                  <span class="progress-number">{{ trainingProgress }}%</span>
-                  <span class="progress-label">Training</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- XAI Explanation Results -->
-          <div class="conversation-step final-step" [class.active]="showOutput">
-
-            <div class="ai-message celebration">
-              <div class="message-avatar">
-                <mat-icon>smart_toy</mat-icon>
-              </div>
-              <div class="message-bubble ai-bubble success-bubble">
-                <div class="message-text">
-                  🎉 <strong>Your model is ready!</strong> Here's what I learned:
-
-                  <div class="model-insights">
-                    <div class="insight-metric">
-                      <div class="metric-icon">🎯</div>
-                      <div class="metric-content">
-                        <strong>{{ finalAccuracy }}% Accuracy</strong>
-                        <span>Very reliable predictions</span>
-                      </div>
-                    </div>
-                    <div class="insight-metric">
-                      <div class="metric-icon">🧠</div>
-                      <div class="metric-content">
-                        <strong>Top 3 Important Factors:</strong>
-                        <span>Purchase history, Age, Website time</span>
-                      </div>
-                    </div>
-                    <div class="insight-metric">
-                      <div class="metric-icon">📊</div>
-                      <div class="metric-content">
-                        <strong>Explainable Predictions</strong>
-                        <span>I can show you WHY for each decision</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  Want to try it on new customers or see detailed explanations?
-                </div>
-                <div class="message-actions celebration-actions">
-                  <button mat-flat-button color="primary" class="success-action">
-                    <mat-icon>play_arrow</mat-icon>
-                    Try Predictions
-                  </button>
-                  <button mat-stroked-button class="explain-action">
-                    <mat-icon>visibility</mat-icon>
-                    Show Me Why
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-                <!-- Conversation Controls -->
-        <div class="chat-controls-bottom">
-          <div class="conversation-progress">
-            <span class="progress-text">Conversation Progress</span>
-            <div class="progress-indicator">
-              <div class="progress-bar" [style.width.%]="codeProgress"></div>
-            </div>
-            <span class="progress-steps">{{ completedSteps.length }}/4 steps</span>
-          </div>
-          <button
-            mat-stroked-button
-            class="restart-conversation"
-            (click)="resetCodeAnimation()">
-            <mat-icon>refresh</mat-icon>
-            Restart Conversation
-          </button>
-        </div>
-
       </div>
 
     </div>
   </div>
 
-  <!-- Features Grid Style Linear -->
-  <div class="features-section">
+  <!-- Current Activity Dashboard -->
+  <div class="activity-dashboard-section">
     <div class="container">
 
-      <!-- Grid de Features Élégant -->
-      <div class="features-grid">
+      <div class="dashboard-grid">
 
-        <div class="feature-card" (mouseenter)="onFeatureHover(0)" (mouseleave)="onFeatureLeave(0)">
-          <div class="feature-icon-wrapper">
-            <div class="icon-background"></div>
-            <mat-icon class="feature-icon">mouse</mat-icon>
+        <!-- Running Experiments -->
+        <div class="dashboard-card experiments-card">
+          <div class="card-header">
+            <h3>
+              <mat-icon>science</mat-icon>
+              Active Experiments
+            </h3>
+            <span class="card-badge">{{ runningExperiments.length }}</span>
           </div>
-          <h3 class="feature-title">No-Code Interface</h3>
-          <p class="feature-description">Build ML models with clicks and drags. No programming knowledge required whatsoever.</p>
-          <div class="feature-metric">
-            <span class="metric-value">0</span>
-            <span class="metric-label">lines of code</span>
+
+          <div class="card-content">
+            <div class="experiment-item" *ngFor="let exp of runningExperiments.slice(0, 3)">
+              <div class="exp-info">
+                <div class="exp-name">Experiment {{ exp.id.substring(0, 8) }}</div>
+                <div class="exp-algorithm">{{ exp.algorithm }}</div>
+              </div>
+              <div class="exp-progress">
+                <mat-progress-bar mode="determinate" [value]="getExperimentProgress(exp)"></mat-progress-bar>
+                <span class="progress-text">{{ getExperimentProgress(exp) }}%</span>
+              </div>
+              <button mat-icon-button (click)="viewExperiment(exp.id)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+
+            <div class="no-experiments" *ngIf="runningExperiments.length === 0">
+              <mat-icon>science</mat-icon>
+              <span>No active experiments</span>
+              <button mat-stroked-button (click)="startNewExperiment()">
+                Start First Experiment
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="feature-card" (mouseenter)="onFeatureHover(1)" (mouseleave)="onFeatureLeave(1)">
-          <div class="feature-icon-wrapper">
-            <div class="icon-background"></div>
-            <mat-icon class="feature-icon">visibility</mat-icon>
+        <!-- ML Concepts Guide -->
+        <div class="dashboard-card concepts-card">
+          <div class="card-header">
+            <h3>
+              <mat-icon>school</mat-icon>
+              ML Concepts
+            </h3>
+                  </div>
+
+          <div class="card-content">
+            <div class="concept-item" *ngFor="let concept of mlConcepts" (click)="explainConcept(concept.id)">
+              <div class="concept-icon">{{ concept.icon }}</div>
+              <div class="concept-content">
+                <div class="concept-name">{{ concept.name }}</div>
+                <div class="concept-description">{{ concept.description }}</div>
+              </div>
+              <mat-icon class="concept-arrow">arrow_forward_ios</mat-icon>
+            </div>
+                    </div>
+                  </div>
+
+        <!-- Quick Stats -->
+        <div class="dashboard-card stats-card">
+          <div class="card-header">
+            <h3>
+              <mat-icon>analytics</mat-icon>
+              Your ML Stats
+            </h3>
+                  </div>
+
+          <div class="card-content">
+            <div class="stat-grid">
+              <div class="stat-item">
+                <div class="stat-value">{{ userStats.totalExperiments }}</div>
+                <div class="stat-label">Total Models</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ userStats.avgAccuracy }}%</div>
+                <div class="stat-label">Avg. Accuracy</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ userStats.bestAccuracy }}%</div>
+                <div class="stat-label">Best Model</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ userStats.totalTime }}min</div>
+                <div class="stat-label">Training Time</div>
+              </div>
+            </div>
+                    </div>
+                  </div>
+
+        <!-- Tutorials & Resources -->
+        <div class="dashboard-card tutorials-card">
+          <div class="card-header">
+            <h3>
+              <mat-icon>play_circle</mat-icon>
+              Learning Resources
+            </h3>
+                  </div>
+
+          <div class="card-content">
+            <div class="tutorial-item" *ngFor="let tutorial of tutorials" (click)="watchTutorial(tutorial.id)">
+              <div class="tutorial-thumbnail">
+                <mat-icon>{{ tutorial.icon }}</mat-icon>
+                <div class="play-overlay">
+                  <mat-icon>play_arrow</mat-icon>
+                </div>
+              </div>
+              <div class="tutorial-content">
+                <div class="tutorial-title">{{ tutorial.title }}</div>
+                <div class="tutorial-duration">{{ tutorial.duration }}</div>
+                    </div>
+                  </div>
+
+            <button mat-stroked-button class="view-all-tutorials" (click)="viewAllTutorials()">
+              <mat-icon>library_books</mat-icon>
+              View All Tutorials
+            </button>
           </div>
-          <h3 class="feature-title">Explainable AI</h3>
-          <p class="feature-description">Understand every prediction with visual explanations. See exactly why your model made each decision.</p>
-          <div class="feature-metric">
-            <span class="metric-value">100%</span>
-            <span class="metric-label">transparent</span>
+                  </div>
+
+                </div>
+
+    </div>
+  </div>
+
+  <!-- Explainability Showcase -->
+  <div class="explainability-section">
+    <div class="container">
+
+      <div class="explainability-header">
+        <h2 class="section-title">Understand Every Prediction</h2>
+        <p class="section-subtitle">Our explainable AI shows you exactly why each decision was made</p>
+      </div>
+
+      <!-- XAI Demo -->
+      <div class="xai-demo-container">
+
+        <!-- Sample Prediction -->
+        <div class="prediction-demo">
+          <div class="demo-header">
+            <h4>Live Prediction Example</h4>
+            <div class="confidence-badge">94% Confident</div>
+          </div>
+
+          <div class="prediction-result">
+            <div class="result-icon success">
+              <mat-icon>check_circle</mat-icon>
+                  </div>
+            <div class="result-text">
+              <strong>Prediction: WILL PURCHASE</strong>
+              <span>This customer is likely to buy within 30 days</span>
+                  </div>
+                  </div>
+
+          <!-- Feature Importance -->
+          <div class="explanation-chart">
+            <h5>Why this prediction?</h5>
+            <div class="feature-bars">
+              <div class="feature-bar" *ngFor="let feature of sampleFeatures">
+                <div class="feature-label">{{ feature.name }}</div>
+                <div class="feature-importance">
+                  <div class="importance-bar" [style.width.%]="feature.importance"></div>
+                  <span class="importance-value">{{ feature.importance }}%</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="feature-card" (mouseenter)="onFeatureHover(2)" (mouseleave)="onFeatureLeave(2)">
-          <div class="feature-icon-wrapper">
-            <div class="icon-background"></div>
-            <mat-icon class="feature-icon">auto_fix_high</mat-icon>
-          </div>
-          <h3 class="feature-title">AutoML Magic</h3>
-          <p class="feature-description">Our AI handles the complexity - algorithm selection, parameter tuning, and optimization automatically.</p>
-          <div class="feature-metric">
-            <span class="metric-value">8</span>
-            <span class="metric-label">guided steps</span>
-          </div>
-        </div>
-
-        <div class="feature-card" (mouseenter)="onFeatureHover(3)" (mouseleave)="onFeatureLeave(3)">
-          <div class="feature-icon-wrapper">
-            <div class="icon-background"></div>
-            <mat-icon class="feature-icon">speed</mat-icon>
-          </div>
-          <h3 class="feature-title">Instant Results</h3>
-          <p class="feature-description">From data upload to deployed model in minutes. Real-time performance metrics and visual feedback.</p>
-          <div class="feature-metric">
-            <span class="metric-value">5min</span>
-            <span class="metric-label">avg. training</span>
+        <!-- Explanation Panel -->
+        <div class="explanation-panel">
+          <div class="explanation-item" *ngFor="let explanation of sampleExplanations">
+            <div class="explanation-icon">{{ explanation.icon }}</div>
+            <div class="explanation-content">
+              <strong>{{ explanation.factor }}</strong>
+              <span>{{ explanation.impact }}</span>
+            </div>
+            <div class="explanation-contribution">{{ explanation.contribution }}</div>
           </div>
         </div>
 
@@ -424,46 +422,94 @@
     </div>
   </div>
 
-  <!-- CTA Section Élégante -->
-  <div class="cta-section">
+  <!-- Quick Start Actions -->
+  <div class="quick-start-section">
     <div class="container">
 
-      <div class="cta-content">
-        <h2 class="cta-title">Ready to build your first AI model?</h2>
-        <p class="cta-subtitle">Join thousands of users creating explainable AI models without writing a single line of code</p>
+      <div class="quick-start-grid">
 
-        <!-- Stats Preview Subtiles -->
-        <div class="stats-preview">
-          <div class="stat-item">
-            <span class="stat-number" [class.animated]="statsAnimated">2,847</span>
-            <span class="stat-label">models trained</span>
+        <!-- Start Training -->
+        <div class="quick-action-card primary-card" (click)="startNewExperiment()">
+          <div class="card-background">
+            <mat-icon class="background-icon">rocket_launch</mat-icon>
           </div>
-          <div class="stat-item">
-            <span class="stat-number" [class.animated]="statsAnimated">94%</span>
-            <span class="stat-label">avg. accuracy</span>
+          <div class="card-content">
+            <mat-icon class="action-icon">add</mat-icon>
+            <h3>Start New Training</h3>
+            <p>Create a new ML model with guided steps</p>
+            <div class="action-meta">
+              <span>{{ userCredits }} credits available</span>
+            </div>
           </div>
-          <div class="stat-item">
-            <span class="stat-number" [class.animated]="statsAnimated">45s</span>
-            <span class="stat-label">avg. training time</span>
+          </div>
+
+        <!-- Continue Experiment -->
+        <div class="quick-action-card" (click)="continueLatest()" *ngIf="latestExperiment">
+          <div class="card-content">
+            <mat-icon class="action-icon">play_arrow</mat-icon>
+            <h3>Continue Latest</h3>
+            <p>Experiment {{ latestExperiment.id.substring(0, 8) }}</p>
+            <div class="action-meta">
+              <span>{{ getExperimentProgress(latestExperiment) }}% complete</span>
+            </div>
           </div>
         </div>
 
-                <div class="cta-actions">
-          <button
-            mat-flat-button
-            color="primary"
-            class="primary-action"
-            (click)="startNewExperiment()">
-            Start Training Your Model
-            <mat-icon>rocket_launch</mat-icon>
-          </button>
+        <!-- View Results -->
+        <div class="quick-action-card" (click)="viewExperiments()">
+          <div class="card-content">
+            <mat-icon class="action-icon">assessment</mat-icon>
+            <h3>View Results</h3>
+            <p>Explore your trained models</p>
+            <div class="action-meta">
+              <span>{{ completedExperiments.length }} models ready</span>
+            </div>
+          </div>
+              </div>
 
-          <button
-            mat-stroked-button
-            class="secondary-action"
-            (click)="openWizard()">
-            See Explainability Demo
-          </button>
+        <!-- Learn More -->
+        <div class="quick-action-card" (click)="viewTutorials()">
+          <div class="card-content">
+            <mat-icon class="action-icon">school</mat-icon>
+            <h3>Learn ML</h3>
+            <p>Watch tutorials & guides</p>
+            <div class="action-meta">
+              <span>{{ tutorials.length }} videos available</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Recent Activity Feed -->
+  <div class="activity-feed-section" *ngIf="recentActivity.length > 0">
+    <div class="container">
+
+      <div class="section-header">
+        <h2 class="section-title">Recent Activity</h2>
+        <button mat-stroked-button (click)="viewAllActivity()">
+          View All
+                </button>
+              </div>
+
+      <div class="activity-timeline">
+        <div class="activity-item" *ngFor="let activity of recentActivity.slice(0, 5)">
+          <div class="activity-time">{{ activity.timestamp | date:'HH:mm' }}</div>
+          <div class="activity-icon" [class]="activity.type">
+            <mat-icon>{{ getActivityIcon(activity.type) }}</mat-icon>
+          </div>
+          <div class="activity-content">
+            <div class="activity-title">{{ activity.title }}</div>
+            <div class="activity-description">{{ activity.description }}</div>
+          </div>
+          <div class="activity-action" *ngIf="activity.actionUrl">
+            <button mat-icon-button (click)="navigateToActivity(activity.actionUrl)">
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
 

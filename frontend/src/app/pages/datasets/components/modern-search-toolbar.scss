@@ -96,14 +96,14 @@
      display: flex;
      align-items: center;
      justify-content: space-between; // DISTRIBUTION ÉQUILIBRÉE GAUCHE/DROITE
-     gap: 24px;
-     flex-wrap: nowrap; // PAS DE WRAP POUR GARDER GAUCHE/DROITE
+     gap: 2%; // GAP EN POURCENTAGE
+     flex-wrap: nowrap; // PAS DE WRAP SUR DESKTOP
      min-height: 48px; // HAUTEUR MINIMALE pour alignement parfait
 
-         // Section gauche - Recherche principale
+         // Section gauche - Recherche principale (75% de l'espace)
      .toolbar-left {
-       flex: 0 0 auto;
-       min-width: auto;
+       flex: 1 1 75%; // 75% DE L'ESPACE DISPONIBLE - BARRE PLUS LARGE
+       min-width: 0; // PERMET RÉTRÉCISSEMENT COMPLET
        display: flex;
        align-items: flex-end; // Alignement sur la base pour cohérence
        gap: 12px;
@@ -114,10 +114,12 @@
          display: flex;
          align-items: flex-end; // Alignement sur la base
          height: 48px;
+         width: 100%; // PREND TOUTE LA LARGEUR DISPONIBLE DANS TOOLBAR-LEFT
 
            .modern-search-field {
-    min-width: 500px; // BARRE AGRANDIE
-                       width: 500px; // LARGEUR FIXE AGRANDIE
+    min-width: 0; // PERMET RÉTRÉCISSEMENT COMPLET
+    width: 100%; // PREND TOUTE LA LARGEUR DU GROUPE
+    flex: 1 1 auto; // GRANDIT ET RÉTRÉCIT SELON BESOIN
            height: 48px !important; // HAUTEUR FIXE BRUTALE
            max-height: 48px !important;
            min-height: 48px !important;
@@ -155,15 +157,16 @@
        }
      }
 
-    // Section droite - alignement parfait
+    // Section droite - alignement parfait (25% de l'espace)
     .toolbar-right {
       display: flex;
       align-items: flex-end; // Alignement sur la base pour tous les composants
       justify-content: flex-end;
-      gap: 16px;
-      flex-wrap: wrap;
+      gap: 0.5%; // GAP RÉDUIT EN POURCENTAGE
+      flex-wrap: nowrap; // PAS DE WRAP POUR LES CONTRÔLES
       height: 48px; // HAUTEUR FIXE pour alignement parfait
       min-height: 48px;
+      flex: 0 1 25%; // 25% DE L'ESPACE MAXIMUM - PLUS COMPACT
 
              // ANCIEN GROUPE DE RECHERCHE SUPPRIMÉ - MAINTENANT À GAUCHE
 
@@ -256,17 +259,20 @@
       .view-controls-group {
         display: flex;
         align-items: flex-end; // Alignement sur la base
-        gap: 12px;
+        gap: 8px; // GAP RÉDUIT POUR PLUS DE COMPACITÉ
         height: 48px;
+        flex: 1 1 auto; // UTILISE L'ESPACE DISPONIBLE
 
-                 .modern-view-toggle {
-           border-radius: 12px;
-           overflow: hidden;
-           border: 2px solid #e2e8f0;
-           height: 48px !important; // HAUTEUR FIXE BRUTALE
-           max-height: 48px !important;
-           min-height: 48px !important;
-           width: 112px !important; // LARGEUR AUGMENTÉE POUR ÉVITER LA COUPURE
+                          .modern-view-toggle {
+          border-radius: 12px;
+          overflow: hidden;
+          border: 2px solid #e2e8f0;
+          height: 48px !important; // HAUTEUR FIXE BRUTALE
+          max-height: 48px !important;
+          min-height: 48px !important;
+          width: auto !important; // LARGEUR FLEXIBLE
+          min-width: 0; // PERMET RÉTRÉCISSEMENT COMPLET
+          flex: 0 0 auto; // TAILLE NATURELLE
            display: flex !important;
            align-items: center !important;
            // PAS DE BOX-SHADOW QUI BOUGE
@@ -276,11 +282,12 @@
            transition: none !important;
            transform: none !important;
 
-           ::ng-deep .mat-button-toggle {
-             border: none !important;
-             background: #ffffff !important;
-             color: #64748b !important;
-             width: 56px !important; // LARGEUR AUGMENTÉE PAR BOUTON
+                      ::ng-deep .mat-button-toggle {
+            border: none !important;
+            background: #ffffff !important;
+            color: #64748b !important;
+            width: 48px !important; // LARGEUR COMPACTE MAIS UTILISABLE
+            flex: 1 1 auto; // RÉPARTITION ÉQUITABLE
              height: 48px !important; // HAUTEUR FIXE BRUTALE
              max-height: 48px !important;
              min-height: 48px !important;
@@ -400,9 +407,11 @@
            }
          }
 
-                 .modern-sort-field {
-           min-width: 180px;
-           width: 216px; // LARGEUR FIXE
+                         .modern-sort-field {
+          min-width: 0; // PERMET RÉTRÉCISSEMENT COMPLET
+          width: 100%; // UTILISE L'ESPACE DISPONIBLE
+          flex: 1 1 auto; // GRANDIT ET RÉTRÉCIT DANS SON CONTENEUR
+          max-width: 200px; // LIMITE MAXIMALE
            height: 48px !important; // HAUTEUR FIXE BRUTALE
            max-height: 48px !important;
            min-height: 48px !important;
@@ -527,18 +536,51 @@
 // RESPONSIVE
 // ===============================================
 
+// RESPONSIVE BASÉ SUR POURCENTAGES - PLUS FLUIDE
+@media (max-width: 1200px) {
+  .modern-search-toolbar {
+    .toolbar-content {
+      gap: 1.5%; // GAP EN POURCENTAGE
+
+      .toolbar-left {
+        flex: 1 1 72%; // 72% DE L'ESPACE
+      }
+
+      .toolbar-right {
+        flex: 0 1 28%; // 28% DE L'ESPACE
+        gap: 0.5%;
+
+        .view-controls-group {
+          gap: 6px; // GAP RÉDUIT
+
+          .modern-sort-field {
+            max-width: 180px; // LIMITE AJUSTÉE
+          }
+        }
+      }
+    }
+  }
+}
+
 @media (max-width: 1024px) {
   .modern-search-toolbar {
     .toolbar-content {
-      gap: 16px;
+      gap: 1%; // GAP ENCORE PLUS RÉDUIT
+
+      .toolbar-left {
+        flex: 1 1 68%; // 68% DE L'ESPACE - RECHERCHE RESTE PRIORITAIRE
+      }
 
       .toolbar-right {
-        gap: 12px;
+        flex: 0 1 32%; // 32% DE L'ESPACE
+        gap: 0.3%;
 
-        // Recherche maintenant dans toolbar-left
+        .view-controls-group {
+          gap: 4px;
 
-        .view-controls-group .modern-sort-field {
-          min-width: 250px;
+          .modern-sort-field {
+            max-width: 160px;
+          }
         }
       }
     }
@@ -550,28 +592,33 @@
      .toolbar-content {
        flex-direction: column;
        align-items: stretch;
-       gap: 20px;
+       gap: 16px; // GAP RÉDUIT
 
        .toolbar-left {
          min-width: auto;
          justify-content: center;
+         width: 100%; // PREND TOUTE LA LARGEUR
 
-         .search-group .modern-search-field {
-           min-width: 280px;
-           width: 280px; // RÉDUITE SUR MOBILE
+         .search-group {
+           width: 100%;
+
+           .modern-search-field {
+             min-width: auto;
+             width: 100%; // PREND TOUTE LA LARGEUR DISPONIBLE
+             max-width: 100%;
+           }
          }
        }
 
       .toolbar-right {
         justify-content: center;
         flex-wrap: wrap;
-
-        // SEARCH GROUP SUPPRIMÉ DE TOOLBAR-RIGHT
+        width: 100%; // PREND TOUTE LA LARGEUR
 
         .filters-group,
         .view-controls-group,
         .secondary-actions {
-          flex: 1;
+          flex: 0 0 auto; // TAILLE NATURELLE
           justify-content: center;
         }
 
@@ -579,7 +626,39 @@
           gap: 8px;
 
           .modern-sort-field {
-            min-width: 200px;
+            min-width: 160px;
+            width: auto;
+          }
+        }
+      }
+    }
+  }
+}
+
+// NOUVEAU BREAKPOINT - ÉCRANS MOYENS/PETITS
+@media (max-width: 900px) {
+  .modern-search-toolbar {
+    .toolbar-content {
+      gap: 0.8%; // GAP MINIMAL
+
+      .toolbar-left {
+        flex: 1 1 65%; // 65% - RECHERCHE RESTE LARGE
+      }
+
+      .toolbar-right {
+        flex: 0 1 35%; // 35% POUR LES CONTRÔLES
+        gap: 0.2%;
+        flex-wrap: wrap; // PERMET LE WRAP SI NÉCESSAIRE
+
+        .view-controls-group {
+          gap: 2px;
+
+          .modern-sort-field {
+            max-width: 140px;
+          }
+
+          .modern-view-toggle {
+            min-width: 90px !important;
           }
         }
       }
@@ -589,11 +668,34 @@
 
 @media (max-width: 480px) {
   .modern-search-toolbar {
+    padding: 16px 20px; // PADDING RÉDUIT
+
     .toolbar-content {
+      gap: 12px;
+
+      .toolbar-left {
+        width: 100%;
+
+        .search-group {
+          width: 100%;
+
+          .modern-search-field {
+            width: 100%;
+            min-width: auto;
+            max-width: 100%;
+          }
+        }
+      }
+
       .toolbar-right {
+        width: 100%;
+        gap: 8px;
+
         .filters-group .modern-filters-btn {
-          padding: 10px 16px;
-          min-height: 40px;
+          padding: 8px 12px;
+          height: 44px !important; // HAUTEUR RÉDUITE SUR TRÈS PETITS ÉCRANS
+          max-height: 44px !important;
+          min-height: 44px !important;
 
           .btn-content {
             gap: 6px;
@@ -617,21 +719,39 @@
         }
 
         .view-controls-group {
-          .modern-view-toggle .mat-button-toggle {
-            min-width: 40px;
-            height: 40px;
+          gap: 6px;
 
-            mat-icon {
-              font-size: 18px;
-              height: 18px;
-              width: 18px;
+          .modern-view-toggle {
+            height: 44px !important;
+            max-height: 44px !important;
+            min-height: 44px !important;
+            min-width: 84px !important;
+
+            ::ng-deep .mat-button-toggle {
+              width: 42px !important;
+              height: 44px !important;
+              max-height: 44px !important;
+              min-height: 44px !important;
+
+              .mat-button-toggle-label-content mat-icon {
+                font-size: 18px;
+                height: 18px;
+                width: 18px;
+              }
             }
+          }
+
+          .modern-sort-field {
+            min-width: 120px;
+            height: 44px !important;
+            max-height: 44px !important;
+            min-height: 44px !important;
           }
         }
 
         .secondary-actions .refresh-btn {
-          width: 40px;
-          height: 40px;
+          width: 44px;
+          height: 44px;
 
           mat-icon {
             font-size: 18px;

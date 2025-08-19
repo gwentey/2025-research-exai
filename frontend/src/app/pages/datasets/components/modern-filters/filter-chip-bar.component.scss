@@ -8,8 +8,9 @@
 .filter-chip-bar {
   background: var(--filters-bg-secondary);
   border-radius: var(--filters-radius-md);
-  padding: var(--filters-space-md) var(--filters-space-lg);
+  padding: 24px 28px;
   transition: all var(--filters-transition-base);
+  margin: 8px 0;
 
   &.compact {
     padding: var(--filters-space-sm) var(--filters-space-md);
@@ -120,10 +121,11 @@
     .chips-set {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px; // ESPACEMENT FIXE PLUS GÉNÉREUX
-      align-items: center;
+      gap: 20px; // ESPACEMENT FIXE ENCORE PLUS GÉNÉREUX ENTRE CHIPS
+      align-items: flex-start;
       margin: 0;
-      padding: 0;
+      padding: 12px 0;
+      row-gap: 16px; // ESPACEMENT VERTICAL ENTRE LES LIGNES
     }
   }
 
@@ -162,8 +164,8 @@
   animation: filters-chip-appear 0.2s ease;
 
   // ESPACEMENT INTERNE AMÉLIORÉ
-  padding: 8px 12px 8px 16px !important;
-  margin: 0 4px 4px 0 !important; // MARGE EXTERNE POUR ÉVITER CHEVAUCHEMENT
+  padding: 12px 18px 12px 20px !important;
+  margin: 8px 12px 8px 0 !important; // MARGE EXTERNE ENCORE PLUS GÉNÉREUSE POUR ÉVITER CHEVAUCHEMENT
 
   // POSITIONNEMENT POUR ÉVITER SUPERPOSITION
   position: relative !important;

@@ -426,6 +426,35 @@
     "TITLE": "Available Datasets",
     "SEARCH": "Search datasets...",
     "FILTER": "Filter",
+    "FILTERS": {
+      "MODERN": {
+        "TITLE": "Advanced Filters",
+        "SUBTITLE": "Refine your dataset search"
+      },
+      "ACTIVE_FILTERS_LABEL": "Active filters",
+      "ACTIVE_FILTERS": "{count} active filter(s)",
+      "CLEAR_ALL_TOOLTIP": "Remove all filters",
+      "CLEAR_ALL": "Clear all",
+      "ACTIVE_CHIPS_LABEL": "Active filters list",
+      "CHIP_LABEL": "Filter: {filter}",
+      "REMOVE_CHIP": "Remove filter {filter}",
+      "HIDDEN_CHIPS": "{count} additional filter(s)",
+      "NO_ACTIVE_FILTERS": "No active filters",
+      "GROUPS": {
+        "CATEGORIES": {
+          "TITLE": "Categories",
+          "DESCRIPTION": "Filter by application domain and task type"
+        },
+        "NUMERICAL": {
+          "TITLE": "Numerical characteristics",
+          "DESCRIPTION": "Filter by number of instances, features and year"
+        },
+        "QUALITY": {
+          "TITLE": "Quality and ethics",
+          "DESCRIPTION": "Filter by ethical score and quality criteria"
+        }
+      }
+    },
     "TYPE": "Type",
     "SIZE": "Size",
     "LAST_UPDATED": "Last Updated",

@@ -433,6 +433,35 @@
     "TITLE": "Jeux de Données Disponibles",
     "SEARCH": "Rechercher des jeux de données...",
     "FILTER": "Filtrer",
+    "FILTERS": {
+      "MODERN": {
+        "TITLE": "Filtres avancés",
+        "SUBTITLE": "Affinez votre recherche de datasets"
+      },
+      "ACTIVE_FILTERS_LABEL": "Filtres actifs",
+      "ACTIVE_FILTERS": "{count} filtre(s) actif(s)",
+      "CLEAR_ALL_TOOLTIP": "Supprimer tous les filtres",
+      "CLEAR_ALL": "Tout effacer",
+      "ACTIVE_CHIPS_LABEL": "Liste des filtres actifs",
+      "CHIP_LABEL": "Filtre: {filter}",
+      "REMOVE_CHIP": "Supprimer le filtre {filter}",
+      "HIDDEN_CHIPS": "{count} filtre(s) supplémentaire(s)",
+      "NO_ACTIVE_FILTERS": "Aucun filtre actif",
+      "GROUPS": {
+        "CATEGORIES": {
+          "TITLE": "Catégories",
+          "DESCRIPTION": "Filtrer par domaine d'application et type de tâche"
+        },
+        "NUMERICAL": {
+          "TITLE": "Caractéristiques numériques",
+          "DESCRIPTION": "Filtrer par nombre d'instances, de features et année"
+        },
+        "QUALITY": {
+          "TITLE": "Qualité et éthique",
+          "DESCRIPTION": "Filtrer par score éthique et critères de qualité"
+        }
+      }
+    },
     "TYPE": "Type",
     "SIZE": "Taille",
     "LAST_UPDATED": "Dernière mise à jour",
