@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import logging
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder, MinMaxScaler, RobustScaler
 from sklearn.experimental import enable_iterative_imputer  # DOIT être importé EN PREMIER
@@ -14,6 +15,9 @@ from typing import Dict, Any, Tuple, List, Optional, Union
 import warnings
 
 warnings.filterwarnings('ignore')
+
+# Configure logger pour ce module
+logger = logging.getLogger(__name__)
 
 class DataQualityAnalyzer:
     """Analyseur de qualité des données pour détecter les problèmes et patterns."""
@@ -253,13 +257,24 @@ class OutlierDetector:
                 outliers_mask = (df[column] < lower_bound) | (df[column] > upper_bound)
                 outliers_count = outliers_mask.sum()
                 
+                # Gérer les valeurs NaN pour la sérialisation JSON
+                lower_bound_safe = float(lower_bound) if not np.isnan(lower_bound) else None
+                upper_bound_safe = float(upper_bound) if not np.isnan(upper_bound) else None
+                
+                # Calcul sécurisé du pourcentage pour éviter division par zéro
+                total_rows = len(df)
+                if total_rows > 0:
+                    outliers_percentage = round((outliers_count / total_rows) * 100, 2)
+                else:
+                    outliers_percentage = 0.0
+                
                 outliers_info[column] = {
                     'method': 'IQR',
                     'outliers_count': int(outliers_count),
-                    'outliers_percentage': round((outliers_count / len(df)) * 100, 2),
-                    'lower_bound': float(lower_bound),
-                    'upper_bound': float(upper_bound),
-                    'outliers_indices': df[outliers_mask].index.tolist()
+                    'outliers_percentage': outliers_percentage,
+                    'lower_bound': lower_bound_safe,
+                    'upper_bound': upper_bound_safe,
+                    'outliers_indices': df[outliers_mask].index.tolist()[:100]  # Limiter pour éviter JSON trop gros
                 }
         
         return outliers_info
@@ -278,12 +293,23 @@ class OutlierDetector:
                 outliers_mask = z_scores > threshold
                 outliers_count = outliers_mask.sum()
                 
+                # Gérer les valeurs NaN pour la sérialisation JSON
+                max_zscore = float(z_scores.max()) if len(z_scores) > 0 else 0
+                max_zscore_safe = max_zscore if not np.isnan(max_zscore) else 0.0
+                
+                # Calcul sécurisé du pourcentage pour éviter division par zéro
+                total_valid = len(df.dropna())
+                if total_valid > 0:
+                    outliers_percentage = round((outliers_count / total_valid) * 100, 2)
+                else:
+                    outliers_percentage = 0.0
+                
                 outliers_info[column] = {
                     'method': 'Z-Score',
                     'threshold': threshold,
                     'outliers_count': int(outliers_count),
-                    'outliers_percentage': round((outliers_count / len(df.dropna())) * 100, 2),
-                    'max_zscore': float(z_scores.max()) if len(z_scores) > 0 else 0
+                    'outliers_percentage': outliers_percentage,
+                    'max_zscore': max_zscore_safe
                 }
         
         return outliers_info
@@ -564,11 +590,40 @@ def preprocess_data(df: pd.DataFrame, config: Dict[str, Any]) -> Tuple:
         remainder='passthrough'  # Keep other columns as is
     )
     
-    # Split the data
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state, 
-        stratify=y if task_type == 'classification' else None
-    )
+    # Split the data avec gestion intelligente de la stratification
+    try:
+        # Essayer le split stratifié pour la classification
+        if task_type == 'classification':
+            # Vérifier d'abord si la stratification est possible
+            unique_classes, class_counts = np.unique(y, return_counts=True)
+            min_class_count = class_counts.min()
+            
+            if min_class_count >= 2:
+                # Stratification possible
+                X_train, X_test, y_train, y_test = train_test_split(
+                    X, y, test_size=test_size, random_state=random_state, stratify=y
+                )
+            else:
+                # Stratification impossible - classe avec 1 seul membre
+                logger.warning(f"Stratification impossible - classe la moins peuplée: {min_class_count} membres")
+                logger.warning("Passage en split aléatoire simple")
+                X_train, X_test, y_train, y_test = train_test_split(
+                    X, y, test_size=test_size, random_state=random_state, stratify=None
+                )
+        else:
+            # Régression - pas de stratification
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=test_size, random_state=random_state
+            )
+    except ValueError as e:
+        if "least populated class" in str(e):
+            logger.warning(f"Erreur de stratification détectée: {str(e)}")
+            logger.warning("Fallback vers split aléatoire simple")
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=test_size, random_state=random_state, stratify=None
+            )
+        else:
+            raise
     
     # Fit and transform the data
     X_train = preprocessor.fit_transform(X_train)
@@ -598,14 +653,40 @@ def get_preprocessing_info(df: pd.DataFrame) -> Dict[str, Any]:
     # Suggest target column (last column by default)
     info['suggested_target'] = df.columns[-1]
     
-    # Check if classification or regression
+    # Détection intelligente classification vs régression
     if len(col_types['numeric']) > 0:
         last_col = df.columns[-1]
         if last_col in col_types['numeric']:
             unique_values = df[last_col].nunique()
-            info['suggested_task_type'] = 'classification' if unique_values < 20 else 'regression'
+            
+            # Analyse plus sophistiquée pour les variables continues
+            if unique_values < 10:
+                # Vérifier que chaque classe a assez d'exemples pour stratification
+                unique_classes, class_counts = np.unique(df[last_col].dropna(), return_counts=True)
+                min_class_count = class_counts.min()
+                
+                if min_class_count >= 2:
+                    info['suggested_task_type'] = 'classification'
+                else:
+                    # Classes insuffisantes - recommander régression ou autre approche
+                    info['suggested_task_type'] = 'regression'
+                    info['stratification_warning'] = f"Classe la moins peuplée: {min_class_count} exemples (minimum: 2)"
+            elif unique_values < 50:
+                # Variable potentiellement catégorielle mais avec beaucoup de valeurs
+                info['suggested_task_type'] = 'regression'  # Plus safe
+                info['task_type_reason'] = f"{unique_values} valeurs uniques - regression recommandée"
+            else:
+                info['suggested_task_type'] = 'regression'
         else:
-            info['suggested_task_type'] = 'classification'
+            # Variable catégorielle
+            unique_classes, class_counts = np.unique(df[last_col].dropna(), return_counts=True)
+            min_class_count = class_counts.min()
+            
+            if min_class_count >= 2:
+                info['suggested_task_type'] = 'classification'
+            else:
+                info['suggested_task_type'] = 'classification'  # Garder mais avec warning
+                info['stratification_warning'] = f"Attention: classe '{unique_classes[np.argmin(class_counts)]}' n'a que {min_class_count} exemple(s)"
     else:
         info['suggested_task_type'] = 'classification'
     

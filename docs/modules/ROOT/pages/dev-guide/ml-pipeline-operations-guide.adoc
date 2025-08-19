@@ -1,0 +1,368 @@
+= Guide d'Exploitation : Service ML Pipeline
+:description: Guide opérationnel pour l'exploitation et la maintenance du service ML Pipeline dans l'environnement IBIS-X.
+:sectlinks:
+:sectanchors:
+
+== Procédures d'Exploitation Quotidiennes
+
+=== Vérifications de Santé
+
+==== Statut des Services
+[source,bash]
+----
+# Vérifier tous les pods ML Pipeline
+kubectl get pods -n ibis-x | grep ml-pipeline
+
+# Sortie attendue :
+# ml-pipeline-xxx                      1/1     Running     0          2h
+# ml-pipeline-celery-worker-xxx-yyy    1/1     Running     0          2h  
+# ml-pipeline-celery-worker-xxx-zzz    1/1     Running     0          2h
+----
+
+==== Statut Celery Workers
+[source,bash]
+----
+# Vérifier la connectivité des workers
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  curl -s http://localhost:8082/celery/status | jq '.active_workers[]'
+
+# Sortie attendue : Liste des workers actifs
+----
+
+==== Métriques de Performance
+[source,bash]
+----
+# Métriques système
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  curl -s http://localhost:8082/monitoring/metrics | jq '.system'
+
+# Vérifier l'usage CPU/mémoire < 80%
+----
+
+=== Monitoring des Expériences
+
+==== Expériences en Cours
+[source,bash]
+----
+# Lister les expériences actives
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  psql $DATABASE_URL -c "
+    SELECT id, algorithm, status, progress, created_at 
+    FROM experiments 
+    WHERE status IN ('pending', 'running') 
+    ORDER BY created_at DESC 
+    LIMIT 10;
+  "
+----
+
+==== Expériences Bloquées
+[source,bash]
+----
+# Identifier les expériences bloquées (> 4h en running)
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  psql $DATABASE_URL -c "
+    SELECT id, algorithm, status, progress, 
+           EXTRACT(EPOCH FROM (NOW() - created_at))/3600 as hours_running
+    FROM experiments 
+    WHERE status = 'running' 
+      AND created_at < NOW() - INTERVAL '4 hours';
+  "
+
+# Si des expériences sont bloquées, les marquer comme failed
+# (Remplacer {experiment_id} par l'ID réel)
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  psql $DATABASE_URL -c "
+    UPDATE experiments 
+    SET status = 'failed', 
+        error_message = 'Timeout - experiment exceeded maximum duration',
+        updated_at = NOW()
+    WHERE id = '{experiment_id}';
+  "
+----
+
+=== Gestion des Ressources
+
+==== Surveillance de l'Usage Mémoire
+[source,bash]
+----
+# Top des pods par usage mémoire
+kubectl top pods -n ibis-x | grep ml-pipeline
+
+# Si usage > 80%, redémarrer les workers
+kubectl rollout restart deployment/ml-pipeline-celery-worker -n ibis-x
+----
+
+==== Nettoyage du Cache Redis
+[source,bash]
+----
+# Vérifier la taille de la queue ml_queue
+kubectl exec -n ibis-x redis-0 -- redis-cli llen ml_queue
+
+# Si > 100 tâches en attente, vérifier les workers
+kubectl logs -n ibis-x deployment/ml-pipeline-celery-worker --tail=20
+
+# Purger la queue si nécessaire (ATTENTION : perte de tâches)
+kubectl exec -n ibis-x redis-0 -- redis-cli del ml_queue
+----
+
+== Procédures de Maintenance
+
+=== Mise à Jour du Service
+
+==== Déploiement Zero-Downtime
+[source,bash]
+----
+# 1. Construire et pousser la nouvelle image
+docker build -t ibis-x-ml-pipeline:v1.1.0 .
+docker tag ibis-x-ml-pipeline:v1.1.0 your-registry/ibis-x-ml-pipeline:v1.1.0
+docker push your-registry/ibis-x-ml-pipeline:v1.1.0
+
+# 2. Mettre à jour l'image dans le deployment
+kubectl set image deployment/ml-pipeline ml-pipeline=your-registry/ibis-x-ml-pipeline:v1.1.0 -n ibis-x
+
+# 3. Attendre le rollout
+kubectl rollout status deployment/ml-pipeline -n ibis-x
+
+# 4. Mettre à jour les workers (attention : interrompt les tâches en cours)
+kubectl set image deployment/ml-pipeline-celery-worker celery-worker=your-registry/ibis-x-ml-pipeline:v1.1.0 -n ibis-x
+----
+
+==== Rollback en Cas de Problème
+[source,bash]
+----
+# Rollback du deployment principal
+kubectl rollout undo deployment/ml-pipeline -n ibis-x
+
+# Rollback des workers
+kubectl rollout undo deployment/ml-pipeline-celery-worker -n ibis-x
+
+# Vérifier le statut après rollback
+kubectl get pods -n ibis-x | grep ml-pipeline
+----
+
+=== Migrations de Base de Données
+
+==== Exécution de Nouvelles Migrations
+[source,bash]
+----
+# Créer une nouvelle migration (depuis le container)
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  alembic revision --autogenerate -m "Description de la migration"
+
+# Appliquer la migration via job K8s
+kubectl apply -f k8s/base/jobs/ml-pipeline-migration-job.yaml
+
+# Vérifier le statut
+kubectl get jobs -n ibis-x ml-pipeline-migration-job
+kubectl logs -n ibis-x job/ml-pipeline-migration-job
+----
+
+==== Rollback de Migration
+[source,bash]
+----
+# Lister l'historique
+kubectl exec -n ibis-x deployment/ml-pipeline -- alembic history
+
+# Rollback à une revision spécifique
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  alembic downgrade {revision_id}
+----
+
+=== Gestion du Stockage
+
+==== Vérification de l'Espace Disque
+[source,bash]
+----
+# MinIO (environnement local)
+kubectl exec -n ibis-x deployment/minio -- df -h /data
+
+# Lister les objets les plus volumineux
+kubectl exec -n ibis-x deployment/minio -- \
+  find /data -type f -size +100M -exec ls -lh {} \;
+----
+
+==== Nettoyage des Anciens Modèles
+[source,bash]
+----
+# Lister les modèles de plus de 30 jours
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  psql $DATABASE_URL -c "
+    SELECT artifact_uri, created_at 
+    FROM experiments 
+    WHERE created_at < NOW() - INTERVAL '30 days' 
+      AND artifact_uri IS NOT NULL;
+  "
+
+# Script de nettoyage (à exécuter avec prudence)
+kubectl exec -n ibis-x deployment/ml-pipeline -- python -c "
+from common.storage_client import get_storage_client
+from datetime import datetime, timedelta
+import logging
+
+client = get_storage_client()
+cutoff_date = datetime.now() - timedelta(days=30)
+
+# TODO: Implémenter le nettoyage automatique
+print('Nettoyage à implémenter')
+"
+----
+
+== Alertes et Indicateurs Clés
+
+=== Seuils d'Alerte
+
+[cols="1,2,2,3"]
+|===
+|Métrique |Seuil Warning |Seuil Critical |Action
+
+|*Usage CPU*
+|> 70%
+|> 90%
+|Scale workers ou optimiser algorithmes
+
+|*Usage Mémoire*
+|> 80%
+|> 95%
+|Redémarrer workers, augmenter limites
+
+|*Queue ml_queue*
+|> 50 tâches
+|> 100 tâches
+|Scale workers, vérifier performance
+
+|*Expériences échouées*
+|> 20% sur 1h
+|> 50% sur 1h
+|Vérifier datasets, configuration
+
+|*Durée d'entraînement*
+|> 2h
+|> 4h
+|Timeout ou problème performance
+|===
+
+=== Commandes d'Urgence
+
+==== Arrêt d'Urgence
+[source,bash]
+----
+# Arrêter tous les workers (interrompt les tâches)
+kubectl scale deployment ml-pipeline-celery-worker --replicas=0 -n ibis-x
+
+# Purger la queue (ATTENTION : perte de données)
+kubectl exec -n ibis-x redis-0 -- redis-cli del ml_queue
+
+# Redémarrer les workers
+kubectl scale deployment ml-pipeline-celery-worker --replicas=2 -n ibis-x
+----
+
+==== Récupération après Incident
+[source,bash]
+----
+# 1. Identifier les expériences affectées
+kubectl exec -n ibis-x deployment/ml-pipeline -- \
+  psql $DATABASE_URL -c "
+    UPDATE experiments 
+    SET status = 'failed', 
+        error_message = 'Service interruption at $(date)',
+        updated_at = NOW()
+    WHERE status IN ('pending', 'running');
+  "
+
+# 2. Redémarrer tous les services
+kubectl rollout restart deployment/ml-pipeline -n ibis-x
+kubectl rollout restart deployment/ml-pipeline-celery-worker -n ibis-x
+
+# 3. Vérifier la récupération
+kubectl get pods -n ibis-x | grep ml-pipeline
+curl http://localhost:8082/celery/status
+----
+
+== Backup et Récupération
+
+=== Sauvegarde des Modèles
+
+[source,bash]
+----
+# Backup périodique des modèles (script cron)
+#!/bin/bash
+BACKUP_DATE=$(date +%Y%m%d)
+BACKUP_PATH="/backups/ml-models-$BACKUP_DATE"
+
+# Synchroniser depuis MinIO
+kubectl exec -n ibis-x deployment/minio -- \
+  mc mirror /data/ibis-x-models $BACKUP_PATH
+
+# Compression
+tar -czf "ml-models-backup-$BACKUP_DATE.tar.gz" $BACKUP_PATH
+----
+
+=== Restauration
+
+[source,bash]
+----
+# Restaurer depuis backup
+tar -xzf ml-models-backup-20250819.tar.gz
+
+# Upload vers MinIO
+kubectl exec -n ibis-x deployment/minio -- \
+  mc mirror ./ml-models-backup-20250819/ibis-x-models /data/ibis-x-models
+----
+
+== Intégration avec l'Écosystème IBIS-X
+
+=== Communication Inter-Services
+
+[source]
+----
+# Flux de données principal
+Frontend Angular → API Gateway → ML Pipeline Service
+                                     ↓
+                             Service Selection ← Dataset Metadata
+                                     ↓
+                             MinIO/Azure ← Dataset Files
+----
+
+=== Points d'Intégration Critiques
+
+* *API Gateway* : Authentification JWT et routing vers `/api/v1/experiments`
+* *Service Selection* : Récupération des métadonnées de datasets
+* *Storage Service* : Upload/download des datasets et modèles
+* *XAI Engine* : Utilisation des modèles entraînés pour les explications
+
+=== Dépendances de Services
+
+[cols="1,2,3"]
+|===
+|Service |Type Dépendance |Impact de l'Indisponibilité
+
+|*PostgreSQL*
+|Critique
+|Service complètement non fonctionnel
+
+|*Redis*
+|Critique
+|Pas de nouvelles tâches, workers arrêtés
+
+|*Service Selection*
+|Modérée
+|Fallback vers données générées
+
+|*MinIO/Azure*
+|Modérée
+|Échec upload/download, mais API reste accessible
+|===
+
+== Contact et Support
+
+Pour toute question technique ou problème d'exploitation :
+
+* *Logs de débogage* : `kubectl logs -n ibis-x deployment/ml-pipeline --tail=100`
+* *Métriques temps réel* : Endpoint `/monitoring/metrics`
+* *Statut Celery* : Endpoint `/celery/status`
+* *Tests d'intégration* : `python ml-pipeline-service/tests/test_integration.py`
+
+[NOTE]
+====
+Ce guide d'exploitation doit être mis à jour à chaque modification significative du service ML Pipeline.
+====

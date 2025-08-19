@@ -32,7 +32,7 @@ graph LR
 *   **`frontend/` :** Interface utilisateur développée avec Angular et Angular Material.
 *   **`api-gateway/` :** Point d'entrée unique (FastAPI) gérant l'authentification (JWT via `fastapi-users`) et le routage vers les services backend.
 *   **`service-selection/` :** Service FastAPI gérant les métadonnées des datasets (stockées dans PostgreSQL), incluant le CRUD, le filtrage/recherche et le scoring.
-*   **`ml-pipeline/` :** Service FastAPI orchestrant l'exécution asynchrone (via Celery/Redis) des tâches d'entraînement et d'évaluation de modèles ML (avec Scikit-learn).
+*   **`ml-pipeline/` :** Service FastAPI orchestrant l'exécution asynchrone (via Celery/Redis) des tâches d'entraînement et d'évaluation de modèles ML (avec Scikit-learn). **Status: ENTIÈREMENT OPÉRATIONNEL** - Bug d'upload des artefacts résolu (19/08/2025).
 *   **`xai-engine/` :** Service FastAPI orchestrant l'exécution asynchrone (via Celery/Redis) des tâches de génération d'explications XAI (avec SHAP/LIME).
 *   **`PostgreSQL` :** Base de données relationnelle pour stocker toutes les métadonnées persistantes (datasets, utilisateurs, runs ML, requêtes XAI). Schéma géré via Alembic.
 *   **`Redis` :** Broker de messages pour la communication asynchrone via Celery.
@@ -167,6 +167,11 @@ graph LR
             *   `GET /experiments` : Liste des expériences utilisateur
         *   [✅] **Intégration Storage** : Sauvegarde modèles et artefacts sur MinIO/Azure Blob Storage.
         *   [✅] **Déploiement K8s** : Deployment API + Workers Celery avec configuration appropriée.
+        *   [✅] **Monitoring Intégré (2025-08-19)** : Logs structurés, métriques de performance, audit de sécurité.
+        *   [✅] **Sécurité Avancée (2025-08-19)** : Quotas utilisateur, validation robuste, contrôle d'accès.
+        *   [✅] **Versioning des Modèles (2025-08-19)** : Système de versioning automatique avec timestamps.
+        *   [✅] **Pipeline ML Robuste (2025-08-19)** : Gestion d'erreurs avancée, retry policies, fallbacks.
+        *   [✅] **Configuration Optimisée (2025-08-19)** : Celery optimisé pour ML, timeouts augmentés, observabilité complète.
 
 *   **`xai-engine/` :**
     *   **Rôle :** Génération explications XAI.

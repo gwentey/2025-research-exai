@@ -81,11 +81,18 @@ class MinIOStorageClient(StorageClient):
                 self.client.make_bucket(self.container_name)
                 logger.info(f"Created bucket: {self.container_name}")
             
-            # Handle both bytes and BytesIO
-            if isinstance(file_data, bytes):
-                file_data = BytesIO(file_data)
+            # Validation stricte et conversion du type avec debugging détaillé
+            logger.debug(f"Upload request - file_data type: {type(file_data)}, object_path: {object_path}")
             
-            # Get file size
+            if isinstance(file_data, str):
+                raise ValueError(f"ERREUR: Paramètres inversés - file_data est un string '{file_data[:50]}...', object_path attendu. Vérifiez l'ordre des paramètres upload_file(file_data, object_path)")
+            elif isinstance(file_data, bytes):
+                logger.debug(f"Converting bytes to BytesIO for upload to {object_path}")
+                file_data = BytesIO(file_data)
+            elif not hasattr(file_data, 'seek'):
+                raise ValueError(f"ERREUR: file_data type invalide {type(file_data)} pour {object_path}. Attendu BytesIO ou bytes.")
+            
+            # Get file size en sécurité
             file_data.seek(0, 2)  # Seek to end
             file_size = file_data.tell()
             file_data.seek(0)  # Reset to beginning

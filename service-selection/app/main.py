@@ -737,6 +737,7 @@ def get_dataset(dataset_id: str, db: Session = Depends(database.get_db)):
     return schemas.DatasetWithFiles(
         id=dataset.id,
         dataset_name=dataset.dataset_name,
+        display_name=dataset.display_name,  # AJOUT du champ manquant
         year=dataset.year,
         objective=dataset.objective,
         access=dataset.access,

@@ -31,7 +31,7 @@ spec:
         - name: STORAGE_TYPE
           value: "minio"
         - name: MINIO_ENDPOINT
-          value: "http://minio-service:6700"
+          value: "http://minio-service:80"
         - name: MINIO_ACCESS_KEY
           valueFrom:
             secretKeyRef:
@@ -44,6 +44,14 @@ spec:
               key: minio-secret-key
         - name: C_FORCE_ROOT
           value: "1"
+        - name: SERVICE_SELECTION_URL
+          value: "http://service-selection-service.ibis-x.svc.cluster.local"
+        - name: PYTHONPATH
+          value: "/app"
+        - name: MAX_TRAINING_TIME
+          value: "7200"
+        - name: CELERY_WORKER_HIJACK_ROOT_LOGGER
+          value: "false"
         resources:
           requests:
             memory: "512Mi"

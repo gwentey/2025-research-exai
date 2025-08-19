@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, status, Header
+from fastapi import FastAPI, Depends, HTTPException, status, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+import time
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -43,6 +45,34 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+class LoggingMiddleware(BaseHTTPMiddleware):
+    """Middleware pour logging structuré des requêtes API"""
+    
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        
+        # Log de la requête entrante
+        logger.info(f"[REQUEST] {request.method} {request.url.path} - User-Agent: {request.headers.get('user-agent', 'Unknown')}")
+        
+        try:
+            response = await call_next(request)
+            
+            # Calculer la durée
+            process_time = time.time() - start_time
+            
+            # Log de la réponse
+            logger.info(f"[RESPONSE] {request.method} {request.url.path} - Status: {response.status_code} - Duration: {process_time:.3f}s")
+            
+            # Ajouter l'header de performance
+            response.headers["X-Process-Time"] = str(process_time)
+            
+            return response
+            
+        except Exception as e:
+            process_time = time.time() - start_time
+            logger.error(f"[ERROR] {request.method} {request.url.path} - Error: {str(e)} - Duration: {process_time:.3f}s")
+            raise
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -51,6 +81,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add custom logging middleware
+app.add_middleware(LoggingMiddleware)
 
 # Dependency to extract user_id from X-User-ID header sent by API Gateway
 def get_current_user_id(x_user_id: str = Header(..., alias="X-User-ID")) -> uuid.UUID:
@@ -80,6 +113,84 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+@app.get("/monitoring/metrics")
+def get_monitoring_metrics(db: Session = Depends(get_db)):
+    """Get comprehensive monitoring metrics for the ML Pipeline service"""
+    try:
+        from collections import defaultdict
+        try:
+            import psutil
+        except ImportError:
+            logger.warning("psutil not available, using fallback metrics")
+            psutil = None
+        
+        # Métriques d'usage système
+        if psutil:
+            system_metrics = {
+                'cpu_percent': psutil.cpu_percent(interval=1),
+                'memory_percent': psutil.virtual_memory().percent,
+                'disk_usage_percent': psutil.disk_usage('/').percent
+            }
+        else:
+            system_metrics = {
+                'cpu_percent': 0.0,
+                'memory_percent': 0.0,
+                'disk_usage_percent': 0.0,
+                'note': 'psutil not available'
+            }
+        
+        # Métriques des expériences
+        exp_stats = db.query(Experiment).all()
+        experiment_metrics = defaultdict(int)
+        
+        for exp in exp_stats:
+            experiment_metrics[f'status_{exp.status}'] += 1
+        
+        # Métriques par algorithme
+        algorithm_stats = defaultdict(int)
+        for exp in exp_stats:
+            algorithm_stats[exp.algorithm] += 1
+        
+        # Statut Celery
+        celery_metrics = {}
+        try:
+            inspector = celery_app.control.inspect()
+            active_workers = inspector.active() or {}
+            celery_metrics = {
+                'active_workers_count': len(active_workers),
+                'active_workers': list(active_workers.keys()),
+                'queued_tasks': 0  # À implémenter avec Redis
+            }
+        except Exception as e:
+            celery_metrics = {'error': str(e)}
+        
+        return {
+            'timestamp': datetime.utcnow().isoformat(),
+            'system': system_metrics,
+            'experiments': dict(experiment_metrics),
+            'algorithms': dict(algorithm_stats),
+            'celery': celery_metrics,
+            'service_info': {
+                'version': '1.0.0',
+                'uptime_seconds': 0  # À implémenter avec un timer global
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting monitoring metrics: {str(e)}")
+        return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+
+@app.get("/metrics")
+def get_prometheus_metrics():
+    """Endpoint pour les métriques Prometheus"""
+    from fastapi import Response
+    from datetime import datetime
+    metrics_text = f"""# HELP ml_pipeline_service_info Service information
+# TYPE ml_pipeline_service_info gauge
+ml_pipeline_service_info{{version="1.0.0",timestamp="{datetime.utcnow().isoformat()}"}} 1
+"""
+    return Response(metrics_text, media_type="text/plain")
 
 @app.get("/celery/status")
 def celery_status():
@@ -132,6 +243,31 @@ def create_experiment(
 ):
     """Create a new ML experiment and queue training task"""
     try:
+        # Validation de sécurité supplémentaire
+        if not experiment.dataset_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Dataset ID is required"
+            )
+        
+        if not experiment.project_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Project ID is required"
+            )
+        
+        # Vérifier que l'utilisateur n'a pas trop d'expériences en cours
+        active_experiments = db.query(Experiment).filter(
+            Experiment.user_id == current_user_id,
+            Experiment.status.in_(['pending', 'running'])
+        ).count()
+        
+        if active_experiments >= 5:  # Limite de 5 expériences simultanées
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many active experiments. Please wait for some to complete."
+            )
+        
         logger.info(f"Creating experiment with data: {experiment.dict()}")
         
         # Create experiment record in database
@@ -165,6 +301,13 @@ def create_experiment(
         db.commit()
         
         logger.info(f"Successfully created experiment {db_experiment.id} with task {task.id}")
+        
+        # Log d'audit de sécurité
+        logger.info(f"[SECURITY] User {current_user_id} created experiment {db_experiment.id} with algorithm {experiment.algorithm}")
+        
+        # Métriques dans les logs
+        logger.info(f"[METRICS] Experiment created - Algorithm: {experiment.algorithm} - User: {current_user_id}")
+        
         return db_experiment
     except Exception as e:
         logger.error(f"Error creating experiment: {str(e)}", exc_info=True)
@@ -235,7 +378,7 @@ def get_experiment_results(
     return ExperimentResults(
         id=experiment.id,
         metrics=experiment.metrics or {},
-        model_uri=experiment.model_uri,
+        model_uri=experiment.artifact_uri,
         visualizations=experiment.visualizations or {},
         feature_importance=experiment.feature_importance or {},
         created_at=experiment.created_at,
@@ -337,6 +480,60 @@ def get_user_experiments(
     experiments = query.offset(skip).limit(limit).all()
     return experiments
 
+@app.post("/experiments/{experiment_id}/cancel")
+def cancel_experiment(
+    experiment_id: str,
+    db: Session = Depends(get_db),
+    current_user_id: uuid.UUID = Depends(get_current_user_id)
+):
+    """Cancel a running or pending experiment"""
+    try:
+        # Récupérer l'expérience
+        experiment = db.query(Experiment).filter(
+            Experiment.id == experiment_id,
+            Experiment.user_id == current_user_id  # Sécurité : seul le propriétaire peut annuler
+        ).first()
+        
+        if not experiment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Experiment not found or access denied"
+            )
+        
+        if experiment.status not in ['pending', 'running']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot cancel experiment in {experiment.status} state"
+            )
+        
+        # Annuler la tâche Celery si elle existe
+        if experiment.task_id:
+            try:
+                celery_app.control.revoke(experiment.task_id, terminate=True)
+                logger.info(f"Cancelled Celery task {experiment.task_id} for experiment {experiment_id}")
+            except Exception as celery_error:
+                logger.warning(f"Could not cancel Celery task: {str(celery_error)}")
+        
+        # Mettre à jour le statut
+        experiment.status = 'cancelled'
+        experiment.error_message = f"Cancelled by user at {datetime.utcnow()}"
+        experiment.updated_at = datetime.utcnow()
+        db.commit()
+        
+        logger.info(f"[SECURITY] User {current_user_id} cancelled experiment {experiment_id}")
+        logger.info(f"[AUDIT] Experiment {experiment_id} cancelled by user {current_user_id}")
+        
+        return {"message": "Experiment cancelled successfully", "experiment_id": experiment_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling experiment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error cancelling experiment: {str(e)}"
+        )
+
 @app.post("/data-quality/analyze", response_model=DataQualityAnalysis)
 def analyze_data_quality(
     request: DataQualityAnalysisRequest,
@@ -381,11 +578,34 @@ def analyze_data_quality(
         # Calculer le temps d'analyse
         analysis_duration = time.time() - start_time
         
-        # 3. Sauvegarder en cache
+        # 3. Sauvegarder en cache avec nettoyage JSON
+        import json
+        
+        # Nettoyer les NaN du résultat d'analyse avant sauvegarde
+        import numpy as np  # Import manquant ajouté
+        
+        def clean_nan_for_json(obj):
+            """Remplace récursivement les NaN, Infinity par des valeurs sérialisables"""
+            if isinstance(obj, dict):
+                return {k: clean_nan_for_json(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [clean_nan_for_json(item) for item in obj]
+            elif isinstance(obj, float):
+                if np.isnan(obj):
+                    return None
+                elif np.isinf(obj):
+                    return 999999.0 if obj > 0 else -999999.0  # Remplacer ±Infinity par des valeurs finies
+                else:
+                    return obj
+            return obj
+        
+        cleaned_analysis = clean_nan_for_json(analysis_result)
+        cleaned_strategies = clean_nan_for_json(analysis_result.get('preprocessing_recommendations', {}).get('missing_values_strategy', {}))
+        
         new_analysis = DataQualityAnalysisModel(
             dataset_id=request.dataset_id,
-            analysis_data=analysis_result,
-            column_strategies=analysis_result.get('preprocessing_recommendations', {}).get('missing_values_strategy', {}),
+            analysis_data=cleaned_analysis,
+            column_strategies=cleaned_strategies,
             quality_score=analysis_result['data_quality_score'],
             total_rows=analysis_result['dataset_overview']['total_rows'],
             total_columns=analysis_result['dataset_overview']['total_columns'],
@@ -610,6 +830,147 @@ def _generate_optimal_strategy(analysis: dict, request: PreprocessingStrategyReq
         feature_selection=None,  # À implémenter plus tard
         estimated_impact=estimated_impact
     )
+
+@app.get("/experiments/{experiment_id}/versions")
+def get_experiment_versions(
+    experiment_id: str,
+    db: Session = Depends(get_db),
+    current_user_id: uuid.UUID = Depends(get_current_user_id)
+):
+    """Get all versions of models for an experiment"""
+    try:
+        # Vérifier que l'expérience appartient à l'utilisateur
+        experiment = db.query(Experiment).filter(
+            Experiment.id == experiment_id,
+            Experiment.user_id == current_user_id
+        ).first()
+        
+        if not experiment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Experiment not found or access denied"
+            )
+        
+        # Lister les versions depuis le stockage
+        from common.storage_client import get_storage_client
+        storage_client = get_storage_client()
+        
+        # Construire le préfixe de recherche
+        prefix = f"ibis-x-models/{experiment.project_id}/{experiment.id}/"
+        
+        try:
+            # Liste des fichiers de modèles
+            model_files = storage_client.list_files(prefix)
+            
+            versions = []
+            for file_path in model_files:
+                if file_path.endswith('.joblib'):
+                    # Extraire la version du nom de fichier
+                    filename = file_path.split('/')[-1]
+                    if '_v' in filename:
+                        version = filename.split('_v')[1].split('.')[0]
+                        versions.append({
+                            'version': version,
+                            'file_path': file_path,
+                            'created_at': version  # La version contient le timestamp
+                        })
+            
+            # Trier par version décroissante (plus récent en premier)
+            versions.sort(key=lambda x: x['version'], reverse=True)
+            
+            return {
+                'experiment_id': experiment_id,
+                'versions': versions,
+                'total_versions': len(versions)
+            }
+            
+        except Exception as storage_error:
+            logger.error(f"Error listing model versions: {str(storage_error)}")
+            return {
+                'experiment_id': experiment_id,
+                'versions': [],
+                'total_versions': 0,
+                'error': 'Could not access storage'
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting experiment versions: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting experiment versions: {str(e)}"
+        )
+
+@app.get("/users/quotas")
+def get_user_quotas(
+    db: Session = Depends(get_db),
+    current_user_id: uuid.UUID = Depends(get_current_user_id)
+):
+    """Get user quotas and current usage"""
+    try:
+        from collections import defaultdict
+        from datetime import timedelta
+        
+        # Compter les expériences par statut
+        experiment_counts = db.query(Experiment).filter(
+            Experiment.user_id == current_user_id
+        ).all()
+        
+        status_counts = defaultdict(int)
+        for exp in experiment_counts:
+            status_counts[exp.status] += 1
+        
+        # Calculer l'usage des 24 dernières heures
+        yesterday = datetime.utcnow() - timedelta(hours=24)
+        recent_experiments = db.query(Experiment).filter(
+            Experiment.user_id == current_user_id,
+            Experiment.created_at >= yesterday
+        ).count()
+        
+        # Quotas définis (à terme, ces valeurs pourraient venir d'une table de configuration)
+        quotas = {
+            'max_concurrent_experiments': 5,
+            'max_experiments_per_day': 20,
+            'max_total_experiments': 100,
+            'max_model_storage_mb': 1000
+        }
+        
+        # Usage actuel
+        current_usage = {
+            'concurrent_experiments': status_counts['pending'] + status_counts['running'],
+            'experiments_last_24h': recent_experiments,
+            'total_experiments': len(experiment_counts),
+            'model_storage_mb': 0  # À calculer en interrogeant le stockage
+        }
+        
+        # Pourcentages d'usage
+        usage_percentages = {}
+        for quota_name, quota_value in quotas.items():
+            usage_key = quota_name.replace('max_', '')
+            if usage_key in current_usage:
+                usage_percentages[quota_name] = (current_usage[usage_key] / quota_value) * 100
+        
+        return {
+            'user_id': str(current_user_id),
+            'quotas': quotas,
+            'current_usage': current_usage,
+            'usage_percentages': usage_percentages,
+            'status_breakdown': dict(status_counts),
+            'warnings': [
+                warning for warning in [
+                    'Quota concurrent experiments proche de la limite' if usage_percentages.get('max_concurrent_experiments', 0) > 80 else None,
+                    'Quota quotidien proche de la limite' if usage_percentages.get('max_experiments_per_day', 0) > 80 else None
+                ] if warning
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting user quotas: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting user quotas: {str(e)}"
+        )
 
 if __name__ == "__main__":
     import uvicorn

@@ -25,7 +25,7 @@
         </div>
         <div class="logo-text">ML Pipeline</div>
       </div>
-          
+
       <!-- Navigation Steps -->
       <nav class="wizard-nav">
         <div class="nav-section">
@@ -38,7 +38,7 @@
                 <div class="step-title">Dataset</div>
               </div>
             </a>
-            
+
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 2" [class.completed]="getCurrentStepNumber() > 2">
               <div class="step-indicator">
                 <span class="step-number">2</span>
@@ -47,7 +47,7 @@
                 <div class="step-title">Nettoyage</div>
               </div>
             </a>
-            
+
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 3" [class.completed]="getCurrentStepNumber() > 3">
               <div class="step-indicator">
                 <span class="step-number">3</span>
@@ -56,7 +56,7 @@
                 <div class="step-title">Objectif</div>
               </div>
             </a>
-            
+
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 4" [class.completed]="getCurrentStepNumber() > 4">
               <div class="step-indicator">
                 <span class="step-number">4</span>
@@ -65,7 +65,7 @@
                 <div class="step-title">Division</div>
               </div>
             </a>
-            
+
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 5" [class.completed]="getCurrentStepNumber() > 5">
               <div class="step-indicator">
                 <span class="step-number">5</span>
@@ -74,7 +74,7 @@
                 <div class="step-title">Préparation</div>
               </div>
             </a>
-            
+
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 6" [class.completed]="getCurrentStepNumber() > 6">
               <div class="step-indicator">
                 <span class="step-number">6</span>
@@ -83,7 +83,7 @@
                 <div class="step-title">Algorithme</div>
               </div>
             </a>
-            
+
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 7" [class.completed]="getCurrentStepNumber() > 7">
               <div class="step-indicator">
                 <span class="step-number">7</span>
@@ -92,7 +92,7 @@
                 <div class="step-title">Paramètres</div>
               </div>
             </a>
-            
+
             <a class="nav-step" [class.active]="getCurrentStepNumber() === 8" [class.completed]="experimentResults">
               <div class="step-indicator">
                 <span class="step-number">8</span>
@@ -112,7 +112,7 @@
           <span class="credits-title">Crédits</span>
         </div>
         <div class="credits-indicator-wrapper">
-          <app-credits-indicator 
+          <app-credits-indicator
             [remaining]="getUserCredits()"
             [total]="10"
             size="small"
@@ -150,21 +150,21 @@
               </div>
             </div>
           </div>
-          
+
           <div class="header-right">
             <div class="progress-indicator">
               <span class="progress-text">Étape {{ getCurrentStepNumber() }} sur 8</span>
               <div class="progress-circle">
                 <svg class="progress-ring" width="32" height="32">
                   <circle cx="16" cy="16" r="14" fill="none" stroke="#e5e7eb" stroke-width="2"/>
-                  <circle cx="16" cy="16" r="14" fill="none" stroke="#6366f1" stroke-width="2" 
-                          [style.stroke-dasharray]="88" 
+                  <circle cx="16" cy="16" r="14" fill="none" stroke="#6366f1" stroke-width="2"
+                          [style.stroke-dasharray]="88"
                           [style.stroke-dashoffset]="88 - (88 * getProgressPercentage() / 100)"
                           class="progress-circle-active"/>
                 </svg>
               </div>
             </div>
-            
+
             <button class="modern-back-button" (click)="goBack()">
               <mat-icon>arrow_back</mat-icon>
               <span>Retour</span>
@@ -188,7 +188,7 @@
                   <h2 class="step-title">Aperçu du Dataset</h2>
                   <p class="step-description">Vérifiez les informations de votre dataset avant de continuer</p>
                   </div>
-                  
+
                 <div class="step-body">
                   <div *ngIf="dataset" class="dataset-card modern-card">
                     <div class="dataset-icon">
@@ -197,7 +197,7 @@
                     <div class="dataset-content">
                       <h3 class="dataset-name">{{ dataset.dataset_name }}</h3>
                         <p class="dataset-description">{{ dataset.objective || 'Aucune description disponible' }}</p>
-                        
+
                         <div class="dataset-stats">
                           <div class="stat" *ngIf="dataset.instances_number">
                             <mat-icon>table_chart</mat-icon>
@@ -212,19 +212,19 @@
                             <span>Qualité: {{ dataset.overall_score || 85 }}%</span>
                           </div>
                         </div>
-                      
+
                       <div class="dataset-tags" *ngIf="dataset.domain">
                         <span class="tag" *ngFor="let domain of dataset.domain">{{ domain }}</span>
                         </div>
                       </div>
                     </div>
-                    
+
 
                   </div>
                 </div>
               </form>
             </mat-step>
-            
+
           <!-- ÉTAPE 2: NETTOYAGE INTELLIGENT DES DONNÉES MULTI-COLONNES -->
           <mat-step>
             <form [formGroup]="dataCleaningForm">
@@ -346,7 +346,7 @@
                           <div class="strategy-badge radical">RADICAL</div>
                         </div>
                         <p class="strategy-description">Quand c'est trop abîmé, on jette !</p>
-                        
+
                         <div class="strategy-methods">
                           <h5>Méthodes :</h5>
                           <div class="method-item">
@@ -395,7 +395,7 @@
                           <div class="strategy-badge smart">INTELLIGENT</div>
                         </div>
                         <p class="strategy-description">On "devine" intelligemment les valeurs manquantes</p>
-                        
+
                         <div class="strategy-methods">
                           <h5>Méthodes :</h5>
                           <div class="method-grid">
@@ -464,7 +464,7 @@
                           <div class="strategy-badge temporal">TEMPOREL</div>
                         </div>
                         <p class="strategy-description">Pour les données qui suivent une séquence logique</p>
-                        
+
                         <div class="strategy-methods">
                           <h5>Méthodes :</h5>
                           <div class="method-item">
@@ -554,7 +554,7 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <div class="decision-rules">
                       <h4>🎯 Règles de Décision Automatique</h4>
                       <div class="rules-grid">
@@ -634,8 +634,8 @@
                     <mat-icon>arrow_back</mat-icon>
                     Retour
                   </button>
-                  <button mat-button 
-                          matStepperNext 
+                  <button mat-button
+                          matStepperNext
                           class="btn-primary"
                           [disabled]="!isDataCleaningComplete()">
                     <span>Continuer</span>
@@ -645,7 +645,7 @@
               </div>
             </form>
             </mat-step>
-            
+
           <!-- ÉTAPE 3: Configuration du Modèle -->
             <mat-step>
               <form [formGroup]="dataQualityForm">
@@ -657,7 +657,7 @@
                   <h2 class="step-title">Configuration du Modèle</h2>
                   <p class="step-description">Définissez les paramètres de votre modèle d'IA</p>
                   </div>
-                  
+
                 <div class="step-body">
                   <!-- Configuration de base -->
                   <div class="config-section">
@@ -665,7 +665,7 @@
                       <mat-icon>target</mat-icon>
                       <h3>Objectif de Prédiction</h3>
                     </div>
-                    
+
                   <div class="form-group">
                     <label class="form-label">Colonne cible à prédire</label>
                     <p class="form-description">Sélectionnez la variable que vous souhaitez prédire</p>
@@ -733,7 +733,7 @@
                       <mat-icon>settings_suggest</mat-icon>
                       <h3>Options Finales</h3>
                     </div>
-                    
+
                   <div class="form-group">
                       <label class="form-label checkbox-label">
                       <input type="checkbox" formControlName="featureScaling">
@@ -767,7 +767,7 @@
                 </div>
               </form>
             </mat-step>
-            
+
           <!-- ÉTAPE 4: Algorithme -->
             <mat-step>
               <form [formGroup]="algorithmForm">
@@ -779,14 +779,14 @@
                   <h2 class="step-title">Sélection de l'Algorithme</h2>
                   <p class="step-description">Choisissez l'algorithme de machine learning adapté à votre problème</p>
                   </div>
-                  
+
                 <div class="step-body">
                   <div class="algorithm-grid stagger-children">
-                      <div *ngFor="let algo of algorithms" 
+                      <div *ngFor="let algo of algorithms"
                          class="algorithm-card"
                            [class.selected]="algorithmForm.get('algorithm')?.value === algo.name"
                          (click)="selectAlgorithm(algo.name)">
-                      
+
                       <div class="algorithm-content">
                         <div class="algorithm-header">
                           <div class="algorithm-icon">
@@ -794,16 +794,16 @@
                           </div>
                           <h3 class="algorithm-name">{{ algo.display_name }}</h3>
                         </div>
-                        
+
                         <p class="algorithm-description">{{ algo.description }}</p>
-                        
+
                         <div class="algorithm-features">
                           <span class="feature" *ngIf="algo.supports_classification">Classification</span>
                           <span class="feature" *ngIf="algo.supports_regression">Régression</span>
                           <span class="feature" *ngIf="algo.name === 'random_forest'">Recommandé</span>
                         </div>
                       </div>
-                      
+
                       <div class="selection-indicator">
                         <mat-icon>check</mat-icon>
                         </div>
@@ -813,7 +813,7 @@
                 </div>
               </form>
             </mat-step>
-            
+
           <!-- ÉTAPE 4: Hyperparamètres -->
             <mat-step>
               <form [formGroup]="hyperparametersForm">
@@ -825,7 +825,7 @@
                   <h2 class="step-title">Paramètres Avancés</h2>
                   <p class="step-description">Affinez les paramètres de votre algorithme</p>
                   </div>
-                  
+
                 <div class="step-body">
                   <div *ngIf="selectedAlgorithm" class="modern-card">
                     <div class="flex items-center gap-md mb-0">
@@ -835,7 +835,7 @@
                       <h3>{{ selectedAlgorithm.display_name }}</h3>
                     </div>
                     </div>
-                    
+
                   <div *ngFor="let param of objectKeys(selectedAlgorithm?.hyperparameters || {})" class="form-group">
                     <ng-container [ngSwitch]="selectedAlgorithm!.hyperparameters[param].type">
                         <!-- Number Parameter -->
@@ -846,7 +846,7 @@
                                [min]="selectedAlgorithm!.hyperparameters[param].min ?? null"
                                [max]="selectedAlgorithm!.hyperparameters[param].max ?? null">
                       </div>
-                        
+
                         <!-- Select Parameter -->
                       <div *ngSwitchCase="'select'">
                         <label class="form-label">{{ param | titlecase }}</label>
@@ -857,7 +857,7 @@
                           </option>
                         </select>
                       </div>
-                        
+
                         <!-- Boolean Parameter -->
                       <div *ngSwitchCase="'boolean'">
                         <label class="form-label">
@@ -872,21 +872,21 @@
                 </div>
               </form>
             </mat-step>
-            
+
           <!-- ÉTAPE 6: Algorithme (stepper caché) -->
             <mat-step>
               <form>
                 <div>Algorithme</div>
               </form>
             </mat-step>
-            
+
           <!-- ÉTAPE 7: Hyperparamètres (stepper caché) -->
             <mat-step>
               <form>
                 <div>Hyperparamètres</div>
               </form>
             </mat-step>
-            
+
           <!-- ÉTAPE 8: Entraînement (stepper caché) -->
             <mat-step>
               <form [formGroup]="summaryForm">
@@ -902,7 +902,7 @@
                     {{ experimentResults ? 'Votre modèle a été entraîné avec succès' : (isTraining ? 'Veuillez patienter pendant l\'entraînement' : 'Vérifiez votre configuration et lancez l\'entraînement') }}
                   </p>
                   </div>
-                  
+
                 <div class="step-body">
                   <!-- Résumé de la configuration -->
                   <div *ngIf="!isTraining && !experimentResults" class="modern-card">
@@ -921,10 +921,10 @@
                         <strong>Type de tâche:</strong> {{ dataQualityForm.get('taskType')?.value }}
                       </div>
                     </div>
-                    
+
 
                   </div>
-                  
+
                   <!-- Progression de l'entraînement -->
                   <div *ngIf="isTraining" class="modern-card text-center">
                     <div class="loading-spinner"></div>
@@ -934,7 +934,7 @@
                       </div>
                     <p>{{ trainingProgress }}% complété</p>
                   </div>
-                  
+
                   <!-- Résultats -->
                   <div *ngIf="experimentResults" class="modern-card">
                     <h3>Résultats de l'entraînement</h3>
@@ -950,14 +950,14 @@
               </form>
             </mat-step>
           </mat-stepper>
-          
+
         <!-- Contenu Moderne et Centré -->
         <div class="modern-step-content">
           <!-- Container Principal -->
           <div class="content-container">
             <!-- Étape actuelle avec design moderne -->
             <div [ngSwitch]="getCurrentStepNumber()" class="step-wrapper">
-            
+
             <!-- ÉTAPE 1: Dataset Overview -->
             <div *ngSwitchCase="1" class="modern-step-card">
               <div class="card-header">
@@ -969,7 +969,7 @@
                   <p class="modern-step-description">Vérifiez les informations de votre dataset avant de continuer</p>
                 </div>
               </div>
-              
+
               <div class="step-body">
                 <!-- Carte d'information pour guider l'utilisateur -->
                 <div class="info-card gradient-border">
@@ -999,7 +999,7 @@
                   <div class="dataset-content">
                     <h3 class="dataset-name">{{ dataset.dataset_name }}</h3>
                     <p class="dataset-description">{{ dataset.objective || 'Aucune description disponible' }}</p>
-                    
+
                     <div class="dataset-stats">
                       <div class="stat" *ngIf="dataset.instances_number">
                         <mat-icon>table_chart</mat-icon>
@@ -1014,7 +1014,7 @@
                         <span>Qualité: {{ dataset.overall_score || 85 }}%</span>
                       </div>
                     </div>
-                    
+
                     <div class="dataset-tags" *ngIf="dataset.domain">
                       <span class="tag" *ngFor="let domain of dataset.domain">{{ domain }}</span>
                     </div>
@@ -1052,7 +1052,7 @@
               </div>
             </div>
 
-            
+
             <!-- ÉTAPE 2: Nettoyage des données -->
             <div *ngSwitchCase="2" class="modern-step-card">
               <div class="card-header">
@@ -1064,7 +1064,7 @@
                   <p class="modern-step-description">Détectez et corrigez les problèmes de qualité dans votre dataset</p>
                 </div>
               </div>
-              
+
               <div class="step-body">
                 <!-- Guide d'introduction -->
                 <div class="info-card gradient-border">
@@ -1111,10 +1111,10 @@
                     </div>
 
                   </div>
-                  
+
                   <!-- Bouton d'action central -->
                   <div class="action-button-container">
-                    <button type="button" 
+                    <button type="button"
                             class="btn-primary btn-lg btn-auto-fix"
                             (click)="analyzeColumnsCleaning()">
                       <mat-icon>auto_awesome</mat-icon>
@@ -1122,10 +1122,10 @@
                     </button>
                   </div>
                 </div>
-                
+
                 <!-- Interface granulaire de nettoyage par colonne -->
                 <div class="analysis-results" *ngIf="dataQualityAnalysis && !isAnalyzingData">
-                  
+
                   <!-- Vue d'ensemble de la qualité des données -->
                   <div class="quality-overview-card">
                     <div class="quality-header">
@@ -1203,36 +1203,36 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <tr *ngFor="let column of getColumnCleaningConfigs(); let i = index" 
+                          <tr *ngFor="let column of getColumnCleaningConfigs(); let i = index"
                               class="column-row"
                               [class.has-issues]="column.missingPercentage > 0"
                               [class.critical]="column.missingPercentage > 70">
-                            
+
                             <!-- Nom de la colonne -->
                             <td class="col-name">
                               <div class="column-name-cell">
                                 <mat-icon class="type-icon">{{ getColumnTypeIcon(column.type) }}</mat-icon>
                                 <span class="column-name">{{ column.name }}</span>
-                                <mat-icon class="status-icon" 
+                                <mat-icon class="status-icon"
                                           [class]="getColumnHealthClass(column)"
                                           [matTooltip]="getColumnHealthTooltip(column)">
                                   {{ getColumnHealthIcon(column) }}
                                 </mat-icon>
                               </div>
                             </td>
-                            
+
                             <!-- Type de données -->
                             <td class="col-type">
                               <span class="type-badge" [class]="column.type">
                                 {{ getColumnTypeLabel(column.type) }}
                               </span>
                             </td>
-                            
+
                             <!-- Pourcentage manquant -->
                             <td class="col-missing">
                               <div class="missing-info" *ngIf="column.missingPercentage > 0">
                                 <div class="missing-bar">
-                                  <div class="missing-fill" 
+                                  <div class="missing-fill"
                                        [style.width.%]="column.missingPercentage"
                                        [class.low]="column.missingPercentage < 15"
                                        [class.medium]="column.missingPercentage >= 15 && column.missingPercentage < 70"
@@ -1246,24 +1246,24 @@
                                 <span>Complet</span>
                               </div>
                             </td>
-                            
+
                             <!-- Sélection de stratégie -->
                             <td class="col-strategy">
                               <div class="strategy-container">
-                                <select class="strategy-select form-select" 
+                                <select class="strategy-select form-select"
                                         [(ngModel)]="column.strategy"
                                         [ngModelOptions]="{standalone: true}"
                                         (change)="onStrategyChange(column, i)"
                                         [class.recommended]="column.strategy === column.recommendedStrategy">
-                                  
+
                                   <!-- Pas de nettoyage nécessaire -->
                                   <optgroup label="✅ OK" *ngIf="column.missingPercentage === 0">
                                     <option value="none">Aucune action</option>
                                   </optgroup>
-                                  
+
                                   <!-- Suppression -->
                                   <optgroup label="🗑️ SUPPRESSION" *ngIf="column.missingPercentage > 0">
-                                    <option value="drop_column" 
+                                    <option value="drop_column"
                                             [disabled]="column.isTarget">
                                       Supprimer colonne
                                     </option>
@@ -1271,14 +1271,14 @@
                                       Supprimer lignes
                                     </option>
                                   </optgroup>
-                                  
+
                                   <!-- Imputation simple -->
                                   <optgroup label="🔧 SIMPLE" *ngIf="column.missingPercentage > 0 && column.missingPercentage < 70">
-                                    <option value="mean" 
+                                    <option value="mean"
                                             *ngIf="['integer', 'float'].includes(column.type)">
                                       Moyenne
                                     </option>
-                                    <option value="median" 
+                                    <option value="median"
                                             *ngIf="['integer', 'float'].includes(column.type)">
                                       Médiane
                                     </option>
@@ -1289,7 +1289,7 @@
                                       Constante
                                     </option>
                                   </optgroup>
-                                  
+
                                   <!-- Imputation avancée -->
                                   <optgroup label="🎯 AVANCÉ" *ngIf="column.missingPercentage > 0 && column.missingPercentage < 70">
                                     <option value="knn">
@@ -1302,7 +1302,7 @@
                                       Random Forest
                                     </option>
                                   </optgroup>
-                                  
+
                                   <!-- Interpolation (pour données temporelles) -->
                                   <optgroup label="📈 INTERPOLATION" *ngIf="column.missingPercentage > 0 && (column.isTimeSeries || column.type === 'datetime')">
                                     <option value="linear">
@@ -1319,9 +1319,9 @@
                                     </option>
                                   </optgroup>
                                 </select>
-                                
+
                                 <!-- Badge de recommandation -->
-                                <span class="recommendation-badge" 
+                                <span class="recommendation-badge"
                                       *ngIf="column.strategy === column.recommendedStrategy"
                                       matTooltip="Stratégie recommandée par l'IA">
                                   <mat-icon>auto_awesome</mat-icon>
@@ -1329,44 +1329,44 @@
                                 </span>
                               </div>
                             </td>
-                            
+
                             <!-- Paramètres spécifiques -->
                             <td class="col-params">
                               <div class="params-container">
                                 <!-- Paramètres pour KNN -->
                                 <div class="param-group" *ngIf="column.strategy === 'knn'">
                                   <label>Voisins:</label>
-                                  <input type="number" 
-                                         [(ngModel)]="column.params.n_neighbors" 
+                                  <input type="number"
+                                         [(ngModel)]="column.params.n_neighbors"
                                          [ngModelOptions]="{standalone: true}"
-                                         min="1" max="20" 
+                                         min="1" max="20"
                                          class="param-input form-input">
                                 </div>
-                                
+
                                 <!-- Paramètres pour constante -->
                                 <div class="param-group" *ngIf="column.strategy === 'constant'">
                                   <label>Valeur:</label>
-                                  <input type="text" 
-                                         [(ngModel)]="column.params.fill_value" 
+                                  <input type="text"
+                                         [(ngModel)]="column.params.fill_value"
                                          [ngModelOptions]="{standalone: true}"
                                          placeholder="Ex: 0, 'Unknown'"
                                          class="param-input form-input">
                                 </div>
-                                
+
                                 <!-- Paramètres pour iterative -->
                                 <div class="param-group" *ngIf="column.strategy === 'iterative'">
                                   <label>Itérations:</label>
-                                  <input type="number" 
-                                         [(ngModel)]="column.params.max_iter" 
+                                  <input type="number"
+                                         [(ngModel)]="column.params.max_iter"
                                          [ngModelOptions]="{standalone: true}"
-                                         min="5" max="50" 
+                                         min="5" max="50"
                                          class="param-input form-input">
                                 </div>
-                                
+
                                 <!-- Paramètres pour spline -->
                                 <div class="param-group" *ngIf="column.strategy === 'spline'">
                                   <label>Ordre:</label>
-                                  <select [(ngModel)]="column.params.order" 
+                                  <select [(ngModel)]="column.params.order"
                                           [ngModelOptions]="{standalone: true}"
                                           class="param-select form-select">
                                     <option value="1">Linéaire</option>
@@ -1374,17 +1374,17 @@
                                     <option value="3">Cubique</option>
                                   </select>
                                 </div>
-                                
+
                                 <!-- Pas de paramètres -->
                                 <div class="no-params" *ngIf="!hasParameters(column.strategy)">
                                   <span class="text-muted">Aucun paramètre</span>
                                 </div>
                               </div>
                             </td>
-                            
+
                             <!-- Aperçu de l'effet -->
                             <td class="col-preview">
-                              <button type="button" 
+                              <button type="button"
                                       class="btn-preview modern-btn btn-sm btn-ghost"
                                       (click)="previewColumnCleaning(column, i)"
                                       [disabled]="column.strategy === 'none'">
@@ -1396,7 +1396,7 @@
                         </tbody>
                       </table>
                     </div>
-                    
+
                     <!-- Résumé des stratégies appliquées -->
                     <div class="strategies-summary modern-card">
                       <h4>Résumé du Pipeline de Nettoyage</h4>
@@ -1409,13 +1409,13 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <!-- Section de gestion des datasets multiples -->
                   <div class="multiple-datasets-section" *ngIf="showMultipleDatasets">
                     <div class="section-header">
                       <mat-icon>join_inner</mat-icon>
                       <h3>Fusion de Datasets</h3>
-                      <button type="button" class="btn-toggle-datasets modern-btn btn-sm btn-ghost" 
+                      <button type="button" class="btn-toggle-datasets modern-btn btn-sm btn-ghost"
                               (click)="showMultipleDatasets = false">
                         <mat-icon>close</mat-icon>
                       </button>
@@ -1425,7 +1425,7 @@
                         <mat-icon>info</mat-icon>
                         Vous pouvez croiser plusieurs datasets en définissant des clés de jointure
                       </p>
-                      
+
                       <!-- Liste des datasets ajoutés -->
                       <div class="joined-datasets-list" *ngIf="additionalDatasets.length > 0">
                         <div class="joined-dataset-item" *ngFor="let ds of additionalDatasets; let i = index">
@@ -1452,18 +1452,18 @@
                           </div>
                         </div>
                       </div>
-                      
-                      <button type="button" class="btn-add-dataset modern-btn btn-secondary" 
+
+                      <button type="button" class="btn-add-dataset modern-btn btn-secondary"
                               (click)="openDatasetSelector()">
                         <mat-icon>add</mat-icon>
                         Ajouter un dataset
                       </button>
                     </div>
                   </div>
-                  
+
                   <!-- Actions globales -->
                   <div class="global-actions">
-                    <button type="button" class="btn-show-multi modern-btn btn-ghost" 
+                    <button type="button" class="btn-show-multi modern-btn btn-ghost"
                             (click)="showMultipleDatasets = !showMultipleDatasets"
                             *ngIf="!showMultipleDatasets">
                       <mat-icon>join_inner</mat-icon>
@@ -1540,7 +1540,7 @@
                   <p class="modern-step-description">Choisissez ce que vous voulez prédire et le type de problème</p>
                 </div>
               </div>
-              
+
               <div class="step-body" [formGroup]="dataQualityForm">
                 <div class="configuration-sections">
                   <!-- Section 1: Variable cible -->
@@ -1599,7 +1599,7 @@
                   <p class="modern-step-description">Séparez vos données en jeux d'entraînement et de test</p>
                 </div>
               </div>
-              
+
               <div class="step-body" [formGroup]="dataQualityForm">
                 <div class="info-card gradient-border">
                   <div class="info-header">
@@ -1647,7 +1647,7 @@
                   <p class="modern-step-description">Transformez vos données pour l'IA</p>
                 </div>
               </div>
-              
+
               <div class="step-body" [formGroup]="dataQualityForm">
                 <!-- Introduction -->
                 <div class="modern-intro-card">
@@ -1690,10 +1690,10 @@
                   <!-- Options de normalisation -->
                   <div class="normalization-options" *ngIf="dataQualityForm.get('featureScaling')?.value">
                     <h4 class="options-title">Choisissez votre méthode :</h4>
-                    
+
                     <div class="scaling-cards-grid">
                       <!-- StandardScaler -->
-                      <div class="scaling-card recommended" 
+                      <div class="scaling-card recommended"
                            [class.selected]="dataQualityForm.get('scalingMethod')?.value === 'standard'"
                            (click)="dataQualityForm.get('scalingMethod')?.setValue('standard')">
                         <div class="card-header-compact">
@@ -1717,7 +1717,7 @@
                       </div>
 
                       <!-- MinMaxScaler -->
-                      <div class="scaling-card" 
+                      <div class="scaling-card"
                            [class.selected]="dataQualityForm.get('scalingMethod')?.value === 'minmax'"
                            (click)="dataQualityForm.get('scalingMethod')?.setValue('minmax')">
                         <div class="card-header-compact">
@@ -1740,7 +1740,7 @@
                       </div>
 
                       <!-- RobustScaler -->
-                      <div class="scaling-card" 
+                      <div class="scaling-card"
                            [class.selected]="dataQualityForm.get('scalingMethod')?.value === 'robust'"
                            (click)="dataQualityForm.get('scalingMethod')?.setValue('robust')">
                         <div class="card-header-compact">
@@ -1779,7 +1779,7 @@
 
                   <div class="encoding-cards-grid">
                     <!-- One-Hot Encoding -->
-                    <div class="encoding-card" 
+                    <div class="encoding-card"
                          [class.selected]="dataQualityForm.get('categoricalEncoding')?.value === 'onehot'"
                          (click)="dataQualityForm.get('categoricalEncoding')?.setValue('onehot')">
                       <input type="radio" formControlName="categoricalEncoding" value="onehot" style="display: none;">
@@ -1800,7 +1800,7 @@
                     </div>
 
                     <!-- Label Encoding -->
-                    <div class="encoding-card" 
+                    <div class="encoding-card"
                          [class.selected]="dataQualityForm.get('categoricalEncoding')?.value === 'label'"
                          (click)="dataQualityForm.get('categoricalEncoding')?.setValue('label')">
                       <input type="radio" formControlName="categoricalEncoding" value="label" style="display: none;">
@@ -1855,7 +1855,7 @@
                   <p class="modern-step-description">Choisissez l'algorithme de machine learning adapté à votre problème</p>
                 </div>
               </div>
-              
+
               <div class="step-body">
                 <!-- Guide pour comprendre les algorithmes -->
                 <div class="info-card gradient-border">
@@ -1907,12 +1907,12 @@
                 </div>
 
                 <div class="algorithm-grid stagger-children">
-                  <div *ngFor="let algo of algorithms" 
+                  <div *ngFor="let algo of algorithms"
                        class="algorithm-card enhanced"
                        [class.selected]="algorithmForm.get('algorithm')?.value === algo.name"
                        [class.recommended]="algo.name === 'random_forest'"
                        (click)="selectAlgorithm(algo.name)">
-                    
+
                     <div class="algorithm-content">
                       <div class="algorithm-header">
                         <div class="algorithm-icon">
@@ -1924,9 +1924,9 @@
                           Recommandé
                         </span>
                       </div>
-                      
+
                       <p class="algorithm-description">{{ algo.description }}</p>
-                      
+
                       <!-- Caractéristiques détaillées -->
                       <div class="algorithm-details">
                         <div class="detail-row">
@@ -1942,7 +1942,7 @@
                           <span>Précision : {{ getAlgorithmAccuracy(algo.name) }}</span>
                         </div>
                       </div>
-                      
+
                       <div class="algorithm-features">
                         <span class="feature" *ngIf="algo.supports_classification">
                           <mat-icon>category</mat-icon>
@@ -1953,7 +1953,7 @@
                           Régression
                         </span>
                       </div>
-                      
+
                       <!-- Cas d'usage -->
                       <div class="use-cases">
                         <h5>Idéal pour :</h5>
@@ -1962,7 +1962,7 @@
                         </ul>
                       </div>
                     </div>
-                    
+
                     <div class="selection-indicator">
                       <mat-icon>check_circle</mat-icon>
                     </div>
@@ -2098,7 +2098,7 @@
                   <p class="modern-step-description">Affinez les paramètres de votre algorithme pour optimiser les performances</p>
                 </div>
               </div>
-              
+
               <div class="step-body">
                 <!-- Guide sur les hyperparamètres -->
                 <div class="info-card gradient-border">
@@ -2160,10 +2160,10 @@
 
                 <!-- Configuration des paramètres -->
                 <div [formGroup]="hyperparametersForm" class="hyperparameters-grid">
-                  <div *ngFor="let param of objectKeys(selectedAlgorithm?.hyperparameters || {})" 
+                  <div *ngFor="let param of objectKeys(selectedAlgorithm?.hyperparameters || {})"
                        class="hyper-param-card modern-card">
                     <ng-container [ngSwitch]="selectedAlgorithm!.hyperparameters[param].type">
-                      
+
                       <!-- Number Parameter -->
                       <div *ngSwitchCase="'number'" class="param-content">
                         <div class="param-header">
@@ -2176,7 +2176,7 @@
                           </div>
                           <mat-icon class="help-btn" matTooltip="{{ getParameterTooltip(param) }}">help_outline</mat-icon>
                         </div>
-                        
+
                         <div class="number-control">
                           <div class="number-input-wrapper">
                             <input class="modern-number-input" type="number" [formControlName]="param"
@@ -2184,7 +2184,7 @@
                                    [max]="selectedAlgorithm!.hyperparameters[param].max ?? null">
                             <div class="input-label">Valeur</div>
                           </div>
-                          
+
                           <div class="value-info">
                             <div class="current-badge">
                               Actuel: <strong>{{ hyperparametersForm.get(param)?.value }}</strong>
@@ -2196,13 +2196,13 @@
                             </div>
                           </div>
                         </div>
-                        
+
                         <div class="param-impact">
                           <mat-icon>insights</mat-icon>
                           <span>{{ getParameterImpact(param) }}</span>
                         </div>
                       </div>
-                      
+
                       <!-- Select Parameter -->
                       <div *ngSwitchCase="'select'" class="param-content">
                         <div class="param-header">
@@ -2215,10 +2215,10 @@
                           </div>
                           <mat-icon class="help-btn" matTooltip="{{ getParameterTooltip(param) }}">help_outline</mat-icon>
                         </div>
-                        
+
                         <!-- Options modernes sous forme de cards -->
                         <div class="select-options-grid">
-                          <div *ngFor="let option of selectedAlgorithm!.hyperparameters[param].options" 
+                          <div *ngFor="let option of selectedAlgorithm!.hyperparameters[param].options"
                                class="option-card"
                                [class.selected]="hyperparametersForm.get(param)?.value === option"
                                (click)="hyperparametersForm.get(param)?.setValue(option)">
@@ -2236,7 +2236,7 @@
                           </div>
                         </div>
                       </div>
-                      
+
                       <!-- Boolean Parameter -->
                       <div *ngSwitchCase="'boolean'" class="param-content">
                         <div class="param-header">
@@ -2249,13 +2249,13 @@
                           </div>
                           <mat-icon class="help-btn" matTooltip="{{ getParameterTooltip(param) }}">help_outline</mat-icon>
                         </div>
-                        
+
                         <div class="boolean-control">
                           <mat-slide-toggle [formControlName]="param" color="primary">
                             <span class="toggle-label">Activer cette option</span>
                           </mat-slide-toggle>
                         </div>
-                        
+
                         <div class="boolean-feedback" [class.active]="hyperparametersForm.get(param)?.value">
                           <div class="feedback-icon">
                             <mat-icon>{{ hyperparametersForm.get(param)?.value ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
@@ -2319,7 +2319,7 @@
                   </p>
                 </div>
               </div>
-              
+
               <div class="step-body">
                 <!-- Résumé avant lancement -->
                 <div *ngIf="!isTraining && !experimentResults">
@@ -2503,7 +2503,7 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <div class="form-group launch-confirmation" [formGroup]="finalVerificationForm">
                     <label class="form-label checkbox-label">
                       <input type="checkbox" formControlName="confirmed" (change)="onConfirmationChange($event)">
@@ -2522,7 +2522,7 @@
                     </div>
                     <p><strong>{{ trainingProgress }}%</strong> complété</p>
                   </div>
-                  
+
                   <!-- Console de logs moderne -->
                   <div class="training-logs-section">
                     <div class="logs-header">
@@ -2541,17 +2541,17 @@
                         </button>
                       </div>
                     </div>
-                    
+
                     <div class="modern-console" #logsContainer>
-                      <div *ngFor="let log of trainingLogs; trackBy: trackLogFn" 
-                           class="console-line" 
+                      <div *ngFor="let log of trainingLogs; trackBy: trackLogFn"
+                           class="console-line"
                            [ngClass]="log.level"
                            [@fadeInUp]>
                         <span class="timestamp">{{ log.timestamp | date:'HH:mm:ss.SSS' }}</span>
                         <span class="log-level">[{{ log.level.toUpperCase() }}]</span>
                         <span class="log-message">{{ log.message }}</span>
                       </div>
-                      
+
                       <div *ngIf="trainingLogs.length === 0" class="console-line info">
                         <span class="timestamp">{{ getCurrentTimestamp() }}</span>
                         <span class="log-level">[INFO]</span>
@@ -2567,10 +2567,10 @@
                     <div class="success-icon">
                       <mat-icon>check_circle</mat-icon>
                     </div>
-                    <h3>Résultats de l'entraînement</h3>
-                    <p>Votre modèle a été entraîné avec succès !</p>
+                    <h3>🎉 Résultats de l'entraînement</h3>
+                    <p>Votre modèle a été entraîné avec succès ! Découvrez ses performances ci-dessous.</p>
                   </div>
-                  
+
                   <div class="metrics-grid">
                     <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="metric-card">
                       <div class="metric-icon">
@@ -2579,27 +2579,47 @@
                       <div class="metric-content">
                         <div class="metric-value">{{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%</div>
                         <div class="metric-label">{{ getMetricLabel(metric) }}</div>
-                        
+
                         <!-- Barre de progression pour chaque métrique -->
                         <div class="metric-progress">
-                          <div class="modern-progress progress-sm" 
+                          <div class="modern-progress progress-sm"
                                [ngClass]="getMetricProgressClass(metric)">
-                            <div class="progress-fill" 
+                            <div class="progress-fill"
                                  [style.width.%]="experimentResults.metrics[metric] * 100"></div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
+                  <!-- Guide utilisateur -->
+                  <div class="user-guide-section">
+                    <div class="guide-card">
+                      <mat-icon class="guide-icon">info</mat-icon>
+                      <div class="guide-content">
+                        <h4>🎯 Que faire maintenant ?</h4>
+                        <ul class="guide-steps">
+                          <li>📊 <strong>Cliquez sur "Voir les graphiques et détails"</strong> pour explorer les visualisations complètes</li>
+                          <li>📈 Consultez la <strong>matrice de confusion</strong> et l'<strong>importance des features</strong></li>
+                          <li>💾 <strong>Téléchargez votre modèle</strong> si les performances vous conviennent</li>
+                          <li>🔄 Ou lancez un <strong>nouvel entraînement</strong> avec d'autres paramètres</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="results-actions">
-                    <button class="modern-btn btn-secondary" (click)="downloadModel()">
+                    <button class="modern-btn btn-primary"
+                            (click)="viewDetailedResults()"
+                            [disabled]="!experimentResults">
+                      <mat-icon>analytics</mat-icon>
+                      Voir les graphiques et détails
+                    </button>
+                    <button class="modern-btn btn-secondary"
+                            (click)="downloadModel()"
+                            [disabled]="!experimentResults?.artifact_uri">
                       <mat-icon>download</mat-icon>
                       Télécharger le modèle
-                    </button>
-                    <button class="modern-btn btn-ghost" (click)="viewDetailedResults()">
-                      <mat-icon>analytics</mat-icon>
-                      Voir les détails
                     </button>
                   </div>
                 </div>
@@ -2614,8 +2634,8 @@
         <nav class="modern-navigation">
           <div class="navigation-container">
             <div class="nav-left">
-              <button class="modern-nav-button secondary" 
-                (click)="previousStep()" 
+              <button class="modern-nav-button secondary"
+                (click)="previousStep()"
                       [disabled]="getCurrentStepNumber() === 1">
                 <mat-icon>chevron_left</mat-icon>
                 <span>Précédent</span>
@@ -2624,7 +2644,7 @@
 
             <div class="nav-center">
               <div class="step-dots-modern">
-                <div *ngFor="let step of [1,2,3,4,5,6,7,8]; let i = index" 
+                <div *ngFor="let step of [1,2,3,4,5,6,7,8]; let i = index"
                      class="dot-modern"
                      [class.active]="getCurrentStepNumber() === step"
                      [class.completed]="getCurrentStepNumber() > step">
@@ -2634,23 +2654,31 @@
             </div>
 
             <div class="nav-right">
-              <button *ngIf="getCurrentStepNumber() < 8" 
-                      class="modern-nav-button primary" 
+              <button *ngIf="getCurrentStepNumber() < 8"
+                      class="modern-nav-button primary"
                 (click)="nextStep()">
                 <span>Suivant</span>
                 <mat-icon>chevron_right</mat-icon>
               </button>
-              
-              <button *ngIf="getCurrentStepNumber() === 8 && !isTraining && !experimentResults" 
-                      class="modern-nav-button launch" 
+
+              <button *ngIf="getCurrentStepNumber() === 8 && !isTraining && !experimentResults"
+                      class="modern-nav-button launch"
                       [disabled]="!isFormValid() || !finalVerificationForm.value.confirmed"
                       (click)="startTraining()">
                 <mat-icon>rocket_launch</mat-icon>
                 <span>Lancer l'entraînement</span>
               </button>
-              
-              <button *ngIf="experimentResults" 
-                      class="modern-nav-button success" 
+
+              <!-- Boutons quand entraînement terminé -->
+              <button *ngIf="experimentResults"
+                      class="modern-nav-button primary"
+                      (click)="viewDetailedResults()">
+                <mat-icon>analytics</mat-icon>
+                <span>Voir les résultats</span>
+              </button>
+
+              <button *ngIf="experimentResults"
+                      class="modern-nav-button success"
                       (click)="backToApp()">
                 <mat-icon>check_circle</mat-icon>
                 <span>Terminer</span>
@@ -2661,4 +2689,4 @@
       </div>
     </main>
   </div>
-</div> 
+</div>

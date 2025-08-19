@@ -1,0 +1,508 @@
+= Guide Utilisateur : Pipeline ML
+:description: Guide d'utilisation de la pipeline ML d'IBIS-X pour les utilisateurs non-experts en science des données.
+:sectlinks:
+:sectanchors:
+
+== Introduction à la Pipeline ML
+
+La *Pipeline ML d'IBIS-X* vous permet d'entraîner des modèles de machine learning sans expertise technique approfondie. Le système guide chaque étape du processus, depuis la sélection des données jusqu'à l'évaluation des résultats.
+
+[NOTE]
+====
+🎯 *Objectif*
+
+Démocratiser l'accès au machine learning en rendant l'entraînement de modèles accessible à tous, indépendamment du niveau technique.
+====
+
+== Workflow Complet
+
+=== Étape 1 : Sélection du Dataset
+
+. Accédez à la section *"Datasets"* depuis le menu principal
+. Utilisez les filtres pour trouver le dataset adapté à votre projet
+. Consultez les métriques de qualité et les détails du dataset
+. Cliquez sur *"Sélectionner pour ML"* pour procéder
+
+[TIP]
+====
+💡 *Conseil*
+
+Privilégiez les datasets avec :
+* Score de qualité > 80%
+* Données anonymisées
+* Format adapté à votre problématique (classification/régression)
+====
+
+=== Étape 2 : Configuration du Préprocessing
+
+==== Analyse Automatique des Données
+
+Le système analyse automatiquement votre dataset et fournit :
+
+* *Vue d'ensemble* : Nombre de lignes, colonnes, usage mémoire
+* *Types de colonnes* : Numériques, catégorielles, dates
+* *Données manquantes* : Pourcentage et patterns par colonne  
+* *Outliers* : Détection via méthodes IQR et Z-Score
+* *Score de qualité* : Note globale de 0 à 100
+
+==== Configuration Recommandée
+
+Le système propose automatiquement :
+
+[cols="1,2,3"]
+|===
+|Paramètre |Recommandation |Explication
+
+|*Colonne cible*
+|Dernière colonne du dataset
+|Variable à prédire
+
+|*Type de tâche*
+|Classification ou Régression
+|Basé sur le type de la colonne cible
+
+|*Gestion valeurs manquantes*
+|Stratégie optimale par colonne
+|Moyenne, médiane, mode ou KNN selon le type
+
+|*Normalisation*
+|Recommandée si échelles différentes
+|Améliore la performance des algorithmes
+
+|*Split train/test*
+|80% / 20%
+|Proportion standard pour évaluation
+|===
+
+[WARNING]
+====
+⚠️ *Attention*
+
+Si le score de qualité est < 60%, considérez :
+* Nettoyer le dataset manuellement
+* Contacter l'équipe support pour assistance
+* Choisir un dataset alternatif
+====
+
+=== Étape 3 : Sélection de l'Algorithme
+
+==== Algorithmes Disponibles
+
+[cols="1,2,2,3"]
+|===
+|Algorithme |Classification |Régression |Cas d'Usage Recommandés
+
+|*Decision Tree*
+|✅ Oui
+|✅ Oui
+|* Données petites à moyennes
+* Besoin d'interprétabilité
+* Première approche
+
+|*Random Forest*
+|✅ Oui  
+|✅ Oui
+|* Tous types de datasets
+* Meilleure performance générale
+* Robuste aux outliers
+|===
+
+==== Hyperparamètres Simplifiés
+
+Pour chaque algorithme, le système propose des paramètres optimisés avec explications :
+
+===== Decision Tree
+
+* *Profondeur maximum* (1-50) : Contrôle la complexité de l'arbre
+  ** Faible (5) = Modèle simple, moins de surapprentissage
+  ** Élevée (20+) = Modèle complexe, risque de surapprentissage
+
+* *Critère de division* : 
+  ** `gini` = Standard pour classification
+  ** `entropy` = Alternative, parfois plus précise
+
+===== Random Forest
+
+* *Nombre d'arbres* (10-500) : Plus d'arbres = meilleure performance mais plus lent
+* *Profondeur maximum* : Même principe que Decision Tree
+* *Bootstrap* : Utilisation d'échantillons aléatoires (recommandé : activé)
+
+[TIP]
+====
+💡 *Conseil débutant*
+
+Commencez avec les valeurs par défaut suggérées. Vous pourrez expérimenter avec des paramètres personnalisés une fois familiarisé avec le système.
+====
+
+=== Étape 4 : Lancement et Suivi
+
+==== Soumission de l'Expérience
+
+. Vérifiez le résumé de votre configuration
+. Cliquez sur *"Lancer l'Entraînement"*
+. L'expérience est mise en file d'attente automatiquement
+
+==== Suivi en Temps Réel
+
+L'interface affiche :
+
+* *Statut* : En attente → En cours → Terminé/Échoué
+* *Progression* : Barre de progression de 0 à 100%
+* *Étape actuelle* : Chargement → Préprocessing → Entraînement → Évaluation
+* *Temps écoulé* : Durée depuis le lancement
+
+[cols="1,2,3"]
+|===
+|Statut |Signification |Action
+
+|*En attente*
+|Expérience en file d'attente
+|Patientez, sera traitée automatiquement
+
+|*En cours*
+|Entraînement en cours d'exécution
+|Suivez la progression, n'interrompez pas
+
+|*Terminé*
+|Entraînement réussi
+|Consultez les résultats
+
+|*Échoué*
+|Erreur pendant l'entraînement
+|Consultez l'erreur, ajustez la configuration
+|===
+
+==== Annulation d'Expérience
+
+Vous pouvez annuler une expérience :
+* En attente : Annulation immédiate
+* En cours : Arrêt propre du processus (peut prendre quelques minutes)
+
+== Interprétation des Résultats
+
+=== Métriques de Performance
+
+==== Classification
+
+[cols="1,2,3"]
+|===
+|Métrique |Interprétation |Valeur Idéale
+
+|*Accuracy (Précision)*
+|Pourcentage de prédictions correctes
+|> 80% = Excellent, 60-80% = Bon, < 60% = À améliorer
+
+|*Precision*
+|Parmi les prédictions positives, combien sont correctes
+|> 0.8 = Très bon, 0.6-0.8 = Acceptable
+
+|*Recall (Rappel)*
+|Parmi les vrais positifs, combien sont détectés
+|> 0.8 = Très bon, dépend du cas d'usage
+
+|*F1-Score*
+|Moyenne harmonique de Precision et Recall
+|> 0.8 = Excellent équilibre
+|===
+
+==== Régression
+
+[cols="1,2,3"]
+|===
+|Métrique |Interprétation |Valeur Idéale
+
+|*MAE (Erreur Absolue Moyenne)*
+|Erreur moyenne en unités originales
+|Plus faible = meilleur
+
+|*RMSE (Racine de l'Erreur Quadratique)*
+|Pénalise davantage les grosses erreurs
+|Plus faible = meilleur
+
+|*R² (Coefficient de Détermination)*
+|Pourcentage de variance expliquée
+|> 0.8 = Excellent, 0.6-0.8 = Bon, < 0.6 = Médiocre
+|===
+
+=== Visualisations Explicatives
+
+==== Matrice de Confusion (Classification)
+
+[source]
+----
+         Prédites
+Réelles    A    B    C
+    A     85    3    2    (90 vrais A)
+    B      5   78    7    (90 vrais B)  
+    C      1    4   85    (90 vrais C)
+----
+
+* *Diagonale* : Prédictions correctes (plus élevée = mieux)
+* *Hors diagonale* : Erreurs de classification
+
+==== Importance des Features
+
+Graphique montrant quelles variables influencent le plus les prédictions :
+
+[source]
+----
+Age                 ████████████ 25%
+Revenu             ██████████   20%
+Éducation          ████████     15%
+Région             ██████       12%
+Experience         ████         8%
+...
+----
+
+[TIP]
+====
+💡 *Utilisation pratique*
+
+Les features les plus importantes sont celles sur lesquelles vous devriez concentrer vos efforts de collecte et d'amélioration des données.
+====
+
+==== Courbe ROC (Classification Binaire)
+
+Mesure la capacité du modèle à distinguer entre deux classes :
+
+* *AUC = 0.5* : Modèle aléatoire (pas mieux qu'une pièce de monnaie)
+* *AUC = 0.7-0.8* : Performance acceptable
+* *AUC = 0.8-0.9* : Bonne performance
+* *AUC > 0.9* : Excellente performance
+
+== Gestion des Quotas
+
+=== Limites Utilisateur
+
+[cols="1,2,3"]
+|===
+|Quota |Limite |Objectif
+
+|*Expériences simultanées*
+|5
+|Éviter la surcharge système
+
+|*Expériences par jour*
+|20
+|Usage raisonnable des ressources
+
+|*Stockage total*
+|1 GB
+|Limite de stockage des modèles
+
+|*Expériences totales*
+|100
+|Limite globale par utilisateur
+|===
+
+=== Gestion Intelligente
+
+* *Auto-nettoyage* : Anciens modèles supprimés après 30 jours
+* *Priorisation* : Files d'attente avec priorité utilisateur
+* *Alertes proactives* : Notification avant d'atteindre les limites
+
+== Cas d'Usage Pratiques
+
+=== Exemple 1 : Prédiction de Performance Étudiante
+
+. *Dataset* : Notes, assiduité, données socio-économiques
+. *Objectif* : Prédire le risque d'échec scolaire
+. *Configuration recommandée* :
+  ** Algorithme : Random Forest
+  ** Colonne cible : "échec_scolaire" (Oui/Non)
+  ** Préprocessing : Gestion des absences avec médiane
+
+. *Interprétation* :
+  ** F1-Score > 0.75 = Modèle utilisable pour intervention précoce
+  ** Features importantes = Facteurs de risque à surveiller
+
+=== Exemple 2 : Analyse de Satisfaction Client
+
+. *Dataset* : Enquêtes de satisfaction, données d'usage
+. *Objectif* : Prédire la note de satisfaction (1-10)
+. *Configuration recommandée* :
+  ** Algorithme : Random Forest
+  ** Type : Régression
+  ** Préprocessing : Normalisation recommandée
+
+. *Interprétation* :
+  ** R² > 0.6 = Modèle explique bien la satisfaction
+  ** MAE < 1.0 = Erreur acceptable d'un point
+
+== Dépannage Utilisateur
+
+=== Problèmes Fréquents
+
+[cols="1,2,3"]
+|===
+|Problème |Symptôme |Solution
+
+|*Dataset incompatible*
+|Erreur lors du chargement
+|Vérifiez le format, contactez le support
+
+|*Entraînement très long*
+|> 2h sans progression
+|Utilisez un échantillon plus petit
+
+|*Métriques faibles*
+|Accuracy < 60%
+|Changez d'algorithme ou de préprocessing
+
+|*Quota atteint*
+|Impossible de lancer
+|Attendez la fin d'autres expériences
+
+|*Expérience bloquée*
+|Statut "En cours" > 4h
+|Annulez et relancez
+|===
+
+=== Optimisation des Résultats
+
+==== Si les performances sont décevantes :
+
+. *Vérifiez la qualité des données*
+  ** Score < 70% ? Nettoyez le dataset
+  ** Beaucoup de valeurs manquantes ? Changez la stratégie
+
+. *Expérimentez avec les algorithmes*
+  ** Decision Tree pour commencer (rapide, interprétable)
+  ** Random Forest pour améliorer la performance
+
+. *Ajustez les hyperparamètres*
+  ** Augmentez le nombre d'arbres (Random Forest)
+  ** Modifiez la profondeur maximum
+  ** Testez différents critères de division
+
+. *Reconfigurez le préprocessing*
+  ** Changez la stratégie de valeurs manquantes
+  ** Activez/désactivez la normalisation
+  ** Ajustez le split train/test
+
+== Interface Utilisateur
+
+=== Navigation
+
+. *Tableau de bord* → Vue d'ensemble de vos expériences
+. *Nouvelle expérience* → Lancer un entraînement
+. *Historique* → Consulter les expériences passées
+. *Monitoring* → Suivre les performances système
+
+=== Indicateurs Visuels
+
+* 🟢 *Vert* : Expérience réussie, métriques bonnes
+* 🟡 *Orange* : Expérience terminée, performance à améliorer
+* 🔴 *Rouge* : Expérience échouée, erreur à corriger
+* 🔵 *Bleu* : Expérience en cours, patientez
+
+=== Notifications
+
+Le système vous notifie automatiquement :
+
+* 📧 *Par email* : Fin d'entraînement (succès/échec)
+* 🔔 *Dans l'interface* : Changement de statut en temps réel
+* 📊 *Alertes quotas* : Approche des limites
+
+== Bonnes Pratiques
+
+=== Préparation des Données
+
+. *Vérifiez la qualité* avant de lancer l'entraînement
+. *Comprenez vos variables* : Que signifie chaque colonne ?
+. *Définissez clairement l'objectif* : Que voulez-vous prédire ?
+. *Validez la logique métier* : Le modèle a-t-il un sens ?
+
+=== Expérimentation Méthodique
+
+. *Commencez simple* : Decision Tree avec paramètres par défaut
+. *Établissez une baseline* : Premier modèle comme référence
+. *Itérez progressivement* : Un paramètre à la fois
+. *Documentez vos tests* : Notez ce qui fonctionne
+
+=== Interprétation Responsable
+
+. *Contextualisez les résultats* : 80% d'accuracy est-il suffisant pour votre cas ?
+. *Identifiez les biais* : Le modèle est-il équitable pour tous les groupes ?
+. *Validez sur nouveaux données* : Le modèle fonctionne-t-il sur d'autres cas ?
+. *Communiquez les limites* : Soyez transparent sur les incertitudes
+
+== Support et Assistance
+
+=== Ressources d'Aide
+
+* *FAQ intégrée* : Réponses aux questions fréquentes
+* *Tooltips contextuels* : Aide directe dans l'interface
+* *Exemples interactifs* : Cas d'usage prêts à tester
+* *Documentation technique* : Pour aller plus loin
+
+=== Contacts
+
+* *Support technique* : support@ibis-x.fr
+* *Formation utilisateur* : formation@ibis-x.fr
+* *Retours et suggestions* : feedback@ibis-x.fr
+
+[NOTE]
+====
+📚 *Formation recommandée*
+
+Pour maximiser l'efficacité d'IBIS-X, nous recommandons de suivre la formation d'introduction au machine learning (2h en ligne).
+====
+
+== Glossaire
+
+[cols="1,3"]
+|===
+|Terme |Définition
+
+|*Accuracy*
+|Pourcentage de prédictions correctes sur l'ensemble de test
+
+|*Algorithme*
+|Méthode mathématique utilisée pour apprendre des patterns dans les données
+
+|*Classification*
+|Prédiction de catégories (Ex: Spam/Non-spam, Succès/Échec)
+
+|*Dataset*
+|Ensemble de données structurées utilisées pour l'entraînement
+
+|*Feature*
+|Variable d'entrée du modèle (colonne du dataset)
+
+|*Hyperparamètre*
+|Paramètre de configuration de l'algorithme
+
+|*Overfitting*
+|Surapprentissage - le modèle mémorise au lieu d'apprendre
+
+|*Pipeline*
+|Séquence automatisée de traitements des données
+
+|*Preprocessing*
+|Préparation et nettoyage des données avant entraînement
+
+|*Régression*
+|Prédiction de valeurs numériques (Ex: Prix, Température)
+
+|*Split Train/Test*
+|Division des données entre entraînement et évaluation
+
+|*Target*
+|Variable à prédire (colonne cible du dataset)
+|===
+
+== Conclusion
+
+La Pipeline ML d'IBIS-X vous accompagne dans toutes les étapes de l'entraînement de modèles, de la préparation des données à l'interprétation des résultats. Le système intelligent propose des configurations optimales tout en vous laissant la liberté d'expérimenter.
+
+[IMPORTANT]
+====
+🎓 *Apprentissage continu*
+
+Plus vous utilisez le système, plus vous développerez votre intuition pour :
+* Choisir les bons algorithmes
+* Configurer les hyperparamètres
+* Interpréter les résultats
+* Optimiser la qualité des données
+====

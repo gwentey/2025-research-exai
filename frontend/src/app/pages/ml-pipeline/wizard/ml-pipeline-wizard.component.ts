@@ -91,7 +91,7 @@ Chart.register(...registerables);
 export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('stepper') stepper!: MatStepper;
   @ViewChild('logsContainer') logsContainer!: ElementRef;
-  
+
   // Forms for each step
   datasetForm!: FormGroup;
   dataCleaningForm!: FormGroup;  // Nouveau formulaire pour le nettoyage
@@ -100,7 +100,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   hyperparametersForm!: FormGroup;
   summaryForm!: FormGroup;
   finalVerificationForm!: FormGroup;
-  
+
   // Data
   projectId: string = '';
   datasetId: string = '';
@@ -111,56 +111,56 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   experimentId: string = '';
   experimentStatus: any = null;
   experimentResults: any = null;
-  
+
   // Data Quality Analysis
   dataQualityAnalysis: any = null;
   isAnalyzingData = false;
   dataQualityRecommendations: any = null;
-  
+
   // Configuration multi-colonnes pour le nettoyage
   columnCleaningConfigs: any[] = [];
   showPreviewModal = false;
   previewColumn: any = null;
   previewData: any = null;
   showMultipleDatasets = false;
-  
+
   // Support multi-datasets
   additionalDatasets: any[] = [];
   availableDatasets: any[] = [];
-  
+
   // Data Cleaning Help
   showDataCleaningHelp = false;
   showManualControls = false;
-  
+
   // Export Python code flag
   exportPythonCode = false;
-  
+
   // Analyse par colonne
   columnsAnalysis: any[] = [];
   autoFixCategories: any[] = [];
-  
+
   // UI State
   isLoading = true;
   isTraining = false;
   trainingProgress = 0;
-  
+
   // Training logs
   trainingLogs: TrainingLog[] = [];
   autoScrollLogs = true;
   private logSimulationTimer: any;
-  
+
   // User data for credits
   currentUser: UserRead | null = null;
-  
+
   // Step titles and descriptions
   private stepTitles = [
     'Sélection du Dataset',
-    'Configuration des Données', 
+    'Configuration des Données',
     'Choix de l\'Algorithme',
     'Paramètres Avancés',
     'Entraînement du Modèle'
   ];
-  
+
   private stepSubtitles = [
     'Vérifiez les informations de votre dataset',
     'Configurez le preprocessing de vos données',
@@ -168,7 +168,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     'Ajustez les hyperparamètres',
     'Lancez l\'entraînement de votre modèle'
   ];
-  
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -180,37 +180,37 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     private authService: AuthService,
     private projectService: ProjectService
   ) {}
-  
+
   ngOnInit() {
     // Initialize forms first
     this.initializeForms();
-    
+
     // Load user credits
     this.loadUserCredits();
-    
+
     // Get route parameters - Méthode améliorée
     // Essayer plusieurs façons de récupérer le projectId
-    this.projectId = this.route.snapshot.parent?.params['id'] || 
-                     this.route.snapshot.params['projectId'] || 
+    this.projectId = this.route.snapshot.parent?.params['id'] ||
+                     this.route.snapshot.params['projectId'] ||
                      this.route.snapshot.queryParams['projectId'] || '';
-    
+
     console.log('🔍 Route analysis:');
     console.log('- Parent params:', this.route.snapshot.parent?.params);
     console.log('- Direct params:', this.route.snapshot.params);
     console.log('- Query params:', this.route.snapshot.queryParams);
     console.log('- Final projectId:', this.projectId);
-    
+
     // Check if coming from dataset selection
     this.route.queryParams.subscribe(params => {
       this.datasetId = params['datasetId'] || '';
       const datasetName = params['datasetName'] || '';
-      
+
       // Vérifier aussi le projectId dans les query params
       if (!this.projectId && params['projectId']) {
         this.projectId = params['projectId'];
         console.log('✅ ProjectId found in query params:', this.projectId);
       }
-      
+
       // If coming from dataset selection, pre-fill the dataset
       if (this.datasetId) {
         this.datasetForm.patchValue({
@@ -220,28 +220,28 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         this.loadDataset();
       }
     });
-    
+
     this.loadAlgorithms();
-    
+
     // Simulate loading delay for smooth UX
     setTimeout(() => {
       this.isLoading = false;
       this.cdr.detectChanges();
     }, 800);
-    
+
     // Déboguer le formulaire de vérification finale
     this.finalVerificationForm.valueChanges.subscribe(value => {
       console.log('🔍 finalVerificationForm valueChanges:', value);
     });
   }
-  
+
   ngAfterViewInit() {
     // Initialize stepper after view is ready
     setTimeout(() => {
       this.initializeStepper();
     }, 100);
   }
-  
+
   private initializeStepper(): void {
     // Ensure stepper is properly initialized
     if (this.stepper) {
@@ -251,20 +251,20 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       this.cdr.detectChanges();
     }
   }
-  
+
   initializeForms() {
     // Step 1: Dataset Overview
     this.datasetForm = this.fb.group({
       datasetId: [this.datasetId, Validators.required]
     });
-    
+
     // Step 2: Data Cleaning (nouveau formulaire dédié)
     this.dataCleaningForm = this.fb.group({
       analysisCompleted: [true], // Par défaut true pour permettre de continuer
       autoFixApplied: [false],
       manualOverrides: [{}] // Pour stocker les personnalisations manuelles
     });
-    
+
     // Step 3: Data Configuration (configuration du modèle)
     this.dataQualityForm = this.fb.group({
       targetColumn: ['', Validators.required],
@@ -281,15 +281,15 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       testSize: [20, [Validators.required, Validators.min(10), Validators.max(50)]],
       useRecommendations: [true] // Utiliser les recommandations automatiques
     });
-    
+
     // Step 4: Algorithm Selection
     this.algorithmForm = this.fb.group({
       algorithm: ['', Validators.required]
     });
-    
+
     // Step 5: Hyperparameters (dynamic based on algorithm)
     this.hyperparametersForm = this.fb.group({});
-    
+
     // Step 6: Summary
     this.summaryForm = this.fb.group({});
 
@@ -298,26 +298,26 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       confirmed: [false, Validators.requiredTrue]
     });
   }
-  
+
   loadDataset() {
     if (!this.datasetId) return;
-    
+
     this.datasetService.getDatasetDetails(this.datasetId)
       .subscribe({
         next: (data) => {
           this.dataset = data;
           this.datasetDetails = data;
-          
+
           // IMPORTANT : Le dataset ne contient pas directement le project_id
           // On va devoir le récupérer autrement (depuis l'URL ou les query params)
-          
+
           console.log('📊 Dataset loaded:', {
             dataset_id: data.id,
             dataset_name: data.dataset_name,
             columns: data.columns?.length || 0,
             files: data.files?.length || 0
           });
-          
+
           // Essayer de récupérer le project_id depuis l'URL si pas encore défini
           if (!this.projectId) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -327,10 +327,10 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
               console.log('✅ ProjectId récupéré depuis l\'URL:', this.projectId);
             }
           }
-          
+
           // Auto-suggest target column and task type based on dataset metadata
           this.suggestTargetAndTaskType(data);
-          
+
           // Analyser la qualité des données automatiquement
           this.analyzeDataQuality();
         },
@@ -342,18 +342,18 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
 
   analyzeDataQuality() {
     if (!this.datasetId) return;
-    
+
     this.isAnalyzingData = true;
     const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
-    
+
     this.mlPipelineService.getDatasetRecommendations(this.datasetId, targetColumn)
       .subscribe({
         next: (recommendations) => {
           this.dataQualityRecommendations = recommendations;
-          
+
           // Appliquer automatiquement les recommandations si la confiance est élevée
           this.applyDataQualityRecommendations(recommendations);
-          
+
           this.isAnalyzingData = false;
           this.cdr.detectChanges();
         },
@@ -367,25 +367,25 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
 
   analyzeFullDataQuality() {
     if (!this.datasetId) return;
-    
+
     this.isAnalyzingData = true;
     const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
-    
+
     const request = {
       dataset_id: this.datasetId,
       target_column: targetColumn,
       sample_size: 10000
     };
-    
+
     this.mlPipelineService.analyzeDataQuality(request)
       .subscribe({
         next: (analysis) => {
           this.dataQualityAnalysis = analysis;
           this.isAnalyzingData = false;
-          
+
           // Mettre à jour les recommandations détaillées
           this.updateDetailedRecommendations(analysis);
-          
+
           this.cdr.detectChanges();
         },
         error: (error) => {
@@ -398,32 +398,32 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
 
   private applyDataQualityRecommendations(recommendations: any) {
     if (!recommendations || !recommendations.recommendations) return;
-    
+
     const recs = recommendations.recommendations;
-    
+
     // Appliquer les recommandations de stratégie de valeurs manquantes
     if (recs.scaling_recommendation) {
       // Pas de champ direct pour scaling dans le form, mais on peut l'utiliser plus tard
     }
-    
+
     // Appliquer les recommandations d'encoding
     if (recs.encoding_recommendation) {
       this.dataQualityForm.patchValue({
         categoricalEncoding: recs.encoding_recommendation
       });
     }
-    
+
     // Mettre à jour la stratégie de valeurs manquantes basée sur le niveau de sévérité
     if (recommendations.missingDataSummary?.severityLevel) {
       const severity = recommendations.missingDataSummary.severityLevel;
       let strategy = 'mean'; // default
-      
+
       if (severity === 'high' || severity === 'critical') {
         strategy = 'knn'; // Utiliser KNN pour les cas difficiles
       } else if (severity === 'medium') {
         strategy = 'median'; // Plus robuste que mean
       }
-      
+
       this.dataQualityForm.patchValue({
         missingValueStrategy: strategy
       });
@@ -433,14 +433,14 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   private updateDetailedRecommendations(analysis: any) {
     // Mettre à jour les options avancées basées sur l'analyse complète
     const recommendations = analysis.preprocessing_recommendations;
-    
+
     // Ajouter des logs d'information pour l'utilisateur
     if (analysis.data_quality_score < 70) {
       this.addTrainingLog('warning', `Score de qualité des données: ${analysis.data_quality_score}/100 - Des améliorations sont recommandées`);
     } else {
       this.addTrainingLog('success', `Score de qualité des données: ${analysis.data_quality_score}/100 - Bonne qualité`);
     }
-    
+
     // Ajouter des recommandations spécifiques dans les logs
     if (recommendations.priority_actions && recommendations.priority_actions.length > 0) {
       recommendations.priority_actions.forEach((action: any) => {
@@ -448,7 +448,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       });
     }
   }
-  
+
   loadAlgorithms() {
     this.mlPipelineService.getAvailableAlgorithms()
       .subscribe({
@@ -460,25 +460,25 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         }
       });
   }
-  
+
   selectAlgorithm(algorithmName: string) {
     this.algorithmForm.patchValue({ algorithm: algorithmName });
     this.onAlgorithmSelected();
   }
-  
+
   onAlgorithmSelected() {
     const algorithmName = this.algorithmForm.get('algorithm')?.value;
     this.selectedAlgorithm = this.algorithms.find(a => a.name === algorithmName) || null;
-    
+
     if (this.selectedAlgorithm) {
       // Build dynamic hyperparameter form
       const controls: any = {};
-      
+
       for (const [param, config] of Object.entries(this.selectedAlgorithm.hyperparameters)) {
         const hyperparamConfig = config as HyperparameterConfig;
         const validators = [];
         let defaultValue = hyperparamConfig.default;
-        
+
         if (hyperparamConfig.type === 'number') {
           validators.push(Validators.required);
           if (hyperparamConfig.min !== undefined) {
@@ -488,79 +488,129 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
             validators.push(Validators.max(hyperparamConfig.max));
           }
         }
-        
+
         controls[param] = [defaultValue, validators];
       }
-      
+
       this.hyperparametersForm = this.fb.group(controls);
     }
   }
-  
+
   pollTrainingStatus() {
+    console.log('🔄 Starting training status polling...');
+
     const poll = setInterval(() => {
+      console.log('🔍 Polling experiment status for:', this.experimentId);
+
       this.mlPipelineService.getExperimentStatus(this.experimentId)
         .subscribe({
           next: (status) => {
+            console.log('📊 Status received:', status);
             this.experimentStatus = status;
-            this.trainingProgress = status.progress;
-            
-            if (status.status === 'completed') {
-              clearInterval(poll);
-              this.loadResults();
-            } else if (status.status === 'failed') {
-              clearInterval(poll);
-              this.isTraining = false;
-              console.error('Training failed:', status.error_message);
+
+            if (status.progress !== undefined) {
+              this.trainingProgress = status.progress;
+              console.log(`📈 Progress updated: ${this.trainingProgress}%`);
             }
+
+                        if (status.status === 'completed') {
+              console.log('✅ Training completed! Stopping poll and loading results...');
+              clearInterval(poll);
+              this.addTrainingLog('success', '🎉 Entraînement terminé avec succès!');
+              this.addTrainingLog('info', '📊 Chargement des résultats et visualisations...');
+              this.isTraining = false;
+              this.trainingProgress = 100;
+
+              // Charger les résultats avec un délai pour s'assurer qu'ils sont disponibles
+              setTimeout(() => {
+                this.loadResults();
+              }, 1000);
+
+            } else if (status.status === 'failed') {
+              console.log('❌ Training failed:', status.error_message);
+              clearInterval(poll);
+              this.addTrainingLog('error', `❌ ÉCHEC: ${status.error_message || 'Erreur inconnue'}`);
+              this.addTrainingLog('error', '🔧 Vérifiez votre configuration et réessayez');
+              this.isTraining = false;
+
+            } else if (status.status === 'running') {
+              console.log(`🔄 Training in progress: ${status.progress || 0}%`);
+              // Continue polling
+
+            } else if (status.status === 'pending') {
+              console.log('⏳ Training still pending...');
+              // Continue polling
+            }
+
+            // Force UI update
+            this.cdr.detectChanges();
           },
           error: (error) => {
-            console.error('Error polling status:', error);
-            clearInterval(poll);
-            this.isTraining = false;
+            console.error('❌ Error polling status:', error);
+            this.addTrainingLog('error', `Erreur de communication: ${error.message}`);
+            // Continue polling in case of temporary error
           }
         });
-    }, 5000); // Poll every 5 seconds
+    }, 3000); // Poll every 3 seconds
   }
-  
+
   loadResults() {
+    console.log('📈 Loading experiment results for:', this.experimentId);
+
+    if (!this.experimentId) {
+      console.error('❌ No experiment ID available for loading results');
+      return;
+    }
+
     this.mlPipelineService.getExperimentResults(this.experimentId)
       .subscribe({
         next: (results) => {
+          console.log('✅ Results loaded successfully:', results);
           this.experimentResults = results;
           this.isTraining = false;
+
+          // Log détaillé pour debugging
+          this.addTrainingLog('success', `Résultats chargés: ${Object.keys(results.metrics || {}).length} métriques disponibles`);
+          this.addTrainingLog('info', '🎯 Cliquez sur "Voir les résultats" pour consulter les graphiques détaillés');
+
+          // Trigger change detection pour s'assurer que l'UI se met à jour
+          this.cdr.detectChanges();
+
+          console.log('🎯 experimentResults set, buttons should now appear:', !!this.experimentResults);
         },
         error: (error) => {
-          console.error('Error loading results:', error);
+          console.error('❌ Error loading results:', error);
+          this.addTrainingLog('error', `Erreur lors du chargement des résultats: ${error.message || 'Erreur inconnue'}`);
           this.isTraining = false;
         }
       });
   }
-  
+
   suggestTargetAndTaskType(data: DatasetDetailView) {
     // Try to suggest target column and task type based on dataset metadata
     if (data.files && data.files.length > 0) {
       const firstFile = data.files[0];
       if (firstFile.columns && firstFile.columns.length > 0) {
         // Look for common target column names
-        const potentialTargets = firstFile.columns.filter(col => 
+        const potentialTargets = firstFile.columns.filter(col =>
           col.column_name.toLowerCase().includes('target') ||
           col.column_name.toLowerCase().includes('label') ||
           col.column_name.toLowerCase().includes('class') ||
           col.column_name.toLowerCase().includes('outcome') ||
           col.column_name.toLowerCase().includes('result')
         );
-        
+
         // If no obvious target, suggest the last column
-        const suggestedTarget = potentialTargets.length > 0 
-          ? potentialTargets[0].column_name 
+        const suggestedTarget = potentialTargets.length > 0
+          ? potentialTargets[0].column_name
           : firstFile.columns[firstFile.columns.length - 1]?.column_name;
-        
+
         // Determine task type based on dataset task metadata or target column type
         let suggestedTaskType = 'classification';
         if (data.task && data.task.includes('regression')) {
           suggestedTaskType = 'regression';
         }
-        
+
         if (suggestedTarget) {
           this.dataQualityForm.patchValue({
             targetColumn: suggestedTarget,
@@ -570,18 +620,18 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       }
     }
   }
-  
+
   getDatasetColumns() {
     if (this.datasetDetails?.files && this.datasetDetails.files.length > 0) {
       return this.datasetDetails.files[0].columns || [];
     }
     return [];
   }
-  
+
   isFormValid(): boolean {
     // Vérifier le numéro de l'étape actuelle
     const currentStep = this.getCurrentStepNumber();
-    
+
     // Logs de débogage pour chaque formulaire
     console.log('Validation des formulaires:');
     console.log('- datasetForm:', this.datasetForm.valid, this.datasetForm.value);
@@ -591,7 +641,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     console.log('- hyperparametersForm:', this.hyperparametersForm.valid, this.hyperparametersForm.value);
     console.log('- summaryForm:', this.summaryForm.valid, this.summaryForm.value);
     console.log('- finalVerificationForm:', this.finalVerificationForm.valid, this.finalVerificationForm.value);
-    
+
     // Vérifications de base pour toutes les étapes
     const baseValidation = this.datasetForm.valid &&
                           this.dataCleaningForm.valid &&  // Ajout du formulaire de nettoyage
@@ -599,20 +649,20 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
                           this.algorithmForm.valid &&
                           this.hyperparametersForm.valid &&
                           this.summaryForm.valid;
-    
+
     // Si on est à l'étape 8, vérifier aussi le formulaire de vérification finale
     if (currentStep === 8) {
       return baseValidation && this.finalVerificationForm.valid;
     }
-    
+
     return baseValidation;
   }
-  
+
   goBack() {
     const returnUrl = this.route.snapshot.queryParams['returnUrl'] || `/ml-pipeline`;
     this.router.navigateByUrl(returnUrl);
   }
-  
+
   // Méthode pour gérer manuellement le changement de la checkbox
   onConfirmationChange(event: any): void {
     console.log('🔄 Checkbox changed:', event.target.checked);
@@ -621,12 +671,12 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     });
     console.log('✅ Form value after patch:', this.finalVerificationForm.value);
   }
-  
+
   backToApp() {
     // Retour au dashboard principal ou à la page d'accueil
     this.router.navigate(['/starter']);
   }
-  
+
   getProgressPercentage(): number {
     // Avoid NG0100 error by ensuring stable values
     if (!this.stepper || this.stepper.selectedIndex === undefined || this.stepper.selectedIndex === null) {
@@ -634,7 +684,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     }
     return Math.round(((this.stepper.selectedIndex + 1) / 5) * 100);
   }
-  
+
   getCurrentStepNumber(): number {
     // Ensure stepper is initialized and has a valid selectedIndex
     if (!this.stepper || this.stepper.selectedIndex === undefined || this.stepper.selectedIndex === null) {
@@ -642,17 +692,17 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     }
     return this.stepper.selectedIndex + 1;
   }
-  
+
   getStepTitle(): string {
     const stepIndex = this.getCurrentStepNumber() - 1;
     return this.stepTitles[stepIndex] || 'ML Pipeline Wizard';
   }
-  
+
   getStepSubtitle(): string {
     const stepIndex = this.getCurrentStepNumber() - 1;
     return this.stepSubtitles[stepIndex] || 'Créez votre modèle de machine learning';
   }
-  
+
   nextStep(): void {
     if (this.stepper) {
       // Synchronize the forms with the stepper
@@ -663,7 +713,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       });
     }
   }
-  
+
   previousStep(): void {
     if (this.stepper) {
       setTimeout(() => {
@@ -672,11 +722,11 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       });
     }
   }
-  
+
   private updateStepperForms(): void {
     // Update the stepper forms with current values from our custom forms
     const currentStep = this.getCurrentStepNumber();
-    
+
     switch (currentStep) {
       case 1:
         // Update dataset form in stepper
@@ -710,10 +760,10 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         break;
     }
   }
-  
+
   isCurrentStepValid(): boolean {
     if (!this.stepper) return false;
-    
+
     const currentIndex = this.stepper.selectedIndex;
     switch (currentIndex) {
       case 0:
@@ -730,7 +780,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         return false;
     }
   }
-  
+
   getAlgorithmIcon(algorithmName: string): string {
     const iconMap: { [key: string]: string } = {
       'random_forest': 'park',
@@ -743,11 +793,11 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     };
     return iconMap[algorithmName] || 'smart_toy';
   }
-  
+
   // ==============================================
   // NOUVELLES MÉTHODES POUR LES LOGS ET MÉTRIQUES
   // ==============================================
-  
+
   // Gestion des logs de training
   addTrainingLog(level: TrainingLog['level'], message: string): void {
     const log: TrainingLog = {
@@ -755,54 +805,54 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       level,
       message
     };
-    
+
     this.trainingLogs.push(log);
-    
+
     // Limiter le nombre de logs pour éviter les problèmes de performance
     if (this.trainingLogs.length > 100) {
       this.trainingLogs = this.trainingLogs.slice(-100);
     }
-    
+
     // Auto-scroll vers le bas si activé
     if (this.autoScrollLogs) {
       setTimeout(() => this.scrollLogsToBottom(), 50);
     }
-    
+
     this.cdr.detectChanges();
   }
-  
+
   private scrollLogsToBottom(): void {
     if (this.logsContainer) {
       const element = this.logsContainer.nativeElement;
       element.scrollTop = element.scrollHeight;
     }
   }
-  
+
   clearLogs(): void {
     this.trainingLogs = [];
     this.cdr.detectChanges();
   }
-  
+
   toggleAutoScroll(): void {
     this.autoScrollLogs = !this.autoScrollLogs;
     if (this.autoScrollLogs) {
       this.scrollLogsToBottom();
     }
   }
-  
+
   getCurrentTimestamp(): string {
-    return new Date().toLocaleTimeString('fr-FR', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
+    return new Date().toLocaleTimeString('fr-FR', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
     });
   }
-  
+
   trackLogFn(index: number, log: TrainingLog): string {
     return `${log.timestamp.getTime()}-${index}`;
   }
-  
+
   // Simulation de logs pendant l'entraînement
   private simulateTrainingLogs(): void {
     const logMessages = [
@@ -823,7 +873,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       { level: 'info' as const, message: 'Sauvegarde du checkpoint...' },
       { level: 'info' as const, message: 'Entraînement terminé avec succès!' }
     ];
-    
+
     let messageIndex = 0;
     this.logSimulationTimer = setInterval(() => {
       if (messageIndex < logMessages.length && this.isTraining) {
@@ -835,7 +885,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       }
     }, 800); // Un nouveau log toutes les 800ms
   }
-  
+
   // Méthodes pour les métriques
   getMetricIcon(metric: string): string {
     const iconMap: { [key: string]: string } = {
@@ -850,7 +900,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     };
     return iconMap[metric] || 'assessment';
   }
-  
+
   getMetricLabel(metric: string): string {
     const labelMap: { [key: string]: string } = {
       'accuracy': 'Précision',
@@ -864,29 +914,51 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     };
     return labelMap[metric] || metric.charAt(0).toUpperCase() + metric.slice(1);
   }
-  
+
   getMetricProgressClass(metric: string): string {
     // Retourne une classe CSS basée sur la performance de la métrique
     if (!this.experimentResults?.metrics[metric]) return '';
-    
+
     const value = this.experimentResults.metrics[metric];
-    
+
     if (value >= 0.9) return 'progress-success';
     if (value >= 0.8) return 'progress-warning';
     return 'progress-danger';
   }
-  
+
   // Nouvelles méthodes pour les actions des résultats
   downloadModel(): void {
-    // TODO: Implémenter le téléchargement du modèle
-    this.addTrainingLog('info', 'Téléchargement du modèle initié...');
+    if (this.experimentResults?.artifact_uri) {
+      console.log('📥 Downloading model from:', this.experimentResults.artifact_uri);
+      this.addTrainingLog('info', 'Téléchargement du modèle initié...');
+
+      // Créer une URL de téléchargement temporaire
+      const downloadUrl = `/api/v1/ml-pipeline/experiments/${this.experimentId}/download/model`;
+
+      // Créer un lien temporaire et déclencher le téléchargement
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `model_${this.experimentId}.joblib`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      this.addTrainingLog('success', 'Téléchargement démarré');
+    } else {
+      console.error('❌ No model artifact available for download');
+      this.addTrainingLog('error', 'Aucun modèle disponible pour téléchargement');
+    }
   }
-  
+
   viewDetailedResults(): void {
-    // TODO: Naviguer vers une page détaillée des résultats
-    this.router.navigate(['/ml-pipeline/results', this.experimentId]);
+    // Navigation vers la page détaillée des résultats
+    if (this.experimentId) {
+      this.router.navigate(['/ml-pipeline/experiment', this.experimentId]);
+    } else {
+      console.error('Experiment ID not available for navigation');
+    }
   }
-  
+
   // Nouvelle implémentation de startTraining avec simulation des logs
   async startTraining() {
     console.log('🚀 startTraining() called');
@@ -899,7 +971,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       summaryForm: this.summaryForm.valid,
       isFormValid: this.isFormValid()
     });
-    
+
     if (!this.isFormValid()) {
       console.error('Form is not valid, cannot start training');
       // Afficher les erreurs spécifiques
@@ -912,38 +984,38 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       alert('❌ Formulaire invalide. Veuillez vérifier tous les champs.');
       return;
     }
-    
+
     console.log('✅ Starting training process...');
     this.isTraining = true;
     this.trainingProgress = 0;
     this.trainingLogs = []; // Reset des logs
-    
+
     // Ajouter un log immédiat pour montrer que ça démarre
     this.addTrainingLog('info', '🚀 Démarrage de l\'entraînement...');
     this.addTrainingLog('info', '⏳ Création de l\'expérience en cours...');
-    
+
     // Démarrer la simulation des logs
     this.simulateTrainingLogs();
-    
+
     // Vérifier les valeurs critiques
     const targetColumn = this.dataQualityForm.value.targetColumn;
     const algorithm = this.algorithmForm.value.algorithm;
-    
+
     if (!targetColumn) {
       alert('❌ Erreur: Aucune colonne cible sélectionnée!');
       this.isTraining = false;
       return;
     }
-    
+
     if (!algorithm) {
       alert('❌ Erreur: Aucun algorithme sélectionné!');
       this.isTraining = false;
       return;
     }
-    
+
     // SOLUTION TEMPORAIRE : Récupérer le projectId depuis le dataset
     let finalProjectId = this.projectId;
-    
+
     // Si pas de projectId, essayer de créer un projet temporaire basé sur le dataset
     if (!finalProjectId && this.dataset) {
       // Le dataset n'a pas de project_id direct, on doit le gérer autrement
@@ -952,7 +1024,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         name: this.dataset.dataset_name
       });
     }
-    
+
     // Si toujours pas de projectId, essayer depuis l'URL actuelle
     if (!finalProjectId) {
       const currentUrl = window.location.href;
@@ -962,16 +1034,16 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         console.log('🔍 ProjectId extrait de l\'URL:', finalProjectId);
       }
     }
-    
+
     // DERNIER RECOURS : Récupérer un projet existant ou en créer un
     if (!finalProjectId) {
       console.error('❌ AUCUN PROJECT_ID TROUVÉ ! Tentative de récupération...');
-      
+
       // Option 1: Récupérer le premier projet disponible
       try {
         const projectService = this.projectService;
         const projectsResponse = await projectService.getProjects({ page_size: 1 }).toPromise();
-        
+
         if (projectsResponse && projectsResponse.projects && projectsResponse.projects.length > 0) {
           finalProjectId = projectsResponse.projects[0].id;
           console.log('✅ Utilisation du projet existant:', projectsResponse.projects[0].name);
@@ -982,7 +1054,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
             name: `ML Pipeline - ${new Date().toLocaleDateString()}`,
             description: `Projet créé automatiquement pour l'entraînement ML sur le dataset ${this.dataset?.dataset_name || 'inconnu'}`
           };
-          
+
           const createdProject = await projectService.createProject(newProject).toPromise();
           if (createdProject) {
             finalProjectId = createdProject.id;
@@ -993,7 +1065,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       } catch (error) {
         console.error('Erreur lors de la récupération/création du projet:', error);
       }
-      
+
       // Si toujours pas de projet, erreur critique
       if (!finalProjectId) {
         alert('❌ ERREUR CRITIQUE : Impossible de trouver ou créer un projet !\n\nRedirection vers la page des projets...');
@@ -1002,7 +1074,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         return;
       }
     }
-    
+
     const experimentData = {
       project_id: finalProjectId,
       dataset_id: this.datasetId || '',
@@ -1033,9 +1105,9 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         manual_overrides: this.dataCleaningForm.value.manualOverrides || {}
       }
     };
-    
+
     console.log('📤 Sending experiment data:', JSON.stringify(experimentData, null, 2));
-    
+
     this.mlPipelineService.createExperiment(experimentData)
       .subscribe({
         next: (experiment) => {
@@ -1046,7 +1118,7 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         },
         error: (error) => {
           console.error('❌ Error starting training:', error);
-          
+
           // Essayer de lire la réponse comme texte si ce n'est pas du JSON
           if (error.error instanceof Blob) {
             error.error.text().then((text: string) => {
@@ -1064,15 +1136,15 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         }
       });
   }
-  
+
   // Nouvelle méthode pour gérer les erreurs
   private handleTrainingError(error: any, errorBody: any): void {
     let errorMessage = 'Erreur inconnue';
-    
+
     // Analyser spécifiquement l'erreur 422
     if (error.status === 422) {
       console.error('Validation error (422) - Body:', errorBody);
-      
+
       // DIAGNOSTIC : Vérifier si project_id est vide
       if (!this.projectId) {
         errorMessage = '❌ ERREUR CRITIQUE : Aucun projet sélectionné !\n\nVous devez sélectionner un projet avant de lancer l\'entraînement.';
@@ -1105,9 +1177,9 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     } else {
       errorMessage = errorBody?.detail || errorBody?.message || error.message || 'Erreur serveur';
     }
-    
+
     this.addTrainingLog('error', `❌ Erreur: ${errorMessage}`);
-    
+
     // Alerte améliorée
     alert(`❌ Erreur lors du lancement de l'entraînement:
 
@@ -1119,7 +1191,7 @@ DIAGNOSTIC :
 - Project ID: ${this.projectId || 'MANQUANT ❌'}
 - Dataset ID: ${this.datasetId || 'MANQUANT ❌'}
 - Algorithm: ${this.algorithmForm.value.algorithm || 'MANQUANT ❌'}`);
-    
+
     this.isTraining = false;
     if (this.logSimulationTimer) {
       clearInterval(this.logSimulationTimer);
@@ -1147,16 +1219,16 @@ DIAGNOSTIC :
   getUserCredits(): number {
     return this.currentUser?.credits ?? 0;
   }
-  
+
   // Cleanup lors de la destruction du composant
   ngOnDestroy() {
     if (this.logSimulationTimer) {
       clearInterval(this.logSimulationTimer);
     }
   }
-  
+
   objectKeys = Object.keys;
-  
+
   // Types de stratégies de nettoyage
   readonly CLEANING_STRATEGIES = {
     NONE: 'none',
@@ -1333,13 +1405,13 @@ DIAGNOSTIC :
 
   getEstimatedTrainingTime(): string {
     if (!this.dataset || !this.selectedAlgorithm) return '2-5 minutes';
-    
+
     const rows = this.dataset.instances_number || 1000;
     const features = this.dataset.features_number || 10;
     const complexity = this.getAlgorithmSpeed(this.selectedAlgorithm.name);
-    
+
     let baseTime = Math.ceil((rows * features) / 50000); // minutes de base
-    
+
     // Ajustement selon la complexité
     const complexityMultipliers: Record<string, number> = {
       'Très rapide': 0.5,
@@ -1348,15 +1420,15 @@ DIAGNOSTIC :
       'Lente': 2,
       'Très lente': 3
     };
-    
+
     baseTime *= complexityMultipliers[complexity] || 1;
-    
+
     // Ajustement selon les hyperparamètres
     const nEstimators = this.hyperparametersForm.get('n_estimators')?.value || 100;
     if (nEstimators > 100) {
       baseTime *= (nEstimators / 100);
     }
-    
+
     if (baseTime < 1) return 'Moins d\'une minute';
     if (baseTime > 10) return `${Math.ceil(baseTime)} minutes`;
     return `${Math.ceil(baseTime)}-${Math.ceil(baseTime * 1.5)} minutes`;
@@ -1364,9 +1436,9 @@ DIAGNOSTIC :
 
   getModelComplexity(): number {
     if (!this.selectedAlgorithm) return 50;
-    
+
     let complexity = 50; // Base
-    
+
     // Ajustement selon l'algorithme
     const algoComplexity: Record<string, number> = {
       'linear_regression': 20,
@@ -1378,15 +1450,15 @@ DIAGNOSTIC :
       'xgboost': 80,
       'neural_network': 90
     };
-    
+
     complexity = algoComplexity[this.selectedAlgorithm.name] || 50;
-    
+
     // Ajustement selon les hyperparamètres
     const maxDepth = this.hyperparametersForm.get('max_depth')?.value;
     if (maxDepth && maxDepth > 10) {
       complexity += Math.min((maxDepth - 10) * 2, 20);
     }
-    
+
     return Math.min(complexity, 100);
   }
 
@@ -1402,11 +1474,11 @@ DIAGNOSTIC :
   }
 
   // Nouvelles méthodes pour l'analyse de qualité des données
-  
+
   getDataQualityScoreColor(score?: number): string {
     const qualityScore = score || this.dataQualityRecommendations?.qualityScore;
     if (!qualityScore) return 'text-muted';
-    
+
     if (qualityScore >= 80) return 'excellent';
     if (qualityScore >= 60) return 'good';
     if (qualityScore >= 40) return 'warning';
@@ -1415,7 +1487,7 @@ DIAGNOSTIC :
 
   getDataQualityScoreIcon(): string {
     if (!this.dataQualityRecommendations?.qualityScore) return 'help_outline';
-    
+
     const score = this.dataQualityRecommendations.qualityScore;
     if (score >= 80) return 'check_circle';
     if (score >= 60) return 'warning';
@@ -1448,14 +1520,14 @@ DIAGNOSTIC :
 
   onMissingValueStrategyChange() {
     const strategy = this.dataQualityForm.get('missingValueStrategy')?.value;
-    
+
     // Afficher/masquer les options spécifiques selon la stratégie
     if (strategy === 'knn') {
       // Les options KNN sont déjà dans le formulaire
     } else if (strategy === 'iterative') {
       // Les options iterative sont déjà dans le formulaire
     }
-    
+
     // Mettre à jour les recommandations si nécessaire
     this.cdr.detectChanges();
   }
@@ -1596,7 +1668,7 @@ DIAGNOSTIC :
   // Méthodes pour les recommandations automatiques
 
   hasDataQualityIssues(): boolean {
-    return this.dataQualityAnalysis && 
+    return this.dataQualityAnalysis &&
            this.dataQualityAnalysis.missing_data_analysis.severity_assessment.level !== 'none';
   }
 
@@ -1611,74 +1683,74 @@ DIAGNOSTIC :
 
   getRecommendationSummary(): string {
     if (!this.dataQualityRecommendations) return '';
-    
+
     const strategies = this.dataQualityRecommendations.strategies || {};
     const uniqueStrategies = [...new Set(Object.values(strategies))];
-    
+
     return `${uniqueStrategies.length} stratégie(s) recommandée(s) : ${uniqueStrategies.join(', ')}`;
   }
 
   // ===============================================
   // NOUVELLES MÉTHODES POUR L'ÉTAPE DE NETTOYAGE DÉDIÉE
   // ===============================================
-  
+
   /**
    * Analyse les colonnes pour le nettoyage multi-colonnes
    */
   analyzeColumnsCleaning(): void {
     if (!this.datasetId) return;
-    
+
     this.isAnalyzingData = true;
     const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
-    
+
     const request = {
       dataset_id: this.datasetId,
       target_column: targetColumn,
       sample_size: 10000
     };
-    
+
     this.mlPipelineService.analyzeDataQuality(request)
       .subscribe({
         next: (analysis) => {
           this.dataQualityAnalysis = analysis;
           this.isAnalyzingData = false;
-          
+
           // Générer la configuration par colonne
           this.generateColumnCleaningConfigs(analysis);
-          
+
           // Marquer l'analyse comme complétée
           this.dataCleaningForm.patchValue({
             analysisCompleted: true
           });
-          
+
           this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error performing data quality analysis:', error);
           this.isAnalyzingData = false;
-          
+
           // Générer des données de démonstration
           this.generateDemoCleaningConfigs();
-          
+
           this.cdr.detectChanges();
         }
       });
   }
-  
+
   /**
    * Génère la configuration de nettoyage pour chaque colonne
    */
   generateColumnCleaningConfigs(analysis: any): void {
     const columns = this.getDatasetColumns();
     const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
-    
+
     this.columnCleaningConfigs = columns.map((column) => {
       const columnAnalysis = analysis.missing_data_analysis?.columns_analysis?.[column.column_name];
       const missingPercentage = columnAnalysis?.missing_percentage || 0;
       const dataType = column.data_type_interpreted || column.data_type_original || 'string';
       const isTarget = column.column_name === targetColumn;
       const isTimeSeries = this.isTimeSeriesColumn(column);
-      
+
       // Déterminer la stratégie recommandée
       let recommendedStrategy = this.CLEANING_STRATEGIES.NONE;
       if (missingPercentage > 0) {
@@ -1696,12 +1768,12 @@ DIAGNOSTIC :
           recommendedStrategy = this.CLEANING_STRATEGIES.MODE;
         }
       }
-      
+
       // Recommandation de l'analyse
       if (columnAnalysis?.recommendation?.primary_strategy) {
         recommendedStrategy = this.mapRecommendationToStrategy(columnAnalysis.recommendation.primary_strategy);
       }
-      
+
       return {
         name: column.column_name,
         type: dataType,
@@ -1716,37 +1788,37 @@ DIAGNOSTIC :
       };
     });
   }
-  
+
   /**
    * Génère des données de démonstration pour le nettoyage
    */
   generateDemoCleaningConfigs(): void {
     const columns = this.getDatasetColumns();
     const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
-    
+
     this.columnCleaningConfigs = columns.map((column, index) => {
       // Simuler des pourcentages de données manquantes variés
       const missingPercentages = [0, 5, 15, 35, 75];
       const missingPercentage = missingPercentages[index % missingPercentages.length];
       const dataType = column.data_type_interpreted || column.data_type_original || 'string';
       const isTarget = column.column_name === targetColumn;
-      
+
       // Déterminer la stratégie en fonction du pourcentage
       let strategy = this.CLEANING_STRATEGIES.NONE;
       if (missingPercentage > 0) {
         if (missingPercentage > 70 && !isTarget) {
           strategy = this.CLEANING_STRATEGIES.DROP_COLUMN;
         } else if (missingPercentage > 15) {
-          strategy = ['integer', 'float'].includes(dataType) ? 
-                    this.CLEANING_STRATEGIES.KNN : 
+          strategy = ['integer', 'float'].includes(dataType) ?
+                    this.CLEANING_STRATEGIES.KNN :
                     this.CLEANING_STRATEGIES.MODE;
         } else {
-          strategy = ['integer', 'float'].includes(dataType) ? 
-                    this.CLEANING_STRATEGIES.MEAN : 
+          strategy = ['integer', 'float'].includes(dataType) ?
+                    this.CLEANING_STRATEGIES.MEAN :
                     this.CLEANING_STRATEGIES.MODE;
         }
       }
-      
+
       return {
         name: column.column_name,
         type: dataType,
@@ -1760,7 +1832,7 @@ DIAGNOSTIC :
         confidence: 0.85
       };
     });
-    
+
     // Marquer l'analyse comme terminée
     this.dataCleaningForm.patchValue({
       analysisCompleted: true
@@ -1769,9 +1841,9 @@ DIAGNOSTIC :
 
   autoFixAllDataIssues(): void {
     if (!this.dataset) return;
-    
+
     this.isAnalyzingData = true;
-    
+
     // Lancer l'analyse complète des données
     this.mlPipelineService.analyzeDataQuality({
       dataset_id: this.datasetId,
@@ -1782,22 +1854,22 @@ DIAGNOSTIC :
         this.dataQualityAnalysis = analysis;
         this.generateColumnsAnalysis(analysis);
         this.generateAutoFixCategories(analysis);
-        
+
         // Marquer l'analyse comme complétée
         this.dataCleaningForm.patchValue({
           analysisCompleted: true,
           autoFixApplied: true
         });
-        
+
         this.isAnalyzingData = false;
-        
+
         // Appliquer automatiquement les recommandations
         this.applyAutoFixRecommendations(analysis);
       },
       error: (error) => {
         console.error('Erreur lors de l\'analyse:', error);
         this.isAnalyzingData = false;
-        
+
         // Générer des données d'exemple en cas d'erreur
         this.generateFallbackAnalysis();
       }
@@ -1807,17 +1879,17 @@ DIAGNOSTIC :
   generateColumnsAnalysis(analysis: any): void {
     const columns = this.getDatasetColumns();
     if (!columns.length) return;
-    
+
     this.columnsAnalysis = columns.map(column => {
       const missingInfo = analysis.missing_data_analysis?.columns_analysis?.[column.column_name];
       const issues = [];
       const alternatives = [];
-      
+
       // Détection des problèmes
       if (missingInfo?.missing_percentage > 0) {
-        const severity = missingInfo.missing_percentage > 50 ? 'high' : 
+        const severity = missingInfo.missing_percentage > 50 ? 'high' :
                         missingInfo.missing_percentage > 20 ? 'medium' : 'low';
-        
+
         issues.push({
           icon: 'warning',
           severity: severity,
@@ -1826,7 +1898,7 @@ DIAGNOSTIC :
           stats: [`${missingInfo.missing_count} manquantes`, `${(100 - missingInfo.missing_percentage).toFixed(1)}% complètes`]
         });
       }
-      
+
       // Recommandations
       let recommendedAction = null;
       if (missingInfo?.recommendation) {
@@ -1838,7 +1910,7 @@ DIAGNOSTIC :
           description: missingInfo.recommendation.explanation,
           confidence: missingInfo.recommendation.confidence
         };
-        
+
         // Actions alternatives
         if (missingInfo.recommendation.alternative_strategies) {
           alternatives.push(...missingInfo.recommendation.alternative_strategies.map((alt: string) => ({
@@ -1848,7 +1920,7 @@ DIAGNOSTIC :
           })));
         }
       }
-      
+
       return {
         name: column.column_name,
         type: column.data_type_interpreted || column.data_type_original,
@@ -1866,11 +1938,11 @@ DIAGNOSTIC :
       imputation_simple: { title: '🔧 Imputation Simple', icon: 'build', columns: [] as string[], description: 'Mean, médiane, mode pour missing values légères' },
       interpolation: { title: '📈 Interpolation', icon: 'trending_up', columns: [] as string[], description: 'Données temporelles et séquentielles' }
     };
-    
+
     if (analysis.missing_data_analysis?.columns_analysis) {
       Object.entries(analysis.missing_data_analysis.columns_analysis).forEach(([columnName, info]: [string, any]) => {
         const strategy = info.recommendation?.primary_strategy;
-        
+
         if (strategy === 'drop_column') {
           categories.suppression.columns.push(columnName);
         } else if (['knn', 'iterative'].includes(strategy)) {
@@ -1882,7 +1954,7 @@ DIAGNOSTIC :
         }
       });
     }
-    
+
     this.autoFixCategories = Object.values(categories).filter(cat => cat.columns.length > 0);
   }
 
@@ -1890,7 +1962,7 @@ DIAGNOSTIC :
     // Générer une analyse factice en cas d'erreur pour que l'interface fonctionne
     const columns = this.getDatasetColumns();
     if (!columns.length) return;
-    
+
     this.columnsAnalysis = columns.slice(0, 5).map((column, index) => {
       const missingPercentage = [0, 5, 15, 45, 85][index] || 0;
       const issues = missingPercentage > 0 ? [{
@@ -1900,7 +1972,7 @@ DIAGNOSTIC :
         description: 'Données simulées pour démonstration',
         stats: [`${missingPercentage}% manquantes`]
       }] : [];
-      
+
       return {
         name: column.column_name,
         type: column.data_type_interpreted || column.data_type_original || 'string',
@@ -1915,7 +1987,7 @@ DIAGNOSTIC :
         alternativeActions: []
       };
     });
-    
+
     // Marquer comme terminé
     this.dataCleaningForm.patchValue({
       analysisCompleted: true,
@@ -1927,7 +1999,7 @@ DIAGNOSTIC :
     // Appliquer automatiquement les recommandations à la configuration
     if (analysis.preprocessing_recommendations) {
       const recommendations = analysis.preprocessing_recommendations;
-      
+
       // Mettre à jour le formulaire avec les recommandations
       this.dataQualityForm.patchValue({
         missingValueStrategy: recommendations.missing_values_strategy || 'median',
@@ -1962,10 +2034,10 @@ DIAGNOSTIC :
 
   getColumnSeverityClass(column: any): string {
     if (!column.issues || column.issues.length === 0) return 'perfect';
-    
+
     const highSeverityIssue = column.issues.find((issue: any) => issue.severity === 'high');
     const mediumSeverityIssue = column.issues.find((issue: any) => issue.severity === 'medium');
-    
+
     if (highSeverityIssue) return 'high-severity';
     if (mediumSeverityIssue) return 'medium-severity';
     return 'low-severity';
@@ -1994,25 +2066,25 @@ DIAGNOSTIC :
     };
     return labelMap[type.toLowerCase()] || type;
   }
-  
+
   /**
    * Retourne les configurations de nettoyage par colonne
    */
   getColumnCleaningConfigs(): any[] {
     return this.columnCleaningConfigs;
   }
-  
+
   /**
    * Vérifie si une colonne est de type série temporelle
    */
   isTimeSeriesColumn(column: any): boolean {
     const name = column.column_name.toLowerCase();
-    return column.data_type_interpreted === 'datetime' || 
-           name.includes('date') || 
-           name.includes('time') || 
+    return column.data_type_interpreted === 'datetime' ||
+           name.includes('date') ||
+           name.includes('time') ||
            name.includes('timestamp');
   }
-  
+
   /**
    * Map la stratégie recommandée vers notre enum
    */
@@ -2031,7 +2103,7 @@ DIAGNOSTIC :
     };
     return strategyMap[recommendation] || this.CLEANING_STRATEGIES.MEAN;
   }
-  
+
   /**
    * Retourne les paramètres par défaut pour une stratégie
    */
@@ -2049,17 +2121,17 @@ DIAGNOSTIC :
         return {};
     }
   }
-  
+
   /**
    * Vérifie si une stratégie a des paramètres
    */
   hasParameters(strategy: string): boolean {
-    return [this.CLEANING_STRATEGIES.KNN, 
-            this.CLEANING_STRATEGIES.ITERATIVE, 
-            this.CLEANING_STRATEGIES.CONSTANT, 
+    return [this.CLEANING_STRATEGIES.KNN,
+            this.CLEANING_STRATEGIES.ITERATIVE,
+            this.CLEANING_STRATEGIES.CONSTANT,
             this.CLEANING_STRATEGIES.SPLINE].includes(strategy);
   }
-  
+
   /**
    * Gère le changement de stratégie pour une colonne
    */
@@ -2068,39 +2140,39 @@ DIAGNOSTIC :
     column.params = this.getDefaultParams(column.strategy);
     this.cdr.detectChanges();
   }
-  
+
   /**
    * Affiche l'aperçu du nettoyage pour une colonne
    */
   previewColumnCleaning(column: any, index: number): void {
     this.previewColumn = column;
     this.showPreviewModal = true;
-    
+
     // Simuler des données d'aperçu
     const totalRows = this.dataset?.instances_number || 1000;
     const missingBefore = Math.round(totalRows * column.missingPercentage / 100);
-    const missingAfter = column.strategy === this.CLEANING_STRATEGIES.DROP_COLUMN ? totalRows : 
-                        column.strategy === this.CLEANING_STRATEGIES.DROP_ROWS ? 0 : 
+    const missingAfter = column.strategy === this.CLEANING_STRATEGIES.DROP_COLUMN ? totalRows :
+                        column.strategy === this.CLEANING_STRATEGIES.DROP_ROWS ? 0 :
                         0;
-    
+
     this.previewData = {
       before: { missing: missingBefore },
       after: { missing: missingAfter },
       samples: this.generatePreviewSamples(column)
     };
   }
-  
+
   /**
    * Génère des échantillons pour l'aperçu
    */
   generatePreviewSamples(column: any): any[] {
     const samples = [];
     const sampleSize = 10;
-    
+
     for (let i = 0; i < sampleSize; i++) {
       const isMissing = Math.random() < (column.missingPercentage / 100);
       let cleanedValue;
-      
+
       if (isMissing) {
         switch (column.strategy) {
           case this.CLEANING_STRATEGIES.MEAN:
@@ -2124,17 +2196,17 @@ DIAGNOSTIC :
       } else {
         cleanedValue = this.generateSampleValue(column.type, i);
       }
-      
+
       samples.push({
         index: i + 1,
         original: isMissing ? null : this.generateSampleValue(column.type, i),
         cleaned: cleanedValue
       });
     }
-    
+
     return samples;
   }
-  
+
   /**
    * Génère une valeur d'exemple selon le type
    */
@@ -2154,7 +2226,7 @@ DIAGNOSTIC :
         return `Data_${index}`;
     }
   }
-  
+
   /**
    * Ferme la modal d'aperçu
    */
@@ -2163,7 +2235,7 @@ DIAGNOSTIC :
     this.previewColumn = null;
     this.previewData = null;
   }
-  
+
   /**
    * Obtient la classe de santé d'une colonne
    */
@@ -2173,7 +2245,7 @@ DIAGNOSTIC :
     if (column.missingPercentage < 50) return 'warning';
     return 'danger';
   }
-  
+
   /**
    * Obtient l'icône de santé d'une colonne
    */
@@ -2183,7 +2255,7 @@ DIAGNOSTIC :
     if (column.missingPercentage < 50) return 'warning';
     return 'error';
   }
-  
+
   /**
    * Obtient le tooltip de santé d'une colonne
    */
@@ -2191,14 +2263,14 @@ DIAGNOSTIC :
     if (column.missingPercentage === 0) return 'Aucune donnée manquante';
     return `${column.missingPercentage}% de données manquantes (${column.missingCount} valeurs)`;
   }
-  
+
   /**
    * Retourne le nombre total de valeurs manquantes
    */
   getTotalMissingValuesCount(): number {
     return this.columnCleaningConfigs.reduce((total, col) => total + col.missingCount, 0);
   }
-  
+
   /**
    * Applique une configuration intelligente prédéfinie
    */
@@ -2209,7 +2281,7 @@ DIAGNOSTIC :
     });
     this.cdr.detectChanges();
   }
-  
+
   /**
    * Réinitialise toutes les configurations
    */
@@ -2220,7 +2292,7 @@ DIAGNOSTIC :
     });
     this.cdr.detectChanges();
   }
-  
+
   /**
    * Valide le pipeline de nettoyage
    */
@@ -2229,34 +2301,34 @@ DIAGNOSTIC :
     const invalidConfigs = this.columnCleaningConfigs.filter(
       config => config.missingPercentage > 0 && config.strategy === this.CLEANING_STRATEGIES.NONE
     );
-    
+
     if (invalidConfigs.length > 0) {
       this.addTrainingLog('warning', `${invalidConfigs.length} colonnes avec données manquantes n'ont pas de stratégie définie`);
       return;
     }
-    
+
     // Vérifier les colonnes à supprimer
     const columnsToDelete = this.columnCleaningConfigs.filter(
       config => config.strategy === this.CLEANING_STRATEGIES.DROP_COLUMN
     );
-    
+
     if (columnsToDelete.length > 0) {
       this.addTrainingLog('info', `${columnsToDelete.length} colonnes seront supprimées`);
     }
-    
+
     // Tester la configuration avec l'API backend
     this.testCleaningConfiguration();
   }
-  
+
   /**
    * Exporte le code Python pour le nettoyage
    */
   exportCleaningCode(): void {
     // Utiliser la version avec jointures si des datasets additionnels sont présents
-    const pythonCode = this.additionalDatasets.length > 0 
-      ? this.generatePythonCleaningCodeWithJoins() 
+    const pythonCode = this.additionalDatasets.length > 0
+      ? this.generatePythonCleaningCodeWithJoins()
       : this.generatePythonCleaningCode();
-    
+
     // Créer un blob et télécharger
     const blob = new Blob([pythonCode], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
@@ -2267,10 +2339,10 @@ DIAGNOSTIC :
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-    
+
     this.addTrainingLog('success', 'Code Python exporté avec succès !');
   }
-  
+
   /**
    * Génère le code Python pour le pipeline de nettoyage
    */
@@ -2286,74 +2358,74 @@ df = pd.read_csv('your_dataset.csv')
 
 # Pipeline de nettoyage des données
 `;
-    
+
     this.columnCleaningConfigs.forEach(config => {
       if (config.strategy === this.CLEANING_STRATEGIES.NONE) return;
-      
+
       code += `\n# Nettoyage de la colonne: ${config.name}\n`;
-      
+
       switch (config.strategy) {
         case this.CLEANING_STRATEGIES.DROP_COLUMN:
           code += `df = df.drop('${config.name}', axis=1)\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.DROP_ROWS:
           code += `df = df.dropna(subset=['${config.name}'])\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.MEAN:
           code += `df['${config.name}'].fillna(df['${config.name}'].mean(), inplace=True)\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.MEDIAN:
           code += `df['${config.name}'].fillna(df['${config.name}'].median(), inplace=True)\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.MODE:
           code += `df['${config.name}'].fillna(df['${config.name}'].mode()[0], inplace=True)\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.CONSTANT:
           code += `df['${config.name}'].fillna(${config.params.fill_value}, inplace=True)\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.KNN:
           code += `knn_imputer = KNNImputer(n_neighbors=${config.params.n_neighbors})
 df['${config.name}'] = knn_imputer.fit_transform(df[['${config.name}']])\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.ITERATIVE:
           code += `iterative_imputer = IterativeImputer(max_iter=${config.params.max_iter})
 df['${config.name}'] = iterative_imputer.fit_transform(df[['${config.name}']])\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.LINEAR:
           code += `df['${config.name}'].interpolate(method='linear', inplace=True)\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.FORWARD_FILL:
           code += `df['${config.name}'].fillna(method='ffill', inplace=True)\n`;
           break;
-          
+
         case this.CLEANING_STRATEGIES.BACKWARD_FILL:
           code += `df['${config.name}'].fillna(method='bfill', inplace=True)\n`;
           break;
       }
     });
-    
+
     code += `\n# Sauvegarder les données nettoyées
 df.to_csv('cleaned_dataset.csv', index=False)
 print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
-    
+
     return code;
   }
-  
+
   /**
    * Obtient les statistiques de nettoyage
    */
   getCleaningStats(): any[] {
     const stats = [];
-    
+
     // Colonnes à supprimer
     const columnsToDelete = this.columnCleaningConfigs.filter(
       c => c.strategy === this.CLEANING_STRATEGIES.DROP_COLUMN
@@ -2365,11 +2437,11 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
         value: columnsToDelete
       });
     }
-    
+
     // Stratégies d'imputation
     const imputationStrategies = this.columnCleaningConfigs.filter(
-      c => [this.CLEANING_STRATEGIES.MEAN, this.CLEANING_STRATEGIES.MEDIAN, 
-            this.CLEANING_STRATEGIES.MODE, this.CLEANING_STRATEGIES.KNN, 
+      c => [this.CLEANING_STRATEGIES.MEAN, this.CLEANING_STRATEGIES.MEDIAN,
+            this.CLEANING_STRATEGIES.MODE, this.CLEANING_STRATEGIES.KNN,
             this.CLEANING_STRATEGIES.ITERATIVE].includes(c.strategy)
     ).length;
     if (imputationStrategies > 0) {
@@ -2379,10 +2451,10 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
         value: imputationStrategies
       });
     }
-    
+
     // Interpolations
     const interpolations = this.columnCleaningConfigs.filter(
-      c => [this.CLEANING_STRATEGIES.LINEAR, this.CLEANING_STRATEGIES.FORWARD_FILL, 
+      c => [this.CLEANING_STRATEGIES.LINEAR, this.CLEANING_STRATEGIES.FORWARD_FILL,
             this.CLEANING_STRATEGIES.BACKWARD_FILL].includes(c.strategy)
     ).length;
     if (interpolations > 0) {
@@ -2392,7 +2464,7 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
         value: interpolations
       });
     }
-    
+
     // Total de colonnes modifiées
     const totalModified = this.columnCleaningConfigs.filter(
       c => c.strategy !== this.CLEANING_STRATEGIES.NONE
@@ -2402,16 +2474,16 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
       label: 'Total de modifications',
       value: totalModified
     });
-    
+
     return stats;
   }
-  
+
   /**
    * Obtient les overrides de nettoyage pour le formulaire
    */
   getCleaningOverrides(): any {
     const overrides: any = {};
-    
+
     this.columnCleaningConfigs.forEach(config => {
       if (config.strategy !== config.recommendedStrategy) {
         overrides[config.name] = {
@@ -2420,10 +2492,10 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
         };
       }
     });
-    
+
     return overrides;
   }
-  
+
   /**
    * Ouvre le sélecteur de dataset pour la fusion
    */
@@ -2434,7 +2506,7 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
         next: (datasets) => {
           // Filtrer pour ne pas inclure le dataset actuel
           this.availableDatasets = datasets.filter(ds => ds.id !== this.datasetId);
-          
+
           // Ouvrir une modal ou un dialog pour sélectionner
           // Pour l'instant, on ajoute simplement un dataset de démonstration
           if (this.availableDatasets.length > 0) {
@@ -2449,7 +2521,7 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
         }
       });
   }
-  
+
   /**
    * Ajoute un dataset pour la fusion
    */
@@ -2459,7 +2531,7 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
       .subscribe({
         next: (details) => {
           const columns = details.files?.[0]?.columns?.map((col: any) => col.column_name) || [];
-          
+
           this.additionalDatasets.push({
             id: dataset.id,
             name: dataset.dataset_name,
@@ -2468,7 +2540,7 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
             joinType: 'inner',
             joinKey: columns[0] || '' // Première colonne par défaut
           });
-          
+
           this.addTrainingLog('success', `Dataset "${dataset.dataset_name}" ajouté pour la fusion`);
           this.cdr.detectChanges();
         },
@@ -2478,7 +2550,7 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
         }
       });
   }
-  
+
   /**
    * Supprime un dataset de la liste de fusion
    */
@@ -2488,21 +2560,21 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
     this.addTrainingLog('info', `Dataset "${dataset.name}" retiré de la fusion`);
     this.cdr.detectChanges();
   }
-  
+
   /**
    * Génère le code Python incluant la fusion de datasets
    */
   generatePythonCleaningCodeWithJoins(): string {
     let code = this.generatePythonCleaningCode();
-    
+
     // Ajouter le code pour les jointures si nécessaire
     if (this.additionalDatasets.length > 0) {
       code += `\n\n# Fusion avec d'autres datasets\n`;
-      
+
       this.additionalDatasets.forEach((ds, index) => {
         code += `\n# Charger le dataset ${index + 2}: ${ds.name}\n`;
         code += `df${index + 2} = pd.read_csv('${ds.name.toLowerCase().replace(/\s+/g, '_')}.csv')\n`;
-        
+
         // Générer le code de jointure selon le type
         const joinMethodMap: { [key: string]: string } = {
           'inner': 'inner',
@@ -2511,16 +2583,16 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
           'outer': 'outer'
         };
         const joinMethod = joinMethodMap[ds.joinType] || 'inner';
-        
+
         code += `df = pd.merge(df, df${index + 2}, on='${ds.joinKey}', how='${joinMethod}')\n`;
       });
-      
+
       code += `\nprint(f"Dataset fusionné: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
     }
-    
+
     return code;
   }
-  
+
   /**
    * Teste la configuration avec l'API backend
    */
@@ -2529,7 +2601,7 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
       this.addTrainingLog('warning', 'Configuration incomplète pour le test');
       return;
     }
-    
+
     // Préparer la configuration de nettoyage pour l'API
     const cleaningConfig = {
       dataset_id: this.datasetId,
@@ -2548,20 +2620,20 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
         join_key: ds.joinKey
       }))
     };
-    
+
     // Envoyer à l'API pour validation
     this.mlPipelineService.validateCleaningConfiguration(cleaningConfig)
       .subscribe({
         next: (response) => {
           this.addTrainingLog('success', 'Configuration de nettoyage validée avec succès');
-          
+
           // Mettre à jour le formulaire avec la configuration validée
           this.dataCleaningForm.patchValue({
             analysisCompleted: true,
             autoFixApplied: true,
             manualOverrides: this.getCleaningOverrides()
           });
-          
+
           this.cdr.detectChanges();
         },
         error: (error) => {
@@ -2573,28 +2645,28 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
 
   getColumnStatusClass(column: any): string {
     if (!column.issues || column.issues.length === 0) return 'perfect';
-    
+
     const hasHighSeverity = column.issues.some((issue: any) => issue.severity === 'high');
     if (hasHighSeverity) return 'error';
-    
+
     const hasMediumSeverity = column.issues.some((issue: any) => issue.severity === 'medium');
     if (hasMediumSeverity) return 'warning';
-    
+
     return 'info';
   }
 
   getColumnStatusIcon(column: any): string {
     if (!column.issues || column.issues.length === 0) return 'check_circle';
-    
+
     const hasHighSeverity = column.issues.some((issue: any) => issue.severity === 'high');
     if (hasHighSeverity) return 'error';
-    
+
     const hasMediumSeverity = column.issues.some((issue: any) => issue.severity === 'medium');
     if (hasMediumSeverity) return 'warning';
-    
+
     return 'info';
   }
-  
+
 
 
   getActionType(strategy: string): string {
@@ -2653,7 +2725,7 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
     const method = this.dataQualityForm.get('scalingMethod')?.value;
     const methodNames: Record<string, string> = {
       'standard': 'StandardScaler',
-      'minmax': 'MinMaxScaler', 
+      'minmax': 'MinMaxScaler',
       'robust': 'RobustScaler'
     };
     return methodNames[method] || 'StandardScaler';

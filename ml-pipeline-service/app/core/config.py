@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     
     # Storage
     STORAGE_TYPE: str = "minio"  # or "azure"
-    MINIO_ENDPOINT: str = "http://minio-service:6700"
+    MINIO_ENDPOINT: str = "http://minio-service:80"
     MINIO_ACCESS_KEY: str = "minioadmin"
     MINIO_SECRET_KEY: str = "minioadmin"
     MINIO_SECURE: bool = False

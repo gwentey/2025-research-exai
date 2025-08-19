@@ -32,7 +32,7 @@ spec:
         - name: STORAGE_TYPE
           value: "minio"
         - name: MINIO_ENDPOINT
-          value: "http://minio-service:6700"
+          value: "http://minio-service:80"
         - name: MINIO_ACCESS_KEY
           valueFrom:
             secretKeyRef:
@@ -43,6 +43,14 @@ spec:
             secretKeyRef:
               name: ml-pipeline-secrets
               key: minio-secret-key
+        - name: SERVICE_SELECTION_URL
+          value: "http://service-selection-service.ibis-x.svc.cluster.local"
+        - name: PYTHONPATH
+          value: "/app"
+        - name: MAX_TRAINING_TIME
+          value: "7200"
+        - name: DEFAULT_TEST_SIZE
+          value: "0.2"
         resources:
           requests:
             memory: "512Mi"

@@ -80,11 +80,11 @@ class ExperimentStatus(BaseModel):
 class ExperimentResults(BaseModel):
     id: UUID
     metrics: Optional[Dict[str, Any]] = None
-    artifact_uri: Optional[str] = None
+    model_uri: Optional[str] = None  # Renommé pour cohérence avec l'API
     visualizations: Optional[Dict[str, Any]] = None
     feature_importance: Optional[Dict[str, Any]] = None
     created_at: datetime
-    updated_at: datetime
+    completed_at: datetime
 
 class HyperparameterConfig(BaseModel):
     type: str  # 'number', 'select', 'boolean'
