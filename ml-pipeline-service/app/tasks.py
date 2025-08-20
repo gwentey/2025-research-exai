@@ -185,10 +185,11 @@ def train_model(self, experiment_id: str):
         
         logger.info(f"Dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
         
-        # Update progress
+        # Update progress avec délai UX pour permettre à l'utilisateur de voir l'étape
         experiment.progress = 30
         self.db.commit()
         self.update_state(state='PROGRESS', meta={'current': 30, 'total': 100})
+        time.sleep(1.5)  # Délai UX pour voir l'étape "Chargement des données"
         
         # Validation des données avant preprocessing
         target_column = experiment.preprocessing_config.get('target_column')
@@ -233,10 +234,11 @@ def train_model(self, experiment_id: str):
             experiment.preprocessing_config
         )
         
-        # Update progress
+        # Update progress avec délai UX
         experiment.progress = 50
         self.db.commit()
         self.update_state(state='PROGRESS', meta={'current': 50, 'total': 100})
+        time.sleep(2.0)  # Délai UX pour voir l'étape "Préprocessing"
         
         # Initialize model based on algorithm avec task_type corrigé
         # IMPORTANT : Utiliser la variable locale mise à jour, pas la BDD
@@ -267,10 +269,11 @@ def train_model(self, experiment_id: str):
         # Train model
         model.fit(X_train, y_train)
         
-        # Update progress
+        # Update progress avec délai UX  
         experiment.progress = 70
         self.db.commit()
         self.update_state(state='PROGRESS', meta={'current': 70, 'total': 100})
+        time.sleep(1.5)  # Délai UX pour voir l'étape "Entraînement"
         
         # Evaluate model avec task_type corrigé (recharger pour avoir la dernière version)
         self.db.refresh(experiment)
@@ -286,10 +289,11 @@ def train_model(self, experiment_id: str):
             task_type=final_task_type
         )
         
-        # Update progress
+        # Update progress avec délai UX
         experiment.progress = 90
         self.db.commit()
         self.update_state(state='PROGRESS', meta={'current': 90, 'total': 100})
+        time.sleep(1.0)  # Délai UX pour voir l'étape "Évaluation"
         
         # Save model and artifacts avec versioning
         logger.info("Saving model artifacts with versioning")
@@ -341,6 +345,9 @@ def train_model(self, experiment_id: str):
                 feature_names = importance_data.get('features', [])
                 importances = importance_data.get('importance', [])
                 feature_importance = dict(zip(feature_names[:20], importances[:20]))  # Top 20 features
+        
+        # Délai final pour voir la progression à 90% avant 100%
+        time.sleep(2.0)  # Délai UX pour voir l'étape "Sauvegarde" avant completion
         
         # Update experiment with results
         experiment.status = 'completed'

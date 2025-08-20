@@ -591,10 +591,12 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   trainingCompleted = false;
   showingCompletionAnimation = false;
 
-  handleTrainingCompletion() {
+        handleTrainingCompletion() {
     this.isTraining = false;
     this.trainingProgress = 100;
     this.trainingCompleted = true;
+    // RESTER EN MODE CONSOLE - ne pas retourner au wizard
+    // this.trainingConsoleMode reste true
 
     // Nettoyer le polling
     if (this.pollingInterval) {
@@ -602,15 +604,34 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     this.addTrainingLog('success', '🎉 Entraînement terminé avec succès!');
-    this.addTrainingLog('info', '📊 Préparation des résultats...');
+    this.addTrainingLog('success', '💾 Modèle sauvegardé et versionné');
+    this.addTrainingLog('success', '🎨 Visualisations générées');
 
-    // Animation de completion style Stripe/Linear
-    this.showCompletionAnimation();
-
-    // Charger les résultats après l'animation
+    // TRANSFORMER LA CONSOLE EN POPUP DE SUCCÈS
     setTimeout(() => {
-      this.loadResults();
-    }, 3000);
+      this.transformConsoleToSuccessPopup();
+    }, 1500);
+  }
+
+  // Nouvelle méthode pour transformer la console en popup
+  transformConsoleToSuccessPopup() {
+    this.showingCompletionAnimation = true;
+    this.addTrainingLog('success', '✨ Transformation en vue de succès...');
+
+    // Animation progressive des éléments de succès
+    setTimeout(() => {
+      this.addTrainingLog('success', '📊 Métriques de performance calculées');
+    }, 500);
+
+    setTimeout(() => {
+      this.addTrainingLog('success', '🎨 Visualisations prêtes');
+    }, 1000);
+
+    setTimeout(() => {
+      this.addTrainingLog('success', '🚀 Prêt à explorer les résultats !');
+      this.showingCompletionAnimation = false;
+      // La console reste visible avec le bouton pour voir les résultats
+    }, 1500);
   }
 
   handleTrainingFailure(errorMessage?: string) {
@@ -666,26 +687,29 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       return;
     }
 
+    this.addTrainingLog('info', '⏳ Chargement des résultats...');
+
     this.mlPipelineService.getExperimentResults(this.experimentId)
       .subscribe({
         next: (results) => {
           console.log('✅ Results loaded successfully:', results);
           this.experimentResults = results;
+          this.showResults = true; // Afficher les résultats dans la même page
           this.isTraining = false;
 
-          // Log détaillé pour debugging
-          this.addTrainingLog('success', `Résultats chargés: ${Object.keys(results.metrics || {}).length} métriques disponibles`);
-          this.addTrainingLog('info', '🎯 Cliquez sur "Voir les résultats" pour consulter les graphiques détaillés');
+          // Log de succès
+          this.addTrainingLog('success', `📊 Résultats chargés: ${Object.keys(results.metrics || {}).length} métriques disponibles`);
+          this.addTrainingLog('success', '🎨 Visualisations prêtes à être explorées !');
 
           // Trigger change detection pour s'assurer que l'UI se met à jour
           this.cdr.detectChanges();
 
-          console.log('🎯 experimentResults set, buttons should now appear:', !!this.experimentResults);
+          console.log('🎯 Results loaded and displayed in place');
         },
         error: (error) => {
           console.error('❌ Error loading results:', error);
           this.addTrainingLog('error', `Erreur lors du chargement des résultats: ${error.message || 'Erreur inconnue'}`);
-          this.isTraining = false;
+          this.addTrainingLog('info', '🔧 Vous pouvez réessayer en cliquant sur le bouton');
         }
       });
   }
@@ -763,6 +787,12 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   goBack() {
+    // Empêcher la navigation pendant l'entraînement
+    if (this.isTraining) {
+      console.log('🚫 Navigation bloquée pendant l\'entraînement');
+      return;
+    }
+
     const returnUrl = this.route.snapshot.queryParams['returnUrl'] || `/ml-pipeline`;
     this.router.navigateByUrl(returnUrl);
   }
@@ -777,6 +807,12 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   backToApp() {
+    // Empêcher la navigation pendant l'entraînement
+    if (this.isTraining) {
+      console.log('🚫 Navigation bloquée pendant l\'entraînement');
+      return;
+    }
+
     // Retour au dashboard principal ou à la page d'accueil
     this.router.navigate(['/starter']);
   }
@@ -839,14 +875,15 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     }
   }
 
-  goToStep(stepNumber: number): void {
-    // Empêcher la navigation pendant l'entraînement
-    if (this.isTraining) {
-      console.log('🚫 Navigation bloquée pendant l\'entraînement');
+    goToStep(stepNumber: number): void {
+    // Permettre la navigation vers l'étape 9 (Résultats) même pendant l'entraînement
+    if (this.isTraining && stepNumber !== 9) {
+      console.log('🚫 Navigation bloquée pendant l\'entraînement (sauf étape 9)');
       return;
     }
 
-    if (this.stepper && stepNumber >= 1 && stepNumber <= 8) {
+    if (this.stepper && stepNumber >= 1 && stepNumber <= 9) {
+      console.log(`🎯 Navigation vers étape ${stepNumber}`);
       this.stepper.selectedIndex = stepNumber - 1;
       this.cdr.detectChanges();
     }
@@ -1080,13 +1117,57 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   viewDetailedResults(): void {
-    // Navigation vers la page détaillée des résultats
-    if (this.experimentId) {
-      this.router.navigate(['/ml-pipeline/experiment', this.experimentId]);
+    console.log('🔍 Chargement des résultats dans la console');
+    // Charger les résultats dans la console - PAS de navigation
+    if (this.experimentId && !this.experimentResults) {
+      this.loadResults();
+    } else if (this.experimentResults) {
+      // Si les résultats sont déjà chargés, les afficher
+      this.addTrainingLog('info', '📊 Résultats déjà disponibles !');
+      this.showResults = true;
+      this.cdr.detectChanges();
     } else {
-      console.error('Experiment ID not available for navigation');
+      console.error('Experiment ID not available');
     }
   }
+
+  // Retourner au wizard pour un nouvel entraînement
+    returnToWizard(): void {
+    console.log('🔄 Retour au wizard pour nouvel entraînement');
+    this.trainingConsoleMode = false;
+    this.isTraining = false;
+    this.trainingCompleted = false;
+    this.showResults = false;
+    this.experimentResults = null;
+    this.experimentId = '';
+    this.trainingLogs = [];
+
+    // Reset des étapes de progression
+    this.progressSteps = {
+      dataLoaded: false,
+      preprocessing: false,
+      training: false,
+      evaluation: false
+    };
+
+    // Nettoyer le polling
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+
+    // Retourner à l'étape 8 (lancement)
+    if (this.stepper) {
+      this.stepper.selectedIndex = 7; // Étape 8 (index 7)
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  // Variable pour contrôler l'affichage des résultats
+  showResults = false;
+
+  // Variable pour le mode console pure (sort du wizard)
+  trainingConsoleMode = false;
 
   // Nouvelle implémentation de startTraining avec simulation des logs
   async startTraining() {
@@ -1114,10 +1195,25 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       return;
     }
 
-    console.log('✅ Starting training process...');
+        console.log('✅ Starting training process...');
+
+        // ALLER À L'ÉTAPE 9 CACHÉE (CONSOLE) - Garder le layout wizard
+    this.trainingConsoleMode = true;
     this.isTraining = true;
     this.trainingProgress = 0;
     this.trainingLogs = []; // Reset des logs
+    this.trainingCompleted = false;
+    this.showResults = false;
+
+    // Navigation vers l'étape cachée de console avec délai pour assurer la mise à jour
+    setTimeout(() => {
+      if (this.stepper) {
+        console.log('🎯 Navigation vers étape 9 (console), index:', 8);
+        this.stepper.selectedIndex = 8; // Étape 9 (index 8)
+        this.cdr.detectChanges();
+        console.log('✅ Étape active maintenant:', this.stepper.selectedIndex + 1);
+      }
+    }, 100);
 
     // Ajouter un log immédiat pour montrer que ça démarre
     this.addTrainingLog('info', '🚀 Démarrage de l\'entraînement...');
@@ -1195,11 +1291,12 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         console.error('Erreur lors de la récupération/création du projet:', error);
       }
 
-      // Si toujours pas de projet, erreur critique
+      // Si toujours pas de projet, erreur critique SANS redirection
       if (!finalProjectId) {
-        alert('❌ ERREUR CRITIQUE : Impossible de trouver ou créer un projet !\n\nRedirection vers la page des projets...');
-        this.router.navigate(['/projects']);
+        console.error('❌ ERREUR CRITIQUE : Impossible de trouver ou créer un projet !');
+        this.addTrainingLog('error', '❌ Impossible de trouver un projet. Veuillez rafraîchir la page.');
         this.isTraining = false;
+        // PAS de navigation - rester sur la page
         return;
       }
     }
