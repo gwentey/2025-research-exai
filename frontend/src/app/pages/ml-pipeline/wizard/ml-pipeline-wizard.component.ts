@@ -979,18 +979,36 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       this.trainingLogs = this.trainingLogs.slice(-100);
     }
 
+    // Forcer la détection de changements avant l'auto-scroll
+    this.cdr.detectChanges();
+
     // Auto-scroll vers le bas si activé
     if (this.autoScrollLogs) {
-      setTimeout(() => this.scrollLogsToBottom(), 50);
-    }
+      // Attendre que le DOM soit mis à jour avant de scroller
+      setTimeout(() => this.scrollLogsToBottom(), 150);
 
-    this.cdr.detectChanges();
+      // Double check pour s'assurer que ça marche
+      setTimeout(() => this.scrollLogsToBottom(), 300);
+    }
   }
 
   private scrollLogsToBottom(): void {
-    if (this.logsContainer) {
+    if (this.logsContainer && this.logsContainer.nativeElement) {
       const element = this.logsContainer.nativeElement;
+
+      // Debug pour vérifier si l'élément est trouvé
+      console.log('🔍 Auto-scroll: Element found:', !!element, 'scrollHeight:', element.scrollHeight);
+
+      // Scroll vers le bas avec animation fluide
+      element.scrollTo({
+        top: element.scrollHeight,
+        behavior: 'smooth'
+      });
+
+      // Fallback pour navigateurs plus anciens
       element.scrollTop = element.scrollHeight;
+    } else {
+      console.warn('⚠️ Auto-scroll: logsContainer non trouvé');
     }
   }
 
