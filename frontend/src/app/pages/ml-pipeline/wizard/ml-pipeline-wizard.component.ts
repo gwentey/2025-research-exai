@@ -24,7 +24,7 @@ import { ProjectService } from '../../../services/project.service';
 import { HyperparameterConfig, AlgorithmInfo, ExperimentCreate } from '../../../models/ml-pipeline.models';
 import { DatasetDetailView } from '../../../models/dataset.models';
 import { UserRead } from '../../../models/auth.models';
-import { CreditsIndicatorComponent } from '../../../components/credits-indicator/credits-indicator.component';
+
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs/operators';
@@ -62,8 +62,7 @@ Chart.register(...registerables);
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
-    TranslateModule,
-    CreditsIndicatorComponent
+    TranslateModule
   ],
   templateUrl: './ml-pipeline-wizard.component.html',
   styleUrls: ['./ml-pipeline-wizard.component.scss'],
@@ -85,7 +84,8 @@ Chart.register(...registerables);
         style({ opacity: 0, transform: 'scale(0.95)' }),
         animate('0.3s ease-out', style({ opacity: 1, transform: 'scale(1)' }))
       ])
-    ])
+    ]),
+
   ]
 })
 export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -149,6 +149,8 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   autoScrollLogs = true;
   private logSimulationTimer: any;
 
+
+
   // User data for credits
   currentUser: UserRead | null = null;
 
@@ -181,7 +183,10 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     private projectService: ProjectService
   ) {}
 
-  ngOnInit() {
+    ngOnInit() {
+    // ⚠️ ROBUSTESSE : Reset complet de l'état pour éviter les bugs de session
+    this.resetWizardState();
+
     // Initialize forms first
     this.initializeForms();
 
@@ -199,6 +204,9 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     console.log('- Direct params:', this.route.snapshot.params);
     console.log('- Query params:', this.route.snapshot.queryParams);
     console.log('- Final projectId:', this.projectId);
+
+    // Support clavier pour navigation
+    document.addEventListener('keydown', this.handleKeyboardEvents.bind(this));
 
     // Check if coming from dataset selection
     this.route.queryParams.subscribe(params => {
@@ -592,20 +600,25 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   showingCompletionAnimation = false;
 
         handleTrainingCompletion() {
+    console.log('🎉 TRAINING COMPLETION DETECTED - Updating state...');
+
     this.isTraining = false;
     this.trainingProgress = 100;
     this.trainingCompleted = true;
-    // RESTER EN MODE CONSOLE - ne pas retourner au wizard
-    // this.trainingConsoleMode reste true
 
-    // Nettoyer le polling
+    // ⚠️ ROBUSTESSE : Nettoyer complètement le polling
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      console.log('✅ Polling interval cleaned up');
     }
 
     this.addTrainingLog('success', '🎉 Entraînement terminé avec succès!');
     this.addTrainingLog('success', '💾 Modèle sauvegardé et versionné');
     this.addTrainingLog('success', '🎨 Visualisations générées');
+
+    // ⚠️ ROBUSTESSE : Force UI update
+    this.cdr.detectChanges();
 
     // TRANSFORMER LA CONSOLE EN POPUP DE SUCCÈS
     setTimeout(() => {
@@ -679,39 +692,43 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     }, 2000);
   }
 
-  loadResults() {
+  loadResults(): Promise<void> {
     console.log('📈 Loading experiment results for:', this.experimentId);
 
     if (!this.experimentId) {
       console.error('❌ No experiment ID available for loading results');
-      return;
+      return Promise.reject('No experiment ID');
     }
 
     this.addTrainingLog('info', '⏳ Chargement des résultats...');
 
-    this.mlPipelineService.getExperimentResults(this.experimentId)
-      .subscribe({
-        next: (results) => {
-          console.log('✅ Results loaded successfully:', results);
-          this.experimentResults = results;
-          this.showResults = true; // Afficher les résultats dans la même page
-          this.isTraining = false;
+    return new Promise((resolve, reject) => {
+      this.mlPipelineService.getExperimentResults(this.experimentId)
+        .subscribe({
+          next: (results) => {
+            console.log('✅ Results loaded successfully:', results);
+            this.experimentResults = results;
+            // NE PLUS afficher les résultats inline - seulement dans la modal
+            this.isTraining = false;
 
-          // Log de succès
-          this.addTrainingLog('success', `📊 Résultats chargés: ${Object.keys(results.metrics || {}).length} métriques disponibles`);
-          this.addTrainingLog('success', '🎨 Visualisations prêtes à être explorées !');
+            // Log de succès
+            this.addTrainingLog('success', `📊 Résultats chargés: ${Object.keys(results.metrics || {}).length} métriques disponibles`);
+            this.addTrainingLog('success', '🎨 Prêt à explorer en détail !');
 
-          // Trigger change detection pour s'assurer que l'UI se met à jour
-          this.cdr.detectChanges();
+            // Trigger change detection pour s'assurer que l'UI se met à jour
+            this.cdr.detectChanges();
 
-          console.log('🎯 Results loaded and displayed in place');
-        },
-        error: (error) => {
-          console.error('❌ Error loading results:', error);
-          this.addTrainingLog('error', `Erreur lors du chargement des résultats: ${error.message || 'Erreur inconnue'}`);
-          this.addTrainingLog('info', '🔧 Vous pouvez réessayer en cliquant sur le bouton');
-        }
-      });
+            console.log('🎯 Results loaded and ready for modal');
+            resolve();
+          },
+          error: (error) => {
+            console.error('❌ Error loading results:', error);
+            this.addTrainingLog('error', `Erreur lors du chargement des résultats: ${error.message || 'Erreur inconnue'}`);
+            this.addTrainingLog('info', '🔧 Vous pouvez réessayer en cliquant sur le bouton');
+            reject(error);
+          }
+        });
+    });
   }
 
   suggestTargetAndTaskType(data: DatasetDetailView) {
@@ -1110,6 +1127,56 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     return 'progress-danger';
   }
 
+    // ==============================================
+  // NAVIGATION VERS PAGE RÉSULTATS DÉDIÉE
+  // ==============================================
+
+    navigateToResults(): void {
+    console.log('🎯 Navigating to dedicated results page');
+
+    if (!this.experimentId) {
+      console.error('❌ No experiment ID available for navigation');
+      this.addTrainingLog('error', 'Impossible de naviguer - ID expérience manquant');
+      return;
+    }
+
+    this.addTrainingLog('info', '🚀 Navigation vers la page de résultats...');
+
+    // ⚠️ ROBUSTESSE : Clean state before navigation
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+
+    // Navigation vers la page dédiée experiment-results
+    this.router.navigate(['/projects', this.projectId, 'ml-pipeline', 'experiment', this.experimentId]).then(() => {
+      console.log('✅ Navigation successful to results page');
+    }).catch(error => {
+      console.error('❌ Navigation failed:', error);
+      this.addTrainingLog('error', 'Erreur de navigation vers les résultats');
+    });
+  }
+
+    // Formatage de la durée d'entraînement
+  formatDuration(seconds: number): string {
+    if (!seconds) return 'N/A';
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`;
+    } else {
+      return `${remainingSeconds}s`;
+    }
+  }
+
+  // Calcul de la taille d'entraînement (80% du dataset)
+  getTrainingSize(): number {
+    const totalSize = this.dataset?.instances_number || 0;
+    return Math.floor(totalSize * 0.8);
+  }
+
   // Nouvelles méthodes pour les actions des résultats
   downloadModel(): void {
     if (this.experimentResults?.artifact_uri) {
@@ -1469,6 +1536,65 @@ DIAGNOSTIC :
     if (this.logSimulationTimer) {
       clearInterval(this.logSimulationTimer);
     }
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+
+    // Cleanup keyboard listener
+    document.removeEventListener('keydown', this.handleKeyboardEvents.bind(this));
+  }
+
+  // ==============================================
+  // ROBUSTESSE : PRÉVENTION DES BUGS DE SESSION
+  // ==============================================
+
+  resetWizardState(): void {
+    console.log('🔄 Resetting wizard state for robustness...');
+
+    // Reset training state
+    this.isTraining = false;
+    this.trainingProgress = 0;
+    this.trainingCompleted = false;
+    this.showingCompletionAnimation = false;
+    this.showResults = false;
+
+    // Reset experiment data
+    this.experimentId = '';
+    this.experimentResults = null;
+
+    // Reset logs
+    this.trainingLogs = [];
+
+    // Reset progress steps
+    this.progressSteps = {
+      dataLoaded: false,
+      preprocessing: false,
+      training: false,
+      evaluation: false
+    };
+
+    // Clean any existing polling
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+
+    console.log('✅ Wizard state reset complete');
+  }
+
+  checkForCompletedExperiments(): void {
+    // Vérifier s'il y a des expériences récentes terminées pour ce projet
+    // Cela permet de détecter les entraînements terminés en arrière-plan
+    if (this.projectId) {
+      console.log('🔍 Checking for completed experiments in project:', this.projectId);
+      // Cette logique pourrait être ajoutée si nécessaire
+    }
+  }
+
+  // Support clavier pour navigation
+  private handleKeyboardEvents(event: KeyboardEvent): void {
+    // Placeholder pour support clavier futur
+    console.log('⌨️ Keyboard event:', event.key);
   }
 
   objectKeys = Object.keys;

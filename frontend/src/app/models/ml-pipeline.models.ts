@@ -64,6 +64,7 @@ export interface ExperimentStatus {
   id: string;
   status: string;
   progress: number;
+  algorithm: string;  // ⚠️ FIX : Ajouter l'algorithme manquant
   error_message?: string;
   created_at: string;
   updated_at?: string;
@@ -77,6 +78,8 @@ export interface ExperimentResults {
   feature_importance: Record<string, number>;
   created_at: string;
   completed_at: string;
+  roc_curve?: { fpr: number[]; tpr: number[]; auc: number };
+  confusion_matrix?: number[][];
 }
 
 export interface TrainingMetrics {
@@ -88,7 +91,7 @@ export interface TrainingMetrics {
   confusion_matrix?: number[][];
   roc_auc?: number;
   classification_report?: any;
-  
+
   // Regression metrics
   mae?: number;
   mse?: number;
@@ -229,4 +232,45 @@ export interface PreprocessingStrategy {
     data_retention_rate: number;
     confidence_score: number;
   };
-} 
+}
+
+// Nouvelles interfaces pour l'approche hybride de visualisation
+export interface VisualizationStrategy {
+  [key: string]: 'backend-image' | 'chartjs' | 'fallback';
+}
+
+export interface VisualizationConfig {
+  type: 'backend-image' | 'chartjs';
+  source: string; // URL ou canvas ID
+  fallback?: string;
+  metadata?: {
+    algorithm: string;
+    task_type: 'classification' | 'regression';
+    generated_by: 'backend' | 'frontend';
+  };
+}
+
+export interface SafeChartConfig {
+  canvasId: string;
+  chartConfig: any; // Configuration Chart.js
+  timeout?: number;
+  retryCount?: number;
+  fallbackImage?: string;
+}
+
+export enum VisualizationType {
+  FEATURE_IMPORTANCE = 'feature_importance',
+  CONFUSION_MATRIX = 'confusion_matrix',
+  ROC_CURVE = 'roc_curve',
+  REGRESSION_PLOT = 'regression_plot',
+  DECISION_TREE = 'decision_tree',
+  PREDICTIONS_DISTRIBUTION = 'predictions_distribution',
+  PERFORMANCE_TIMELINE = 'performance_timeline',
+  METRICS = 'metrics'
+}
+
+// Étendre ExperimentResults pour supporter l'approche hybride
+export interface ExtendedExperimentResults extends ExperimentResults {
+  visualization_strategy?: VisualizationStrategy;
+  backend_images_available?: string[];
+}

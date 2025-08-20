@@ -159,13 +159,9 @@
           <span class="credits-title">Crédits</span>
         </div>
         <div class="credits-indicator-wrapper">
-          <app-credits-indicator
-            [remaining]="getUserCredits()"
-            [total]="10"
-            size="small"
-            [showInfo]="false"
-            [showLabel]="false">
-          </app-credits-indicator>
+          <div class="credits-display">
+            <span class="credits-count">{{ getUserCredits() }} crédits</span>
+          </div>
           <div class="credits-text">
             <span class="credits-number">{{ getUserCredits() }}</span>
             <span class="credits-label">disponibles</span>
@@ -2897,7 +2893,7 @@
                     </div>
 
                     <div class="action-buttons">
-                      <button class="stripe-btn primary" (click)="viewDetailedResults()">
+                      <button class="stripe-btn primary" (click)="navigateToResults()">
                         <span class="btn-content">
                           <mat-icon>analytics</mat-icon>
                           <span>Voir les résultats détaillés</span>
@@ -2995,7 +2991,7 @@
               <!-- Boutons quand entraînement terminé -->
               <button *ngIf="experimentResults"
                       class="modern-nav-button primary"
-                      (click)="viewDetailedResults()">
+                      (click)="navigateToResults()">
                 <mat-icon>analytics</mat-icon>
                 <span>Voir les résultats</span>
               </button>
@@ -3013,3 +3009,5 @@
     </main>
   </div>
 </div>
+
+

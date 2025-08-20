@@ -4,10 +4,10 @@
 @use 'styles/design-tokens' as *;
 
 // Import modal override pour masquer sidebar sur mobile
-@import 'styles/modal-override';
+@use 'styles/modal-override';
 
 // FORCE THÈME CLAIR ULTRA-AGRESSIF POUR LES FILTRES
-@import 'styles/force-light-theme-filters';
+@use 'styles/force-light-theme-filters';
 
 html,
 body {

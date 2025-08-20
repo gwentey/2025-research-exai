@@ -1,215 +1,241 @@
-<div class="experiment-results" *ngIf="!isLoading" [@fadeIn]>
-  <!-- Header -->
-  <div class="results-header">
-    <div class="container-fluid">
-      <div class="header-content">
-        <div class="header-left">
-          <button mat-icon-button (click)="goBack()">
-            <mat-icon>arrow_back</mat-icon>
-          </button>
-          <div class="header-info">
-            <h1>{{ 'ML_RESULTS.TITLE' | translate }}</h1>
-            <div class="experiment-meta" *ngIf="experiment">
-              <mat-chip [color]="getStatusColor(experiment.status)" selected>
-                {{ ('ML_PIPELINE.STATUS.' + experiment.status.toUpperCase()) | translate }}
-              </mat-chip>
-              <span class="meta-item">
-                <mat-icon>calendar_today</mat-icon>
-                {{ experiment.created_at | date:'short' }}
-              </span>
-              <span class="meta-item" *ngIf="experiment.updated_at">
-                <mat-icon>timer</mat-icon>
-                {{ formatDuration(experiment.created_at, experiment.updated_at) }}
-              </span>
-            </div>
+<div class="modern-results-page" *ngIf="!isLoading" [@fadeIn]>
+  <!-- Header Style Linear/Stripe -->
+  <div class="results-hero">
+    <div class="hero-background">
+      <div class="gradient-overlay"></div>
+    </div>
+    <div class="hero-content">
+      <button class="back-btn" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <div class="hero-main">
+        <div class="hero-icon">
+          <mat-icon>analytics</mat-icon>
+        </div>
+        <h1 class="hero-title">Résultats d'entraînement</h1>
+        <p class="hero-subtitle">Analyse complète de votre modèle {{ experiment ? (experiment.algorithm | titlecase) : 'ML' }}</p>
+
+        <div class="hero-meta" *ngIf="experiment">
+          <div class="meta-badge success">
+            <mat-icon>check_circle</mat-icon>
+            <span>Entraînement terminé</span>
+          </div>
+          <div class="meta-info">
+            <span class="meta-item">
+              <mat-icon>schedule</mat-icon>
+              {{ experiment.created_at | date:'short' }}
+            </span>
+            <span class="meta-item" *ngIf="experiment.updated_at">
+              <mat-icon>timer</mat-icon>
+              {{ formatDuration(experiment.created_at, experiment.updated_at) }}
+            </span>
           </div>
         </div>
-        
-        <div class="header-actions">
-          <button mat-button (click)="downloadModel()" [disabled]="!results?.model_uri">
-            <mat-icon>download</mat-icon>
-            {{ 'ML_RESULTS.DOWNLOAD_MODEL' | translate }}
-          </button>
-          <button mat-raised-button color="primary" (click)="runNewExperiment()">
-            <mat-icon>refresh</mat-icon>
-            {{ 'ML_RESULTS.NEW_EXPERIMENT' | translate }}
-          </button>
+      </div>
+
+      <div class="hero-actions">
+        <button class="action-btn secondary" (click)="downloadModel()" [disabled]="!results?.model_uri">
+          <mat-icon>download</mat-icon>
+          <span>Télécharger le modèle</span>
+        </button>
+        <button class="action-btn primary" (click)="runNewExperiment()">
+          <mat-icon>refresh</mat-icon>
+          <span>Nouvel entraînement</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Métriques principales style SaaS -->
+  <div class="metrics-dashboard" [@slideUp] *ngIf="results?.metrics">
+    <div class="dashboard-container">
+      <div class="section-header">
+        <h2>Métriques de performance</h2>
+        <p>Analyse détaillée des performances de votre modèle</p>
+      </div>
+
+      <div class="metrics-grid-modern">
+        <div class="metric-card-modern"
+             *ngFor="let metric of getMetricsArray()"
+             [class]="getMetricColor(metric.value)"
+             [@slideUp]>
+          <div class="metric-header">
+            <div class="metric-icon-wrapper">
+              <mat-icon>{{ getMetricIcon(metric.key) }}</mat-icon>
+            </div>
+            <div class="metric-info">
+              <h3 class="metric-title">{{ getMetricLabel(metric.key) }}</h3>
+              <div class="metric-value-large">{{ formatMetricValue(metric.key, metric.value) }}</div>
+            </div>
+          </div>
+
+          <!-- Chart.js canvas pour chaque métrique -->
+          <div class="metric-chart-container">
+            <canvas [id]="'metric-chart-' + metric.key"
+                    class="metric-chart"
+                    width="100"
+                    height="60"></canvas>
+          </div>
+
+          <div class="metric-trend">
+            <span class="trend-indicator" [class]="getTrendClass(metric.value)">
+              <mat-icon>{{ getTrendIcon(metric.value) }}</mat-icon>
+              {{ getTrendText(metric.value) }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Content -->
-  <div class="results-content">
-    <div class="container-fluid">
-      <!-- Métriques principales -->
-      <div class="metrics-section" [@slideUp] *ngIf="results?.metrics">
-        <h2>{{ 'ML_RESULTS.PERFORMANCE_METRICS' | translate }}</h2>
-        
-        <div class="metrics-grid">
-          <div class="metric-card" 
-               *ngFor="let metric of getMetricsArray()"
-               [class]="getMetricColor(metric.value)"
-               [@slideUp]>
-            <div class="metric-icon">
-              <mat-icon>{{ getMetricIcon(metric.key) }}</mat-icon>
+    <!-- Visualisations hybrides modernes -->
+  <div class="visualizations-dashboard" [@slideUp] *ngIf="results">
+    <div class="dashboard-container">
+      <div class="section-header">
+        <h2>Visualisations du modèle</h2>
+        <p>Analyse visuelle intelligente avec rendu hybride backend/frontend</p>
+      </div>
+
+      <!-- Grille des visualisations hybrides -->
+      <div class="viz-grid-hybrid" [ngSwitch]="experiment ? experiment.algorithm : ''">
+
+        <!-- Decision Tree - Visualisation hybride -->
+        <div *ngSwitchCase="'decision_tree'" class="algorithm-specific-viz">
+          <app-visualization-container
+            [visualizationType]="VisualizationType.DECISION_TREE"
+            [backendImageUrl]="getVisualizationUrl('decision_tree')"
+            [algorithm]="getAlgorithm()"
+            [taskType]="getTaskType()"
+            [experimentId]="experimentId">
+          </app-visualization-container>
+        </div>
+
+        <!-- Random Forest - Feature Importance hybride -->
+        <div *ngSwitchCase="'random_forest'" class="algorithm-specific-viz">
+          <app-visualization-container
+            [visualizationType]="VisualizationType.FEATURE_IMPORTANCE"
+            [backendImageUrl]="getVisualizationUrl('feature_importance')"
+            [data]="results.feature_importance"
+            [algorithm]="getAlgorithm()"
+            [taskType]="getTaskType()"
+            [experimentId]="experimentId">
+          </app-visualization-container>
+        </div>
+
+        <!-- Visualisations communes hybrides - ADAPTÉES AU TYPE DE TÂCHE -->
+        <div class="common-visualizations-hybrid">
+
+          <!-- Visualisations pour CLASSIFICATION seulement -->
+          <ng-container *ngIf="getTaskType() === 'classification'">
+            <!-- Matrice de confusion hybride -->
+            <app-visualization-container
+              [visualizationType]="VisualizationType.CONFUSION_MATRIX"
+              [backendImageUrl]="getVisualizationUrl('confusion_matrix')"
+              [algorithm]="getAlgorithm()"
+              [taskType]="getTaskType()"
+              [experimentId]="experimentId">
+            </app-visualization-container>
+
+            <!-- Courbe ROC hybride -->
+            <app-visualization-container
+              [visualizationType]="VisualizationType.ROC_CURVE"
+              [backendImageUrl]="getVisualizationUrl('roc_curve')"
+              [data]="results.roc_curve"
+              [algorithm]="getAlgorithm()"
+              [taskType]="getTaskType()"
+              [experimentId]="experimentId">
+            </app-visualization-container>
+          </ng-container>
+
+          <!-- Visualisations pour RÉGRESSION seulement -->
+          <ng-container *ngIf="getTaskType() === 'regression'">
+            <!-- Graphique de régression hybride -->
+            <app-visualization-container
+              [visualizationType]="VisualizationType.REGRESSION_PLOT"
+              [backendImageUrl]="getVisualizationUrl('regression_plot')"
+              [algorithm]="getAlgorithm()"
+              [taskType]="getTaskType()"
+              [experimentId]="experimentId">
+            </app-visualization-container>
+
+            <!-- Distribution des résidus (régression) -->
+            <app-visualization-container
+              [visualizationType]="VisualizationType.PREDICTIONS_DISTRIBUTION"
+              [backendImageUrl]="getVisualizationUrl('residuals_distribution')"
+              [algorithm]="getAlgorithm()"
+              [taskType]="getTaskType()"
+              [experimentId]="experimentId">
+            </app-visualization-container>
+          </ng-container>
+
+          <!-- Visualisations COMMUNES à tous les types -->
+          <!-- Métriques de performance -->
+          <app-visualization-container
+            [visualizationType]="VisualizationType.METRICS"
+            [data]="results?.metrics"
+            [algorithm]="getAlgorithm()"
+            [taskType]="getTaskType()"
+            [experimentId]="experimentId">
+          </app-visualization-container>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails de l'expérience style moderne -->
+  <div class="experiment-details-modern" [@slideUp] *ngIf="experiment">
+    <div class="dashboard-container">
+      <div class="section-header">
+        <h2>Détails de l'expérience</h2>
+        <p>Configuration et paramètres utilisés</p>
+      </div>
+
+      <div class="details-cards">
+        <div class="detail-card">
+          <div class="detail-header">
+            <mat-icon>settings</mat-icon>
+            <h3>Configuration</h3>
+          </div>
+          <div class="detail-content">
+            <div class="detail-item">
+              <span class="label">ID Expérience:</span>
+              <code class="value">{{ experimentId }}</code>
             </div>
-            <div class="metric-content">
-              <h3>{{ ('ML_RESULTS.METRICS.' + metric.key.toUpperCase()) | translate }}</h3>
-              <div class="metric-value">{{ formatMetricValue(metric.key, metric.value) }}</div>
+            <div class="detail-item">
+              <span class="label">Algorithme:</span>
+              <span class="value">{{ experiment ? (experiment.algorithm | titlecase) : 'Non spécifié' }}</span>
             </div>
-            <div class="metric-chart">
-              <svg viewBox="0 0 100 100" class="circular-progress">
-                <circle cx="50" cy="50" r="45" class="circle-bg"></circle>
-                <circle cx="50" cy="50" r="45" class="circle-progress"
-                        [style.stroke-dasharray]="(metric.value * 283) + ' 283'"></circle>
-              </svg>
+            <div class="detail-item">
+              <span class="label">Statut:</span>
+              <mat-chip [color]="getStatusColor(experiment ? experiment.status : 'unknown')" selected>
+                {{ experiment ? (experiment.status | titlecase) : 'Inconnu' }}
+              </mat-chip>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Visualisations -->
-      <div class="visualizations-section" [@slideUp] *ngIf="results?.visualizations">
-        <h2>{{ 'ML_RESULTS.VISUALIZATIONS' | translate }}</h2>
-        
-        <mat-tab-group mat-align-tabs="center">
-          <!-- Matrice de confusion -->
-          <mat-tab *ngIf="hasConfusionMatrix()">
-            <ng-template mat-tab-label>
-              <mat-icon>grid_on</mat-icon>
-              {{ 'ML_RESULTS.CONFUSION_MATRIX' | translate }}
-            </ng-template>
-            
-            <div class="visualization-content">
-              <img [src]="getVisualizationUrl('confusion_matrix')" 
-                   alt="Confusion Matrix"
-                   class="visualization-image">
-              <div class="visualization-description">
-                <p>{{ 'ML_RESULTS.CONFUSION_MATRIX_DESC' | translate }}</p>
-              </div>
+        <div class="detail-card" *ngIf="results">
+          <div class="detail-header">
+            <mat-icon>tune</mat-icon>
+            <h3>Informations du modèle</h3>
+          </div>
+          <div class="detail-content">
+            <div class="detail-item">
+              <span class="label">Modèle entraîné:</span>
+              <span class="value">{{ experiment ? (experiment.algorithm | titlecase) : 'Non spécifié' }}</span>
             </div>
-          </mat-tab>
-
-          <!-- Courbe ROC -->
-          <mat-tab *ngIf="hasRocCurve()">
-            <ng-template mat-tab-label>
-              <mat-icon>show_chart</mat-icon>
-              {{ 'ML_RESULTS.ROC_CURVE' | translate }}
-            </ng-template>
-            
-            <div class="visualization-content">
-              <img [src]="getVisualizationUrl('roc_curve')" 
-                   alt="ROC Curve"
-                   class="visualization-image">
-              <div class="visualization-description">
-                <p>{{ 'ML_RESULTS.ROC_CURVE_DESC' | translate }}</p>
-              </div>
+            <div class="detail-item">
+              <span class="label">Nombre de métriques:</span>
+              <span class="value">{{ getMetricsArray().length }}</span>
             </div>
-          </mat-tab>
-
-          <!-- Importance des features -->
-          <mat-tab *ngIf="hasFeatureImportance()">
-            <ng-template mat-tab-label>
-              <mat-icon>bar_chart</mat-icon>
-              {{ 'ML_RESULTS.FEATURE_IMPORTANCE' | translate }}
-            </ng-template>
-            
-            <div class="visualization-content">
-              <img [src]="getVisualizationUrl('feature_importance')" 
-                   alt="Feature Importance"
-                   class="visualization-image">
-              <div class="visualization-description">
-                <p>{{ 'ML_RESULTS.FEATURE_IMPORTANCE_DESC' | translate }}</p>
-              </div>
+            <div class="detail-item">
+              <span class="label">Meilleure métrique:</span>
+              <span class="value">{{ getBestMetric() }}</span>
             </div>
-          </mat-tab>
-
-          <!-- Graphique de régression -->
-          <mat-tab *ngIf="hasRegressionPlot()">
-            <ng-template mat-tab-label>
-              <mat-icon>scatter_plot</mat-icon>
-              {{ 'ML_RESULTS.REGRESSION_PLOT' | translate }}
-            </ng-template>
-            
-            <div class="visualization-content">
-              <img [src]="getVisualizationUrl('regression_plot')" 
-                   alt="Regression Plot"
-                   class="visualization-image">
-              <div class="visualization-description">
-                <p>{{ 'ML_RESULTS.REGRESSION_PLOT_DESC' | translate }}</p>
-              </div>
-            </div>
-          </mat-tab>
-        </mat-tab-group>
-      </div>
-
-      <!-- Détails de l'expérience -->
-      <div class="experiment-details" [@slideUp]>
-        <h2>{{ 'ML_RESULTS.EXPERIMENT_DETAILS' | translate }}</h2>
-        
-        <mat-card>
-          <mat-card-content>
-            <div class="details-grid">
-              <div class="detail-item">
-                <span class="label">{{ 'ML_RESULTS.EXPERIMENT_ID' | translate }}:</span>
-                <span class="value">{{ experimentId }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">{{ 'ML_RESULTS.ALGORITHM' | translate }}:</span>
-                <span class="value">{{ experiment?.algorithm | titlecase }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">{{ 'ML_RESULTS.STATUS' | translate }}:</span>
-                <mat-chip [color]="getStatusColor(experiment?.status)" selected>
-                  {{ ('ML_PIPELINE.STATUS.' + experiment?.status?.toUpperCase()) | translate }}
-                </mat-chip>
-              </div>
-              <div class="detail-item">
-                <span class="label">{{ 'ML_RESULTS.CREATED' | translate }}:</span>
-                <span class="value">{{ experiment?.created_at | date:'medium' }}</span>
-              </div>
-            </div>
-            
-            <mat-divider class="my-4"></mat-divider>
-            
-            <div class="config-section" *ngIf="experiment">
-              <h4>{{ 'ML_RESULTS.HYPERPARAMETERS' | translate }}</h4>
-              <div class="params-chips">
-                <mat-chip *ngFor="let param of experiment.hyperparameters | keyvalue">
-                  <strong>{{ param.key }}:</strong> {{ param.value }}
-                </mat-chip>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Actions supplémentaires -->
-      <div class="additional-actions" [@slideUp]>
-        <mat-card>
-          <mat-card-content>
-            <h3>{{ 'ML_RESULTS.NEXT_STEPS' | translate }}</h3>
-            <div class="actions-grid">
-              <button mat-stroked-button color="primary" (click)="runNewExperiment()">
-                <mat-icon>science</mat-icon>
-                {{ 'ML_RESULTS.IMPROVE_MODEL' | translate }}
-              </button>
-              <button mat-stroked-button color="primary" [disabled]="true">
-                <mat-icon>cloud_upload</mat-icon>
-                {{ 'ML_RESULTS.DEPLOY_MODEL' | translate }}
-              </button>
-              <button mat-stroked-button color="primary" [disabled]="true">
-                <mat-icon>share</mat-icon>
-                {{ 'ML_RESULTS.SHARE_RESULTS' | translate }}
-              </button>
-              <button mat-stroked-button color="primary" [disabled]="true">
-                <mat-icon>code</mat-icon>
-                {{ 'ML_RESULTS.EXPORT_CODE' | translate }}
-              </button>
-            </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -219,6 +245,20 @@
 <div class="loading-state" *ngIf="isLoading">
   <div class="loading-content">
     <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
-    <h2>{{ 'ML_RESULTS.LOADING' | translate }}</h2>
+    <h2>Chargement des résultats...</h2>
+    <p>Récupération des métriques et génération des graphiques...</p>
+  </div>
+</div>
+
+<!-- Error State -->
+<div class="error-state" *ngIf="!isLoading && !experiment && !results">
+  <div class="error-content">
+    <mat-icon>error_outline</mat-icon>
+    <h2>Erreur de chargement</h2>
+    <p>Impossible de charger les résultats de l'expérience.</p>
+    <button class="action-btn primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Retour au wizard</span>
+    </button>
   </div>
 </div>
