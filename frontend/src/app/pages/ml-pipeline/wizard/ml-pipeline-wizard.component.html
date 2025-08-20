@@ -30,7 +30,11 @@
       <nav class="wizard-nav">
         <div class="nav-section">
           <div class="nav-steps">
-            <a class="nav-step" [class.active]="getCurrentStepNumber() === 1" [class.completed]="getCurrentStepNumber() > 1">
+            <a class="nav-step"
+               [class.active]="getCurrentStepNumber() === 1"
+               [class.completed]="getCurrentStepNumber() > 1"
+               [class.disabled]="isTraining"
+               (click)="isTraining ? $event.preventDefault() : goToStep(1)">
               <div class="step-indicator">
                 <span class="step-number">1</span>
               </div>
@@ -39,7 +43,11 @@
               </div>
             </a>
 
-            <a class="nav-step" [class.active]="getCurrentStepNumber() === 2" [class.completed]="getCurrentStepNumber() > 2">
+                        <a class="nav-step"
+               [class.active]="getCurrentStepNumber() === 2"
+               [class.completed]="getCurrentStepNumber() > 2"
+               [class.disabled]="isTraining"
+               (click)="isTraining ? $event.preventDefault() : goToStep(2)">
               <div class="step-indicator">
                 <span class="step-number">2</span>
               </div>
@@ -48,7 +56,11 @@
               </div>
             </a>
 
-            <a class="nav-step" [class.active]="getCurrentStepNumber() === 3" [class.completed]="getCurrentStepNumber() > 3">
+            <a class="nav-step"
+               [class.active]="getCurrentStepNumber() === 3"
+               [class.completed]="getCurrentStepNumber() > 3"
+               [class.disabled]="isTraining"
+               (click)="isTraining ? $event.preventDefault() : goToStep(3)">
               <div class="step-indicator">
                 <span class="step-number">3</span>
               </div>
@@ -57,7 +69,11 @@
               </div>
             </a>
 
-            <a class="nav-step" [class.active]="getCurrentStepNumber() === 4" [class.completed]="getCurrentStepNumber() > 4">
+            <a class="nav-step"
+               [class.active]="getCurrentStepNumber() === 4"
+               [class.completed]="getCurrentStepNumber() > 4"
+               [class.disabled]="isTraining"
+               (click)="isTraining ? $event.preventDefault() : goToStep(4)">
               <div class="step-indicator">
                 <span class="step-number">4</span>
               </div>
@@ -66,7 +82,11 @@
               </div>
             </a>
 
-            <a class="nav-step" [class.active]="getCurrentStepNumber() === 5" [class.completed]="getCurrentStepNumber() > 5">
+            <a class="nav-step"
+               [class.active]="getCurrentStepNumber() === 5"
+               [class.completed]="getCurrentStepNumber() > 5"
+               [class.disabled]="isTraining"
+               (click)="isTraining ? $event.preventDefault() : goToStep(5)">
               <div class="step-indicator">
                 <span class="step-number">5</span>
               </div>
@@ -75,7 +95,11 @@
               </div>
             </a>
 
-            <a class="nav-step" [class.active]="getCurrentStepNumber() === 6" [class.completed]="getCurrentStepNumber() > 6">
+            <a class="nav-step"
+               [class.active]="getCurrentStepNumber() === 6"
+               [class.completed]="getCurrentStepNumber() > 6"
+               [class.disabled]="isTraining"
+               (click)="isTraining ? $event.preventDefault() : goToStep(6)">
               <div class="step-indicator">
                 <span class="step-number">6</span>
               </div>
@@ -84,7 +108,11 @@
               </div>
             </a>
 
-            <a class="nav-step" [class.active]="getCurrentStepNumber() === 7" [class.completed]="getCurrentStepNumber() > 7">
+            <a class="nav-step"
+               [class.active]="getCurrentStepNumber() === 7"
+               [class.completed]="getCurrentStepNumber() > 7"
+               [class.disabled]="isTraining"
+               (click)="isTraining ? $event.preventDefault() : goToStep(7)">
               <div class="step-indicator">
                 <span class="step-number">7</span>
               </div>
@@ -165,7 +193,9 @@
               </div>
             </div>
 
-            <button class="modern-back-button" (click)="goBack()">
+            <button class="modern-back-button"
+                    (click)="goBack()"
+                    [disabled]="isTraining">
               <mat-icon>arrow_back</mat-icon>
               <span>Retour</span>
             </button>
@@ -2518,9 +2548,30 @@
                     <div class="modern-spinner spinner-primary"></div>
                     <h3>Entraînement en cours...</h3>
                     <div class="modern-progress progress-lg">
-                      <div class="progress-fill" [style.width.%]="trainingProgress"></div>
+                      <div class="progress-fill animate-progress" [style.width.%]="trainingProgress"></div>
+                      <div class="progress-shimmer"></div>
                     </div>
                     <p><strong>{{ trainingProgress }}%</strong> complété</p>
+
+                    <!-- Indicateurs d'étapes -->
+                    <div class="training-steps">
+                      <div class="step" [class.completed]="progressSteps.dataLoaded">
+                        <mat-icon>{{ progressSteps.dataLoaded ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>Chargement des données</span>
+                      </div>
+                      <div class="step" [class.completed]="progressSteps.preprocessing">
+                        <mat-icon>{{ progressSteps.preprocessing ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>Préprocessing</span>
+                      </div>
+                      <div class="step" [class.completed]="progressSteps.training">
+                        <mat-icon>{{ progressSteps.training ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>Entraînement</span>
+                      </div>
+                      <div class="step" [class.completed]="progressSteps.evaluation">
+                        <mat-icon>{{ progressSteps.evaluation ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>Évaluation</span>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Console de logs moderne -->
@@ -2557,6 +2608,64 @@
                         <span class="log-level">[INFO]</span>
                         <span class="log-message">Démarrage de l'entraînement...</span>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Animation de completion moderne style Stripe/Linear -->
+                <div *ngIf="trainingCompleted && !experimentResults" class="completion-animation-container">
+                  <div class="completion-card stripe-style">
+                    <div class="completion-header">
+                      <div class="success-checkmark">
+                        <div class="check-icon">
+                          <span class="icon-line line-tip"></span>
+                          <span class="icon-line line-long"></span>
+                          <div class="icon-circle"></div>
+                          <div class="icon-fix"></div>
+                        </div>
+                      </div>
+                      <h3 class="completion-title">Entraînement terminé avec succès !</h3>
+                      <p class="completion-description">Votre modèle a été entraîné et est prêt à utiliser</p>
+                    </div>
+
+                    <div class="completion-stats">
+                      <div class="stat-item">
+                        <div class="stat-icon">
+                          <mat-icon>schedule</mat-icon>
+                        </div>
+                        <div class="stat-content">
+                          <span class="stat-value">~2min</span>
+                          <span class="stat-label">Durée d'entraînement</span>
+                        </div>
+                      </div>
+                      <div class="stat-item">
+                        <div class="stat-icon">
+                          <mat-icon>trending_up</mat-icon>
+                        </div>
+                        <div class="stat-content">
+                          <span class="stat-value">{{ trainingProgress }}%</span>
+                          <span class="stat-label">Progression</span>
+                        </div>
+                      </div>
+                      <div class="stat-item">
+                        <div class="stat-icon">
+                          <mat-icon>memory</mat-icon>
+                        </div>
+                        <div class="stat-content">
+                          <span class="stat-value">{{ dataset?.instances_number || 'N/A' }}</span>
+                          <span class="stat-label">Lignes traitées</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="completion-action">
+                      <button class="modern-btn-primary completion-btn"
+                              (click)="viewDetailedResults()"
+                              [disabled]="!experimentResults">
+                        <mat-icon>analytics</mat-icon>
+                        <span>Voir les résultats détaillés</span>
+                        <div class="btn-shimmer"></div>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -2636,7 +2745,7 @@
             <div class="nav-left">
               <button class="modern-nav-button secondary"
                 (click)="previousStep()"
-                      [disabled]="getCurrentStepNumber() === 1">
+                      [disabled]="getCurrentStepNumber() === 1 || isTraining">
                 <mat-icon>chevron_left</mat-icon>
                 <span>Précédent</span>
               </button>
@@ -2656,6 +2765,7 @@
             <div class="nav-right">
               <button *ngIf="getCurrentStepNumber() < 8"
                       class="modern-nav-button primary"
+                      [disabled]="isTraining"
                 (click)="nextStep()">
                 <span>Suivant</span>
                 <mat-icon>chevron_right</mat-icon>

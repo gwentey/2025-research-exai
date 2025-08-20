@@ -329,15 +329,23 @@ def get_experiment_status(
             detail="Experiment not found"
         )
     
-    # Get task status from Celery if task_id exists
-    if experiment.task_id:
+    # Privilégier la base de données comme source de vérité
+    # Seulement mettre à jour depuis Celery si l'expérience n'est pas terminée en BDD
+    if experiment.task_id and experiment.status not in ['completed', 'failed', 'cancelled']:
         try:
             task = celery_app.AsyncResult(experiment.task_id)
+            logger.debug(f"Celery task state for {experiment.task_id}: {task.state}")
+            
             if task.state == 'PENDING':
-                experiment.status = 'pending'
+                # Garder le statut BDD si déjà en cours, sinon pending
+                if experiment.status not in ['running']:
+                    experiment.status = 'pending'
             elif task.state == 'PROGRESS':
                 experiment.status = 'running'
-                experiment.progress = task.info.get('current', 0)
+                task_progress = task.info.get('current', 0) if task.info else 0
+                # Mettre à jour seulement si la progression Celery est plus récente
+                if task_progress > experiment.progress:
+                    experiment.progress = task_progress
             elif task.state == 'SUCCESS':
                 experiment.status = 'completed'
                 experiment.progress = 100
@@ -346,6 +354,7 @@ def get_experiment_status(
                 experiment.error_message = str(task.info)
         except Exception as e:
             logger.error(f"Error getting task status: {str(e)}")
+            # En cas d'erreur Celery, garder l'état de la BDD
     
     return ExperimentStatus(
         id=experiment.id,

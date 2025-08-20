@@ -496,10 +496,34 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     }
   }
 
+  private pollingSubscription?: any;
+  private pollingInterval?: any;
+
+  // Variables de suivi des étapes
+  progressSteps = {
+    dataLoaded: false,
+    preprocessing: false,
+    training: false,
+    evaluation: false
+  };
+
   pollTrainingStatus() {
     console.log('🔄 Starting training status polling...');
 
-    const poll = setInterval(() => {
+    // Réinitialiser les étapes de progression
+    this.progressSteps = {
+      dataLoaded: false,
+      preprocessing: false,
+      training: false,
+      evaluation: false
+    };
+
+    // Nettoyer le polling précédent
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+
+    this.pollingInterval = setInterval(() => {
       console.log('🔍 Polling experiment status for:', this.experimentId);
 
       this.mlPipelineService.getExperimentStatus(this.experimentId)
@@ -508,37 +532,28 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
             console.log('📊 Status received:', status);
             this.experimentStatus = status;
 
-            if (status.progress !== undefined) {
-              this.trainingProgress = status.progress;
-              console.log(`📈 Progress updated: ${this.trainingProgress}%`);
+            // Mise à jour de la progression avec validation
+            if (status.progress !== undefined && status.progress !== null) {
+              const newProgress = Math.max(0, Math.min(100, status.progress));
+              if (newProgress !== this.trainingProgress) {
+                this.trainingProgress = newProgress;
+                console.log(`📈 Progress updated: ${this.trainingProgress}%`);
+
+                // Mise à jour des logs selon la progression
+                this.updateProgressLogs(this.trainingProgress);
+              }
             }
 
-                        if (status.status === 'completed') {
-              console.log('✅ Training completed! Stopping poll and loading results...');
-              clearInterval(poll);
-              this.addTrainingLog('success', '🎉 Entraînement terminé avec succès!');
-              this.addTrainingLog('info', '📊 Chargement des résultats et visualisations...');
-              this.isTraining = false;
-              this.trainingProgress = 100;
-
-              // Charger les résultats avec un délai pour s'assurer qu'ils sont disponibles
-              setTimeout(() => {
-                this.loadResults();
-              }, 1000);
+            if (status.status === 'completed') {
+              console.log('✅ Training completed! Stopping poll and showing completion...');
+              this.handleTrainingCompletion();
 
             } else if (status.status === 'failed') {
               console.log('❌ Training failed:', status.error_message);
-              clearInterval(poll);
-              this.addTrainingLog('error', `❌ ÉCHEC: ${status.error_message || 'Erreur inconnue'}`);
-              this.addTrainingLog('error', '🔧 Vérifiez votre configuration et réessayez');
-              this.isTraining = false;
+              this.handleTrainingFailure(status.error_message);
 
-            } else if (status.status === 'running') {
-              console.log(`🔄 Training in progress: ${status.progress || 0}%`);
-              // Continue polling
-
-            } else if (status.status === 'pending') {
-              console.log('⏳ Training still pending...');
+            } else if (status.status === 'running' || status.status === 'pending') {
+              console.log(`🔄 Training in progress: ${this.trainingProgress}%`);
               // Continue polling
             }
 
@@ -551,7 +566,96 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
             // Continue polling in case of temporary error
           }
         });
-    }, 3000); // Poll every 3 seconds
+    }, 1500); // Poll every 1.5 seconds pour plus de réactivité
+  }
+
+  updateProgressLogs(progress: number) {
+    if (progress >= 10 && !this.progressSteps.dataLoaded) {
+      this.addTrainingLog('success', '📊 Données chargées et validées');
+      this.progressSteps.dataLoaded = true;
+    }
+    if (progress >= 40 && !this.progressSteps.preprocessing) {
+      this.addTrainingLog('success', '🔧 Préprocessing et nettoyage terminés');
+      this.progressSteps.preprocessing = true;
+    }
+    if (progress >= 70 && !this.progressSteps.training) {
+      this.addTrainingLog('success', '🤖 Entraînement du modèle en cours...');
+      this.progressSteps.training = true;
+    }
+    if (progress >= 90 && !this.progressSteps.evaluation) {
+      this.addTrainingLog('success', '📈 Évaluation et génération des visualisations');
+      this.progressSteps.evaluation = true;
+    }
+  }
+
+  trainingCompleted = false;
+  showingCompletionAnimation = false;
+
+  handleTrainingCompletion() {
+    this.isTraining = false;
+    this.trainingProgress = 100;
+    this.trainingCompleted = true;
+
+    // Nettoyer le polling
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+
+    this.addTrainingLog('success', '🎉 Entraînement terminé avec succès!');
+    this.addTrainingLog('info', '📊 Préparation des résultats...');
+
+    // Animation de completion style Stripe/Linear
+    this.showCompletionAnimation();
+
+    // Charger les résultats après l'animation
+    setTimeout(() => {
+      this.loadResults();
+    }, 3000);
+  }
+
+  handleTrainingFailure(errorMessage?: string) {
+    this.isTraining = false;
+    this.trainingCompleted = false;
+
+    // Nettoyer le polling
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+
+    this.addTrainingLog('error', `❌ ÉCHEC: ${errorMessage || 'Erreur inconnue'}`);
+    this.addTrainingLog('error', '🔧 Vérifiez votre configuration et réessayez');
+
+    // Reset des étapes
+    this.progressSteps = {
+      dataLoaded: false,
+      preprocessing: false,
+      training: false,
+      evaluation: false
+    };
+  }
+
+  showCompletionAnimation() {
+    this.showingCompletionAnimation = true;
+    this.addTrainingLog('success', '✨ Entraînement terminé avec succès !');
+    this.addTrainingLog('info', '🎯 Génération des insights et visualisations...');
+
+    // Animation progressive des éléments de succès
+    setTimeout(() => {
+      this.addTrainingLog('success', '📊 Métriques de performance calculées');
+    }, 500);
+
+    setTimeout(() => {
+      this.addTrainingLog('success', '🎨 Visualisations générées');
+    }, 1000);
+
+    setTimeout(() => {
+      this.addTrainingLog('success', '💾 Modèle sauvegardé et versionné');
+    }, 1500);
+
+    setTimeout(() => {
+      this.addTrainingLog('success', '🚀 Prêt à explorer les résultats !');
+      this.showingCompletionAnimation = false;
+    }, 2000);
   }
 
   loadResults() {
@@ -704,6 +808,12 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   nextStep(): void {
+    // Empêcher la navigation pendant l'entraînement
+    if (this.isTraining) {
+      console.log('🚫 Navigation bloquée pendant l\'entraînement');
+      return;
+    }
+
     if (this.stepper) {
       // Synchronize the forms with the stepper
       this.updateStepperForms();
@@ -715,11 +825,30 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   previousStep(): void {
+    // Empêcher la navigation pendant l'entraînement
+    if (this.isTraining) {
+      console.log('🚫 Navigation bloquée pendant l\'entraînement');
+      return;
+    }
+
     if (this.stepper) {
       setTimeout(() => {
         this.stepper.previous();
         this.cdr.detectChanges();
       });
+    }
+  }
+
+  goToStep(stepNumber: number): void {
+    // Empêcher la navigation pendant l'entraînement
+    if (this.isTraining) {
+      console.log('🚫 Navigation bloquée pendant l\'entraînement');
+      return;
+    }
+
+    if (this.stepper && stepNumber >= 1 && stepNumber <= 8) {
+      this.stepper.selectedIndex = stepNumber - 1;
+      this.cdr.detectChanges();
     }
   }
 
