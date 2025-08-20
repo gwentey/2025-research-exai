@@ -2750,121 +2750,194 @@
               </div>
             </div>
 
-            <!-- ÉTAPE 9: Console d'entraînement et Résultats -->
-            <div *ngSwitchCase="9" class="modern-step-card">
-              <div class="card-header">
-                <div class="icon-container" [class.success]="trainingCompleted" [class.loading]="isTraining">
-                  <mat-icon class="step-icon-modern">{{ trainingCompleted ? 'check_circle' : (isTraining ? 'terminal' : 'analytics') }}</mat-icon>
-                </div>
-                <div class="header-text">
-                  <h2 class="modern-step-title">
-                    {{ trainingCompleted ? 'Entraînement Terminé !' : (isTraining ? 'Entraînement en cours...' : 'Console d\'Entraînement') }}
-                  </h2>
-                  <p class="modern-step-description">
-                    {{ trainingCompleted ? 'Votre modèle a été entraîné avec succès' : (isTraining ? 'Suivez la progression en temps réel' : 'Consultez les logs et résultats d\'entraînement') }}
-                  </p>
+                        <!-- ÉTAPE 9: Console d'entraînement et Résultats - Design Linear/Stripe -->
+            <div *ngSwitchCase="9" class="step9-container">
+
+              <!-- Header Style Linear - Centré et Élégant -->
+              <div class="step9-header">
+                <div class="header-status">
+                  <div class="status-content-centered">
+                    <div class="status-icon" [class.success]="trainingCompleted" [class.loading]="isTraining">
+                      <mat-icon>{{ trainingCompleted ? 'check_circle' : (isTraining ? 'hourglass_empty' : 'analytics') }}</mat-icon>
+                    </div>
+
+                    <div class="status-text">
+                      <h1 class="status-title">
+                        {{ trainingCompleted ? '🎉 Entraînement terminé avec succès !' : (isTraining ? '⚡ Entraînement en cours' : '🖥️ Console d\'entraînement') }}
+                      </h1>
+                      <p class="status-subtitle">
+                        {{ trainingCompleted ? 'Votre modèle a été entraîné et sauvegardé avec succès' : (isTraining ? 'Suivez la progression en temps réel ci-dessous' : 'Prêt à lancer un nouvel entraînement') }}
+                      </p>
+
+                      <!-- Pourcentage élégant si en cours ou terminé -->
+                      <div *ngIf="trainingProgress > 0" class="status-progress">
+                        <span class="progress-badge" [class.completed]="trainingCompleted">
+                          {{ trainingProgress }}% complété
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="card-content">
-                <!-- Console d'entraînement TOUJOURS VISIBLE -->
-                <div class="training-console-container">
+              <!-- Contenu Principal Style Stripe -->
+              <div class="step9-content">
 
-                  <!-- Barre de progression -->
-                  <div class="training-progress-section">
-                    <div class="modern-spinner spinner-primary" *ngIf="isTraining"></div>
-                    <h3>{{ trainingCompleted ? '🎉 Entraînement terminé avec succès !' : (isTraining ? 'Entraînement en cours...' : 'Console d\'entraînement') }}</h3>
-
-                    <div class="modern-progress progress-lg">
-                      <div class="progress-fill animate-progress" [style.width.%]="trainingProgress"></div>
-                      <div class="progress-shimmer" *ngIf="isTraining"></div>
-                    </div>
-                    <p><strong>{{ trainingProgress }}%</strong> complété</p>
-
-                    <!-- Indicateurs d'étapes -->
-                    <div class="training-steps">
-                      <div class="step" [class.completed]="progressSteps.dataLoaded">
-                        <mat-icon>{{ progressSteps.dataLoaded ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                        <span>Chargement des données</span>
-                      </div>
-                      <div class="step" [class.completed]="progressSteps.preprocessing">
-                        <mat-icon>{{ progressSteps.preprocessing ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                        <span>Préprocessing</span>
-                      </div>
-                      <div class="step" [class.completed]="progressSteps.training">
-                        <mat-icon>{{ progressSteps.training ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                        <span>Entraînement</span>
-                      </div>
-                      <div class="step" [class.completed]="progressSteps.evaluation">
-                        <mat-icon>{{ progressSteps.evaluation ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                        <span>Évaluation</span>
-                      </div>
+                <!-- Section Progression -->
+                <div class="progress-section">
+                  <div class="progress-header">
+                    <div class="progress-info">
+                      <span class="progress-label">Progression</span>
+                      <span class="progress-percentage">{{ trainingProgress }}%</span>
                     </div>
                   </div>
 
-                  <!-- Console de logs -->
-                  <div class="training-logs-section">
-                    <div class="logs-header">
-                      <h4>
-                        <mat-icon>terminal</mat-icon>
-                        Logs d'entraînement
-                      </h4>
-                      <div class="logs-controls">
-                        <button class="modern-btn btn-ghost btn-sm" (click)="clearLogs()" [disabled]="trainingLogs.length === 0">
-                          <mat-icon>clear_all</mat-icon>
-                          Effacer
-                        </button>
-                        <button class="modern-btn btn-ghost btn-sm" (click)="toggleAutoScroll()">
-                          <mat-icon>{{ autoScrollLogs ? 'pause' : 'play_arrow' }}</mat-icon>
-                          Auto-scroll
-                        </button>
-                      </div>
-                    </div>
-
-                    <div class="modern-console" #logsContainer>
-                      <div *ngFor="let log of trainingLogs; trackBy: trackLogFn"
-                           class="console-line"
-                           [ngClass]="log.level"
-                           [@fadeInUp]>
-                        <span class="timestamp">{{ log.timestamp | date:'HH:mm:ss.SSS' }}</span>
-                        <span class="log-level">[{{ log.level.toUpperCase() }}]</span>
-                        <span class="log-message">{{ log.message }}</span>
-                      </div>
-
-                      <div *ngIf="trainingLogs.length === 0" class="console-line info">
-                        <span class="timestamp">{{ getCurrentTimestamp() }}</span>
-                        <span class="log-level">[INFO]</span>
-                        <span class="log-message">Console prête - Lancez un entraînement depuis l'étape 8</span>
-                      </div>
+                  <div class="stripe-progress-bar">
+                    <div class="progress-track">
+                      <div class="progress-fill"
+                           [style.width.%]="trainingProgress"
+                           [class.animate]="isTraining"></div>
                     </div>
                   </div>
 
-                  <!-- Boutons d'action -->
-                  <div *ngIf="trainingCompleted" class="completion-actions">
-                    <button class="modern-btn-primary completion-btn"
-                            (click)="viewDetailedResults()">
-                      <mat-icon>analytics</mat-icon>
-                      <span>Voir les résultats détaillés</span>
-                    </button>
+                                    <!-- Étapes horizontales style screenshot -->
+                  <div class="training-steps-horizontal">
+                    <div class="step-card" [class.completed]="progressSteps.dataLoaded" [class.active]="isTraining && trainingProgress >= 10 && trainingProgress < 40">
+                      <div class="step-checkmark">
+                        <mat-icon>{{ progressSteps.dataLoaded ? 'check' : 'radio_button_unchecked' }}</mat-icon>
+                      </div>
+                      <div class="step-info">
+                        <span class="step-title">Chargement des données</span>
+                        <span class="step-description">Validation et préparation du dataset</span>
+                      </div>
+                    </div>
 
-                    <button class="modern-btn-secondary"
-                            (click)="returnToWizard()">
-                      <mat-icon>arrow_back</mat-icon>
-                      <span>Nouvel entraînement</span>
-                    </button>
-                  </div>
+                    <div class="step-card" [class.completed]="progressSteps.preprocessing" [class.active]="isTraining && trainingProgress >= 40 && trainingProgress < 70">
+                      <div class="step-checkmark">
+                        <mat-icon>{{ progressSteps.preprocessing ? 'check' : 'radio_button_unchecked' }}</mat-icon>
+                      </div>
+                      <div class="step-info">
+                        <span class="step-title">Préprocessing</span>
+                        <span class="step-description">Nettoyage et transformation des données</span>
+                      </div>
+                    </div>
 
-                  <!-- Résultats -->
-                  <div *ngIf="showResults && experimentResults" class="results-section">
-                    <h4>📊 Résultats de l'entraînement</h4>
-                    <div class="metrics-grid">
-                      <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="metric-card">
-                        <strong>{{ getMetricLabel(metric) }}:</strong> {{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%
+                    <div class="step-card" [class.completed]="progressSteps.training" [class.active]="isTraining && trainingProgress >= 70 && trainingProgress < 90">
+                      <div class="step-checkmark">
+                        <mat-icon>{{ progressSteps.training ? 'check' : 'radio_button_unchecked' }}</mat-icon>
+                      </div>
+                      <div class="step-info">
+                        <span class="step-title">Entraînement</span>
+                        <span class="step-description">Apprentissage du modèle sur les données</span>
+                      </div>
+                    </div>
+
+                    <div class="step-card" [class.completed]="progressSteps.evaluation" [class.active]="isTraining && trainingProgress >= 90">
+                      <div class="step-checkmark">
+                        <mat-icon>{{ progressSteps.evaluation ? 'check' : 'radio_button_unchecked' }}</mat-icon>
+                      </div>
+                      <div class="step-info">
+                        <span class="step-title">Évaluation</span>
+                        <span class="step-description">Calcul des métriques et visualisations</span>
                       </div>
                     </div>
                   </div>
-
                 </div>
+
+                <!-- Section Console -->
+                <div class="console-section">
+                  <div class="console-header">
+                    <div class="console-title">
+                      <mat-icon>terminal</mat-icon>
+                      <span>Logs d'entraînement</span>
+                    </div>
+                    <div class="console-actions">
+                      <button class="console-btn" (click)="clearLogs()" [disabled]="trainingLogs.length === 0">
+                        <mat-icon>clear_all</mat-icon>
+                        Effacer
+                      </button>
+                      <button class="console-btn" (click)="toggleAutoScroll()">
+                        <mat-icon>{{ autoScrollLogs ? 'pause' : 'play_arrow' }}</mat-icon>
+                        Auto-scroll
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="stripe-console" #logsContainer>
+                    <div *ngFor="let log of trainingLogs; trackBy: trackLogFn"
+                         class="log-entry"
+                         [class.log-info]="log.level === 'info'"
+                         [class.log-success]="log.level === 'success'"
+                         [class.log-warning]="log.level === 'warning'"
+                         [class.log-error]="log.level === 'error'">
+                      <span class="log-timestamp">{{ log.timestamp | date:'HH:mm:ss.SSS' }}</span>
+                      <span class="log-level">{{ log.level.toUpperCase() }}</span>
+                      <span class="log-text">{{ log.message }}</span>
+                    </div>
+
+                    <div *ngIf="trainingLogs.length === 0" class="log-entry log-placeholder">
+                      <span class="log-timestamp">{{ getCurrentTimestamp() }}</span>
+                      <span class="log-level">INFO</span>
+                      <span class="log-text">Console prête - Lancez un entraînement depuis l'étape 8</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section Actions Style Stripe -->
+                <div *ngIf="trainingCompleted" class="actions-section">
+                  <div class="actions-content">
+                    <div class="success-indicator">
+                      <div class="success-checkmark">
+                        <mat-icon>check_circle</mat-icon>
+                      </div>
+                      <div class="success-text">
+                        <h3>Entraînement terminé !</h3>
+                        <p>Votre modèle est prêt à être exploré</p>
+                      </div>
+                    </div>
+
+                    <div class="action-buttons">
+                      <button class="stripe-btn primary" (click)="viewDetailedResults()">
+                        <span class="btn-content">
+                          <mat-icon>analytics</mat-icon>
+                          <span>Voir les résultats détaillés</span>
+                        </span>
+                        <div class="btn-shimmer"></div>
+                      </button>
+
+                      <button class="stripe-btn secondary" (click)="returnToWizard()">
+                        <span class="btn-content">
+                          <mat-icon>refresh</mat-icon>
+                          <span>Nouvel entraînement</span>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section Résultats -->
+                <div *ngIf="showResults && experimentResults" class="results-section">
+                  <div class="results-header">
+                    <h3>Métriques de performance</h3>
+                    <p>Résultats de l'évaluation de votre modèle</p>
+                  </div>
+
+                  <div class="metrics-grid">
+                    <div *ngFor="let metric of objectKeys(experimentResults.metrics)" class="metric-card">
+                      <div class="metric-header">
+                        <mat-icon>{{ getMetricIcon(metric) }}</mat-icon>
+                        <span class="metric-name">{{ getMetricLabel(metric) }}</span>
+                      </div>
+                      <div class="metric-value">
+                        {{ (experimentResults.metrics[metric] * 100).toFixed(2) }}%
+                      </div>
+                      <div class="metric-bar">
+                        <div class="metric-fill" [style.width.%]="experimentResults.metrics[metric] * 100"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
