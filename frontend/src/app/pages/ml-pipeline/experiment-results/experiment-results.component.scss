@@ -227,36 +227,130 @@
       }
     }
 
-    // Grille hybride moderne pour visualisations
-    .viz-grid-hybrid {
-      display: grid;
-      gap: 2rem;
+    // 🎨 NOUVELLE STRUCTURE RESTRUCTURÉE - SECTIONS DISTINCTES
 
-      .algorithm-specific-viz {
-        grid-column: 1 / -1;
+    // Styles communs pour les titres de sections
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2.5rem; // ✅ AUGMENTÉ POUR PLUS D'ESPACE
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #e2e8f0;
+
+      mat-icon {
+        font-size: 1.5rem;
+        color: #667eea;
       }
 
-      .common-visualizations-hybrid {
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+      }
+    }
+
+    // Styles communs pour les cartes de graphiques
+    .chart-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      margin-top: 1rem; // ✅ ESPACE ENTRE SECTION-TITLE ET GRAPHIQUE
+
+      &:hover {
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+      }
+
+      &.chart-fullwidth {
+        width: 100%;
+      }
+
+      // ✅ CHART-HEADER SUPPRIMÉ - Plus de headers dans les cartes
+
+            .chart-content {
+        padding: 0;
+        position: relative;
+        border-radius: 16px; // Appliquer le border-radius au contenu maintenant
+
+        // Tailles par défaut - AUGMENTÉES AVEC LA SUPPRESSION DES HEADERS
+        height: 450px;
+
+        // Variantes de tailles
+        &.chart-medium {
+          height: 400px; // ✅ HAUTEUR AJUSTÉE POUR MÉTRIQUES
+        }
+
+        &.chart-tall {
+          height: 550px;
+        }
+
+        &.chart-extra-tall {
+          height: 650px;
+        }
+
+        // Container ECharts - OCCUPE TOUT L'ESPACE DISPONIBLE
+        app-echarts-container {
+          display: block;
+          width: 100%;
+          height: 100%;
+          border-radius: inherit;
+        }
+      }
+    }
+
+    // 🌳 SECTION 1: ALGORITHMES SPÉCIFIQUES
+    .algorithm-section {
+      margin-bottom: 4rem;
+
+      .algorithm-viz-container {
+        .forest-grid {
+          display: grid;
+          grid-template-columns: 1fr; // ✅ UNE SEULE COLONNE - PLEINE LARGEUR
+          gap: 2rem;
+
+          // Plus besoin de responsive car déjà en colonne unique
+        }
+      }
+    }
+
+    // 📊 SECTION 2: MÉTRIQUES DE PERFORMANCE
+    .metrics-section {
+      margin-bottom: 4rem;
+    }
+
+    // 🔍 SECTION 3: ANALYSES SPÉCIALISÉES
+    .specialized-section {
+      margin-bottom: 4rem;
+
+      .specialized-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        grid-template-columns: 1fr 1fr;
         gap: 2rem;
-        grid-column: 1 / -1;
+
+        @media (max-width: 1024px) {
+          grid-template-columns: 1fr;
+        }
       }
     }
   }
 }
 
-// Métriques Grid Moderne
+// Métriques Grid Moderne - 4 CARTES EN LIGNE
 .metrics-grid-modern {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(4, 1fr); // ✅ FORCE 4 COLONNES EN LIGNE
+  gap: 1.5rem; // Réduit l'espacement pour que ça tienne
 
   .metric-card-modern {
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem; // ✅ RÉDUIT pour tenir sur une ligne
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -288,13 +382,13 @@
     .metric-header {
       display: flex;
       align-items: flex-start;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      gap: 0.75rem; // ✅ RÉDUIT
+      margin-bottom: 1rem; // ✅ RÉDUIT
 
       .metric-icon-wrapper {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
+        width: 48px; // ✅ PLUS PETIT
+        height: 48px; // ✅ PLUS PETIT
+        border-radius: 12px;
         background: linear-gradient(135deg, #667eea, #764ba2);
         display: flex;
         align-items: center;
@@ -302,7 +396,7 @@
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
 
         mat-icon {
-          font-size: 1.75rem;
+          font-size: 1.5rem; // ✅ PLUS PETIT
           color: white;
         }
       }
@@ -311,14 +405,14 @@
         flex: 1;
 
         .metric-title {
-          font-size: 1rem;
+          font-size: 0.875rem; // ✅ PLUS PETIT
           font-weight: 600;
           color: #374151;
-          margin: 0 0 0.5rem;
+          margin: 0 0 0.25rem; // ✅ RÉDUIT
         }
 
         .metric-value-large {
-          font-size: 2.5rem;
+          font-size: 2rem; // ✅ PLUS PETIT
           font-weight: 800;
           color: #0f172a;
           margin: 0;
@@ -328,8 +422,8 @@
     }
 
     .metric-chart-container {
-      height: 60px;
-      margin: 1rem 0;
+      height: 50px; // ✅ PLUS PETIT
+      margin: 0.5rem 0; // ✅ RÉDUIT
 
       .metric-chart {
         width: 100%;
@@ -341,8 +435,8 @@
       .trend-indicator {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        font-size: 0.875rem;
+        gap: 0.375rem; // ✅ RÉDUIT
+        font-size: 0.75rem; // ✅ PLUS PETIT
         font-weight: 500;
 
         &.trend-excellent {
@@ -369,110 +463,7 @@
   }
 }
 
-// Visualizations Grid
-.viz-grid {
-  display: grid;
-  gap: 2rem;
-
-  .algorithm-specific-viz {
-    grid-column: 1 / -1;
-
-    .viz-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-
-      &.decision-tree-card {
-        border-left: 4px solid #10b981;
-      }
-
-      &.forest-card {
-        border-left: 4px solid #3b82f6;
-      }
-
-      .viz-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-
-        mat-icon {
-          font-size: 1.5rem;
-          color: #667eea;
-        }
-
-        h3 {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #0f172a;
-          margin: 0;
-        }
-      }
-
-            .viz-content {
-        height: 400px;
-        position: relative;
-
-        canvas {
-          width: 100% !important;
-          height: 100% !important;
-        }
-      }
-    }
-  }
-
-  .common-visualizations {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 2rem;
-    grid-column: 1 / -1;
-
-    .viz-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-      transition: all 0.3s ease;
-
-      &:hover {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-      }
-
-      .viz-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-
-        mat-icon {
-          font-size: 1.25rem;
-          color: #667eea;
-        }
-
-        h3 {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #0f172a;
-          margin: 0;
-        }
-      }
-
-      .viz-content {
-        height: 280px;
-        position: relative;
-
-        canvas {
-          width: 100% !important;
-          height: 100% !important;
-        }
-      }
-    }
-  }
-}
+// ✅ ANCIENS STYLES SUPPRIMÉS - REMPLACÉS PAR LA NOUVELLE STRUCTURE
 
 // Détails de l'expérience
 .experiment-details-modern {
@@ -619,12 +610,26 @@
   }
 
   .metrics-grid-modern {
+    grid-template-columns: repeat(2, 1fr); // ✅ 2 COLONNES SUR MOBILE/TABLET
+    gap: 1rem;
+  }
+
+    // Responsive pour nouvelle structure
+  .specialized-grid {
     grid-template-columns: 1fr;
   }
 
-  .viz-grid {
-    .common-visualizations {
-      grid-template-columns: 1fr;
+  // forest-grid est déjà en colonne unique
+
+        .chart-content {
+    height: 400px; // Augmentée car plus de headers
+
+    &.chart-medium {
+      height: 350px; // ✅ AJUSTÉ POUR RESPONSIVE
+    }
+
+    &.chart-tall {
+      height: 450px;
     }
   }
 

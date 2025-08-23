@@ -25,6 +25,26 @@ from common.storage_client import get_storage_client
 
 logger = get_task_logger(__name__)
 
+def convert_numpy_types(obj):
+    """
+    Convertit récursivement tous les types NumPy en types Python natifs
+    pour permettre la sérialisation JSON dans SQLAlchemy.
+    """
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: convert_numpy_types(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_numpy_types(item) for item in obj)
+    else:
+        return obj
+
 class MLTrainingTask(Task):
     """Base task with database session management"""
     _db = None
@@ -337,29 +357,88 @@ def train_model(self, experiment_id: str):
                 storage_client.upload_file(img_buffer, viz_path)
                 viz_urls[viz_name] = viz_path
         
-        # Extract feature importance
+        # Extract feature importance - AVEC CONVERSION NUMPY
         feature_importance = {}
         if hasattr(model, 'get_feature_importance'):
             importance_data = model.get_feature_importance()
             if importance_data is not None and len(importance_data) > 0:
                 feature_names = importance_data.get('features', [])
                 importances = importance_data.get('importance', [])
-                feature_importance = dict(zip(feature_names[:20], importances[:20]))  # Top 20 features
+                # Convertir immédiatement les importances NumPy
+                safe_importances = convert_numpy_types(importances)
+                feature_importance = dict(zip(feature_names[:20], safe_importances[:20]))  # Top 20 features
+
+        # Extract tree structure for Decision Tree and Random Forest - AVEC DEBUG
+        logger.info("🔧 Starting tree structure extraction...")
+        tree_structure = {}
+        
+        try:
+            if hasattr(model, 'get_tree_structure'):
+                logger.info(f"📊 Extracting tree structure for {experiment.algorithm}")
+                tree_data = model.get_tree_structure()
+                if tree_data is not None:
+                    tree_structure = tree_data
+                    logger.info(f"✅ Tree structure extracted successfully for {experiment.algorithm}")
+                else:
+                    logger.info(f"⚠️ No tree structure available for {experiment.algorithm}")
+            else:
+                logger.info(f"ℹ️ Model {experiment.algorithm} does not support tree structure extraction")
+        except Exception as tree_error:
+            logger.error(f"❌ Error extracting tree structure: {str(tree_error)}", exc_info=True)
+            # Ne pas faire planter l'entraînement à cause de l'extraction d'arbre
+            tree_structure = {}
+        
+        logger.info("🔧 Tree structure extraction completed, updating experiment status...")
         
         # Délai final pour voir la progression à 90% avant 100%
         time.sleep(2.0)  # Délai UX pour voir l'étape "Sauvegarde" avant completion
         
-        # Update experiment with results
-        experiment.status = 'completed'
-        experiment.progress = 100
-        experiment.metrics = metrics
-        experiment.artifact_uri = model_path
-        experiment.visualizations = viz_urls
-        experiment.feature_importance = feature_importance
-        experiment.updated_at = datetime.now(timezone.utc)
-        self.db.commit()
+        logger.info("📝 Updating experiment with final results...")
         
-        logger.info(f"Training completed successfully for experiment {experiment_id}")
+        try:
+            # 🔧 CONVERSION NUMPY AVANT SAUVEGARDE - SOLUTION DÉFINITIVE
+            logger.info("🔧 Converting NumPy types to native Python types...")
+            
+            # Convertir toutes les données problématiques
+            safe_metrics = convert_numpy_types(metrics)
+            safe_feature_importance = convert_numpy_types(feature_importance)
+            safe_viz_urls = convert_numpy_types(viz_urls)
+            safe_tree_structure = convert_numpy_types(tree_structure)
+            
+            logger.info("✅ NumPy conversion completed successfully")
+            
+            # Update experiment with results - AVEC DONNÉES CONVERTIES
+            experiment.status = 'completed'
+            experiment.progress = 100
+            experiment.metrics = safe_metrics
+            experiment.artifact_uri = model_path
+            experiment.visualizations = safe_viz_urls
+            experiment.feature_importance = safe_feature_importance
+            
+            logger.info("💾 Basic experiment data updated, adding tree structure if available...")
+            
+            # Ajouter la structure d'arbre si disponible - AVEC CONVERSION NUMPY
+            if safe_tree_structure and isinstance(safe_tree_structure, dict) and len(safe_tree_structure) > 0:
+                try:
+                    # Stocker la structure d'arbre dans visualizations - DÉJÀ CONVERTIE
+                    safe_viz_urls['tree_structure'] = safe_tree_structure
+                    experiment.visualizations = safe_viz_urls
+                    logger.info(f"✅ Tree structure added to experiment results")
+                except Exception as tree_store_error:
+                    logger.error(f"⚠️ Could not store tree structure: {str(tree_store_error)}")
+                    # Continue sans la structure d'arbre
+            
+            experiment.updated_at = datetime.now(timezone.utc)
+            logger.info("💾 Committing experiment to database...")
+            
+            self.db.commit()
+            
+            logger.info(f"🎉 Training completed successfully for experiment {experiment_id}")
+            
+        except Exception as update_error:
+            logger.error(f"❌ Error updating experiment final status: {str(update_error)}", exc_info=True)
+            # Re-raise l'erreur pour déclencher la gestion d'erreur générale
+            raise
         
         # Audit final
         logger.info(f"[AUDIT] Experiment {experiment_id} completed - Model: {model_path}, Metrics: {metrics.get('accuracy', 'N/A')}")

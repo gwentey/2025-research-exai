@@ -20,7 +20,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Chart, registerables } from 'chart.js';
+// Chart.js supprimé - remplacé par ECharts
 import { DatasetService } from '../../../services/dataset.service';
 import { MlPipelineService } from '../../../services/ml-pipeline.service';
 import { DatasetDetailView } from '../../../models/dataset.models';
@@ -28,7 +28,7 @@ import { AlgorithmInfo, ExperimentCreate } from '../../../models/ml-pipeline.mod
 import { interval, Subscription } from 'rxjs';
 import { takeWhile } from 'rxjs/operators';
 
-Chart.register(...registerables);
+// Chart.js registration supprimée
 
 @Component({
   selector: 'app-ml-studio',
@@ -66,14 +66,14 @@ Chart.register(...registerables);
     trigger('slideInLeft', [
       transition(':enter', [
         style({ transform: 'translateX(-50px)', opacity: 0 }),
-        animate('600ms cubic-bezier(0.35, 0, 0.25, 1)', 
+        animate('600ms cubic-bezier(0.35, 0, 0.25, 1)',
           style({ transform: 'translateX(0)', opacity: 1 }))
       ])
     ]),
     trigger('slideInRight', [
       transition(':enter', [
         style({ transform: 'translateX(50px)', opacity: 0 }),
-        animate('600ms cubic-bezier(0.35, 0, 0.25, 1)', 
+        animate('600ms cubic-bezier(0.35, 0, 0.25, 1)',
           style({ transform: 'translateX(0)', opacity: 1 }))
       ])
     ]),
@@ -94,32 +94,32 @@ Chart.register(...registerables);
 })
 export class MlStudioComponent implements OnInit {
   @ViewChild('dataQualityChart') dataQualityChartRef!: ElementRef;
-  
+
   // Expose Math to template
   Math = Math;
-  
+
   projectId: string = '';
   datasetId: string = '';
   dataset: DatasetDetailView | null = null;
   algorithms: AlgorithmInfo[] = [];
   selectedAlgorithm: AlgorithmInfo | null = null;
-  
+
   configForm!: FormGroup;
   isLoading = false;
   currentStep = 1;
   totalSteps = 4;
-  
+
   // Training state
   isTraining = false;
   trainingProgress = 0;
   experimentId: string = '';
   trainingStatus: string = '';
   statusCheckSubscription?: Subscription;
-  
+
   // UI state
   showAdvancedOptions = false;
-  dataQualityChart: Chart | null = null;
-  
+  // dataQualityChart supprimé - remplacé par ECharts
+
   // Presets
   presets = [
     { id: 'quick', name: 'ML_STUDIO.PRESETS.QUICK', icon: 'flash_on', description: 'ML_STUDIO.PRESETS.QUICK_DESC' },
@@ -127,7 +127,7 @@ export class MlStudioComponent implements OnInit {
     { id: 'accurate', name: 'ML_STUDIO.PRESETS.ACCURATE', icon: 'stars', description: 'ML_STUDIO.PRESETS.ACCURATE_DESC' }
   ];
   selectedPreset = 'balanced';
-  
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -138,43 +138,43 @@ export class MlStudioComponent implements OnInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
-  
+
   ngOnInit() {
     this.projectId = this.route.snapshot.parent?.params['id'] || '';
-    
+
     this.route.queryParams.subscribe(params => {
       this.datasetId = params['datasetId'] || '';
       if (this.datasetId) {
         this.loadDataset();
       }
     });
-    
+
     this.initializeForm();
     this.loadAlgorithms();
   }
-  
+
   initializeForm() {
     this.configForm = this.fb.group({
       // Étape 1: Configuration données
       targetColumn: ['', Validators.required],
       taskType: ['classification', Validators.required],
       testSize: [20, [Validators.required, Validators.min(10), Validators.max(50)]],
-      
+
       // Étape 2: Prétraitement
       missingValueStrategy: ['mean', Validators.required],
       featureScaling: [true],
       encoding: ['onehot'],
       removeOutliers: [false],
       outlierThreshold: [1.5],
-      
+
       // Étape 3: Algorithme
       algorithm: ['', Validators.required],
-      
+
       // Étape 4: Hyperparamètres (dynamiques)
       hyperparameters: this.fb.group({})
     });
   }
-  
+
   loadDataset() {
     this.isLoading = true;
     this.datasetService.getDatasetDetails(this.datasetId).subscribe({
@@ -190,7 +190,7 @@ export class MlStudioComponent implements OnInit {
       }
     });
   }
-  
+
   loadAlgorithms() {
     this.mlPipelineService.getAvailableAlgorithms().subscribe({
       next: (algorithms) => {
@@ -198,21 +198,20 @@ export class MlStudioComponent implements OnInit {
       }
     });
   }
-  
+
   analyzeDataQuality() {
     if (!this.dataset) return;
-    
+
     // Simuler l'analyse de qualité des données
-    setTimeout(() => {
-      this.createDataQualityChart();
-    }, 500);
+    // Chart creation supprimé
   }
-  
+
+  // createDataQualityChart supprimé - remplacé par ECharts
   createDataQualityChart() {
-    if (!this.dataQualityChartRef) return;
-    
+    return; // Méthode désactivée
+
     const ctx = this.dataQualityChartRef.nativeElement.getContext('2d');
-    
+
     // Simuler des scores de qualité
     const qualityScores = {
       completeness: Math.random() * 30 + 70,
@@ -221,52 +220,13 @@ export class MlStudioComponent implements OnInit {
       validity: Math.random() * 20 + 80,
       uniqueness: Math.random() * 15 + 85
     };
-    
-    this.dataQualityChart = new Chart(ctx, {
-      type: 'radar',
-      data: {
-        labels: Object.keys(qualityScores).map(key => 
-          this.translate.instant(`ML_STUDIO.DATA_QUALITY.${key.toUpperCase()}`)
-        ),
-        datasets: [{
-          label: this.translate.instant('ML_STUDIO.DATA_QUALITY.SCORE'),
-          data: Object.values(qualityScores),
-          fill: true,
-          backgroundColor: 'rgba(102, 126, 234, 0.2)',
-          borderColor: 'rgb(102, 126, 234)',
-          pointBackgroundColor: 'rgb(102, 126, 234)',
-          pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgb(102, 126, 234)'
-        }]
-      },
-      options: {
-        elements: {
-          line: {
-            borderWidth: 3
-          }
-        },
-        scales: {
-          r: {
-            beginAtZero: true,
-            max: 100,
-            ticks: {
-              stepSize: 20
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            display: false
-          }
-        }
-      }
-    });
+
+    // Configuration Chart.js supprimée complètement
   }
-  
+
   suggestTargetColumn() {
     if (!this.dataset || !this.dataset.columns || this.dataset.columns.length === 0) return;
-    
+
     // Logique simple pour suggérer la colonne cible
     const lastColumn = this.dataset.columns[this.dataset.columns.length - 1];
     if (lastColumn) {
@@ -275,10 +235,10 @@ export class MlStudioComponent implements OnInit {
       });
     }
   }
-  
+
   getFilteredAlgorithms(): AlgorithmInfo[] {
     const taskType = this.configForm.get('taskType')?.value;
-    
+
     return this.algorithms.filter(algo => {
       if (taskType === 'classification') {
         return algo.supports_classification;
@@ -287,30 +247,30 @@ export class MlStudioComponent implements OnInit {
       }
     });
   }
-  
+
   onAlgorithmSelect(algorithm: AlgorithmInfo) {
     this.selectedAlgorithm = algorithm;
     this.configForm.patchValue({ algorithm: algorithm.name });
-    
+
     // Mettre à jour les hyperparamètres
     this.updateHyperparametersForm();
   }
-  
+
   updateHyperparametersForm() {
     if (!this.selectedAlgorithm) return;
-    
+
     const hyperparamsGroup = this.fb.group({});
-    
+
     Object.entries(this.selectedAlgorithm.hyperparameters).forEach(([key, config]) => {
       hyperparamsGroup.addControl(key, this.fb.control(config.default));
     });
-    
+
     this.configForm.setControl('hyperparameters', hyperparamsGroup);
   }
-  
+
   applyPreset(presetId: string) {
     this.selectedPreset = presetId;
-    
+
     switch (presetId) {
       case 'quick':
         this.configForm.patchValue({
@@ -325,7 +285,7 @@ export class MlStudioComponent implements OnInit {
           });
         }
         break;
-        
+
       case 'balanced':
         this.configForm.patchValue({
           testSize: 20,
@@ -339,7 +299,7 @@ export class MlStudioComponent implements OnInit {
           });
         }
         break;
-        
+
       case 'accurate':
         this.configForm.patchValue({
           testSize: 20,
@@ -357,23 +317,23 @@ export class MlStudioComponent implements OnInit {
         break;
     }
   }
-  
+
   nextStep() {
     if (this.currentStep < this.totalSteps) {
       this.currentStep++;
     }
   }
-  
+
   previousStep() {
     if (this.currentStep > 1) {
       this.currentStep--;
     }
   }
-  
+
   canProceed(): boolean {
     switch (this.currentStep) {
       case 1:
-        return !!this.configForm.get('targetColumn')?.valid && 
+        return !!this.configForm.get('targetColumn')?.valid &&
                !!this.configForm.get('taskType')?.valid;
       case 2:
         return !!this.configForm.get('missingValueStrategy')?.valid;
@@ -385,12 +345,12 @@ export class MlStudioComponent implements OnInit {
         return false;
     }
   }
-  
+
   startTraining() {
     if (!this.configForm.valid || !this.dataset) return;
-    
+
     const formValue = this.configForm.value;
-    
+
     const experimentData: ExperimentCreate = {
       project_id: this.projectId,
       dataset_id: this.datasetId,
@@ -419,11 +379,11 @@ export class MlStudioComponent implements OnInit {
         manual_overrides: {}  // Vide par défaut
       }
     };
-    
+
     this.isTraining = true;
     this.trainingProgress = 0;
     this.trainingStatus = 'ML_STUDIO.TRAINING.INITIALIZING';
-    
+
     this.mlPipelineService.createExperiment(experimentData).subscribe({
       next: (experiment) => {
         this.experimentId = experiment.id;
@@ -436,7 +396,7 @@ export class MlStudioComponent implements OnInit {
       }
     });
   }
-  
+
   startProgressTracking() {
     this.statusCheckSubscription = interval(2000)
       .pipe(takeWhile(() => this.isTraining))
@@ -444,7 +404,7 @@ export class MlStudioComponent implements OnInit {
         this.mlPipelineService.getExperimentStatus(this.experimentId).subscribe({
           next: (status) => {
             this.trainingProgress = status.progress || 0;
-            
+
             switch (status.status) {
               case 'running':
                 this.updateTrainingStatus();
@@ -460,7 +420,7 @@ export class MlStudioComponent implements OnInit {
         });
       });
   }
-  
+
   updateTrainingStatus() {
     if (this.trainingProgress < 30) {
       this.trainingStatus = 'ML_STUDIO.TRAINING.LOADING_DATA';
@@ -472,18 +432,18 @@ export class MlStudioComponent implements OnInit {
       this.trainingStatus = 'ML_STUDIO.TRAINING.FINALIZING';
     }
   }
-  
+
   onTrainingComplete() {
     this.isTraining = false;
     this.trainingProgress = 100;
     this.trainingStatus = 'ML_STUDIO.TRAINING.COMPLETED';
-    
+
     if (this.statusCheckSubscription) {
       this.statusCheckSubscription.unsubscribe();
     }
-    
+
     this.showSuccess('ML_STUDIO.TRAINING.SUCCESS');
-    
+
     // Rediriger vers les résultats après 2 secondes
     setTimeout(() => {
       this.router.navigate(['../experiment', this.experimentId], {
@@ -491,44 +451,44 @@ export class MlStudioComponent implements OnInit {
       });
     }, 2000);
   }
-  
+
   onTrainingFailed(error?: string) {
     this.isTraining = false;
     this.trainingStatus = 'ML_STUDIO.TRAINING.FAILED';
-    
+
     if (this.statusCheckSubscription) {
       this.statusCheckSubscription.unsubscribe();
     }
-    
+
     this.showError(error || 'ML_STUDIO.ERRORS.TRAINING_FAILED');
   }
-  
+
   getDatasetColumns(): any[] {
     return this.dataset?.columns || [];
   }
-  
+
   getHyperparameterType(config: any): string {
     return config.type || 'number';
   }
-  
+
   showSuccess(message: string) {
     this.snackBar.open(this.translate.instant(message), '', {
       duration: 3000,
       panelClass: 'success-snackbar'
     });
   }
-  
+
   showError(message: string) {
     this.snackBar.open(this.translate.instant(message), 'OK', {
       duration: 5000,
       panelClass: 'error-snackbar'
     });
   }
-  
+
   formatTestSize(value: number): string {
     return `${value}%`;
   }
-  
+
   getAlgorithmUseCases(algo: AlgorithmInfo): string[] {
     const useCases: { [key: string]: string[] } = {
       'decision_tree': [
@@ -544,23 +504,21 @@ export class MlStudioComponent implements OnInit {
         'Scoring crédit'
       ]
     };
-    
+
     return useCases[algo.name] || [];
   }
-  
+
   getTopHyperparameters(algo: AlgorithmInfo): string[] {
     if (!algo.hyperparameters) return [];
-    
+
     return Object.keys(algo.hyperparameters).slice(0, 3);
   }
-  
+
   ngOnDestroy() {
     if (this.statusCheckSubscription) {
       this.statusCheckSubscription.unsubscribe();
     }
-    
-    if (this.dataQualityChart) {
-      this.dataQualityChart.destroy();
-    }
+
+    // Chart cleanup supprimé - ECharts se gère automatiquement
   }
 }

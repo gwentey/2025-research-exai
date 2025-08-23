@@ -24,11 +24,12 @@ import { ProjectService } from '../../../services/project.service';
 import { HyperparameterConfig, AlgorithmInfo, ExperimentCreate } from '../../../models/ml-pipeline.models';
 import { DatasetDetailView } from '../../../models/dataset.models';
 import { UserRead } from '../../../models/auth.models';
+import { CreditsIndicatorComponent } from '../../../components/credits-indicator/credits-indicator.component';
 
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs/operators';
-import { Chart, registerables } from 'chart.js';
+// Chart.js supprimé - remplacé par ECharts
 import { trigger, transition, style, animate } from '@angular/animations';
 
 // Interface pour les logs de training
@@ -38,7 +39,7 @@ interface TrainingLog {
   message: string;
 }
 
-Chart.register(...registerables);
+// Chart.js registration supprimée
 
 @Component({
   selector: 'app-ml-pipeline-wizard',
@@ -62,7 +63,8 @@ Chart.register(...registerables);
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
-    TranslateModule
+    TranslateModule,
+    CreditsIndicatorComponent
   ],
   templateUrl: './ml-pipeline-wizard.component.html',
   styleUrls: ['./ml-pipeline-wizard.component.scss'],
@@ -154,6 +156,10 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   // User data for credits
   currentUser: UserRead | null = null;
 
+  // Tracking des étapes visitées et validées par l'utilisateur
+  validatedSteps: Set<number> = new Set<number>();
+  visitedSteps: Set<number> = new Set<number>([1]); // Étape 1 déjà visitée à l'arrivée
+
   // Step titles and descriptions
   private stepTitles = [
     'Sélection du Dataset',
@@ -192,6 +198,9 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
 
     // Load user credits
     this.loadUserCredits();
+
+    // Marquer l'étape 1 comme visitée (l'utilisateur a choisi un dataset)
+    this.markStepAsVisited(1);
 
     // Get route parameters - Méthode améliorée
     // Essayer plusieurs façons de récupérer le projectId
@@ -472,6 +481,10 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   selectAlgorithm(algorithmName: string) {
     this.algorithmForm.patchValue({ algorithm: algorithmName });
     this.onAlgorithmSelected();
+
+    // Marquer l'étape 6 (algorithme) comme ayant une action utilisateur
+    console.log(`🎯 Algorithme sélectionné: ${algorithmName} - marquage étape 6 comme validée`);
+    this.checkAndMarkStepIfValid(6);
   }
 
   onAlgorithmSelected() {
@@ -540,12 +553,18 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
             console.log('📊 Status received:', status);
             this.experimentStatus = status;
 
-            // Mise à jour de la progression avec validation
+            // Mise à jour de la progression avec validation ET force UI update
             if (status.progress !== undefined && status.progress !== null) {
               const newProgress = Math.max(0, Math.min(100, status.progress));
               if (newProgress !== this.trainingProgress) {
+                console.log(`📈 Progress updating from ${this.trainingProgress}% to ${newProgress}%`);
                 this.trainingProgress = newProgress;
-                console.log(`📈 Progress updated: ${this.trainingProgress}%`);
+
+                // FORCE UI update immediately
+                this.cdr.markForCheck();
+                this.cdr.detectChanges();
+
+                console.log(`✅ Progress UI updated: ${this.trainingProgress}%`);
 
                 // Mise à jour des logs selon la progression
                 this.updateProgressLogs(this.trainingProgress);
@@ -565,7 +584,8 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
               // Continue polling
             }
 
-            // Force UI update
+            // Force UI update complet
+            this.cdr.markForCheck();
             this.cdr.detectChanges();
           },
           error: (error) => {
@@ -578,22 +598,32 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   updateProgressLogs(progress: number) {
+    console.log(`🔄 Updating progress logs for ${progress}%`);
+
     if (progress >= 10 && !this.progressSteps.dataLoaded) {
       this.addTrainingLog('success', '📊 Données chargées et validées');
       this.progressSteps.dataLoaded = true;
+      console.log('✅ Data loading step completed');
     }
     if (progress >= 40 && !this.progressSteps.preprocessing) {
       this.addTrainingLog('success', '🔧 Préprocessing et nettoyage terminés');
       this.progressSteps.preprocessing = true;
+      console.log('✅ Preprocessing step completed');
     }
     if (progress >= 70 && !this.progressSteps.training) {
       this.addTrainingLog('success', '🤖 Entraînement du modèle en cours...');
       this.progressSteps.training = true;
+      console.log('✅ Training step started');
     }
     if (progress >= 90 && !this.progressSteps.evaluation) {
       this.addTrainingLog('success', '📈 Évaluation et génération des visualisations');
       this.progressSteps.evaluation = true;
+      console.log('✅ Evaluation step started');
     }
+
+    // Force UI update après chaque step
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   trainingCompleted = false;
@@ -810,16 +840,35 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       return;
     }
 
-    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || `/ml-pipeline`;
-    this.router.navigateByUrl(returnUrl);
+    // Navigation de retour vers le dashboard ML avec contexte projet
+    if (this.projectId) {
+      // Route contextualisée dans un projet
+      this.router.navigate(['/projects', this.projectId, 'ml-pipeline']);
+    } else {
+      // Route standalone
+      const returnUrl = this.route.snapshot.queryParams['returnUrl'] || `/ml-pipeline`;
+      this.router.navigateByUrl(returnUrl);
+    }
   }
 
   // Méthode pour gérer manuellement le changement de la checkbox
   onConfirmationChange(event: any): void {
-    console.log('🔄 Checkbox changed:', event.target.checked);
+    const isConfirmed = event.target.checked;
+    console.log('🔄 Checkbox changed:', isConfirmed);
     this.finalVerificationForm.patchValue({
-      confirmed: event.target.checked
+      confirmed: isConfirmed
     });
+
+    // Marquer l'étape 8 comme validée si cochée
+    if (isConfirmed) {
+      console.log(`🎯 Confirmation finale: ${isConfirmed} - marquage étape 8 comme validée`);
+      this.checkAndMarkStepIfValid(8);
+    } else {
+      // Retirer la validation si décochée
+      this.validatedSteps.delete(8);
+      console.log('❌ Confirmation décochée - étape 8 non validée');
+    }
+
     console.log('✅ Form value after patch:', this.finalVerificationForm.value);
   }
 
@@ -837,9 +886,9 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
   getProgressPercentage(): number {
     // Avoid NG0100 error by ensuring stable values
     if (!this.stepper || this.stepper.selectedIndex === undefined || this.stepper.selectedIndex === null) {
-      return 20; // Default to step 1 (20%)
+      return 11; // Default to step 1 (11%)
     }
-    return Math.round(((this.stepper.selectedIndex + 1) / 5) * 100);
+    return Math.round(((this.stepper.selectedIndex + 1) / 9) * 100);
   }
 
   getCurrentStepNumber(): number {
@@ -849,6 +898,177 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
     }
     return this.stepper.selectedIndex + 1;
   }
+
+  /**
+   * Marque une étape comme visitée
+   */
+  markStepAsVisited(stepNumber: number): void {
+    this.visitedSteps.add(stepNumber);
+  }
+
+  /**
+   * Marque une étape comme validée par l'utilisateur
+   */
+  markStepAsValidated(stepNumber: number): void {
+    this.validatedSteps.add(stepNumber);
+    console.log(`✅ Étape ${stepNumber} marquée comme validée par l'utilisateur`);
+    console.log('📋 Étapes validées actuelles:', Array.from(this.validatedSteps));
+  }
+
+  /**
+   * Vérifie si une étape spécifique est réellement valide (rouge/vert intelligent)
+   * NOUVELLE LOGIQUE : Prend en compte les étapes visitées + validées par l'utilisateur
+   */
+  isStepValid(stepNumber: number): boolean {
+    // Une étape ne peut être verte que si elle a été validée par l'utilisateur
+    const hasBeenValidated = this.validatedSteps.has(stepNumber);
+
+    switch (stepNumber) {
+      case 1: // Dataset Overview
+        // Auto-valide si dataset fourni et validé par utilisateur
+        return hasBeenValidated && !!this.datasetId && this.datasetForm.valid;
+
+      case 2: // Data Cleaning
+        // Auto-valide si validé par utilisateur (pas de choix spécifique requis)
+        return hasBeenValidated && this.dataCleaningForm.valid;
+
+      case 3: // Data Configuration (Objectif)
+        // OBLIGATOIRE : doit avoir une target column ET être validé par utilisateur
+        const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
+        const isFormValid = !!targetColumn && this.dataQualityForm.valid;
+        return hasBeenValidated && isFormValid;
+
+      case 4: // Division (pas encore implémentée)
+        // Auto-valide quand visitée (pas de formulaire spécifique)
+        return hasBeenValidated;
+
+      case 5: // Préparation (pas encore implémentée)
+        // Auto-valide quand visitée (pas de formulaire spécifique)
+        return hasBeenValidated;
+
+      case 6: // Algorithm Selection ← ÉTAPE CRITIQUE
+        // OBLIGATOIRE : doit avoir un algorithme sélectionné ET être validé par utilisateur
+        const algorithm = this.algorithmForm.get('algorithm')?.value;
+        const hasAlgorithm = !!algorithm && this.algorithmForm.valid;
+        return hasBeenValidated && hasAlgorithm;
+
+      case 7: // Hyperparameters
+        // Valid si algorithme sélectionné et validé par utilisateur
+        const algorithmSelected = !!this.algorithmForm.get('algorithm')?.value;
+        const hyperparamsValid = this.hyperparametersForm.valid;
+        return hasBeenValidated && algorithmSelected && hyperparamsValid;
+
+      case 8: // Final Verification
+        // OBLIGATOIRE : confirmation cochée ET validé par utilisateur
+        const confirmed = this.finalVerificationForm.get('confirmed')?.value;
+        return hasBeenValidated && confirmed && this.finalVerificationForm.valid;
+
+      case 9: // Results
+        return !!this.experimentResults;
+
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Vérifie si une étape est en erreur (rouge) - étapes obligatoires non remplies
+   */
+  isStepInError(stepNumber: number): boolean {
+    // Seulement les étapes déjà visitées peuvent être en erreur
+    const hasBeenVisited = this.visitedSteps.has(stepNumber);
+    const isCurrentStep = this.getCurrentStepNumber() === stepNumber;
+
+    // Pas d'erreur si l'étape n'a pas encore été visitée
+    if (!hasBeenVisited && !isCurrentStep) {
+      return false;
+    }
+
+    // Pas d'erreur pour l'étape actuelle ou futures
+    if (stepNumber >= this.getCurrentStepNumber()) {
+      return false;
+    }
+
+    // Les étapes obligatoires qui ne sont pas valides sont en erreur
+    return !this.isStepValid(stepNumber);
+  }
+
+  /**
+   * Vérifie et marque une étape comme validée si elle remplit les conditions
+   */
+  checkAndMarkStepIfValid(stepNumber: number): void {
+    const currentStepNumber = this.getCurrentStepNumber();
+
+    // Vérifier si l'étape peut être validée selon sa logique spécifique
+    let canValidate = false;
+
+    switch (stepNumber) {
+      case 3: // Configuration - valide si target column sélectionnée
+        canValidate = !!this.dataQualityForm.get('targetColumn')?.value;
+        break;
+      case 6: // Algorithme - valide si algorithme sélectionné
+        canValidate = !!this.algorithmForm.get('algorithm')?.value;
+        break;
+      case 8: // Confirmation - valide si checkbox cochée
+        canValidate = !!this.finalVerificationForm.get('confirmed')?.value;
+        break;
+      default:
+        // Pour les autres étapes, on peut les valider si on est dessus ou après
+        canValidate = currentStepNumber >= stepNumber;
+        break;
+    }
+
+    if (canValidate) {
+      this.markStepAsValidated(stepNumber);
+    }
+  }
+
+  /**
+   * Vérifie si un message d'alerte doit être affiché pour une étape
+   * Affiche seulement si l'étape a été visitée mais n'est pas correctement remplie
+   */
+  shouldShowStepAlert(stepNumber: number): boolean {
+    const hasBeenVisited = this.visitedSteps.has(stepNumber);
+    const isCurrentStep = this.getCurrentStepNumber() === stepNumber;
+
+    // Ne pas afficher d'alerte si l'étape n'a pas encore été visitée
+    if (!hasBeenVisited) {
+      return false;
+    }
+
+    // Ne pas afficher d'alerte sur l'étape actuelle (première visite)
+    if (isCurrentStep) {
+      return false;
+    }
+
+    // Afficher l'alerte seulement si l'étape a été visitée mais n'est pas valide
+    switch (stepNumber) {
+      case 3: // Configuration - alerte si pas de target column
+        return !this.dataQualityForm.get('targetColumn')?.value;
+      case 6: // Algorithme - alerte si pas d'algorithme sélectionné
+        return !this.algorithmForm.get('algorithm')?.value;
+      case 8: // Confirmation - alerte si pas de confirmation
+        return !this.finalVerificationForm.get('confirmed')?.value;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Événement quand l'utilisateur sélectionne une colonne cible
+   */
+  onTargetColumnSelected(): void {
+    const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
+    if (targetColumn) {
+      console.log(`🎯 Colonne cible sélectionnée: ${targetColumn} - marquage étape 3 comme validée`);
+      this.checkAndMarkStepIfValid(3);
+      this.cdr.detectChanges();
+    }
+  }
+
+
+
+
 
   getStepTitle(): string {
     const stepIndex = this.getCurrentStepNumber() - 1;
@@ -867,11 +1087,17 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
       return;
     }
 
+    // Marquer l'étape actuelle comme validée par l'utilisateur
+    const currentStep = this.getCurrentStepNumber();
+    this.markStepAsValidated(currentStep);
+
     if (this.stepper) {
       // Synchronize the forms with the stepper
       this.updateStepperForms();
       setTimeout(() => {
         this.stepper.next();
+        const nextStep = this.getCurrentStepNumber();
+        this.markStepAsVisited(nextStep);
         this.cdr.detectChanges();
       });
     }
@@ -1203,14 +1429,14 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
 
   viewDetailedResults(): void {
     console.log('🔍 Chargement des résultats dans la console');
-    // Charger les résultats dans la console - PAS de navigation
+
+    // Option 1: Charger les résultats dans la console
     if (this.experimentId && !this.experimentResults) {
       this.loadResults();
     } else if (this.experimentResults) {
-      // Si les résultats sont déjà chargés, les afficher
-      this.addTrainingLog('info', '📊 Résultats déjà disponibles !');
-      this.showResults = true;
-      this.cdr.detectChanges();
+      // Si les résultats sont déjà chargés, naviguer vers la page détaillée
+      this.addTrainingLog('info', '📊 Navigation vers les résultats détaillés...');
+      this.navigateToDetailedResults();
     } else {
       console.error('Experiment ID not available');
     }
@@ -1283,11 +1509,18 @@ export class MlPipelineWizardComponent implements OnInit, AfterViewInit, OnDestr
         console.log('✅ Starting training process...');
 
         // ALLER À L'ÉTAPE 9 CACHÉE (CONSOLE) - Garder le layout wizard
+    // Initialisation training avec force UI sync
     this.trainingConsoleMode = true;
     this.isTraining = true;
     this.trainingProgress = 0;
     this.trainingLogs = []; // Reset des logs
     this.trainingCompleted = false;
+
+    console.log(`🚀 Training initialized - Progress: ${this.trainingProgress}%`);
+
+    // Force UI update initial
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
     this.showResults = false;
 
     // Navigation vers l'étape cachée de console avec délai pour assurer la mise à jour
@@ -1551,11 +1784,15 @@ DIAGNOSTIC :
   resetWizardState(): void {
     console.log('🔄 Resetting wizard state for robustness...');
 
-    // Reset training state
+    // Reset training state avec force UI update
     this.isTraining = false;
     this.trainingProgress = 0;
     this.trainingCompleted = false;
     this.showingCompletionAnimation = false;
+
+    // Force UI refresh après reset
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
     this.showResults = false;
 
     // Reset experiment data
@@ -3212,5 +3449,170 @@ print(f"Dataset nettoyé: {df.shape[0]} lignes, {df.shape[1]} colonnes")`;
       this.algorithmForm.get('algorithm')?.value &&
       this.hyperparametersForm.valid
     );
+  }
+
+  /**
+   * Gère le mode de copie d'expérience depuis les résultats
+   */
+  handleCopyExperimentMode(experimentId: string): void {
+    console.log(`🔄 Handling copy experiment mode for: ${experimentId}`);
+
+    // Charger les données de l'expérience à copier
+    this.mlPipelineService.getExperimentStatus(experimentId).subscribe({
+      next: (experiment) => {
+        console.log(`✅ Experiment data loaded for copy:`, experiment);
+
+        // Pre-remplir les formulaires avec les données de l'expérience
+        this.prefillFromExperiment(experiment);
+
+        // Afficher un message d'information
+        this.addTrainingLog('info', `📋 Configuration copiée depuis l'expérience ${experimentId.substring(0, 8)}...`);
+
+      },
+      error: (error) => {
+        console.error(`❌ Error loading experiment for copy:`, error);
+        this.addTrainingLog('warning', `⚠️ Impossible de copier la configuration de l'expérience ${experimentId.substring(0, 8)}`);
+      }
+    });
+  }
+
+    /**
+   * Pre-remplit les formulaires avec les données d'une expérience existante
+   */
+  private prefillFromExperiment(experiment: any): void {
+    console.log(`📋 Pre-filling forms from experiment:`, experiment);
+
+    try {
+      // 1. COPIER LE DATASET (priorité absolue)
+      if (experiment.dataset_id) {
+        console.log(`📊 Copying dataset_id: ${experiment.dataset_id}`);
+
+        this.datasetId = experiment.dataset_id;
+
+        // Charger les détails du dataset copié
+        this.datasetService.getDataset(this.datasetId).subscribe({
+          next: (dataset: any) => {
+            console.log(`✅ Dataset loaded for copy:`, dataset);
+            this.dataset = dataset;
+
+            // Pré-remplir le formulaire dataset
+            this.datasetForm.patchValue({
+              datasetId: this.datasetId,
+              datasetName: dataset.dataset_name || dataset.name || 'Dataset copié'
+            });
+
+            this.addTrainingLog('success', `📊 Dataset "${dataset.dataset_name || 'Dataset'}" sélectionné automatiquement`);
+
+            // Force UI update
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          },
+          error: (error: any) => {
+            console.error(`❌ Error loading dataset for copy:`, error);
+            this.addTrainingLog('warning', `⚠️ Impossible de charger le dataset de l'expérience copiée`);
+          }
+        });
+      }
+
+      // 2. Pré-remplir l'algorithme
+      if (experiment.algorithm) {
+        this.algorithmForm.patchValue({
+          algorithm: experiment.algorithm
+        });
+
+        // Charger les infos de l'algorithme
+        this.loadAlgorithms(); // Recharger la liste des algorithmes
+
+        // Attendre un délai pour que les algorithmes se chargent
+        setTimeout(() => {
+          // Sélectionner l'algorithme après chargement
+          this.selectedAlgorithm = this.algorithms.find(alg => alg.name === experiment.algorithm) || null;
+
+          if (this.selectedAlgorithm) {
+            console.log(`✅ Algorithm ${this.selectedAlgorithm.name} selected from copy`);
+            this.addTrainingLog('success', `🤖 Algorithme "${this.selectedAlgorithm.display_name}" sélectionné automatiquement`);
+          }
+
+          // Force UI update après sélection algorithme
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        }, 500);
+      }
+
+      // 3. Pré-remplir les hyperparamètres si disponibles
+      if (experiment.hyperparameters) {
+        this.hyperparametersForm.patchValue(experiment.hyperparameters);
+        this.addTrainingLog('success', `⚙️ Hyperparamètres copiés depuis l'expérience originale`);
+      }
+
+      // 4. Pré-remplir la configuration de préprocessing
+      if (experiment.preprocessing_config) {
+        const config = experiment.preprocessing_config;
+
+        // Target column
+        if (config.target_column) {
+          this.dataQualityForm.patchValue({
+            targetColumn: config.target_column,
+            taskType: config.task_type || 'regression'
+          });
+
+          this.addTrainingLog('success', `🎯 Colonne cible "${config.target_column}" sélectionnée automatiquement`);
+        }
+      }
+
+      // Message de succès global
+      this.addTrainingLog('success', `✅ Configuration complète copiée avec succès !`);
+      console.log(`✅ Forms pre-filled successfully from experiment ${experiment.id}`);
+
+      // Force UI update final
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
+
+    } catch (error) {
+      console.error(`❌ Error pre-filling forms:`, error);
+      this.addTrainingLog('error', `❌ Erreur lors de la copie de la configuration`);
+    }
+  }
+
+    /**
+   * Navigate to results page - VERSION CORRIGÉE (remplace la méthode dupliquée)
+   */
+  navigateToDetailedResults() {
+    console.log('🎯 Navigating to detailed results for experiment:', this.experimentId);
+    console.log('🔍 Current projectId:', this.projectId);
+
+    // Navigation vers les résultats avec contexte projet préservé
+    if (this.projectId) {
+      // Route contextualisée dans un projet
+      this.router.navigate(['/projects', this.projectId, 'ml-pipeline', 'experiment', this.experimentId]);
+    } else {
+      // Route standalone
+      this.router.navigate(['/ml-pipeline', 'experiment', this.experimentId]);
+    }
+  }
+
+  /**
+   * Débloquer une expérience coincée (bouton d'urgence)
+   */
+  forceCompleteExperiment() {
+    if (!this.experimentId) return;
+
+    console.log(`🚨 FORCE COMPLETE: Attempting to unlock stuck experiment ${this.experimentId}`);
+
+    this.mlPipelineService.forceCompleteExperiment(this.experimentId).subscribe({
+      next: (response: any) => {
+        console.log('✅ FORCE COMPLETE: Success', response);
+
+        // Actualiser le statut immédiatement via polling
+        this.pollTrainingStatus();
+
+        // Afficher un message de succès
+        this.addTrainingLog('success', '🚨 Expérience débloquée manuellement');
+      },
+      error: (error: any) => {
+        console.error('❌ FORCE COMPLETE: Error', error);
+        this.addTrainingLog('error', `❌ Impossible de débloquer: ${error.error?.detail || error.message}`);
+      }
+    });
   }
 }

@@ -15,6 +15,7 @@
     "USER_MANAGEMENT": "Gestion Utilisateurs",
     "ETHICAL_TEMPLATES": "Templates Éthiques"
   },
+  "ADD_DATASET": "Ajouter un dataset",
   "ADMIN": {
     "DASHBOARD": {
       "TITLE": "Tableau de Bord Administration",
@@ -1194,6 +1195,65 @@
     },
     "METRICS": {
       "ACCURACY": "Précision"
+    },
+    "PIPELINE_STEPS": {
+      "TITLE": "Pipeline ML en 8 Étapes",
+      "SUBTITLE": "Votre parcours de données brutes aux prédictions intelligentes",
+      "STEP_1": "Dataset",
+      "STEP_1_DESC": "Choisir ou importer vos données",
+      "STEP_2": "Nettoyage",
+      "STEP_2_DESC": "Corriger valeurs manquantes",
+      "STEP_3": "Objectif",
+      "STEP_3_DESC": "Définir quoi prédire",
+      "STEP_4": "Division",
+      "STEP_4_DESC": "Séparer train/test",
+      "STEP_5": "Préparation",
+      "STEP_5_DESC": "Ingénierie des features",
+      "STEP_6": "Algorithme",
+      "STEP_6_DESC": "Sélection du modèle IA",
+      "STEP_7": "Paramètres",
+      "STEP_7_DESC": "Optimiser réglages",
+      "STEP_8": "Entraînement",
+      "STEP_8_DESC": "Apprendre & expliquer"
+    },
+    "EXPLAINABILITY": {
+      "TITLE": "Comprenez Chaque Prédiction",
+      "SUBTITLE": "Notre IA explicable vous montre exactement pourquoi chaque décision a été prise",
+      "DEMO": {
+        "BADGE": "Exemple de Prédiction IA",
+        "CONFIDENCE": "Fiabilité",
+        "RESULT_TITLE": "ACHAT PROBABLE",
+        "RESULT_DESC": "Ce client achètera probablement dans les 30 jours",
+        "TRY_PREDICTION": "Tester une Prédiction",
+        "LEARN_MORE": "Comment ça marche"
+      },
+      "EXPLANATION": {
+        "HEADER": "Pourquoi cette prédiction ?",
+        "SUBTITLE": "Analyse des facteurs d'influence",
+        "SUMMARY_TITLE": "Résumé de l'Analyse",
+        "SUMMARY_TEXT": "L'historique d'achat est le facteur déterminant principal"
+      }
+    },
+    "DASHBOARD": {
+      "ACTIVE_EXPERIMENTS": "Expériences Actives",
+      "ML_CONCEPTS": "Concepts ML",
+      "YOUR_STATS": "Vos Statistiques ML",
+      "LEARNING_RESOURCES": "Ressources d'Apprentissage",
+      "NO_ACTIVE_EXPERIMENTS": "Aucune expérience active",
+      "START_FIRST_EXPERIMENT": "Démarrer la Première Expérience"
+    },
+    "QUICK_ACTIONS": {
+      "START_NEW_TRAINING": "Démarrer Nouvel Entraînement",
+      "CONTINUE_LATEST": "Reprendre le Dernier",
+      "VIEW_RESULTS": "Voir les Résultats",
+      "LEARN_ML": "Apprendre le ML",
+      "CREDITS_AVAILABLE": "crédits disponibles",
+      "MODELS_READY": "modèles prêts",
+      "VIDEOS_AVAILABLE": "vidéos disponibles"
+    },
+    "ACTIVITY_FEED": {
+      "TITLE": "Activité Récente",
+      "VIEW_ALL": "Voir Tout"
     },
     "GUIDE": {
       "TITLE": "Comment ça Marche",

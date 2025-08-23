@@ -1,0 +1,119 @@
+= Améliorations Graphiques - ML Pipeline Wizard
+:description: Corrections des problèmes d'affichage du cercle des crédits et de la progression des étapes
+:keywords: ml-pipeline, wizard, crédits, progression, interface utilisateur
+:page-tags: frontend, corrections, graphiques, ui-ux
+
+== Vue d'ensemble
+
+Ce document décrit les améliorations graphiques apportées au ML Pipeline Wizard pour corriger les problèmes d'affichage des indicateurs visuels cruciaux pour l'expérience utilisateur.
+
+== Problèmes Identifiés et Résolus
+
+=== 1. Cercle Vert des Crédits Manquant
+
+==== Problème
+* Le cercle vert de progression des crédits n'était plus visible dans la section "Crédits"
+* Seul un affichage textuel était présent, rendant l'information moins visible
+
+==== Solution Implémentée
+* **Remplacement** de l'affichage textuel par le composant réutilisable `app-credits-indicator`
+* **Configuration** optimale avec les propriétés appropriées :
+  - `[remaining]="getUserCredits()"` : Nombre de crédits restants
+  - `[total]="10"` : Total maximum de crédits
+  - `size="small"` : Taille adaptée au contexte du wizard
+  - `[showInfo]="true"` : Bouton d'aide avec tooltip
+  - `[showLabel]="true"` : Affichage du label "crédits"
+
+[source,html]
+----
+<app-credits-indicator 
+  [remaining]="getUserCredits()" 
+  [total]="10" 
+  size="small"
+  [showInfo]="true"
+  [showLabel]="true">
+</app-credits-indicator>
+----
+
+=== 2. Cercle de Progression "Étape X sur 9" Défaillant
+
+==== Problème
+* Le cercle de progression dans la barre supérieure ne se remplissait pas correctement
+* Calcul erroné basé sur 5 étapes au lieu de 9
+
+==== Solution Implémentée
+* **Correction** du calcul du pourcentage dans `getProgressPercentage()`
+* **Changement** de la division de `/5` à `/9` pour refléter les 9 étapes réelles
+
+[source,typescript]
+----
+getProgressPercentage(): number {
+  if (!this.stepper || this.stepper.selectedIndex === undefined || this.stepper.selectedIndex === null) {
+    return 11; // Default to step 1 (11%)
+  }
+  return Math.round(((this.stepper.selectedIndex + 1) / 9) * 100);
+}
+----
+
+== Résultats Visuels
+
+=== Progression des Étapes
+[cols="1,1,1"]
+|===
+|Étape |Pourcentage |Affichage Visuel
+
+|1 |11% |Cercle peu rempli
+|2 |22% |Cercle 1/4 rempli
+|3 |33% |Cercle 1/3 rempli
+|4 |44% |Cercle presque à moitié
+|5 |56% |Cercle plus qu'à moitié
+|6 |67% |Cercle 2/3 rempli
+|7 |78% |Cercle presque complet
+|8 |89% |Cercle quasi complet
+|9 |100% |Cercle entièrement rempli
+|===
+
+=== Indicateur de Crédits
+* **Cercle vert** visible avec progression dynamique
+* **Tooltip informatif** accessible via l'icône d'aide
+* **Affichage cohérent** avec le design system du projet
+
+== Impact sur l'Expérience Utilisateur
+
+=== Avant les Corrections
+* Navigation confuse sans feedback visuel de progression
+* Crédits peu visibles et non engageants
+* Incohérence avec le design system établi
+
+=== Après les Corrections
+* **Feedback visuel clair** de la progression dans le wizard
+* **Cercle de crédits attractif** encourageant l'engagement
+* **Cohérence graphique** avec l'ensemble de l'application
+
+== Notes Techniques
+
+=== Composant CreditsIndicatorComponent
+* **Réutilisable** : Conçu pour être utilisé dans multiple contextes
+* **Configurable** : Taille, affichage des labels, tooltips
+* **Performant** : Utilise `ChangeDetectionStrategy.OnPush`
+* **Accessible** : Support des tooltips et navigation clavier
+
+=== Intégration dans le Wizard
+* **Import ajouté** dans les dépendances du composant
+* **Styling preserved** : Utilise les styles existants via `::ng-deep`
+* **Responsive** : S'adapte aux différentes tailles d'écran
+
+== Validation et Tests
+
+=== Checklist de Validation
+- [x] Cercle vert des crédits visible
+- [x] Progression du cercle "Étape X sur 9" fonctionnelle
+- [x] Responsive design préservé
+- [x] Tooltip des crédits accessible
+- [x] Performance non impactée
+- [x] Pas d'erreurs de compilation TypeScript
+
+[NOTE]
+====
+Ces améliorations sont critiques pour la fonctionnalité la plus importante de l'application. Le feedback visuel approprié est essentiel pour guider les utilisateurs à travers le processus complexe de création de pipeline ML.
+====

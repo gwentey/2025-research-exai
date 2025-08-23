@@ -1,0 +1,115 @@
+= Accès Universel à l'Upload de Datasets
+:navtitle: Upload Universel Datasets
+
+== Vue d'ensemble
+
+L'accès à la fonctionnalité d'upload de datasets a été démocratisé pour permettre à **tous les utilisateurs authentifiés** d'ajouter des datasets à la plateforme, quel que soit leur rôle.
+
+== Changement de Politique
+
+=== Ancienne Politique
+* **Accès restreint** : Seuls les administrateurs et contributeurs pouvaient uploader des datasets
+* **Vérification par rôle** : Utilisation de guards et de vérifications de permissions
+* **Messages d'erreur** : Redirection avec messages explicatifs pour les utilisateurs sans permissions
+
+=== Nouvelle Politique
+* **Accès universel** : Tous les utilisateurs authentifiés peuvent uploader des datasets
+* **Simplification** : Suppression des barrières et restrictions de rôle
+* **Participation encouragée** : Démocratisation de la contribution à la plateforme
+
+== Implications
+
+=== Pour les Utilisateurs
+* **Expérience simplifiée** : Plus de messages d'erreur ou de redirections
+* **Participation active** : Possibilité de contribuer directement à l'enrichissement de la plateforme
+* **Autonomie accrue** : Indépendance dans l'ajout de nouvelles données
+
+=== Pour la Plateforme
+* **Contenu enrichi** : Plus de datasets disponibles grâce à la participation élargie
+* **Engagement utilisateur** : Utilisateurs plus investis dans la plateforme
+* **Croissance communautaire** : Développement d'une approche collaborative
+
+== Points d'Accès
+
+=== Bouton Flottant
+* **Position** : Bouton FAB en bas à droite de l'écran (toutes les pages)
+* **Icône** : `add_circle` Material Icon
+* **Action** : Navigation directe vers `/datasets/upload`
+
+=== Menu de Navigation
+* **Lien direct** : Section Datasets → "Ajouter un Dataset"
+* **Visibilité** : Affiché pour tous les utilisateurs authentifiés
+
+=== Page de Liste des Datasets
+* **Bouton d'action** : "Ajouter un Dataset" visible pour tous
+* **Intégration native** : Accès contextuel depuis la liste existante
+
+== Modifications Techniques
+
+=== Frontend - Suppression des Guards
+* **Routes libérées** : `/datasets/upload` et `/datasets/upload/wizard`
+* **Plus de `uploadGuard`** : Suppression des vérifications de permissions au niveau routing
+
+=== Frontend - Service de Rôles
+[source,typescript]
+----
+/**
+ * Méthode modifiée pour autoriser tous les utilisateurs
+ */
+canUploadDatasets(): Observable<boolean> {
+  return of(true); // Accès universel
+}
+----
+
+=== Backend - Service Selection
+**Fonction de vérification modifiée** dans `service-selection/app/main.py` :
+
+[source,python]
+----
+def verify_upload_permissions(user_role: str = Depends(get_current_user_role)) -> str:
+    """
+    Vérifie que l'utilisateur a les permissions pour uploader des datasets.
+    MODIFIÉ : Tous les utilisateurs authentifiés peuvent maintenant uploader des datasets.
+    """
+    # Plus de restriction - tous les utilisateurs authentifiés peuvent uploader
+    return user_role
+----
+
+**Endpoints impactés** :
+* `POST /datasets/preview` - Prévisualisation des fichiers
+* `POST /datasets` - Création de datasets
+
+=== Impact sur l'UI
+* **Boutons toujours visibles** : Plus de masquage conditionnel
+* **Navigation fluide** : Expérience utilisateur unifiée
+* **Erreurs 403 supprimées** : Plus de blocage côté serveur
+
+== Sécurité et Modération
+
+Bien que l'accès soit ouvert à tous, la plateforme maintient :
+
+* **Authentification obligatoire** : Seuls les utilisateurs connectés peuvent uploader
+* **Traçabilité** : Chaque upload est associé à un utilisateur identifié
+* **Validation des données** : Processus de validation et de métadonnées maintenu
+* **Modération a posteriori** : Possibilité de gestion administrative des datasets uploadés
+
+== Recommandations
+
+=== Pour les Utilisateurs
+. **Données de qualité** : Uploader des datasets pertinents et bien documentés
+. **Métadonnées complètes** : Remplir soigneusement les informations descriptives
+. **Respect de la confidentialité** : Vérifier que les données peuvent être partagées
+
+=== Pour les Administrateurs
+. **Surveillance régulière** : Monitoring des nouveaux uploads
+. **Support utilisateur** : Aide pour la création de datasets de qualité
+. **Politique de contenu** : Établissement de guidelines claires
+
+== Bénéfices Attendus
+
+* **Volume de données accru** : Plus de datasets disponibles pour l'analyse
+* **Diversité des sources** : Contribution de différents profils d'utilisateurs
+* **Innovation collaborative** : Émergence de nouveaux cas d'usage
+* **Engagement communautaire** : Utilisateurs plus investis dans la plateforme
+
+Cette évolution transforme IBIS-X d'une plateforme à accès contrôlé vers une approche collaborative et ouverte, favorisant l'innovation et la participation communautaire tout en maintenant les standards de qualité et de sécurité.

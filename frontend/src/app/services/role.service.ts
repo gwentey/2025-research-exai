@@ -15,7 +15,7 @@ export enum UserRole {
 })
 export class RoleService {
   private authService = inject(AuthService);
-  
+
   // BehaviorSubject pour maintenir l'état actuel du rôle
   private currentRole$ = new BehaviorSubject<UserRole | null>(null);
   private currentUser$ = new BehaviorSubject<UserRead | null>(null);
@@ -121,10 +121,11 @@ export class RoleService {
 
   /**
    * Vérifie si l'utilisateur peut uploader des datasets
+   * MODIFIÉ : Accessible à tous les utilisateurs authentifiés
    * @returns Observable<boolean>
    */
   canUploadDatasets(): Observable<boolean> {
-    return this.hasAnyRole([UserRole.ADMIN, UserRole.CONTRIBUTOR]);
+    return of(true); // Tous les utilisateurs peuvent maintenant uploader des datasets
   }
 
   /**
@@ -160,15 +161,15 @@ export class RoleService {
     return this.currentUser$.pipe(
       map(user => {
         if (!user) return false;
-        
+
         // Admin peut tout modifier
         if (user.role === UserRole.ADMIN) return true;
-        
+
         // Contributeur peut modifier ses propres datasets
         if (user.role === UserRole.CONTRIBUTOR && datasetOwnerId) {
           return user.id === datasetOwnerId;
         }
-        
+
         return false;
       })
     );
@@ -183,7 +184,7 @@ export class RoleService {
     return this.currentUser$.pipe(
       map(user => {
         if (!user) return false;
-        
+
         // Seul l'admin peut supprimer
         return user.role === UserRole.ADMIN;
       })

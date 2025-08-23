@@ -287,13 +287,9 @@ def get_current_user_role(x_user_role: str = Header(..., alias="X-User-Role")) -
 def verify_upload_permissions(user_role: str = Depends(get_current_user_role)) -> str:
     """
     Vérifie que l'utilisateur a les permissions pour uploader des datasets.
-    Seuls les admin et contributeurs peuvent uploader.
+    MODIFIÉ : Tous les utilisateurs authentifiés peuvent maintenant uploader des datasets.
     """
-    if user_role not in ['admin', 'contributor']:
-        raise HTTPException(
-            status_code=403,
-            detail="Accès refusé. Seuls les administrateurs et contributeurs peuvent ajouter des datasets."
-        )
+    # Plus de restriction - tous les utilisateurs authentifiés peuvent uploader
     return user_role
 
 # --- Utilitaires pour les requêtes ---

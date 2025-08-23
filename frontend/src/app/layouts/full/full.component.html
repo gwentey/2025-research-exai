@@ -3,9 +3,9 @@
   autosize
   autoFocus
   [ngClass]="{
-  'sidebarNav-mini': options.sidenavCollapsed && options.navPos !== 'top' &&  !resView,  
+  'sidebarNav-mini': options.sidenavCollapsed && options.navPos !== 'top' &&  !resView,
   'sidebarNav-horizontal': options.horizontal,
-  cardBorder: options.cardBorder,  
+  cardBorder: options.cardBorder,
 }"
   [dir]="options.dir!"
 >
@@ -46,7 +46,7 @@
             onerror="this.src='/assets/images/profile/user5.jpg';"
           />
           <div class="m-l-16">
-            <app-user-name-display 
+            <app-user-name-display
               [displayName]="userDisplayName"
               [maxWidth]="126"
               baseClass="f-w-600">
@@ -101,7 +101,7 @@
           onerror="this.src='/assets/images/profile/user5.jpg';"
         />
         <div class="m-l-16">
-          <app-user-name-display 
+          <app-user-name-display
             [displayName]="userDisplayName"
             [maxWidth]="110"
             baseClass="f-w-600">
@@ -174,9 +174,11 @@
         <button
           mat-fab
           class="bg-primary text-white"
-          (click)="customizerRight.toggle()"
+          (click)="navigateToAddDataset()"
+          [attr.aria-label]="'ADD_DATASET' | translate"
+          matTooltip="{{ 'ADD_DATASET' | translate }}"
         >
-          <mat-icon>settings</mat-icon>
+          <mat-icon>add_circle</mat-icon>
         </button>
       </div>
     </main>

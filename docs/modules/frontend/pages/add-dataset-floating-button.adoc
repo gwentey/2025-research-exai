@@ -1,0 +1,116 @@
+= Bouton Flottant d'Ajout de Dataset
+:navtitle: Bouton Flottant Dataset
+
+== Vue d'ensemble
+
+Le bouton flottant d'ajout de dataset a été ajouté dans le layout principal pour faciliter l'accès à la fonctionnalité d'upload de datasets. Ce bouton remplace l'ancien bouton de paramètres et est accessible à tous les utilisateurs authentifiés.
+
+== Fonctionnalités
+
+=== Accessibilité Universelle
+* **Visible pour tous les utilisateurs** : Le bouton est affiché pour tous les utilisateurs authentifiés, quel que soit leur rôle
+* **Accès universel** : Tous les utilisateurs authentifiés peuvent maintenant ajouter des datasets
+* **Plus de restrictions** : Les anciennes restrictions de rôle (admin/contributeur uniquement) ont été supprimées
+
+=== Interface Utilisateur
+* **Position** : Bouton flottant en bas à droite de l'écran
+* **Icône** : `add_circle` (Material Icons)
+* **Style** : Bouton FAB (Floating Action Button) avec couleur primaire
+* **Tooltip** : Texte explicatif multilingue au survol
+
+=== Internationalisation
+* **Français** : "Ajouter un dataset"
+* **Anglais** : "Add Dataset"
+* **Clé de traduction** : `ADD_DATASET`
+
+== Comportement
+
+=== Navigation
+Quand l'utilisateur clique sur le bouton :
+
+. Le système navigue vers `/datasets/upload`
+. **Accès direct** : Tous les utilisateurs authentifiés accèdent immédiatement à la page d'upload
+. **Plus de vérification de permissions** : Les anciens guards ont été supprimés ou modifiés pour autoriser tous les utilisateurs
+
+=== Simplification de l'Expérience
+* **Accès immédiat** : Plus de messages d'erreur ou de redirections pour permissions insuffisantes
+* **UX fluide** : Expérience utilisateur simplifiée et cohérente pour tous
+* **Démocratisation** : Tous les utilisateurs peuvent contribuer à la plateforme en ajoutant des datasets
+
+== Implémentation Technique
+
+=== Fichiers Modifiés
+
+[cols="1,2,1"]
+|===
+|Fichier |Modification |Type
+
+|`frontend/src/app/layouts/full/full.component.html`
+|Remplacement du bouton settings par le bouton add_circle
+|Template
+
+|`frontend/src/app/layouts/full/full.component.ts`
+|Ajout de la méthode `navigateToAddDataset()` et import du `TranslateModule`
+|Logique
+
+|`frontend/src/app/pages/datasets/datasets.routes.ts`
+|Suppression des `uploadGuard` des routes d'upload et wizard
+|Routes
+
+|`frontend/src/app/services/role.service.ts`
+|Modification de `canUploadDatasets()` pour retourner toujours `true`
+|Service
+
+|`frontend/src/assets/i18n/fr.json`
+|Ajout de la clé `"ADD_DATASET": "Ajouter un dataset"`
+|Traduction
+
+|`frontend/src/assets/i18n/en.json`
+|Ajout de la clé `"ADD_DATASET": "Add Dataset"`
+|Traduction
+|===
+
+=== Code HTML
+[source,html]
+----
+<div class="customizerBtn">
+  <button
+    mat-fab
+    class="bg-primary text-white"
+    (click)="navigateToAddDataset()"
+    [attr.aria-label]="'ADD_DATASET' | translate"
+    matTooltip="{{ 'ADD_DATASET' | translate }}"
+  >
+    <mat-icon>add_circle</mat-icon>
+  </button>
+</div>
+----
+
+=== Code TypeScript
+[source,typescript]
+----
+/**
+ * Navigue vers la page d'ajout de dataset
+ * Accessible à tous les utilisateurs, le guard gérera les permissions
+ */
+navigateToAddDataset(): void {
+  this.router.navigate(['/datasets/upload']);
+}
+----
+
+== Avantages
+
+* **Accès universel** : Tous les utilisateurs authentifiés peuvent maintenant ajouter des datasets
+* **UX simplifiée** : Plus de messages d'erreur ou de redirections pour permissions insuffisantes
+* **Participation encouragée** : Démocratisation de la contribution à la plateforme
+* **Design cohérent** : Respect des patterns Material Design avec les boutons FAB
+* **Accessibilité** : Support des lecteurs d'écran via `aria-label`
+* **Expérience fluide** : Navigation directe sans vérifications de permissions complexes
+
+== Utilisation
+
+. **Pour TOUS les utilisateurs authentifiés** : Clic sur le bouton → accès direct à la page d'upload de datasets
+. **Expérience unifiée** : Plus de différence de traitement selon le rôle
+. **Contribution ouverte** : Tous les utilisateurs peuvent maintenant enrichir la plateforme avec de nouveaux datasets
+
+Cette approche démocratise l'accès à la fonctionnalité d'upload et encourage la participation de tous les utilisateurs à l'enrichissement de la plateforme.

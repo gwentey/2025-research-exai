@@ -1,0 +1,103 @@
+= Amélioration de la Zone de Recherche du Header
+:navtitle: Zone Recherche Agrandie
+:description: Amélioration responsive de la zone de recherche dans le header principal d'IBIS-X
+
+== Vue d'ensemble
+
+La zone de recherche située dans le header principal a été agrandie et améliorée pour offrir une meilleure expérience utilisateur, particulièrement sur les écrans de grande taille.
+
+== Caractéristiques Principales
+
+=== Design Responsive
+La zone de recherche s'adapte automatiquement à différentes tailles d'écran :
+
+* **Écrans XL (≥1400px)** : Zone élargie à 800px maximum
+* **Grands écrans (≥1200px)** : Zone élargie à 700px maximum  
+* **Écrans standards (≥1024px)** : Zone élargie à 600px maximum
+* **Tablettes (≤1023px)** : Zone réduite à 350px maximum
+* **Mobiles (≤768px)** : Zone masquée (comportement inchangé)
+
+=== Améliorations Visuelles
+
+==== Interactions Utilisateur
+* **Hover** : Changement de couleur de bordure, arrière-plan léger, effet de lift subtle
+* **Focus** : Bordure bleue avec outline d'accessibilité
+* **Transitions** : Animations fluides (0.2s) pour tous les états
+
+==== Ergonomie
+* Padding augmenté (12px vertical, 20px horizontal) pour une meilleure zone de clic
+* Hauteur minimale de 44px respectant les guidelines d'accessibilité
+* Coins arrondis (8px) pour un design moderne
+* Typographie améliorée sur grands écrans (15px au lieu de 14px)
+
+== Implémentation Technique
+
+=== Structure HTML
+La zone de recherche utilise la structure existante dans `header.component.html` :
+
+[source,html]
+----
+<div class="search-container d-none d-lg-flex flex-1 max-width-400 m-r-16">
+  <button mat-stroked-button class="w-100 custom-outline-btn search-btn-expanded">
+    <div class="d-flex align-items-center w-100">
+      <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> 
+      <span class="text-muted">{{ 'HEADER.SEARCH_PLACEHOLDER' | translate }}</span>
+    </div>
+  </button>
+</div>
+----
+
+=== Styles CSS Responsive
+Les styles sont définis dans `header.component.scss` avec une approche mobile-first :
+
+[source,scss]
+----
+.max-width-400 {
+  max-width: 600px; // Base agrandie
+  
+  @media (min-width: 1200px) {
+    max-width: 700px; // Grands écrans
+  }
+  
+  @media (min-width: 1400px) {
+    max-width: 800px; // Écrans XL
+  }
+  
+  @media (max-width: 1023px) {
+    max-width: 350px; // Tablettes
+  }
+}
+----
+
+== Considérations d'Accessibilité
+
+* **Taille de clic** : Hauteur minimale de 44px respectant WCAG 2.1 AA
+* **États de focus** : Outline visible pour la navigation au clavier
+* **Contraste** : Couleurs respectant les ratios de contraste recommandés
+* **Responsive** : Adaptation automatique sans perte de fonctionnalité
+
+== Impact Utilisateur
+
+=== Avantages
+* **Visibilité améliorée** : Zone plus proéminente sur grands écrans
+* **UX moderne** : Interactions fluides et design contemporain
+* **Accessibilité** : Respect des guidelines d'accessibilité web
+* **Performance** : Transitions CSS optimisées
+
+=== Compatibilité
+* **Navigateurs** : Support complet pour tous les navigateurs modernes
+* **Appareils** : Responsive sur desktop, tablette, mobile
+* **Thèmes** : Compatible avec les thèmes sombre/clair d'IBIS-X
+
+== Notes de Développement
+
+La classe `.max-width-400` conserve son nom pour des raisons de compatibilité, bien que la largeur maximale ait été augmentée. Cette approche évite les régressions potentielles dans d'autres composants.
+
+Les transitions CSS utilisent `ease-in-out` pour des animations naturelles qui s'harmonisent avec le design system d'IBIS-X.
+
+== Tests Recommandés
+
+. Vérifier le responsive sur différentes tailles d'écran
+. Tester les interactions hover/focus avec clavier et souris  
+. Valider l'accessibilité avec un lecteur d'écran
+. Contrôler la compatibilité multi-navigateurs

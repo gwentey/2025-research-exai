@@ -35,7 +35,8 @@
           <div class="nav-steps" [class.disabled-all]="trainingConsoleMode">
             <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 1 && !trainingConsoleMode"
-               [class.completed]="getCurrentStepNumber() > 1"
+               [class.completed]="isStepValid(1)"
+               [class.error]="isStepInError(1)"
                [class.disabled]="trainingConsoleMode"
                (click)="trainingConsoleMode ? $event.preventDefault() : goToStep(1)">
               <div class="step-indicator">
@@ -48,7 +49,8 @@
 
             <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 2 && !trainingConsoleMode"
-               [class.completed]="getCurrentStepNumber() > 2"
+               [class.completed]="isStepValid(2)"
+               [class.error]="isStepInError(2)"
                [class.disabled]="trainingConsoleMode"
                (click)="trainingConsoleMode ? $event.preventDefault() : goToStep(2)">
               <div class="step-indicator">
@@ -61,7 +63,8 @@
 
             <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 3 && !trainingConsoleMode"
-               [class.completed]="getCurrentStepNumber() > 3"
+               [class.completed]="isStepValid(3)"
+               [class.error]="isStepInError(3)"
                [class.disabled]="trainingConsoleMode"
                (click)="trainingConsoleMode ? $event.preventDefault() : goToStep(3)">
               <div class="step-indicator">
@@ -74,7 +77,8 @@
 
             <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 4 && !trainingConsoleMode"
-               [class.completed]="getCurrentStepNumber() > 4"
+               [class.completed]="isStepValid(4)"
+               [class.error]="isStepInError(4)"
                [class.disabled]="trainingConsoleMode"
                (click)="trainingConsoleMode ? $event.preventDefault() : goToStep(4)">
               <div class="step-indicator">
@@ -87,7 +91,8 @@
 
             <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 5 && !trainingConsoleMode"
-               [class.completed]="getCurrentStepNumber() > 5"
+               [class.completed]="isStepValid(5)"
+               [class.error]="isStepInError(5)"
                [class.disabled]="trainingConsoleMode"
                (click)="trainingConsoleMode ? $event.preventDefault() : goToStep(5)">
               <div class="step-indicator">
@@ -100,7 +105,8 @@
 
             <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 6 && !trainingConsoleMode"
-               [class.completed]="getCurrentStepNumber() > 6"
+               [class.completed]="isStepValid(6)"
+               [class.error]="isStepInError(6)"
                [class.disabled]="trainingConsoleMode"
                (click)="trainingConsoleMode ? $event.preventDefault() : goToStep(6)">
               <div class="step-indicator">
@@ -113,7 +119,8 @@
 
             <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 7 && !trainingConsoleMode"
-               [class.completed]="getCurrentStepNumber() > 7"
+               [class.completed]="isStepValid(7)"
+               [class.error]="isStepInError(7)"
                [class.disabled]="trainingConsoleMode"
                (click)="trainingConsoleMode ? $event.preventDefault() : goToStep(7)">
               <div class="step-indicator">
@@ -126,7 +133,8 @@
 
                         <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 8 && !trainingConsoleMode"
-               [class.completed]="getCurrentStepNumber() > 8"
+               [class.completed]="isStepValid(8)"
+               [class.error]="isStepInError(8)"
                [class.disabled]="trainingConsoleMode"
                (click)="trainingConsoleMode ? $event.preventDefault() : goToStep(8)">
               <div class="step-indicator">
@@ -139,7 +147,8 @@
 
             <a class="nav-step"
                [class.active]="getCurrentStepNumber() === 9 || trainingConsoleMode"
-               [class.completed]="experimentResults"
+               [class.completed]="isStepValid(9)"
+               [class.error]="isStepInError(9)"
                (click)="goToStep(9)">
               <div class="step-indicator">
                 <span class="step-number">9</span>
@@ -159,13 +168,13 @@
           <span class="credits-title">Crédits</span>
         </div>
         <div class="credits-indicator-wrapper">
-          <div class="credits-display">
-            <span class="credits-count">{{ getUserCredits() }} crédits</span>
-          </div>
-          <div class="credits-text">
-            <span class="credits-number">{{ getUserCredits() }}</span>
-            <span class="credits-label">disponibles</span>
-          </div>
+          <app-credits-indicator
+            [remaining]="getUserCredits()"
+            [total]="10"
+            size="small"
+            [showInfo]="true"
+            [showLabel]="true">
+          </app-credits-indicator>
         </div>
       </div>
 
@@ -177,6 +186,8 @@
         </div>
         <div class="progress-text">{{ getCurrentStepNumber() }} / 9 étapes complétées</div>
       </div>
+
+
     </aside>
 
     <!-- Contenu Principal Moderne -->
@@ -975,9 +986,15 @@
                     <div class="loading-spinner"></div>
                     <h3>Entraînement en cours...</h3>
                     <div class="progress-bar">
-                      <div class="progress-fill" [style.width.%]="trainingProgress"></div>
+                      <div class="progress-fill"
+                           [style.width.%]="trainingProgress"
+                           [attr.data-progress]="trainingProgress"></div>
                       </div>
-                    <p>{{ trainingProgress }}% complété</p>
+                    <p>{{ trainingProgress }}% complété
+                      <small class="progress-debug">
+                        (Progress: {{ trainingProgress }} | Training: {{ isTraining }})
+                      </small>
+                    </p>
                   </div>
 
                   <!-- Résultats -->
@@ -1019,12 +1036,18 @@
                       <div class="modern-spinner spinner-primary" *ngIf="isTraining"></div>
                       <h3>{{ trainingCompleted ? '🎉 Entraînement terminé avec succès !' : (isTraining ? 'Entraînement en cours...' : 'Console d\'entraînement') }}</h3>
 
-                      <!-- Barre de progression -->
+                      <!-- Barre de progression avec debug info -->
                       <div class="modern-progress progress-lg">
-                        <div class="progress-fill animate-progress" [style.width.%]="trainingProgress"></div>
+                        <div class="progress-fill animate-progress"
+                             [style.width.%]="trainingProgress"
+                             [attr.data-progress]="trainingProgress"></div>
                         <div class="progress-shimmer" *ngIf="isTraining"></div>
                       </div>
-                      <p><strong>{{ trainingProgress }}%</strong> complété</p>
+                      <p><strong>{{ trainingProgress }}%</strong> complété
+                        <small class="progress-debug" *ngIf="isTraining">
+                          (Valeur: {{ trainingProgress }} | Status: {{ experimentStatus?.status }})
+                        </small>
+                      </p>
 
                       <!-- Indicateurs d'étapes -->
                       <div class="training-steps">
@@ -1053,7 +1076,20 @@
                           <mat-icon>analytics</mat-icon>
                           <span>Voir les résultats détaillés</span>
                         </button>
+                      </div>
 
+                      <!-- Bouton de dépannage pour expériences bloquées - VISIBLE MÊME SI PAS TRAININGCOMPLETED -->
+                      <div *ngIf="experimentStatus?.status === 'running' && trainingProgress >= 90" class="completion-action">
+                        <button class="modern-btn-warning force-complete-btn"
+                                (click)="forceCompleteExperiment()"
+                                matTooltip="Débloquer une expérience qui semble terminée mais coincée à 90%">
+                          <mat-icon>healing</mat-icon>
+                          <span>🚨 Débloquer l'expérience</span>
+                        </button>
+                      </div>
+
+                      <!-- Bouton nouvel entraînement -->
+                      <div class="completion-action">
                         <button class="modern-btn-secondary"
                                 (click)="returnToWizard()">
                           <mat-icon>arrow_back</mat-icon>
@@ -1714,20 +1750,30 @@
                       <mat-icon>target</mat-icon>
                       <h3>Variable cible</h3>
                     </div>
-                    <div class="form-group">
-                      <label class="form-label">Colonne cible à prédire</label>
-                      <p class="form-description">C'est la valeur que vous voulez que l'IA apprenne à prédire</p>
-                      <select class="form-input form-select" formControlName="targetColumn">
-                        <option value="">Choisir une colonne...</option>
-                        <option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
-                          {{ col.column_name }} ({{ col.data_type_interpreted || col.data_type_original }})
-                        </option>
-                      </select>
-                      <div class="help-text">
-                        <mat-icon>help_outline</mat-icon>
-                        <span>Exemple : Pour prédire le prix d'une maison, choisissez la colonne "prix"</span>
+                                      <div class="form-group">
+                    <label class="form-label">Colonne cible à prédire</label>
+                    <p class="form-description">C'est la valeur que vous voulez que l'IA apprenne à prédire</p>
+
+                    <!-- Message d'aide contextuel si étape visitée mais pas remplie -->
+                    <div class="step-requirement-alert" *ngIf="shouldShowStepAlert(3)">
+                      <mat-icon class="alert-icon">info</mat-icon>
+                      <div class="alert-content">
+                        <div class="alert-title">Action requise</div>
+                        <div class="alert-text">Vous devez sélectionner une colonne cible pour continuer</div>
                       </div>
                     </div>
+
+                    <select class="form-input form-select" formControlName="targetColumn">
+                      <option value="">Choisir une colonne...</option>
+                      <option *ngFor="let col of getDatasetColumns()" [value]="col.column_name">
+                        {{ col.column_name }} ({{ col.data_type_interpreted || col.data_type_original }})
+                      </option>
+                    </select>
+                    <div class="help-text">
+                      <mat-icon>help_outline</mat-icon>
+                      <span>Exemple : Pour prédire le prix d'une maison, choisissez la colonne "prix"</span>
+                    </div>
+                  </div>
 
                     <div class="form-group">
                       <label class="form-label">Type de tâche</label>
@@ -2068,6 +2114,15 @@
                       <mat-icon>recommend</mat-icon>
                       <p>Pour la <strong>régression</strong>, nous recommandons <strong>Random Forest</strong> ou <strong>Régression Linéaire</strong></p>
                     </div>
+                  </div>
+                </div>
+
+                <!-- Message d'aide contextuel si étape visitée mais pas remplie -->
+                <div class="step-requirement-alert" *ngIf="shouldShowStepAlert(6)">
+                  <mat-icon class="alert-icon">warning</mat-icon>
+                  <div class="alert-content">
+                    <div class="alert-title">Algorithme requis</div>
+                    <div class="alert-text">Vous devez choisir un algorithme d'apprentissage automatique pour continuer</div>
                   </div>
                 </div>
 
@@ -2669,6 +2724,15 @@
                     </div>
                   </div>
 
+                  <!-- Message d'aide contextuel si étape visitée mais pas remplie -->
+                  <div class="step-requirement-alert" *ngIf="shouldShowStepAlert(8)">
+                    <mat-icon class="alert-icon">check_circle_outline</mat-icon>
+                    <div class="alert-content">
+                      <div class="alert-title">Confirmation requise</div>
+                      <div class="alert-text">Vous devez cocher la case de confirmation pour pouvoir lancer l'entraînement</div>
+                    </div>
+                  </div>
+
                   <div class="form-group launch-confirmation" [formGroup]="finalVerificationForm">
                     <label class="form-label checkbox-label">
                       <input type="checkbox" formControlName="confirmed" (change)="onConfirmationChange($event)">
@@ -2958,7 +3022,8 @@
                 <div *ngFor="let step of [1,2,3,4,5,6,7,8,9]; let i = index"
                      class="dot-modern"
                      [class.active]="getCurrentStepNumber() === step"
-                     [class.completed]="getCurrentStepNumber() > step">
+                     [class.completed]="isStepValid(step)"
+                     [class.error]="isStepInError(step)">
                   <span class="dot-number">{{ step }}</span>
                 </div>
               </div>

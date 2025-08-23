@@ -72,6 +72,7 @@ class ExperimentStatus(BaseModel):
     id: UUID
     status: str
     progress: Optional[int] = None
+    algorithm: str  # ⚠️ FIX : Ajouter l'algorithme manquant
     task_id: Optional[str] = None
     error_message: Optional[str] = None
     created_at: datetime

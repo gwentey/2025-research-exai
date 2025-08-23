@@ -60,11 +60,6 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   // Exposer l'enum pour le template
   readonly VisualizationType = VisualizationType;
 
-  // 🔧 CACHE pour les données générées aléatoirement - SOLUTION DÉFINITIVE
-  private _cachedRegressionData: any = null;
-  private _cachedDistributionData: any = null;
-  private _cachedTreeStructureData: { [algorithm: string]: any } = {};
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -120,7 +115,7 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
 
     this.mlPipelineService.getExperimentStatus(this.experimentId).subscribe({
       next: (status) => {
-                console.log('✅ Experiment status loaded:', status);
+        console.log('✅ Experiment status loaded:', status);
         this.experiment = status;
 
         if (status.status === 'completed') {
@@ -146,12 +141,6 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
         console.log('✅ Results loaded successfully:', results);
         this.results = results;
         this.isLoading = false;
-
-        // 🔧 RÉINITIALISER LE CACHE QUAND LES RÉSULTATS CHANGENT
-        this._cachedRegressionData = null;
-        this._cachedDistributionData = null;
-        this._cachedTreeStructureData = {};
-        console.log('🧹 Cache cleared for new results');
 
         // ECharts s'initialise automatiquement via les composants
         console.log('🎨 ECharts visualizations will initialize automatically via components');
@@ -279,14 +268,14 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   goBack() {
     // Navigation vers la route plein écran ml-pipeline-wizard
     console.log(`🔙 Navigating back to wizard (fullscreen)`);
-
+    
     const queryParams: any = {};
-
+    
     // Préserver le projectId dans les query params
     if (this.projectId) {
       queryParams.projectId = this.projectId;
     }
-
+    
     // ROUTE PLEIN ÉCRAN CORRECTE
     this.router.navigate(['/ml-pipeline-wizard'], {
       queryParams
@@ -296,16 +285,16 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   runNewExperiment() {
     // Navigation vers la route plein écran avec copyFrom
     console.log(`🔄 Starting new experiment with copyFrom: ${this.experimentId}, projectId: ${this.projectId}`);
-
+    
     const queryParams: any = {
-        copyFrom: this.experimentId
+      copyFrom: this.experimentId
     };
-
+    
     // Préserver le projectId dans les query params pour robustesse
     if (this.projectId) {
       queryParams.projectId = this.projectId;
     }
-
+    
     // ROUTE PLEIN ÉCRAN CORRECTE
     this.router.navigate(['/ml-pipeline-wizard'], {
       queryParams
@@ -315,41 +304,31 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   // ===== MÉTHODES POUR ECHARTS =====
 
   /**
-   * Récupère les données de structure d'arbre pour ECharts - AVEC CACHE
+   * Récupère les données de structure d'arbre pour ECharts
    */
   getTreeStructureData(algorithmType: string): any {
     console.log(`🌳 Getting tree structure data for ${algorithmType}`);
-
-    // Vérifier le cache d'abord
-    if (this._cachedTreeStructureData[algorithmType]) {
-      console.log(`✅ Using cached tree structure for ${algorithmType}`);
-      return this._cachedTreeStructureData[algorithmType];
-    }
-
+    
     // Chercher les données d'arbre dans les visualisations
     const treeStructure = this.results?.visualizations?.['tree_structure'];
-
+    
     if (treeStructure && typeof treeStructure === 'object' && 'tree_data' in treeStructure) {
       console.log(`✅ Tree structure found in results:`, treeStructure);
-      const treeData = (treeStructure as any).tree_data;
-      // Mettre en cache
-      this._cachedTreeStructureData[algorithmType] = treeData;
-      return treeData;
+      return (treeStructure as any).tree_data;
     }
 
     console.log(`⚠️ No tree structure found, using fallback data`);
-
-    // Fallback vers données d'exemple selon l'algorithme - STABLE
-    let fallbackData;
+    
+    // Fallback vers données d'exemple selon l'algorithme
     if (algorithmType === 'random_forest') {
-      fallbackData = {
+      return {
         name: "F3",
         condition: "≤ 0.45",
         samples: 1000,
         children: [
           {
             name: "F7",
-            condition: "≤ 0.22",
+            condition: "≤ 0.22", 
             samples: 650,
             children: [
               { name: "C0", condition: "n=480", samples: 480, is_leaf: true },
@@ -368,7 +347,7 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
         ]
       };
     } else {
-      fallbackData = {
+      return {
         name: "feature_0",
         condition: "≤ 0.5",
         samples: 1000,
@@ -383,7 +362,7 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
             ]
           },
           {
-            name: "feature_2",
+            name: "feature_2", 
             condition: "≤ 0.8",
             samples: 400,
             children: [
@@ -394,87 +373,50 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
         ]
       };
     }
-
-    // Mettre en cache le fallback aussi
-    this._cachedTreeStructureData[algorithmType] = fallbackData;
-    return fallbackData;
   }
 
   /**
-   * Récupère les données pour le graphique de régression - AVEC CACHE
+   * Récupère les données pour le graphique de régression
    */
   getRegressionPlotData(): any {
     console.log(`📊 Getting regression plot data`);
-
-    // Vérifier le cache d'abord
-    if (this._cachedRegressionData) {
-      console.log(`✅ Using cached regression data`);
-      return this._cachedRegressionData;
-    }
-
-    let data: any;
-
+    
     // Si on a des données réelles dans les résultats, les utiliser
     if (this.results?.metrics) {
-      // Générer des données basées sur les métriques réelles - AVEC SEED STABLE
+      // Générer des données basées sur les métriques réelles
       const r2 = this.results.metrics.r2 || 0.8;
       const rmse = this.results.metrics.rmse || 0.1;
-
-      // Utiliser un seed basé sur l'experimentId pour avoir des données reproductibles
-      const seed = this.experimentId ? this.experimentId.charCodeAt(0) * 7 : 42;
-
+      
       // Simuler des données actual vs predicted basées sur les métriques réelles
-      const tempData = [];
+      const data = [];
       for (let i = 0; i < 100; i++) {
-        // Générateur pseudo-aléatoire simple avec seed
-        const pseudoRandom1 = ((seed + i) * 9301 + 49297) % 233280 / 233280;
-        const pseudoRandom2 = ((seed + i + 50) * 9301 + 49297) % 233280 / 233280;
-
-        const actual = pseudoRandom1 * 100;
-        const noise = (pseudoRandom2 - 0.5) * rmse * 200; // Bruit basé sur RMSE
+        const actual = Math.random() * 100;
+        const noise = (Math.random() - 0.5) * rmse * 200; // Bruit basé sur RMSE
         const predicted = actual * r2 + noise; // Corrélation basée sur R²
-        tempData.push([actual, predicted]);
+        data.push([actual, predicted]);
       }
-      data = tempData;
-    } else {
-      // Fallback vers données d'exemple STABLE
-      const seed = this.experimentId ? this.experimentId.charCodeAt(0) * 11 : 84;
-      data = Array.from({length: 50}, (_, i) => {
-        const pseudoRandom1 = ((seed + i) * 9301 + 49297) % 233280 / 233280;
-        const pseudoRandom2 = ((seed + i + 25) * 9301 + 49297) % 233280 / 233280;
-
-        const actual = pseudoRandom1 * 100;
-        const predicted = actual + (pseudoRandom2 - 0.5) * 20;
-        return [actual, predicted];
-      });
+      return data;
     }
 
-    // Mettre en cache
-    this._cachedRegressionData = data;
-    return data;
+    // Fallback vers données d'exemple
+    return Array.from({length: 50}, () => {
+      const actual = Math.random() * 100;
+      const predicted = actual + (Math.random() - 0.5) * 20;
+      return [actual, predicted];
+    });
   }
 
   /**
-   * Récupère les données pour la distribution des prédictions - AVEC CACHE
+   * Récupère les données pour la distribution des prédictions
    */
   getPredictionsDistributionData(): any {
     console.log(`📊 Getting predictions distribution data`);
-
-    // Vérifier le cache d'abord
-    if (this._cachedDistributionData) {
-      console.log(`✅ Using cached distribution data`);
-      return this._cachedDistributionData;
-    }
-
-    // Données d'exemple pour distribution - STABLE
-    const data = {
+    
+    // Données d'exemple pour distribution
+    return {
       labels: ['0.0-0.2', '0.2-0.4', '0.4-0.6', '0.6-0.8', '0.8-1.0'],
       values: [25, 45, 120, 180, 130]
     };
-
-    // Mettre en cache
-    this._cachedDistributionData = data;
-    return data;
   }
 
   formatDuration(start: string, end: string): string {
@@ -523,7 +465,7 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
     const metrics = this.results?.metrics || {};
     const hasClassificationMetrics = ['accuracy', 'precision', 'recall', 'f1_score'].some(metric => metric in metrics);
     const hasRegressionMetrics = ['mae', 'mse', 'rmse', 'r2'].some(metric => metric in metrics);
-
+    
     return hasClassificationMetrics ? 'classification' : 'regression';
   }
 
@@ -539,3 +481,4 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
     return `${this.getMetricLabel(best.key)}: ${this.formatMetricValue(best.key, best.value)}`;
   }
 }
+

@@ -1,0 +1,173 @@
+= Accès Universel Backend - Upload Datasets
+:navtitle: Backend Upload Universel
+
+== Vue d'ensemble
+
+Cette page documente les modifications apportées au backend pour permettre l'accès universel à l'upload de datasets, en complément des modifications frontend.
+
+== Problème Identifié
+
+Malgré la suppression des guards frontend et la modification du `RoleService` Angular, les utilisateurs continuaient de recevoir des erreurs **403 Forbidden** lors de tentatives d'upload :
+
+[source,json]
+----
+{
+  "detail": "Accès refusé. Seuls les administrateurs et contributeurs peuvent ajouter des datasets."
+}
+----
+
+L'erreur provenait des vérifications de permissions côté backend dans le service `service-selection`.
+
+== Analyse des Endpoints Impactés
+
+=== Endpoints Concernés
+
+[cols="2,2,3"]
+|===
+|Endpoint |Méthode HTTP |Fonction
+
+|`/datasets/preview`
+|POST
+|Prévisualisation des fichiers uploadés sans sauvegarde
+
+|`/datasets`
+|POST  
+|Création effective d'un dataset avec upload
+|===
+
+=== Fonction de Vérification
+
+La fonction `verify_upload_permissions` était utilisée comme dépendance FastAPI :
+
+[source,python]
+----
+# AVANT - Accès restreint
+def verify_upload_permissions(user_role: str = Depends(get_current_user_role)) -> str:
+    """
+    Vérifie que l'utilisateur a les permissions pour uploader des datasets.
+    Seuls les admin et contributeurs peuvent uploader.
+    """
+    if user_role not in ['admin', 'contributor']:
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé. Seuls les administrateurs et contributeurs peuvent ajouter des datasets."
+        )
+    return user_role
+----
+
+== Solution Implémentée
+
+=== Modification de la Fonction
+
+[source,python]
+----
+# APRÈS - Accès universel
+def verify_upload_permissions(user_role: str = Depends(get_current_user_role)) -> str:
+    """
+    Vérifie que l'utilisateur a les permissions pour uploader des datasets.
+    MODIFIÉ : Tous les utilisateurs authentifiés peuvent maintenant uploader des datasets.
+    """
+    # Plus de restriction - tous les utilisateurs authentifiés peuvent uploader
+    return user_role
+----
+
+=== Avantages de cette Approche
+
+* **Rétrocompatibilité** : Conservation de la signature de fonction
+* **Traçabilité** : Le rôle utilisateur est toujours récupéré et loggé  
+* **Simplicité** : Suppression des conditions restrictives
+* **Maintenance** : Aucun changement requis dans les endpoints consommateurs
+
+=== Utilisation dans les Endpoints
+
+[source,python]
+----
+@app.post("/datasets/preview", response_model=dict)
+def preview_dataset_files(
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(database.get_db),
+    current_user_role: str = Depends(verify_upload_permissions)  # Autorise maintenant tous
+):
+    # ... logique de prévisualisation
+
+@app.post("/datasets", response_model=schemas.DatasetRead, status_code=201)
+def create_dataset(
+    # ... paramètres form
+    current_user_role: str = Depends(verify_upload_permissions),  # Autorise maintenant tous
+    current_user_id: UUID4 = Depends(get_current_user_id)
+):
+    # ... logique de création
+----
+
+== Tests et Vérification
+
+=== Scénarios de Test
+
+1. **Utilisateur standard** → Upload dataset ✅
+2. **Contributeur** → Upload dataset ✅ (comme avant)
+3. **Administrateur** → Upload dataset ✅ (comme avant)
+4. **Utilisateur non authentifié** → Erreur 401 ❌ (contrôlé par `get_current_user_role`)
+
+=== Logs de Vérification
+
+Vérifier que les logs incluent des entrées comme :
+[source]
+----
+[PREVIEW] Début de l'analyse de 1 fichiers pour l'utilisateur avec rôle: user
+[CREATE] Création dataset pour utilisateur avec rôle: user
+----
+
+== Impact Sécuritaire
+
+=== Sécurité Maintenue
+
+* **Authentification requise** : Seuls les utilisateurs connectés peuvent uploader
+* **Traçabilité complète** : Chaque upload est associé à un `user_id` spécifique
+* **Validation des données** : Processus de validation et métadonnées inchangé
+* **Logs détaillés** : Enregistrement de toutes les actions d'upload
+
+=== Contrôles A Posteriori
+
+Les administrateurs peuvent :
+* Surveiller tous les uploads via les logs
+* Gérer les datasets inappropriés
+* Implémenter des politiques de contenu
+* Mettre en place des quotas si nécessaire
+
+== Surveillance et Monitoring
+
+=== Métriques Recommandées
+
+* **Volume d'uploads** par rôle utilisateur
+* **Taille des datasets** uploadés
+* **Fréquence d'upload** par utilisateur
+* **Taux d'erreur** post-upload
+
+=== Alertes Suggérées
+
+* Pic anormal d'uploads
+* Datasets de très grande taille
+* Utilisateurs avec activité excessive
+
+== Évolutions Futures
+
+=== Options de Modération
+
+Si besoin de contrôles supplémentaires :
+* **Approbation manuelle** : Queue de validation admin
+* **Quotas utilisateur** : Limites par période
+* **Catégorisation automatique** : Classification des datasets
+* **Scoring de qualité** : Évaluation automatique
+
+=== Rollback Possible
+
+Pour revenir à l'ancien comportement :
+[source,python]
+----
+def verify_upload_permissions(user_role: str = Depends(get_current_user_role)) -> str:
+    if user_role not in ['admin', 'contributor']:
+        raise HTTPException(status_code=403, detail="...")
+    return user_role
+----
+
+Cette modification backend, combinée aux changements frontend, assure maintenant un accès réellement universel à l'upload de datasets pour tous les utilisateurs authentifiés de la plateforme IBIS-X.

@@ -11,6 +11,7 @@
 * Guides Utilisateur
 ** xref:user-guide/dataset-selection.adoc[Sélection des Datasets]
 ** xref:user-guide/dataset-detailed-view.adoc[Vue Détaillée des Datasets]
+** xref:user-guide/universal-dataset-upload-access.adoc[🌍 Accès Universel Upload Datasets]
 ** xref:user-guide/project-creation.adoc[Création de Projets ML]
 ** xref:user-guide/project-configuration.adoc[Configuration des Projets]
 ** xref:user-guide/ml-pipeline.adoc[Pipeline ML]
@@ -44,6 +45,7 @@
 ** xref:dev-guide/frontend-production-config-test.adoc[🧪 Test Configuration Frontend Production]
 ** xref:dev-guide/frontend-production-auto-rebuild.adoc[🔄 Auto-Rebuild Frontend Production]
 ** xref:dev-guide/backend-api-development.adoc[Développement API Backend]
+** xref:dev-guide/backend-universal-dataset-access.adoc[🌍 Backend Upload Universel Datasets]
 ** xref:dev-guide/ml-pipeline-service.adoc[Service ML Pipeline]
 ** xref:dev-guide/ml-pipeline-database-setup.adoc[Configuration Base de Données ML Pipeline]
 ** xref:dev-guide/ml-pipeline-troubleshooting.adoc[🔧 Dépannage ML Pipeline]

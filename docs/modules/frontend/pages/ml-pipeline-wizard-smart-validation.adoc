@@ -1,0 +1,293 @@
+= Validation Intelligente des Étapes - ML Pipeline Wizard
+:description: Système de validation rouge/vert intelligent qui distingue les valeurs par défaut des choix obligatoires
+:keywords: ml-pipeline, wizard, validation, étapes, ux, rouge, vert
+:page-tags: frontend, validation, ux-improvement, wizard
+
+== Vue d'ensemble
+
+Le ML Pipeline Wizard implémente maintenant un système de validation intelligent qui distingue les étapes avec valeurs par défaut valides des étapes nécessitant des choix obligatoires de l'utilisateur.
+
+== Problème Résolu
+
+=== Situation Précédente (Problématique)
+* **Validation naïve** : Toutes les étapes passaient automatiquement au vert après les avoir dépassées
+* **Choix manqués** : Les étapes obligatoires (ex: sélection d'algorithme) étaient marquées comme valides sans interaction utilisateur
+* **Erreurs d'entraînement** : Les configurations incomplètes causaient des échecs lors du lancement
+
+=== Solution Intelligente
+* **Validation par type d'étape** : Distinction entre valeurs par défaut et choix obligatoires
+* **Feedback visuel** : Vert = valide, Rouge = action requise
+* **Prévention d'erreurs** : Impossibilité de lancer un entraînement avec des étapes manquantes
+
+== Types d'Étapes et Validation
+
+=== Étapes avec Valeurs par Défaut (Auto-validées)
+[cols="1,2,2"]
+|===
+|Étape |Composant |Raison de l'auto-validation
+
+|**2 - Nettoyage**
+|`dataCleaningForm`
+|`analysisCompleted: true` par défaut
+
+|**3 - Objectif** (partiellement)
+|`dataQualityForm`
+|`taskType: 'classification'`, `missingValueStrategy: 'mean'` par défaut
+|===
+
+=== Étapes Nécessitant des Choix Obligatoires (Validation Stricte)
+[cols="1,2,2,1"]
+|===
+|Étape |Composant |Champ Obligatoire |État Sans Choix
+
+|**1 - Dataset**
+|`datasetForm`
+|`datasetId` (fourni par route)
+|🟢 Auto-valide
+
+|**3 - Objectif**
+|`dataQualityForm`
+|`targetColumn` (doit être sélectionnée)
+|🔴 Rouge
+
+|**4 - Division** 
+|_Pas encore implémentée_
+|_À définir_
+|🟢 Auto-valide
+
+|**5 - Préparation**
+|_Pas encore implémentée_
+|_À définir_
+|🟢 Auto-valide
+
+|**6 - Algorithme**
+|`algorithmForm`
+|`algorithm` (Random Forest, Decision Tree, etc.)
+|🔴 Rouge
+
+|**7 - Paramètres**
+|`hyperparametersForm`
+|Dépend de l'algorithme sélectionné
+|🔴 Rouge si pas d'algo
+
+|**8 - Entraînement**
+|`finalVerificationForm`
+|`confirmed: true` (checkbox obligatoire)
+|🔴 Rouge
+
+|**9 - Résultats**
+|_Console_
+|`experimentResults` (après entraînement)
+|🟢 Auto après entraînement
+|===
+
+== Implémentation Technique
+
+=== Fonction de Validation Principale
+[source,typescript]
+----
+isStepValid(stepNumber: number): boolean {
+  switch (stepNumber) {
+    case 3: // Data Configuration
+      const targetColumn = this.dataQualityForm.get('targetColumn')?.value;
+      return !!targetColumn && this.dataQualityForm.valid;
+    
+    case 6: // Algorithm Selection - ÉTAPE CRITIQUE
+      const algorithm = this.algorithmForm.get('algorithm')?.value;
+      return !!algorithm && this.algorithmForm.valid;
+    
+    case 8: // Final Verification  
+      const confirmed = this.finalVerificationForm.get('confirmed')?.value;
+      return confirmed && this.finalVerificationForm.valid && this.isStepValid(7);
+    
+    // ... autres étapes
+  }
+}
+----
+
+=== Fonction de Détection d'Erreurs
+[source,typescript]
+----
+isStepInError(stepNumber: number): boolean {
+  // Seulement les étapes déjà visitées peuvent être en erreur
+  if (stepNumber >= this.getCurrentStepNumber()) {
+    return false;
+  }
+  
+  // Les étapes obligatoires qui ne sont pas valides sont en erreur
+  return !this.isStepValid(stepNumber);
+}
+----
+
+=== Intégration Template
+[source,html]
+----
+<a class="nav-step"
+   [class.active]="getCurrentStepNumber() === 6"
+   [class.completed]="isStepValid(6)"
+   [class.error]="isStepInError(6)"
+   [class.disabled]="trainingConsoleMode">
+  <!-- Contenu de l'étape -->
+</a>
+----
+
+== États Visuels
+
+=== Couleurs et Icônes
+[cols="1,1,2,2"]
+|===
+|État |Couleur |Icône |Description
+
+|**Valide** 
+|🟢 Vert (`#10b981`)
+|✓ (checkmark)
+|Choix fait OU valeur par défaut acceptable
+
+|**En erreur**
+|🔴 Rouge (`#ef4444`)
+|! (exclamation)
+|Choix obligatoire manquant
+
+|**Actuelle**
+|🔵 Bleu (`#242e54`)
+|Numéro d'étape
+|Étape en cours de configuration
+
+|**Non visitée**
+|⚪ Gris (`#f1f5f9`)
+|Numéro d'étape
+|Pas encore atteinte
+|===
+
+=== Messages d'Aide Contextuels
+Apparaissent **uniquement si l'étape a été visitée mais mal remplie** (pas dès l'arrivée) :
+
+==== Étape 3 - Colonne Cible
+[source,html]
+----
+<div class="step-requirement-alert" *ngIf="shouldShowStepAlert(3)">
+  <mat-icon class="alert-icon">info</mat-icon>
+  <div class="alert-content">
+    <div class="alert-title">Action requise</div>
+    <div class="alert-text">Vous devez sélectionner une colonne cible pour continuer</div>
+  </div>
+</div>
+----
+
+**Logique d'affichage** :
+[source,typescript]
+----
+shouldShowStepAlert(stepNumber: number): boolean {
+  const hasBeenVisited = this.visitedSteps.has(stepNumber);
+  const isCurrentStep = this.getCurrentStepNumber() === stepNumber;
+  
+  // Ne pas afficher si pas encore visitée OU si c'est l'étape actuelle
+  if (!hasBeenVisited || isCurrentStep) return false;
+  
+  // Afficher seulement si visitée mais mal remplie
+  return !this.dataQualityForm.get('targetColumn')?.value;
+}
+----
+
+==== Étape 6 - Algorithme
+[source,html]
+----
+<div class="step-requirement-alert" *ngIf="shouldShowStepAlert(6)">
+  <mat-icon class="alert-icon">warning</mat-icon>
+  <div class="alert-content">
+    <div class="alert-title">Algorithme requis</div>
+    <div class="alert-text">Vous devez choisir un algorithme d'apprentissage automatique pour continuer</div>
+  </div>
+</div>
+----
+
+==== Étape 8 - Confirmation
+[source,html]
+----
+<div class="step-requirement-alert" *ngIf="shouldShowStepAlert(8)">
+  <mat-icon class="alert-icon">check_circle_outline</mat-icon>
+  <div class="alert-content">
+    <div class="alert-title">Confirmation requise</div>
+    <div class="alert-text">Vous devez cocher la case de confirmation pour pouvoir lancer l'entraînement</div>
+  </div>
+</div>
+----
+
+== Comportement Utilisateur - Nouvelle Logique
+
+=== Principe : Validation par Action Utilisateur
+* **Aucune étape n'est verte au démarrage** (même avec valeurs par défaut)
+* **Les étapes deviennent vertes uniquement après action utilisateur**
+* **Bouton "Suivant" = Validation explicite de l'étape**
+
+=== Scénario Complet
+1. **Arrivée sur l'étape 1** : Toutes grises sauf étape 1 active
+2. **Clic "Suivant" étape 1** : Étape 1 → 🟢 Verte (validée)
+3. **Arrivée étape 3** : Sélection colonne cible requise
+   - **Sans sélection** + clic "Suivant" : Étape 3 → 🔴 Rouge
+   - **Avec sélection** + clic "Suivant" : Étape 3 → 🟢 Verte
+4. **Arrivée étape 6** : Choix algorithme requis
+   - **Sans sélection** : Étape 6 → 🔴 Rouge 
+   - **Clic sur Random Forest** : Étape 6 → 🟢 Verte (immédiatement)
+5. **Arrivée étape 8** : Confirmation obligatoire
+   - **Case décochée** : Étape 8 → 🔴 Rouge
+   - **Case cochée** : Étape 8 → 🟢 Verte (immédiatement)
+
+=== Prévention d'Erreurs
+* **Navigation bloquée** : Impossible de lancer l'entraînement si des étapes sont rouges
+* **Messages contextuels** : Alertes directement dans chaque étape nécessitant une action
+* **Feedback immédiat** : Changement d'état en temps réel lors des sélections
+* **Tracking des actions** : Système de suivi des étapes visitées vs validées par l'utilisateur
+
+== Impact sur l'Expérience Utilisateur
+
+=== Bénéfices
+* **Guidance claire** : L'utilisateur sait exactement ce qu'il doit faire
+* **Prévention d'erreurs** : Plus d'échecs d'entraînement pour configuration incomplète
+* **Confiance** : Feedback visuel rassurant sur la progression réelle
+* **Efficacité** : Identification rapide des étapes problématiques
+
+=== Workflow Amélioré
+[cols="2,2,2"]
+|===
+|Avant |Après |Amélioration
+
+|Étapes automatiquement vertes
+|Validation intelligente
+|✅ Fiabilité
+
+|Erreurs à l'entraînement
+|Prévention en amont
+|✅ Robustesse
+
+|Confusion utilisateur
+|Guidance claire
+|✅ UX intuitive
+
+|Réparation manuelle
+|Feedback immédiat
+|✅ Efficacité
+|===
+
+== Notes de Développement
+
+=== Extensibilité
+Le système est conçu pour être facilement étendu :
+
+[source,typescript]
+----
+// Ajouter une nouvelle étape avec validation obligatoire
+case 10: // Nouvelle étape
+  const requiredField = this.newForm.get('requiredField')?.value;
+  return !!requiredField && this.newForm.valid;
+----
+
+=== Performance
+* **Pas d'impact** : Validation exécutée uniquement lors des changements
+* **Optimisation** : Utilisation de `ChangeDetectionStrategy.OnPush`
+* **Réactivité** : Mise à jour immédiate lors des interactions
+
+[IMPORTANT]
+====
+Cette validation intelligente est cruciale pour maintenir la qualité des expériences ML créées via le wizard. Elle empêche les configurations incomplètes qui mèneraient à des échecs d'entraînement.
+====

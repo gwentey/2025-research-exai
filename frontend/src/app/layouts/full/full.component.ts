@@ -9,7 +9,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { navItems, getTranslatedNavItems, getTranslatedNavItemsWithRoles } from './vertical/sidebar/sidebar-data';
 import { NavService } from '../../services/nav.service';
 import { RoleService, UserRole } from '../../services/role.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
@@ -63,7 +63,8 @@ interface quicklinks {
         AppBreadcrumbComponent,
         CustomizerComponent,
         BrandingComponent,
-        UserNameDisplayComponent
+        UserNameDisplayComponent,
+        TranslateModule
     ],
     templateUrl: './full.component.html',
     styleUrls: [],
@@ -81,7 +82,7 @@ export class FullComponent implements OnInit {
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
-  
+
   @ViewChild('mobilesidenav')
   public mobilesidenav: MatSidenav;
   resView = false;
@@ -231,7 +232,7 @@ export class FullComponent implements OnInit {
 
     // Initialize project theme with options
     this.receiveOptions(this.options);
-    
+
     // This is for scroll to top
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -243,15 +244,15 @@ export class FullComponent implements OnInit {
   ngOnInit(): void {
     // Charger les informations de l'utilisateur connecté
     this.loadUserInfo();
-    
+
     // Initialiser les navItems traduits avec rôles
     this.updateNavItems();
-    
+
     // Écouter les changements de langue pour mettre à jour les navItems
     this.translate.onLangChange.subscribe(() => {
       this.updateNavItems();
     });
-    
+
     // Écouter les changements de rôle pour mettre à jour les navItems
     this.roleService.getCurrentRole().subscribe(() => {
       this.updateNavItems();
@@ -275,7 +276,7 @@ export class FullComponent implements OnInit {
         next: (user) => {
           this.currentUser = user;
           this.userEmail = user.email;
-          
+
           // Déterminer le nom à afficher par ordre de priorité
           if (user.pseudo) {
             // 1. Utiliser le pseudo s'il existe
@@ -290,12 +291,12 @@ export class FullComponent implements OnInit {
             // 4. Sinon fallback sur l'email
             this.userDisplayName = user.email.split('@')[0];
           }
-          
+
           // Utiliser l'image de profil si disponible
           if (user.picture) {
             this.userProfileImage = this.sanitizeGoogleImageUrl(user.picture);
           }
-          
+
           // Définir le rôle basé sur le nouveau système
           if (user.role) {
             this.userRole = this.roleService.getRoleDisplayName(user.role as UserRole);
@@ -304,7 +305,7 @@ export class FullComponent implements OnInit {
           } else {
             this.userRole = 'Utilisateur';
           }
-          
+
           // Rafraîchir le rôle dans le RoleService pour déclencher la mise à jour de la navigation
           this.roleService.refreshCurrentRole();
         },
@@ -341,6 +342,14 @@ export class FullComponent implements OnInit {
     this.authService.logout();
   }
 
+  /**
+   * Navigue vers la page d'ajout de dataset
+   * Accessible à tous les utilisateurs, le guard gérera les permissions
+   */
+  navigateToAddDataset(): void {
+    this.router.navigate(['/datasets/upload']);
+  }
+
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
   }
@@ -367,7 +376,7 @@ export class FullComponent implements OnInit {
 
   receiveOptions(options: AppSettings): void {
     //this.options = options;
-    
+
     this.toggleDarkTheme(options);
     this.toggleColorsTheme(options);
   }
@@ -382,7 +391,7 @@ export class FullComponent implements OnInit {
   }
 
   toggleDarkTheme(options: AppSettings) {
-    
+
     if (options.theme === 'dark') {
       this.htmlElement.classList.add('dark-theme');
       this.htmlElement.classList.remove('light-theme');

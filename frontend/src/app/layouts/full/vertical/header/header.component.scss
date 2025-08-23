@@ -1,29 +1,63 @@
 .search-container {
+  // Transition smooth pour les changements de taille
+  transition: max-width 0.3s ease-in-out;
+
   .search-btn-expanded {
     border: 1px solid #e0e0e0 !important;
     color: #666 !important;
-    padding: 8px 16px !important;
-    
+    padding: 12px 20px !important; // Padding légèrement augmenté pour une meilleure apparence
+    border-radius: 8px !important; // Coins arrondis pour un design moderne
+    transition: all 0.2s ease-in-out;
+    min-height: 44px; // Hauteur minimale pour une meilleure UX
+
     &:hover {
       border-color: #1976d2 !important;
-      background-color: #f5f5f5 !important;
+      background-color: #f8f9fa !important;
+      transform: translateY(-1px); // Léger effet de lift au hover
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15) !important;
     }
-    
+
+    &:focus, &:focus-visible {
+      border-color: #1976d2 !important;
+      outline: 2px solid rgba(25, 118, 210, 0.2);
+      outline-offset: 2px;
+    }
+
     .text-muted {
       color: #999 !important;
       font-size: 14px;
+      font-weight: 400;
+
+      // Amélioration de la lisibilité sur grands écrans
+      @media (min-width: 1200px) {
+        font-size: 15px;
+      }
     }
   }
 }
 
+// Zone de recherche agrandie avec design responsive
 .max-width-400 {
-  max-width: 400px;
+  max-width: 600px; // Agrandie de 400px à 600px
+
+  // Responsive breakpoints pour ajuster la taille selon l'écran
+  @media (min-width: 1200px) {
+    max-width: 700px; // Plus large sur très grands écrans
+  }
+
+  @media (min-width: 1400px) {
+    max-width: 800px; // Encore plus large sur écrans XL
+  }
+
+  @media (max-width: 1023px) {
+    max-width: 350px; // Plus petite sur tablettes
+  }
 }
 
 .topbar {
   .pulse {
     position: relative;
-    
+
     .heartbit {
       position: absolute;
       top: -4px;
@@ -33,7 +67,7 @@
       border-radius: 50%;
       animation: heartbeat 2s infinite;
     }
-    
+
     .point {
       position: absolute;
       top: -2px;
@@ -61,7 +95,7 @@
   .search-container {
     display: none !important;
   }
-  
+
   .profile-btn {
     .text-left {
       display: none !important;
@@ -80,4 +114,4 @@
 .ibis-x-shortcuts {
   // Styles pour les raccourcis rapides
   gap: 0.5rem;
-} 
+}

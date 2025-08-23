@@ -3,11 +3,11 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { 
-  ExperimentRead, 
-  ExperimentCreate, 
-  ExperimentStatus, 
-  ExperimentResults, 
+import {
+  ExperimentRead,
+  ExperimentCreate,
+  ExperimentStatus,
+  ExperimentResults,
   AlgorithmInfo,
   DataQualityAnalysisRequest,
   DataQualityAnalysis,
@@ -54,6 +54,17 @@ export class MlPipelineService {
   }
 
   /**
+   * Force la completion d'une expérience bloquée (route de dépannage)
+   */
+  forceCompleteExperiment(experimentId: string): Observable<any> {
+    console.log('🚨 MlPipelineService: Force completing stuck experiment', experimentId);
+    return this.http.post<any>(`${this.apiUrl}/experiments/${experimentId}/force-complete`, {})
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /**
    * Get list of available algorithms
    */
   getAvailableAlgorithms(): Observable<AlgorithmInfo[]> {
@@ -70,11 +81,11 @@ export class MlPipelineService {
     let params = new HttpParams()
       .set('skip', skip.toString())
       .set('limit', limit.toString());
-    
+
     if (projectId) {
       params = params.set('project_id', projectId);
     }
-    
+
     return this.http.get<ExperimentRead[]>(`${this.apiUrl}/experiments`, { params })
       .pipe(
         catchError(this.handleError)
@@ -110,7 +121,7 @@ export class MlPipelineService {
       target_column: targetColumn,
       sample_size: 1000 // Échantillon plus petit pour une analyse rapide
     };
-    
+
     return this.analyzeDataQuality(request).pipe(
       map(analysis => ({
         missingDataSummary: {
@@ -132,7 +143,7 @@ export class MlPipelineService {
   private handleError(error: any): Observable<never> {
     console.error('ML Pipeline Service Error:', error);
     let errorMessage = 'An error occurred';
-    
+
     if (error.error instanceof ErrorEvent) {
       // Client-side error
       errorMessage = error.error.message;
@@ -143,10 +154,10 @@ export class MlPipelineService {
       // Server-side error with status
       errorMessage = `Error ${error.status}: ${error.statusText}`;
     }
-    
+
     return throwError(() => new Error(errorMessage));
   }
-  
+
   /**
    * Validate a cleaning configuration
    */
@@ -156,4 +167,4 @@ export class MlPipelineService {
         catchError(this.handleError)
       );
   }
-} 
+}

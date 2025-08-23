@@ -1,264 +1,227 @@
-<div class="modern-results-page" *ngIf="!isLoading" [@fadeIn]>
-  <!-- Header Style Linear/Stripe -->
-  <div class="results-hero">
-    <div class="hero-background">
-      <div class="gradient-overlay"></div>
-    </div>
-    <div class="hero-content">
-      <button class="back-btn" (click)="goBack()">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
+<div class="results-container" *ngIf="results; else loadingTemplate" [@fadeIn]>
 
-      <div class="hero-main">
-        <div class="hero-icon">
-          <mat-icon>analytics</mat-icon>
-        </div>
-        <h1 class="hero-title">Résultats d'entraînement</h1>
-        <p class="hero-subtitle">Analyse complète de votre modèle {{ experiment ? (experiment.algorithm | titlecase) : 'ML' }}</p>
+  <!-- Section Métriques -->
+  <section class="metrics-section" [@slideUp]>
+    <h2 class="section-title">📈 Performance & Métriques - {{getAlgorithmDisplay()}}</h2>
 
-        <div class="hero-meta" *ngIf="experiment">
-          <div class="meta-badge success">
-            <mat-icon>check_circle</mat-icon>
-            <span>Entraînement terminé</span>
-          </div>
-          <div class="meta-info">
-            <span class="meta-item">
-              <mat-icon>schedule</mat-icon>
-              {{ experiment.created_at | date:'short' }}
-            </span>
-            <span class="meta-item" *ngIf="experiment.updated_at">
-              <mat-icon>timer</mat-icon>
-              {{ formatDuration(experiment.created_at, experiment.updated_at) }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-actions">
-        <button class="action-btn secondary" (click)="downloadModel()" [disabled]="!results?.model_uri">
-          <mat-icon>download</mat-icon>
-          <span>Télécharger le modèle</span>
-        </button>
-        <button class="action-btn primary" (click)="runNewExperiment()">
-          <mat-icon>refresh</mat-icon>
-          <span>Nouvel entraînement</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Métriques principales style SaaS -->
-  <div class="metrics-dashboard" [@slideUp] *ngIf="results?.metrics">
-    <div class="dashboard-container">
-      <div class="section-header">
-        <h2>Métriques de performance</h2>
-        <p>Analyse détaillée des performances de votre modèle</p>
-      </div>
-
-      <div class="metrics-grid-modern">
-        <div class="metric-card-modern"
-             *ngFor="let metric of getMetricsArray()"
-             [class]="getMetricColor(metric.value)"
-             [@slideUp]>
+    <!-- Cards métriques principales -->
+    <div class="metrics-grid-modern" *ngIf="getMetricsArray().length > 0">
+      <div class="metric-card-modern" *ngFor="let metric of getMetricsArray().slice(0, 4); let i = index">
+        <div class="metric-content">
           <div class="metric-header">
-            <div class="metric-icon-wrapper">
-              <mat-icon>{{ getMetricIcon(metric.key) }}</mat-icon>
+            <div class="metric-icon-wrapper" [ngClass]="getMetricColor(metric.value)">
+              <mat-icon>{{getMetricIcon(metric.key)}}</mat-icon>
             </div>
-            <div class="metric-info">
-              <h3 class="metric-title">{{ getMetricLabel(metric.key) }}</h3>
-              <div class="metric-value-large">{{ formatMetricValue(metric.key, metric.value) }}</div>
-            </div>
+            <h4 class="metric-title">{{getMetricLabel(metric.key)}}</h4>
           </div>
-
-          <!-- Chart.js canvas pour chaque métrique -->
-          <div class="metric-chart-container">
-            <canvas [id]="'metric-chart-' + metric.key"
-                    class="metric-chart"
-                    width="100"
-                    height="60"></canvas>
+          <div class="metric-value-large" [ngClass]="getMetricColor(metric.value)">
+            {{formatMetricValue(metric.key, metric.value)}}
           </div>
-
-          <div class="metric-trend">
-            <span class="trend-indicator" [class]="getTrendClass(metric.value)">
-              <mat-icon>{{ getTrendIcon(metric.value) }}</mat-icon>
-              {{ getTrendText(metric.value) }}
-            </span>
+          <div class="trend-indicator" [ngClass]="getTrendClass(metric.value)">
+            <mat-icon class="trend-icon">{{getTrendIcon(metric.value)}}</mat-icon>
+            <span class="trend-text">{{getTrendText(metric.value)}}</span>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-    <!-- Visualisations hybrides modernes -->
-  <div class="visualizations-dashboard" [@slideUp] *ngIf="results">
-    <div class="dashboard-container">
-      <div class="section-header">
-        <h2>Visualisations du modèle</h2>
-        <p>Analyse visuelle intelligente avec rendu hybride backend/frontend</p>
-      </div>
+    <!-- Message si pas de métriques -->
+    <div class="no-metrics" *ngIf="getMetricsArray().length === 0">
+      <mat-icon>info</mat-icon>
+      <p>Aucune métrique numérique disponible pour cet algorithme.</p>
+    </div>
+  </section>
 
-      <!-- Grille des visualisations hybrides -->
-      <div class="viz-grid-hybrid" [ngSwitch]="experiment ? experiment.algorithm : ''">
+  <!-- Section Visualisations Principales -->
+  <section class="algorithm-section" [@slideUp]>
+    <h2 class="section-title">🎨 Visualisations Interactives</h2>
 
-        <!-- Decision Tree - Visualisation hybride -->
-        <div *ngSwitchCase="'decision_tree'" class="algorithm-specific-viz">
-          <app-visualization-container
+    <div class="visualizations-grid">
+      <!-- Arbre de Décision -->
+      <div class="chart-card" *ngIf="getAlgorithm() === 'decision_tree'">
+        <div class="chart-content chart-extra-tall">
+          <app-echarts-container
             [visualizationType]="VisualizationType.DECISION_TREE"
-            [backendImageUrl]="getVisualizationUrl('decision_tree')"
+            [data]="getTreeStructureData('decision_tree')"
             [algorithm]="getAlgorithm()"
             [taskType]="getTaskType()"
             [experimentId]="experimentId">
-          </app-visualization-container>
+          </app-echarts-container>
         </div>
+      </div>
 
-        <!-- Random Forest - Feature Importance hybride -->
-        <div *ngSwitchCase="'random_forest'" class="algorithm-specific-viz">
-          <app-visualization-container
+      <!-- Random Forest -->
+      <div class="chart-card" *ngIf="getAlgorithm() === 'random_forest'">
+        <div class="chart-content chart-extra-tall">
+          <app-echarts-container
+            [visualizationType]="VisualizationType.DECISION_TREE"
+            [data]="getTreeStructureData('random_forest')"
+            [algorithm]="getAlgorithm()"
+            [taskType]="getTaskType()"
+            [experimentId]="experimentId">
+          </app-echarts-container>
+        </div>
+      </div>
+
+      <!-- Graphique Régression -->
+      <div class="chart-card" *ngIf="getTaskType() === 'regression' || getAlgorithm() === 'linear_regression'">
+        <div class="chart-content">
+          <app-echarts-container
+            [visualizationType]="VisualizationType.REGRESSION_PLOT"
+            [data]="getRegressionPlotData()"
+            [algorithm]="getAlgorithm()"
+            [taskType]="getTaskType()"
+            [experimentId]="experimentId">
+          </app-echarts-container>
+        </div>
+      </div>
+
+      <!-- Distribution des Prédictions -->
+      <div class="chart-card">
+        <div class="chart-content">
+          <app-echarts-container
+            [visualizationType]="VisualizationType.PREDICTIONS_DISTRIBUTION"
+            [data]="getPredictionsDistributionData()"
+            [algorithm]="getAlgorithm()"
+            [taskType]="getTaskType()"
+            [experimentId]="experimentId">
+          </app-echarts-container>
+        </div>
+      </div>
+
+      <!-- Feature Importance -->
+      <div class="chart-card" *ngIf="hasFeatureImportance()">
+        <div class="chart-content chart-tall">
+          <app-echarts-container
             [visualizationType]="VisualizationType.FEATURE_IMPORTANCE"
-            [backendImageUrl]="getVisualizationUrl('feature_importance')"
             [data]="results.feature_importance"
             [algorithm]="getAlgorithm()"
             [taskType]="getTaskType()"
             [experimentId]="experimentId">
-          </app-visualization-container>
+          </app-echarts-container>
         </div>
+      </div>
 
-        <!-- Visualisations communes hybrides - ADAPTÉES AU TYPE DE TÂCHE -->
-        <div class="common-visualizations-hybrid">
-
-          <!-- Visualisations pour CLASSIFICATION seulement -->
-          <ng-container *ngIf="getTaskType() === 'classification'">
-            <!-- Matrice de confusion hybride -->
-            <app-visualization-container
-              [visualizationType]="VisualizationType.CONFUSION_MATRIX"
-              [backendImageUrl]="getVisualizationUrl('confusion_matrix')"
-              [algorithm]="getAlgorithm()"
-              [taskType]="getTaskType()"
-              [experimentId]="experimentId">
-            </app-visualization-container>
-
-            <!-- Courbe ROC hybride -->
-            <app-visualization-container
-              [visualizationType]="VisualizationType.ROC_CURVE"
-              [backendImageUrl]="getVisualizationUrl('roc_curve')"
-              [data]="results.roc_curve"
-              [algorithm]="getAlgorithm()"
-              [taskType]="getTaskType()"
-              [experimentId]="experimentId">
-            </app-visualization-container>
-          </ng-container>
-
-          <!-- Visualisations pour RÉGRESSION seulement -->
-          <ng-container *ngIf="getTaskType() === 'regression'">
-            <!-- Graphique de régression hybride -->
-            <app-visualization-container
-              [visualizationType]="VisualizationType.REGRESSION_PLOT"
-              [backendImageUrl]="getVisualizationUrl('regression_plot')"
-              [algorithm]="getAlgorithm()"
-              [taskType]="getTaskType()"
-              [experimentId]="experimentId">
-            </app-visualization-container>
-
-            <!-- Distribution des résidus (régression) -->
-            <app-visualization-container
-              [visualizationType]="VisualizationType.PREDICTIONS_DISTRIBUTION"
-              [backendImageUrl]="getVisualizationUrl('residuals_distribution')"
-              [algorithm]="getAlgorithm()"
-              [taskType]="getTaskType()"
-              [experimentId]="experimentId">
-            </app-visualization-container>
-          </ng-container>
-
-          <!-- Visualisations COMMUNES à tous les types -->
-          <!-- Métriques de performance -->
-          <app-visualization-container
+      <!-- Métriques Performance -->
+      <div class="chart-card" *ngIf="getMetricsArray().length > 0">
+        <div class="chart-content chart-medium">
+          <app-echarts-container
             [visualizationType]="VisualizationType.METRICS"
-            [data]="results?.metrics"
+            [data]="results.metrics"
             [algorithm]="getAlgorithm()"
             [taskType]="getTaskType()"
             [experimentId]="experimentId">
-          </app-visualization-container>
-
+          </app-echarts-container>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Détails de l'expérience style moderne -->
-  <div class="experiment-details-modern" [@slideUp] *ngIf="experiment">
-    <div class="dashboard-container">
-      <div class="section-header">
-        <h2>Détails de l'expérience</h2>
-        <p>Configuration et paramètres utilisés</p>
-      </div>
+  <!-- Section Détails -->
+  <section class="details-section" [@slideUp]>
+    <h2 class="section-title">📊 Informations Détaillées</h2>
+    <div class="details-cards">
 
-      <div class="details-cards">
-        <div class="detail-card">
-          <div class="detail-header">
+      <!-- Card Configuration -->
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>
             <mat-icon>settings</mat-icon>
-            <h3>Configuration</h3>
+            Configuration
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="detail-row">
+            <span class="detail-label">Algorithme :</span>
+            <span class="detail-value">{{getAlgorithmDisplay()}}</span>
           </div>
-          <div class="detail-content">
-            <div class="detail-item">
-              <span class="label">ID Expérience:</span>
-              <code class="value">{{ experimentId }}</code>
-            </div>
-            <div class="detail-item">
-              <span class="label">Algorithme:</span>
-              <span class="value">{{ experiment ? (experiment.algorithm | titlecase) : 'Non spécifié' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Statut:</span>
-              <mat-chip [color]="getStatusColor(experiment ? experiment.status : 'unknown')" selected>
-                {{ experiment ? (experiment.status | titlecase) : 'Inconnu' }}
-              </mat-chip>
-            </div>
+          <div class="detail-row">
+            <span class="detail-label">Type de tâche :</span>
+            <span class="detail-value">{{getTaskType() === 'classification' ? 'Classification' : 'Régression'}}</span>
           </div>
-        </div>
+          <div class="detail-row">
+            <span class="detail-label">Status :</span>
+            <mat-chip [color]="getStatusColor(getStatusDisplay())" selected>
+              {{getStatusDisplay()}}
+            </mat-chip>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Meilleure métrique :</span>
+            <span class="detail-value">{{getBestMetric()}}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
-        <div class="detail-card" *ngIf="results">
-          <div class="detail-header">
-            <mat-icon>tune</mat-icon>
-            <h3>Informations du modèle</h3>
+      <!-- Card Modèle -->
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>memory</mat-icon>
+            Modèle
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="detail-row">
+            <span class="detail-label">ID Expérience :</span>
+            <span class="detail-value mono">{{experimentId}}</span>
           </div>
-          <div class="detail-content">
-            <div class="detail-item">
-              <span class="label">Modèle entraîné:</span>
-              <span class="value">{{ experiment ? (experiment.algorithm | titlecase) : 'Non spécifié' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Nombre de métriques:</span>
-              <span class="value">{{ getMetricsArray().length }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Meilleure métrique:</span>
-              <span class="value">{{ getBestMetric() }}</span>
-            </div>
+          <div class="detail-row" *ngIf="results.model_uri">
+            <span class="detail-label">Stockage :</span>
+            <span class="detail-value">Disponible</span>
           </div>
-        </div>
+          <div class="detail-row">
+            <span class="detail-label">Visualisations :</span>
+            <span class="detail-value">
+              <mat-icon *ngIf="hasFeatureImportance()">check_circle</mat-icon>
+              <mat-icon *ngIf="hasConfusionMatrix()">check_circle</mat-icon>
+              <mat-icon *ngIf="hasRocCurve()">check_circle</mat-icon>
+              {{(hasFeatureImportance() ? 1 : 0) + (hasConfusionMatrix() ? 1 : 0) + (hasRocCurve() ? 1 : 0)}} disponible(s)
+            </span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-raised-button color="primary" (click)="downloadModel()" [disabled]="!results.model_uri">
+            <mat-icon>download</mat-icon>
+            Télécharger
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <!-- Card Actions -->
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>rocket_launch</mat-icon>
+            Actions
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Gérer cette expérience et créer de nouveaux entraînements.</p>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-stroked-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Retour
+          </button>
+          <button mat-raised-button color="accent" (click)="runNewExperiment()">
+            <mat-icon>add</mat-icon>
+            Nouvel Entraînement
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </section>
+</div>
+
+<!-- Template de chargement -->
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <div class="loading-content">
+      <div class="loading-spinner">
+        <mat-icon class="spin">autorenew</mat-icon>
       </div>
+      <h3>Chargement des résultats...</h3>
+      <p>Récupération des données de l'expérience <strong>{{experimentId}}</strong></p>
     </div>
   </div>
-</div>
-
-<!-- Loading State -->
-<div class="loading-state" *ngIf="isLoading">
-  <div class="loading-content">
-    <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
-    <h2>Chargement des résultats...</h2>
-    <p>Récupération des métriques et génération des graphiques...</p>
-  </div>
-</div>
-
-<!-- Error State -->
-<div class="error-state" *ngIf="!isLoading && !experiment && !results">
-  <div class="error-content">
-    <mat-icon>error_outline</mat-icon>
-    <h2>Erreur de chargement</h2>
-    <p>Impossible de charger les résultats de l'expérience.</p>
-    <button class="action-btn primary" (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-      <span>Retour au wizard</span>
-    </button>
-  </div>
-</div>
+</ng-template>

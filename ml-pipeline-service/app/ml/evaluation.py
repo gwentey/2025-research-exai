@@ -39,10 +39,20 @@ def evaluate_classification_model(model, X_test, y_test, average='weighted') -> 
         except:
             pass
     
-    # Add classification report
+    # Add classification report - Convert NumPy types
     try:
         report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
-        metrics['classification_report'] = report
+        # Convertir récursivement les types NumPy dans le rapport
+        def convert_numpy_recursive(obj):
+            if isinstance(obj, np.number):
+                return float(obj)
+            elif isinstance(obj, dict):
+                return {k: convert_numpy_recursive(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_numpy_recursive(item) for item in obj]
+            else:
+                return obj
+        metrics['classification_report'] = convert_numpy_recursive(report)
     except:
         pass
     
