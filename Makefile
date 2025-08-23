@@ -10,28 +10,54 @@ TIMEOUT ?= 300s
 MINIO_API_PORT ?= 6700
 MINIO_CONSOLE_PORT ?= 6701
 
-# Couleurs pour l'affichage (détection Git Bash)
-ifeq ($(findstring MINGW, $(shell uname -s 2>/dev/null || echo unknown)),MINGW)
+# Détection de l'OS et configuration des commandes
+UNAME_S := $(shell uname -s 2>/dev/null || echo unknown)
+
+# Couleurs pour l'affichage 
+ifeq ($(findstring MINGW, $(UNAME_S)),MINGW)
     # Git Bash détecté - couleurs désactivées pour éviter les codes ANSI
     GREEN := 
     RED := 
     YELLOW := 
     BLUE := 
     NC := 
-else
-    # Terminal standard - couleurs activées
+    IS_WINDOWS := true
+    IS_MACOS := false
+else ifeq ($(UNAME_S),Darwin)
+    # macOS détecté
     GREEN := \033[32m
     RED := \033[31m
     YELLOW := \033[33m
     BLUE := \033[34m
     NC := \033[0m
+    IS_WINDOWS := false
+    IS_MACOS := true
+else
+    # Linux ou autre Unix
+    GREEN := \033[32m
+    RED := \033[31m
+    YELLOW := \033[33m
+    BLUE := \033[34m
+    NC := \033[0m
+    IS_WINDOWS := false
+    IS_MACOS := false
 endif
 
-# Null device portable (évite la création d'un fichier 'nul' sous Git Bash)
-ifeq ($(findstring /, $(SHELL)),/)
-    NULL := /dev/null
-else
+# Null device portable
+ifeq ($(IS_WINDOWS),true)
     NULL := nul
+    SLEEP_CMD := powershell.exe -Command "Start-Sleep -Seconds"
+    DOCKER_ENV_CMD := powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression; 
+    PORTFORWARD_BG_CMD := powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList
+    KILL_PORTFORWARD_CMD := powershell.exe -Command "Get-Process -Name kubectl -ErrorAction SilentlyContinue | Where-Object { $$_.CommandLine -like '*port-forward*' } | Stop-Process -Force"
+    WEB_TEST_CMD := powershell.exe -Command "try { Invoke-WebRequest -Uri
+else
+    NULL := /dev/null
+    SLEEP_CMD := sleep
+    DOCKER_ENV_CMD := eval $$(minikube -p minikube docker-env);
+    PORTFORWARD_BG_CMD := nohup kubectl
+    KILL_PORTFORWARD_CMD := pkill -f "kubectl.*port-forward" || killall kubectl || true
+    WEB_TEST_CMD := curl -fsS --max-time 3
 endif
 
 help: ## Affiche cette aide
@@ -71,8 +97,19 @@ check-prerequisites: ## Vérifie que tous les outils requis sont installés
 
 check-buildkit: ## Vérifie et configure Docker BuildKit pour des builds optimisés
 	@echo "$(BLUE)Verification de Docker BuildKit...$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	@echo "$(YELLOW)Verification simplifiee pour compatibilite Git Bash/Windows$(NC)"
 	@powershell.exe -Command "if ([Environment]::GetEnvironmentVariable('DOCKER_BUILDKIT', 'User') -eq '1') { Write-Host '$(GREEN)✅ Docker BuildKit activé (variable utilisateur)$(NC)' } elseif ([Environment]::GetEnvironmentVariable('DOCKER_BUILDKIT', 'Process') -eq '1') { Write-Host '$(GREEN)✅ Docker BuildKit activé (session courante)$(NC)' } else { Write-Host '$(YELLOW)⚠️  Docker BuildKit non activé globalement$(NC)'; Write-Host '$(YELLOW)   Pour l activer définitivement : [Environment]::SetEnvironmentVariable(\"DOCKER_BUILDKIT\", \"1\", \"User\")$(NC)'; Write-Host '$(BLUE)   ✓ BuildKit est déjà activé dans Skaffold pour ce projet$(NC)' }" || echo "$(BLUE)✓ BuildKit est configure dans Skaffold$(NC)"
+else
+	@echo "$(YELLOW)Verification pour macOS/Linux...$(NC)"
+	@if [ "$$DOCKER_BUILDKIT" = "1" ]; then \
+		echo "$(GREEN)✅ Docker BuildKit activé (variable d'environnement)$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Docker BuildKit non activé globalement$(NC)"; \
+		echo "$(YELLOW)   Pour l'activer : export DOCKER_BUILDKIT=1$(NC)"; \
+		echo "$(BLUE)   ✓ BuildKit est déjà activé dans Skaffold pour ce projet$(NC)"; \
+	fi
+endif
 
 check-kaggle-credentials: ## Vérifie que les credentials Kaggle sont configurés
 	@echo "$(BLUE)Verification des credentials Kaggle...$(NC)"
@@ -116,15 +153,23 @@ deploy: ## Déploie l'application avec Skaffold (comme l'ancien système)
 	@echo "$(BLUE)Deploiement de l'application...$(NC)"
 	@echo "$(YELLOW)Nettoyage des jobs existants pour eviter les conflits...$(NC)"
 	-@kubectl delete jobs --all -n $(NAMESPACE) 2>$(NULL) || echo "$(YELLOW)Aucun job a supprimer$(NC)"
-	@sleep 2
+	@$(SLEEP_CMD) 2
+ifeq ($(IS_WINDOWS),true)
 	@powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression; skaffold run --profile=local --namespace=$(NAMESPACE)"
+else
+	@$(DOCKER_ENV_CMD) skaffold run --profile=local --namespace=$(NAMESPACE)
+endif
 	@echo "$(GREEN)Application deployee$(NC)"
 
 deploy-services-dev: ## Déploie les services en mode développement continu (avec surveillance)
 	@echo "$(BLUE)Deploiement des services en mode developpement continu...$(NC)"
 	@echo "$(YELLOW)Nettoyage des jobs existants pour eviter les conflits...$(NC)"
 	-@kubectl delete jobs --all -n $(NAMESPACE) 2>$(NULL)
+ifeq ($(IS_WINDOWS),true)
 	@powershell.exe -Command "& minikube -p minikube docker-env --shell powershell | Invoke-Expression; skaffold dev --profile=local-services --namespace=$(NAMESPACE) --no-prune=false --cache-artifacts=false --cleanup=false --port-forward=false"
+else
+	@$(DOCKER_ENV_CMD) skaffold dev --profile=local-services --namespace=$(NAMESPACE) --no-prune=false --cache-artifacts=false --cleanup=false --port-forward=false
+endif
 	@echo "$(GREEN)Services en mode developpement continu$(NC)"
 
 start-portforwards: stop-portforwards ## Lance les port forwards dans le même terminal (Git Bash compatible)
@@ -271,8 +316,13 @@ dev-logs: stop-portforwards ## Lance les port-forwards robustes et reste avec le
 	@echo "$(YELLOW)Nettoyage automatique et démarrage des port-forwards stables...$(NC)"
 	@python scripts/development/fix-portforwards-permanent.py
 	@echo "$(GREEN)✅ Port-forwards robustes démarrés avec succès$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	@powershell.exe -Command "try { Invoke-WebRequest -Uri http://localhost:9000/health -Method GET -TimeoutSec 5 -UseBasicParsing | Out-Null; Write-Host '$(GREEN)✓ API Gateway accessible$(NC)' } catch { Write-Host '$(YELLOW)⚠ API Gateway pas encore prêt - attendez quelques secondes$(NC)' }"
 	@powershell.exe -Command "try { Invoke-WebRequest -Uri http://localhost:8080 -Method GET -TimeoutSec 5 -UseBasicParsing | Out-Null; Write-Host '$(GREEN)✓ Frontend accessible$(NC)' } catch { Write-Host '$(YELLOW)⚠ Frontend pas encore prêt - attendez quelques secondes$(NC)' }"
+else
+	@curl -fsS --max-time 3 http://localhost:9000/health >/dev/null 2>&1 && echo "$(GREEN)✓ API Gateway accessible$(NC)" || echo "$(YELLOW)⚠ API Gateway pas encore prêt - attendez quelques secondes$(NC)"
+	@curl -fsS --max-time 3 http://localhost:8080 >/dev/null 2>&1 && echo "$(GREEN)✓ Frontend accessible$(NC)" || echo "$(YELLOW)⚠ Frontend pas encore prêt - attendez quelques secondes$(NC)"
+endif
 	@echo "$(GREEN)✅ Application déployée et accessible !$(NC)"
 	@echo ""
 	@echo "$(GREEN)🌐 Application accessible sur :$(NC)"
@@ -290,7 +340,7 @@ dev-logs: stop-portforwards ## Lance les port-forwards robustes et reste avec le
 		cleanup() { \
 			echo; \
 			echo "🛑 Ctrl+C détecté - Nettoyage en cours..."; \
-			taskkill /F /IM kubectl.exe 2>/dev/null || pkill -f "kubectl.*logs" || true; \
+			pkill -f "kubectl.*logs" 2>/dev/null || killall kubectl 2>/dev/null || true; \
 			echo "✅ Processus kubectl nettoyés"; \
 			exit 0; \
 		}; \
@@ -306,7 +356,7 @@ dev-logs: stop-portforwards ## Lance les port-forwards robustes et reste avec le
 clean-namespace: ## Nettoie le namespace avant de démarrer
 	@echo "$(BLUE)Nettoyage du namespace ibis-x...$(NC)"
 	-@kubectl delete namespace ibis-x --force --grace-period=0 2>$(NULL) || echo "Namespace deja propre"
-	@powershell.exe -Command "Start-Sleep -Seconds 3"
+	@$(SLEEP_CMD) 3
 	@echo "$(GREEN)Namespace nettoye$(NC)"
 
 dev-watch: check-prerequisites update-secrets start-minikube create-namespace docker-env deploy-services-dev wait-services migrate-jobs init-data watch-portforwards ## Mode développement AVANCÉ avec surveillance automatique des fichiers (optionnel)
@@ -382,8 +432,13 @@ quick-logs: ## Affiche les logs dans le même terminal (Ctrl+C pour arrêter)
 stop-portforwards: ## Arrête tous les port forwards actifs PROPREMENT 
 	@echo "$(BLUE)Arret de tous les port forwards et logs...$(NC)"
 	@echo "$(YELLOW)Arret des processus kubectl en arriere-plan...$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	-@powershell.exe -Command "Get-Process -Name kubectl -ErrorAction SilentlyContinue | Where-Object { $$_.CommandLine -like '*port-forward*' } | Stop-Process -Force" 2>$(NULL) || echo ""
 	@powershell.exe -Command "Start-Sleep -Seconds 3"
+else
+	-@$(KILL_PORTFORWARD_CMD) 2>$(NULL) || echo ""
+	@$(SLEEP_CMD) 3
+endif
 	@echo "$(GREEN)✓ Tous les port forwards et logs arretes$(NC)"
 
 clean-logs: stop-portforwards ## Nettoie tous les processus kubectl qui traînent (équivalent ancien Ctrl+C)
@@ -533,11 +588,12 @@ test-ml-pipeline: ## Test rapide du service ML Pipeline
 	@kubectl logs -n $(NAMESPACE) deployment/ml-pipeline-celery-worker --tail=10 || echo "$(RED)Workers non disponibles$(NC)"
 	@echo "$(GREEN)Test ML Pipeline termine$(NC)"
 
-start-portforwards-final: ## Solution AUTOMATIQUE - PowerShell direct
+start-portforwards-final: ## Solution AUTOMATIQUE - Multi-plateforme
 	@echo "$(BLUE)=== LANCEMENT AUTOMATIQUE DES PORT-FORWARDS ===$(NC)"
 	@echo "$(YELLOW)Verification pods prets...$(NC)"
 	@kubectl wait --for=condition=ready pod -l app=frontend -n $(NAMESPACE) --timeout=30s || true
 	@kubectl wait --for=condition=ready pod -l app=api-gateway -n $(NAMESPACE) --timeout=30s || true
+ifeq ($(IS_WINDOWS),true)
 	@echo "$(YELLOW)Lancement des port-forwards avec PowerShell...$(NC)"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'; Start-Sleep -Seconds 2"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'; Start-Sleep -Seconds 2"
@@ -545,6 +601,17 @@ start-portforwards-final: ## Solution AUTOMATIQUE - PowerShell direct
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:8080'"
 	@echo "$(YELLOW)Attente etablissement des connexions (10 secondes)...$(NC)"
 	@powershell.exe -Command "Start-Sleep -Seconds 10"
+else
+	@echo "$(YELLOW)Lancement des port-forwards pour macOS/Linux...$(NC)"
+	@nohup kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &
+	@$(SLEEP_CMD) 2
+	@nohup kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &
+	@$(SLEEP_CMD) 2
+	@nohup kubectl port-forward -n $(NAMESPACE) service/minio-service 6700:80 > /dev/null 2>&1 &
+	@nohup kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:8080 > /dev/null 2>&1 &
+	@echo "$(YELLOW)Attente etablissement des connexions (10 secondes)...$(NC)"
+	@$(SLEEP_CMD) 10
+endif
 	@echo ""
 	@echo "$(GREEN)✅ APPLICATION PRETE !$(NC)"
 	@echo ""
