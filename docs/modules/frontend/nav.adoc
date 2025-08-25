@@ -6,4 +6,5 @@
 ** xref:ml-pipeline-cleaning-interface.adoc[Interface de Nettoyage ML Pipeline]
 ** xref:ml-pipeline-modern-interface.adoc[Interface ML Pipeline Moderne]
 ** xref:ml-pipeline-revolutionary-interface.adoc[Interface ML Pipeline Révolutionnaire]
+** xref:ui-button-modifications.adoc[Modifications des Boutons de l'Interface]
 ** xref:view-toggle-widget-improvements.adoc[Améliorations du Widget Vue Grille/Liste]

@@ -100,6 +100,7 @@ export function createRoleGuard(roles: string[]): CanActivateFn {
 
 /**
  * Guard pour vérifier si l'utilisateur peut uploader des datasets.
+ * Maintenant tous les utilisateurs authentifiés peuvent uploader.
  */
 export const uploadGuard: CanActivateFn = (route, state) => {
   const roleService = inject(RoleService);
@@ -120,7 +121,7 @@ export const uploadGuard: CanActivateFn = (route, state) => {
         router.navigate(['/starter'], { 
           queryParams: { 
             error: 'upload-not-allowed',
-            message: 'Vous devez être contributeur ou administrateur pour uploader des datasets'
+            message: 'Vous devez être authentifié pour uploader des datasets'
           } 
         });
         return false;

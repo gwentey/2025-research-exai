@@ -1,0 +1,155 @@
+= Modifications des Boutons de l'Interface Utilisateur
+
+== Vue d'ensemble
+
+Cette documentation décrit les modifications apportées aux boutons de l'interface utilisateur d'IBIS-X, notamment la suppression du bouton de paramètres et l'optimisation du bouton d'ajout de datasets.
+
+== Modifications effectuées
+
+=== Suppression du Bouton Paramètres (Settings)
+
+**Localisation :** `frontend/src/app/layouts/full/full.component.html`
+
+Le bouton flottant (FAB) avec l'icône "settings" a été supprimé du layout principal de l'application.
+
+**Raison de la suppression :**
+* Simplification de l'interface utilisateur
+* Réduction de l'encombrement visuel
+* Focus sur les fonctionnalités principales
+
+**Détails techniques :**
+* Le bouton était positionné en bas à droite de l'écran
+* Il permettait d'ouvrir un panneau de customisation pour les paramètres d'interface
+* Sa suppression n'affecte pas les fonctionnalités principales de l'application
+
+=== Bouton d'Ajout de Datasets
+
+**Localisation :** `frontend/src/app/pages/datasets/dataset-listing.component.html`
+
+Le bouton "+" pour ajouter des datasets reste disponible et fonctionnel.
+
+**Caractéristiques :**
+
+* **Type :** Bouton flottant (FAB) avec icône "add" (+)
+* **Couleur :** Primaire (theme de l'application)
+* **Position :** En bas à droite de la page des datasets
+* **Visibilité :** Conditionnelle selon les permissions utilisateur
+
+**Permissions requises :**
+* Tous les utilisateurs authentifiés (modification récente)
+* Géré par le service `RoleService.canUploadDatasets()`
+
+**Fonctionnalité :**
+* Redirige vers la page d'upload des datasets (`/datasets/upload`)
+* Tooltip informatif avec traduction
+* Position optimale pour l'accessibilité
+
+== Code de référence
+
+=== Bouton d'ajout de datasets
+[source,html]
+----
+<button
+  *ngIf="canUploadDatasets$ | async"
+  mat-fab
+  color="primary"
+  class="upload-fab"
+  (click)="uploadDataset()"
+  matTooltip="{{ 'DATASETS.UPLOAD.TOOLTIP' | translate }}"
+  matTooltipPosition="left">
+  <mat-icon>add</mat-icon>
+</button>
+----
+
+=== Méthode TypeScript associée
+[source,typescript]
+----
+uploadDataset(): void {
+  this.router.navigate(['/datasets/upload']);
+}
+----
+
+=== Nouvelle logique de permissions (RoleService)
+[source,typescript]
+----
+/**
+ * Vérifie si l'utilisateur peut uploader des datasets
+ * Maintenant accessible à tous les utilisateurs authentifiés
+ * @returns Observable<boolean>
+ */
+canUploadDatasets(): Observable<boolean> {
+  return this.currentRole$.pipe(
+    map(currentRole => currentRole !== null)
+  );
+}
+----
+
+== Impact utilisateur
+
+=== Améliorations
+* Interface plus épurée et focalisée
+* Meilleure visibilité du bouton d'ajout de datasets
+* Expérience utilisateur simplifiée
+
+=== Actions utilisateur
+* **Pour ajouter un dataset :** Utiliser le bouton "+" en bas à droite de la page des datasets
+* **Permissions :** Tous les utilisateurs authentifiés peuvent maintenant voir et utiliser ce bouton
+
+=== Modification importante des permissions
+
+**Changement récent :** Les permissions pour l'ajout de datasets ont été **étendues à tous les utilisateurs**.
+
+**Avant :**
+* Seuls les rôles `ADMIN` et `CONTRIBUTEUR` pouvaient ajouter des datasets
+* Restriction stricte basée sur les rôles utilisateur
+
+**Maintenant :**
+* **Tous les utilisateurs authentifiés** peuvent ajouter des datasets
+* Plus de restriction basée sur les rôles pour cette fonctionnalité
+* Démocratisation de l'ajout de contenu
+
+**Impact technique :**
+* La méthode `RoleService.canUploadDatasets()` retourne maintenant `true` pour tous les utilisateurs authentifiés
+* Les guards `uploadGuard` dans `upload.guard.ts` et `role.guard.ts` ont été mis à jour
+* Les messages d'erreur reflètent le nouveau comportement
+
+== Guide d'utilisation
+
+=== Ajout d'un nouveau dataset
+
+. Naviguer vers la page "Datasets"
+. S'assurer d'être authentifié (tous les utilisateurs peuvent maintenant ajouter des datasets)
+. Cliquer sur le bouton flottant "+" en bas à droite
+. Suivre le processus d'upload dans la page qui s'ouvre
+
+== Notes techniques
+
+=== Services impliqués
+* `DatasetService` : Gestion des datasets
+* `RoleService` : Vérification des permissions
+* `Router` : Navigation entre les pages
+
+=== Composants concernés
+* `DatasetListingComponent` : Page principale des datasets
+* `FullComponent` : Layout principal de l'application
+
+=== Traductions
+* Utilisation de `@ngx-translate/core` pour l'internationalisation
+* Clés de traduction : `DATASETS.UPLOAD.TOOLTIP`
+
+== Maintenance
+
+=== Ajout de nouvelles fonctionnalités
+Pour ajouter un nouveau bouton flottant, suivre le pattern existant :
+
+. Ajouter les permissions appropriées dans `RoleService`
+. Créer l'Observable de permission dans le composant
+. Implémenter la logique métier
+. Ajouter le bouton avec les classes CSS appropriées
+. Tester l'accessibilité et la responsivité
+
+=== Bonnes pratiques
+* Toujours utiliser des permissions conditionnelles pour les actions sensibles
+* Maintenir la cohérence visuelle avec Angular Material
+* Fournir des tooltips informatifs
+* Considérer l'impact sur l'expérience mobile

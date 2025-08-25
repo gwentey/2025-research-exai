@@ -117,6 +117,12 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Initialiser les permissions
     this.canUploadDatasets$ = this.roleService.canUploadDatasets();
+    
+    // DEBUG: Vérifier les permissions
+    this.canUploadDatasets$.subscribe(canUpload => {
+      console.log('🔐 PERMISSIONS DEBUG - canUploadDatasets:', canUpload);
+      console.log('🔐 BOUTON FAB devrait être', canUpload ? 'VISIBLE' : 'CACHÉ');
+    });
 
     this.loadDatasets();
 
@@ -848,6 +854,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
    * Ouvre la page d'upload de datasets
    */
   uploadDataset(): void {
+    console.log('🚀 BOUTON FAB CLIQUÉ - Navigation vers upload de datasets');
     this.router.navigate(['/datasets/upload']);
   }
 

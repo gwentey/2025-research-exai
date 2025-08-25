@@ -7,7 +7,7 @@ import { of } from 'rxjs';
 
 /**
  * Guard fonctionnel pour vérifier si un utilisateur peut uploader des datasets.
- * Vérifie que l'utilisateur est authentifié ET a les permissions d'upload (admin ou contributeur).
+ * Vérifie que l'utilisateur est authentifié - tous les utilisateurs peuvent maintenant uploader.
  */
 export const uploadGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
@@ -33,7 +33,7 @@ export const uploadGuard: CanActivateFn = (route, state) => {
         router.navigate(['/datasets'], { 
           queryParams: { 
             error: 'upload_permission_denied',
-            message: 'Vous devez avoir les droits admin ou contributeur pour ajouter des datasets.'
+            message: 'Vous devez être authentifié pour ajouter des datasets.'
           } 
         });
         return false;

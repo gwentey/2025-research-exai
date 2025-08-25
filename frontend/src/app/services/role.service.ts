@@ -121,11 +121,13 @@ export class RoleService {
 
   /**
    * Vérifie si l'utilisateur peut uploader des datasets
-   * MODIFIÉ : Accessible à tous les utilisateurs authentifiés
+   * Maintenant accessible à tous les utilisateurs authentifiés
    * @returns Observable<boolean>
    */
   canUploadDatasets(): Observable<boolean> {
-    return of(true); // Tous les utilisateurs peuvent maintenant uploader des datasets
+    return this.currentRole$.pipe(
+      map(currentRole => currentRole !== null)
+    );
   }
 
   /**
