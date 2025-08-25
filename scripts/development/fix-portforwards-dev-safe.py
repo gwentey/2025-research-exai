@@ -3,12 +3,19 @@
 utilisé pour le make dev-data
 Script de réparation des port-forwards SAFE pour le développement
 Ne tue JAMAIS les processus de logs, seulement les port-forwards bloqués
+MULTI-PLATEFORME: Windows et macOS
 """
 
 import subprocess
 import time
 import sys
+import platform
+import os
 from typing import List, Tuple
+
+# Détection OS
+IS_WINDOWS = platform.system() == 'Windows'
+IS_MACOS = platform.system() == 'Darwin'
 
 def run_command(cmd: str, timeout: int = 10) -> Tuple[int, str, str]:
     """Exécute une commande avec gestion d'erreurs"""
@@ -22,20 +29,33 @@ def run_command(cmd: str, timeout: int = 10) -> Tuple[int, str, str]:
 
 def get_port_processes(port: int) -> List[int]:
     """Récupère les PIDs des processus qui occupent un port"""
-    code, stdout, stderr = run_command(f"netstat -ano")
-    if code != 0:
-        return []
-    
     pids = []
-    for line in stdout.split('\n'):
-        if f":{port}" in line and "LISTENING" in line:
-            parts = line.strip().split()
-            if len(parts) >= 5:
+    
+    if IS_WINDOWS:
+        code, stdout, stderr = run_command(f"netstat -ano")
+        if code != 0:
+            return []
+        
+        for line in stdout.split('\n'):
+            if f":{port}" in line and "LISTENING" in line:
+                parts = line.strip().split()
+                if len(parts) >= 5:
+                    try:
+                        pid = int(parts[-1])
+                        pids.append(pid)
+                    except ValueError:
+                        continue
+    else:
+        # macOS/Linux: utiliser lsof
+        code, stdout, stderr = run_command(f"lsof -ti :{port}")
+        if code == 0 and stdout.strip():
+            for line in stdout.strip().split('\n'):
                 try:
-                    pid = int(parts[-1])
+                    pid = int(line.strip())
                     pids.append(pid)
                 except ValueError:
                     continue
+    
     return pids
 
 def is_port_free(port: int) -> bool:
@@ -46,14 +66,36 @@ def start_port_forward(service: str, local_port: int, target_port: int) -> subpr
     """Démarre un port-forward en arrière-plan"""
     cmd = f"kubectl port-forward -n ibis-x service/{service} {local_port}:{target_port}"
     print(f"🚀 Démarrage: {cmd}")
-    return subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    try:
+        if IS_WINDOWS:
+            # Windows: processus standard
+            process = subprocess.Popen(
+                cmd.split(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+        else:
+            # macOS/Linux: processus détaché qui survivra au script
+            process = subprocess.Popen(
+                cmd.split(),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                preexec_fn=os.setsid if hasattr(os, 'setsid') else None
+            )
+        return process
+    except Exception as e:
+        print(f"❌ Erreur lors du démarrage du port-forward: {e}")
+        return None
 
 def test_service_health(url: str) -> bool:
     """Teste la santé d'un service"""
     try:
-        import requests
-        response = requests.get(url, timeout=5)
-        return response.status_code == 200
+        import urllib.request
+        import urllib.error
+        with urllib.request.urlopen(url, timeout=5) as response:
+            return response.getcode() == 200
     except:
         return False
 
@@ -110,18 +152,37 @@ def main():
     print("\n🏥 Test de santé des nouveaux services...")
     healthy_count = 0
     for service_name, process, health_url in processes:
-        if process.poll() is not None:
-            print(f"❌ {service_name}: Processus crashé")
-        elif health_url:
-            if test_service_health(health_url):
-                print(f"✅ {service_name}: OK (HTTP 200)")
-                healthy_count += 1
-            else:
-                print(f"⚠️  {service_name}: Processus actif mais santé incertaine")
-                healthy_count += 1
+        if process is None:
+            print(f"❌ {service_name}: Échec du démarrage")
+            continue
+            
+        # Vérification différente selon l'OS
+        process_crashed = False
+        if IS_WINDOWS:
+            if process.poll() is not None:
+                print(f"❌ {service_name}: Processus crashé")
+                process_crashed = True
         else:
-            print(f"✅ {service_name}: Processus actif (pas de test HTTP)")
-            healthy_count += 1
+            # Sur macOS, les processus détachés peuvent ne pas être vérifiables ainsi
+            try:
+                if process.poll() is not None:
+                    print(f"❌ {service_name}: Processus crashé")
+                    process_crashed = True
+            except:
+                # Si on ne peut pas vérifier, on assume que c'est OK (processus détaché)
+                pass
+        
+        if not process_crashed:
+            if health_url:
+                if test_service_health(health_url):
+                    print(f"✅ {service_name}: OK (HTTP 200)")
+                    healthy_count += 1
+                else:
+                    print(f"⚠️  {service_name}: Processus actif mais santé incertaine")
+                    healthy_count += 1
+            else:
+                print(f"✅ {service_name}: Processus actif (pas de test HTTP)")
+                healthy_count += 1
     
     print("\n" + "=" * 60)
     print("📊 RÉSULTATS")

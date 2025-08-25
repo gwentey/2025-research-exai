@@ -113,7 +113,11 @@ endif
 
 check-kaggle-credentials: ## Vérifie que les credentials Kaggle sont configurés
 	@echo "$(BLUE)Verification des credentials Kaggle...$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	@echo "$(YELLOW)ATTENTION: Verification simplifiee pour Windows - assurez-vous que .env contient:$(NC)"
+else
+	@echo "$(YELLOW)ATTENTION: Verification simplifiee pour macOS/Linux - assurez-vous que .env contient:$(NC)"
+endif
 	@echo "$(YELLOW)  KAGGLE_USERNAME=votre_username$(NC)"
 	@echo "$(YELLOW)  KAGGLE_KEY=votre_api_key$(NC)"
 	@echo "$(GREEN)✅ Verification passee (assurez-vous que .env est correct)$(NC)"
@@ -131,7 +135,12 @@ clean-minikube: ## Nettoie et supprime Minikube (en cas de problème)
 
 start-minikube: ## Démarre Minikube s'il n'est pas déjà en cours d'exécution
 	@echo "$(BLUE)Demarrage de Minikube...$(NC)"
-	@minikube status >/dev/null 2>&1 || minikube start --memory 4096 --cpus 2 --disk-size 20g
+	@echo "$(YELLOW)Verification de la configuration memoire adaptee...$(NC)"
+ifeq ($(IS_WINDOWS),true)
+	@powershell.exe -Command "minikube status 2>$(NULL) ; if ($$LASTEXITCODE -ne 0) { minikube config set memory 3800; minikube start --cpus 2 --disk-size 20g } else { Write-Host '$(GREEN)Minikube deja demarre$(NC)' }"
+else
+	@minikube status >/dev/null 2>&1 || (minikube config set memory 3800 && minikube start --cpus 2 --disk-size 20g)
+endif
 	@minikube addons enable ingress
 	@minikube addons enable storage-provisioner
 	@echo "$(GREEN)Minikube demarre$(NC)"
@@ -172,7 +181,7 @@ else
 endif
 	@echo "$(GREEN)Services en mode developpement continu$(NC)"
 
-start-portforwards: stop-portforwards ## Lance les port forwards dans le même terminal (Git Bash compatible)
+start-portforwards: stop-portforwards ## Lance les port forwards dans le même terminal (Auto-détection OS)
 	@echo "$(BLUE)Lancement des port forwards unifies...$(NC)"
 	@echo "$(YELLOW)Verification de la disponibilite des services...$(NC)"
 	@kubectl get service frontend -n $(NAMESPACE) >/dev/null 2>&1 || { echo "$(RED)Service frontend introuvable$(NC)"; exit 1; }
@@ -186,16 +195,29 @@ start-portforwards: stop-portforwards ## Lance les port forwards dans le même t
 	@sleep 5
 	@echo "$(GREEN)Tous les services sont disponibles et stables$(NC)"
 	@echo "$(YELLOW)Lancement des port-forwards en arriere-plan...$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/frontend','8080:80'"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/api-gateway-service','9000:80'"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6700:80'"
 	@powershell.exe -Command "Start-Process -WindowStyle Hidden kubectl -ArgumentList 'port-forward','-n','$(NAMESPACE)','service/minio-service','6701:8080'"
+else
+	@bash -c 'kubectl port-forward -n $(NAMESPACE) service/frontend 8080:80 > /dev/null 2>&1 &'
+	@bash -c 'kubectl port-forward -n $(NAMESPACE) service/api-gateway-service 9000:80 > /dev/null 2>&1 &'
+	@bash -c 'kubectl port-forward -n $(NAMESPACE) service/minio-service 6700:80 > /dev/null 2>&1 &'
+	@bash -c 'kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:8080 > /dev/null 2>&1 &'
+endif
 	@echo "$(YELLOW)Attente de l'etablissement des port forwards...$(NC)"
-	@sleep 12
+	@$(SLEEP_CMD) 12
 	@echo "$(YELLOW)Verification des port forwards...$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	@powershell.exe -Command "try { $$response = Invoke-WebRequest -Uri 'http://localhost:8080' -TimeoutSec 3 -UseBasicParsing; Write-Host '$(GREEN)✓ Frontend OK (port 8080)$(NC)' } catch { Write-Host '$(RED)✗ Frontend non accessible$(NC)' }"
 	@powershell.exe -Command "try { $$response = Invoke-WebRequest -Uri 'http://localhost:9000/health' -TimeoutSec 3 -UseBasicParsing; Write-Host '$(GREEN)✓ API Gateway OK (port 9000)$(NC)' } catch { Write-Host '$(RED)✗ API Gateway non accessible$(NC)' }"
 	@powershell.exe -Command "try { $$response = Invoke-WebRequest -Uri 'http://localhost:6701' -TimeoutSec 3 -UseBasicParsing; Write-Host '$(GREEN)✓ MinIO OK (port 6701)$(NC)' } catch { Write-Host '$(YELLOW)! MinIO non disponible$(NC)' }"
+else
+	@curl -fsS --max-time 3 http://localhost:8080 >/dev/null 2>&1 && echo "$(GREEN)✓ Frontend OK (port 8080)$(NC)" || echo "$(RED)✗ Frontend non accessible$(NC)"
+	@curl -fsS --max-time 3 http://localhost:9000/health >/dev/null 2>&1 && echo "$(GREEN)✓ API Gateway OK (port 9000)$(NC)" || echo "$(RED)✗ API Gateway non accessible$(NC)"
+	@curl -fsS --max-time 3 http://localhost:6701 >/dev/null 2>&1 && echo "$(GREEN)✓ MinIO OK (port 6701)$(NC)" || echo "$(YELLOW)! MinIO non disponible$(NC)"
+endif
 	@echo ""
 	@echo "$(GREEN)✅ Tous les port forwards sont operationnels !$(NC)"
 	@echo "$(GREEN)Acces aux services maintenant disponibles :$(NC)"
@@ -492,23 +514,30 @@ start-portforwards-simple: ## Port-forwards simples (3 commandes à copier-colle
 	@echo ""
 	@echo "$(GREEN)kubectl port-forward -n ibis-x service/frontend 8080:80$(NC)"
 	@echo "$(GREEN)kubectl port-forward -n ibis-x service/api-gateway-service 9000:80$(NC)"  
-	@echo "$(GREEN)kubectl port-forward -n ibis-x service/minio-service 6700:80
-	@kubectl port-forward -n $(NAMESPACE) service/minio-service 6701:8080$(NC)"
+	@echo "$(GREEN)kubectl port-forward -n ibis-x service/minio-service 6700:80$(NC)"
+	@echo "$(GREEN)kubectl port-forward -n ibis-x service/minio-service 6701:8080$(NC)"
 	@echo ""
 	@echo "$(BLUE)Puis allez sur http://localhost:8080$(NC)"
 
 list-jobs: ## Liste les processus kubectl port-forward actifs
 	@echo "$(BLUE)Processus kubectl port-forward actifs :$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	@powershell.exe -Command "$$processes = Get-Process -Name kubectl -ErrorAction SilentlyContinue | Where-Object { $$_.CommandLine -like '*port-forward*' }; if ($$processes) { $$processes | Format-Table ProcessName, Id, StartTime -AutoSize } else { Write-Host 'Aucun port-forward actif' }"
+else
+	@ps aux | grep "kubectl.*port-forward" | grep -v grep || echo "Aucun port-forward actif"
+endif
 	@echo ""
 	@echo "$(YELLOW)Pour arreter tous les port-forwards : make stop-portforwards$(NC)"
 
 clean-temp-files: ## Nettoie les fichiers temporaires créés par le Makefile
 	@echo "$(BLUE)Nettoyage des fichiers temporaires...$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	-@del launch-ports.bat 2>$(NULL) || echo ""
 	-@del logs-viewer.bat 2>$(NULL) || echo ""
 	-@del start-portforwards.bat 2>$(NULL) || echo ""
-
+else
+	-@rm -f launch-ports.bat logs-viewer.bat start-portforwards.bat 2>$(NULL) || echo ""
+endif
 	@echo "$(GREEN)Fichiers temporaires nettoyes$(NC)"
 
 healthcheck: ## Vérifie l'état de santé des services et port-forwards
@@ -521,12 +550,22 @@ dev-data: check-kaggle-credentials ## Import automatique des VRAIS datasets Kagg
 	@echo "$(BLUE)🚀 Import automatique des VRAIS datasets Kaggle pour developpement...$(NC)"
 	@echo "$(YELLOW)ATTENTION: Cette operation va telecharger les vrais datasets depuis Kaggle$(NC)"
 	@echo "$(YELLOW)Cela peut prendre plusieurs minutes selon votre connexion internet$(NC)"
+	@echo "$(YELLOW)Installation des dependances Python requises...$(NC)"
+ifeq ($(IS_WINDOWS),true)
+	@powershell.exe -Command "python -m pip install kaggle requests tqdm psycopg2-binary sqlalchemy pandas numpy minio 2>$(NULL) || echo 'Installation terminee'"
+else
+	@python -m pip install kaggle requests tqdm psycopg2-binary sqlalchemy pandas numpy minio 2>$(NULL) || echo 'Installation terminee'
+endif
 	@echo "$(YELLOW)Verification et démarrage automatique des port-forwards (safe pour logs)...$(NC)"
 	@python scripts/development/fix-portforwards-dev-safe.py
 	@echo "$(GREEN)✅ Tous les services sont accessibles et prêts !$(NC)"
 	
 	@echo "$(YELLOW)Lancement de l'import Kaggle avec structure UUID...$(NC)"
+ifeq ($(IS_WINDOWS),true)
 	@cd datasets/kaggle-import && python main.py --force-refresh $(ARGS)
+else
+	@cd datasets/kaggle-import && export $$(grep -v '^#' ../../.env | xargs) && python main.py --force-refresh $(ARGS)
+endif
 	
 	@echo "$(YELLOW)Validation des datasets importes...$(NC)"
 	@python scripts/development/validate-kaggle-datasets.py
