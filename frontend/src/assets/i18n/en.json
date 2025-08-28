@@ -162,7 +162,10 @@
     "VIEW_ALL": "View All",
     "UPLOAD_NEW": "Upload New",
     "VIEW_ALL_USERS": "View All Users",
-    "ADD_NEW_USER": "Add New User"
+    "ADD_NEW_USER": "Add New User",
+    "POOR": "Poor",
+    "GOOD": "Good",
+    "EXCELLENT": "Excellent"
   },
   "DASHBOARD": {
     "TITLE": "IBIS-X Dashboard",
@@ -821,7 +824,17 @@
     "EXPLANATIONS_AVAILABLE": "Explanations report available"
   },
   "HEADER": {
-    "SEARCH_PLACEHOLDER": "Search...",
+    "SEARCH_PLACEHOLDER": "Search in IBIS-X...",
+    "SEARCH_ARIA_LABEL": "Main search bar",
+    "SEARCH_TOOLTIP": "Search pages, projects or datasets (Ctrl+K)",
+    "SEARCH_DIALOG_PLACEHOLDER": "Search pages, projects, datasets...",
+    "SEARCH_NO_RESULTS": "No results found",
+    "SEARCH_TRY_DIFFERENT": "Try different keywords",
+    "SEARCH_RESULTS": "Search results",
+    "SEARCH_QUICK_LINKS": "Quick links",
+    "SEARCH_NAVIGATE": "Navigate",
+    "SEARCH_SELECT": "Select",
+    "SEARCH_CLOSE": "Close",
     "NOTIFICATIONS": "Notifications",
     "SHORTCUTS": "Shortcuts",
     "DATASETS": "Datasets",
@@ -1383,9 +1396,35 @@
     "LOADING": "Loading results..."
   },
   "ML_EXPERIMENTS": {
-    "TITLE": "All ML Experiments",
-    "SUBTITLE": "Manage and analyze your machine learning experiments",
+    "TITLE": "Machine Learning Experiments",
+    "SUBTITLE": "Explore and analyze your ML models with intelligent insights",
     "NEW_EXPERIMENT": "New Experiment",
+    "VIEW_INSIGHTS": "View Insights",
+    "COMPLETED_EXPERIMENTS": "Completed experiments",
+    "AVERAGE_PERFORMANCE": "Average performance",
+    "SUCCESS_RATE": "Success rate",
+    
+    "FILTER_EXPERIMENTS": "Filter and analyze",
+    "EXPERIMENTS_FOUND": "experiments found",
+    "INTELLIGENT_SEARCH": "Intelligent search",
+    "SEARCH_PLACEHOLDER_ENHANCED": "Search by ID, algorithm, metric, or performance...",
+    "QUICK_FILTERS": "Quick filters",
+    "HIGH_PERFORMANCE": "High performance",
+    "RECENT": "Recent",
+    
+    "PANDAS_INSIGHTS": "Data insights",
+    "PANDAS_INSIGHTS_DESC": "Automatic pandas/jupyter-style analysis to understand your experiments",
+    
+    "NO_EXPERIMENTS_TITLE": "No experiments yet",
+    "NO_EXPERIMENTS_DESC": "Create your first ML experiment to start analyzing data and training intelligent models",
+    "LOADING_EXPERIMENTS": "Loading experiments...",
+    "LOADING_DESC": "Retrieving and analyzing your ML experiments",
+    
+    "VIEW_DETAILS": "View details",
+    "DELETE": "Delete",
+    "TRAINING_IN_PROGRESS": "Training in progress...",
+    "TRAINING_FAILED": "Training failed",
+    
     "SEARCH": "Search",
     "SEARCH_PLACEHOLDER": "Search by ID or algorithm...",
     "STATUS_FILTER": "Filter by status",
@@ -1407,7 +1446,61 @@
     "COMPLETED_COUNT": "Completed experiments",
     "RUNNING_COUNT": "Running experiments",
     "AVG_ACCURACY": "Average accuracy",
-    "SUCCESS_RATE": "Success rate"
+    "BACK_TO_LIST": "Back to list"
+  },
+  "EXPERIMENT_RESULTS": {
+    "TITLE": "Experiment Results",
+    "NEW_EXPERIMENT": "New Experiment",
+    "DOWNLOAD_MODEL": "Download Model",
+    "EXPERIMENT_ANALYSIS": "Detailed Experiment Analysis",
+    "DETAILED_ANALYSIS_DESC": "Explore performance, visualizations and recommendations for your ML model",
+    "EXPERIMENT_ID": "Experiment ID",
+    "COMPLETED": "Completed",
+    "STATUS": "Status",
+    "OVERALL_PERFORMANCE": "Overall Performance",
+    
+    "PERFORMANCE_METRICS": "Performance Metrics",
+    "METRICS_EXPLANATION": "Analyze your model's performance with detailed metrics and beginner-friendly explanations",
+    "UNDERSTAND_METRICS": "Understand Metrics",
+    "INDUSTRY_BENCHMARK": "Industry benchmark",
+    "NO_METRICS_TITLE": "No metrics available",
+    "NO_METRICS_DESC": "This model does not contain analyzable performance metrics.",
+    
+    "DATA_INSIGHTS": "Insights & Analysis",
+    "PANDAS_LIKE_ANALYSIS": "Pandas/jupyter-style analysis with smart recommendations",
+    "METRIC": "Metric",
+    "VALUE": "Value",
+    "INTERPRETATION": "Interpretation",
+    
+    "INTERACTIVE_VISUALIZATIONS": "Interactive Visualizations",
+    "EXPLORE_MODEL_BEHAVIOR": "Explore your model's behavior and structure with interactive charts",
+    "DECISION_TREE_TITLE": "Interactive Decision Tree",
+    "DECISION_TREE_DESC": "Complete structure of your decision tree with navigable nodes",
+    "RANDOM_FOREST_TITLE": "Random Forest",
+    "RANDOM_FOREST_DESC": "Visualization of a representative tree from your random forest",
+    "FEATURE_IMPORTANCE_TITLE": "Feature Importance",
+    "FEATURE_IMPORTANCE_DESC": "Influence of each variable on model predictions",
+    "PREDICTIONS_DISTRIBUTION_TITLE": "Predictions Distribution",
+    "PREDICTIONS_DISTRIBUTION_DESC": "Distribution of your model's predictions",
+    "METRICS_CHART_TITLE": "Metrics Chart",
+    "METRICS_CHART_DESC": "Synthetic view of all your performance metrics",
+    "REGRESSION_PLOT_TITLE": "Regression Plot",
+    "REGRESSION_PLOT_DESC": "Correlation between predicted and actual values",
+    "FULLSCREEN": "Fullscreen",
+    "DOWNLOAD_CHART": "Download chart",
+    "TREE_INSIGHTS": "Insights on tree structure",
+    "FOREST_INSIGHTS": "Insights on forest performance",
+    "FEATURE_INSIGHTS": "Most important variables",
+    
+    "EXPORT_SHARE_TITLE": "Export & Share",
+    "EXPORT_SHARE_DESC": "Share your results or export them in different formats",
+    "EXPORT_PDF": "Export PDF",
+    "EXPORT_CSV": "Export CSV",
+    "EXPORT_NOTEBOOK": "Jupyter Notebook",
+    "SHARE_LINK": "Share Link",
+    
+    "LOADING_RESULTS": "Loading Results",
+    "LOADING_EXPERIMENT": "Retrieving experiment"
   },
   "CREDITS_REFILL": {
     "TITLE": "Credits Refill",

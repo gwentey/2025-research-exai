@@ -146,13 +146,13 @@
   z-index: 1;
 }
 
-// Sidebar navigation moderne flottante avec ombres prononcées
+// Sidebar navigation moderne flottante avec ombres prononcées - OPTIMISÉE
 .wizard-sidebar {
   width: 280px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-3xl);
-  padding: var(--space-2xl) var(--space-xl);
+  padding: var(--space-xl) var(--space-lg); // Réduction du padding vertical
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -198,9 +198,29 @@
 
   .wizard-nav {
     flex: 1;
-    padding: var(--space-lg) 0;
+    padding: var(--space-md) 0; // Réduction du padding
     display: flex;
     justify-content: center;
+    overflow-y: auto; // Ajout du scroll vertical
+    overflow-x: hidden;
+    
+    // Styles du scrollbar pour une meilleure intégration
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(var(--color-primary-rgb), 0.2);
+      border-radius: 2px;
+    }
+    
+    &::-webkit-scrollbar-thumb:hover {
+      background: rgba(var(--color-primary-rgb), 0.3);
+    }
 
     .nav-section {
       position: relative;
@@ -212,9 +232,9 @@
         .nav-step {
           display: flex;
           align-items: center;
-          gap: var(--space-lg);
-          padding: var(--space-md) var(--space-md);
-          margin-bottom: var(--space-sm);
+          gap: var(--space-md); // Réduction du gap
+          padding: var(--space-sm) var(--space-md); // Réduction du padding vertical
+          margin-bottom: 6px; // Réduction de la marge (au lieu de var(--space-sm))
           cursor: pointer;
           transition: all var(--transition-base);
           text-decoration: none;
@@ -294,8 +314,8 @@
           }
 
           .step-indicator {
-            width: 36px;
-            height: 36px;
+            width: 30px; // Réduction de 36px à 30px
+            height: 30px;
             border-radius: 50%;
             background: var(--bg-secondary);
             border: 2px solid var(--border-color);
@@ -307,7 +327,7 @@
             position: relative;
 
             .step-number {
-              font-size: 15px;
+              font-size: 13px; // Réduction de 15px à 13px
               font-weight: 600;
               color: var(--text-secondary);
               line-height: 1;
@@ -319,7 +339,7 @@
             min-width: 0;
 
             .step-title {
-              font-size: 17px;
+              font-size: 15px; // Réduction de 17px à 15px
               font-weight: 500;
               color: var(--text-primary);
               line-height: 1.3;
@@ -1472,7 +1492,83 @@
   .wizard-content {
     padding: var(--space-lg);
   }
+}
+
+// ==================================================
+// OPTIMISATION POUR ÉCRANS DE HAUTEUR RÉDUITE (MacBook 13", etc.)
+// ==================================================
+
+@media (max-height: 900px) {
+  .wizard-sidebar {
+    // Réduction supplémentaire du padding pour petites hauteurs
+    padding: var(--space-lg) var(--space-md);
+    
+    .wizard-logo {
+      margin-bottom: var(--space-xl); // Réduction de la marge du logo
+    }
+    
+    .wizard-nav {
+      padding: var(--space-sm) 0; // Réduction supplémentaire du padding
+      
+      .nav-section .nav-steps .nav-step {
+        padding: 6px var(--space-sm); // Padding encore plus compact
+        margin-bottom: 4px; // Marge réduite
+        
+        .step-indicator {
+          width: 28px; // Réduction supplémentaire à 28px
+          height: 28px;
+          
+          .step-number {
+            font-size: 12px; // Réduction à 12px
+          }
+        }
+        
+        .step-content .step-title {
+          font-size: 14px; // Réduction à 14px
+          line-height: 1.2;
+        }
+      }
+    }
   }
+}
+
+@media (max-height: 800px) {
+  .wizard-sidebar {
+    // Optimisation extrême pour très petites hauteurs
+    padding: var(--space-md) var(--space-sm);
+    
+    .wizard-logo {
+      margin-bottom: var(--space-lg);
+      
+      .logo-text {
+        font-size: 18px; // Réduction du titre
+      }
+    }
+    
+    .wizard-nav {
+      padding: 4px 0;
+      
+      .nav-section .nav-steps .nav-step {
+        padding: 4px var(--space-sm);
+        margin-bottom: 2px;
+        
+        .step-indicator {
+          width: 26px; // Taille minimale
+          height: 26px;
+          
+          .step-number {
+            font-size: 11px;
+          }
+        }
+        
+        .step-content .step-title {
+          font-size: 13px;
+          line-height: 1.1;
+        }
+      }
+    }
+  }
+}
 
 @media (max-width: 768px) {
   .algorithm-grid {

@@ -226,10 +226,7 @@ export class HorizontalHeaderComponent implements OnInit {
     this.optionsChange.emit(this.options);
   }
 
-  setlightDark(theme: string) {
-    this.options.theme = theme;
-    this.emitOptions();
-  }
+
 
   notifications: notifications[] = [
     {

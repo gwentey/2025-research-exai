@@ -5,18 +5,9 @@ import { CoreService } from 'src/app/services/core.service';
   selector: 'app-branding',
   imports: [],
   template: `
-    <a href="/" class="logodark">
+    <a href="/" class="logo">
       <img
         src="./assets/images/logos/dark-logo.svg"
-        class="align-middle m-2"
-        width="200"
-        alt="logo"
-      />
-    </a>
-
-    <a href="/" class="logolight">
-      <img
-        src="./assets/images/logos/light-logo.svg"
         class="align-middle m-2"
         width="200"
         alt="logo"

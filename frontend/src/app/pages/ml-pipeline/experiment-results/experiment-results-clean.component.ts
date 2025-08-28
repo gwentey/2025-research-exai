@@ -17,7 +17,7 @@ import { ExperimentStatus, ExperimentResults, VisualizationType } from '../../..
 import { EChartsContainerComponent } from '../../../components/shared/echarts-container/echarts-container.component';
 
 @Component({
-  selector: 'app-experiment-results',
+  selector: 'app-experiment-results-clean',
   standalone: true,
   imports: [
     CommonModule,
@@ -50,7 +50,7 @@ import { EChartsContainerComponent } from '../../../components/shared/echarts-co
     ])
   ]
 })
-export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ExperimentResultsCleanComponent implements OnInit, OnDestroy, AfterViewInit {
   experimentId: string = '';
   projectId: string = '';
   experiment: ExperimentStatus | null = null;

@@ -169,7 +169,10 @@
     "CLEAR": "Effacer",
     "REFRESH": "Actualiser",
     "MINIMUM": "Minimum",
-    "MAXIMUM": "Maximum"
+    "MAXIMUM": "Maximum",
+    "POOR": "Faible",
+    "GOOD": "Bon",
+    "EXCELLENT": "Excellent"
   },
   "DASHBOARD": {
     "TITLE": "Tableau de Bord IBIS-X",
@@ -924,7 +927,17 @@
     "EXPLANATIONS_AVAILABLE": "Rapport d'explications disponible"
   },
   "HEADER": {
-    "SEARCH_PLACEHOLDER": "Rechercher...",
+    "SEARCH_PLACEHOLDER": "Rechercher dans IBIS-X...",
+    "SEARCH_ARIA_LABEL": "Barre de recherche principale",
+    "SEARCH_TOOLTIP": "Rechercher des pages, projets ou datasets (Ctrl+K)",
+    "SEARCH_DIALOG_PLACEHOLDER": "Rechercher des pages, projets, datasets...",
+    "SEARCH_NO_RESULTS": "Aucun résultat trouvé",
+    "SEARCH_TRY_DIFFERENT": "Essayez avec des mots-clés différents",
+    "SEARCH_RESULTS": "Résultats de recherche",
+    "SEARCH_QUICK_LINKS": "Liens rapides",
+    "SEARCH_NAVIGATE": "Naviguer",
+    "SEARCH_SELECT": "Sélectionner",
+    "SEARCH_CLOSE": "Fermer",
     "NOTIFICATIONS": "Notifications",
     "SHORTCUTS": "Raccourcis",
     "DATASETS": "Jeux de données",
@@ -1686,9 +1699,35 @@
     "LOADING": "Chargement des résultats..."
   },
   "ML_EXPERIMENTS": {
-    "TITLE": "Toutes les Expériences ML",
-    "SUBTITLE": "Gérez et analysez vos expériences d'apprentissage automatique",
+    "TITLE": "Expériences d'Apprentissage Automatique",
+    "SUBTITLE": "Explorez et analysez vos modèles ML avec des insights intelligents",
     "NEW_EXPERIMENT": "Nouvelle Expérience",
+    "VIEW_INSIGHTS": "Voir les Insights",
+    "COMPLETED_EXPERIMENTS": "Expériences terminées",
+    "AVERAGE_PERFORMANCE": "Performance moyenne",
+    "SUCCESS_RATE": "Taux de réussite",
+    
+    "FILTER_EXPERIMENTS": "Filtrer et analyser",
+    "EXPERIMENTS_FOUND": "expériences trouvées",
+    "INTELLIGENT_SEARCH": "Recherche intelligente",
+    "SEARCH_PLACEHOLDER_ENHANCED": "Recherchez par ID, algorithme, métrique, ou performance...",
+    "QUICK_FILTERS": "Filtres rapides",
+    "HIGH_PERFORMANCE": "Haute performance",
+    "RECENT": "Récentes",
+    
+    "PANDAS_INSIGHTS": "Insights de données",
+    "PANDAS_INSIGHTS_DESC": "Analyse automatique style pandas/jupyter pour comprendre vos expériences",
+    
+    "NO_EXPERIMENTS_TITLE": "Pas encore d'expériences",
+    "NO_EXPERIMENTS_DESC": "Créez votre première expérience ML pour commencer à analyser vos données et entraîner des modèles intelligents",
+    "LOADING_EXPERIMENTS": "Chargement des expériences...",
+    "LOADING_DESC": "Récupération et analyse de vos expériences ML",
+    
+    "VIEW_DETAILS": "Voir les détails",
+    "DELETE": "Supprimer",
+    "TRAINING_IN_PROGRESS": "Entraînement en cours...",
+    "TRAINING_FAILED": "Échec de l'entraînement",
+    
     "SEARCH": "Rechercher",
     "SEARCH_PLACEHOLDER": "Rechercher par ID ou algorithme...",
     "STATUS_FILTER": "Filtrer par statut",
@@ -1710,7 +1749,61 @@
     "COMPLETED_COUNT": "Expériences terminées",
     "RUNNING_COUNT": "En cours d'exécution",
     "AVG_ACCURACY": "Précision moyenne",
-    "SUCCESS_RATE": "Taux de réussite"
+    "BACK_TO_LIST": "Retour à la liste"
+  },
+  "EXPERIMENT_RESULTS": {
+    "TITLE": "Résultats d'Expérience",
+    "NEW_EXPERIMENT": "Nouvelle Expérience",
+    "DOWNLOAD_MODEL": "Télécharger le Modèle",
+    "EXPERIMENT_ANALYSIS": "Analyse Détaillée de l'Expérience",
+    "DETAILED_ANALYSIS_DESC": "Explorez les performances, visualisations et recommandations de votre modèle ML",
+    "EXPERIMENT_ID": "ID Expérience",
+    "COMPLETED": "Terminée",
+    "STATUS": "Statut",
+    "OVERALL_PERFORMANCE": "Performance Globale",
+    
+    "PERFORMANCE_METRICS": "Métriques de Performance",
+    "METRICS_EXPLANATION": "Analysez les performances de votre modèle avec des métriques détaillées et des explications pour novices",
+    "UNDERSTAND_METRICS": "Comprendre les Métriques",
+    "INDUSTRY_BENCHMARK": "Référence industrie",
+    "NO_METRICS_TITLE": "Aucune métrique disponible",
+    "NO_METRICS_DESC": "Ce modèle ne contient pas de métriques de performance analysables.",
+    
+    "DATA_INSIGHTS": "Insights et Analyse",
+    "PANDAS_LIKE_ANALYSIS": "Analyse style pandas/jupyter avec recommandations intelligentes",
+    "METRIC": "Métrique",
+    "VALUE": "Valeur",
+    "INTERPRETATION": "Interprétation",
+    
+    "INTERACTIVE_VISUALIZATIONS": "Visualisations Interactives",
+    "EXPLORE_MODEL_BEHAVIOR": "Explorez le comportement et la structure de votre modèle avec des graphiques interactifs",
+    "DECISION_TREE_TITLE": "Arbre de Décision Interactif",
+    "DECISION_TREE_DESC": "Structure complète de votre arbre de décision avec noeuds navigables",
+    "RANDOM_FOREST_TITLE": "Forêt Aléatoire",
+    "RANDOM_FOREST_DESC": "Visualisation d'un arbre représentatif de votre forêt aléatoire",
+    "FEATURE_IMPORTANCE_TITLE": "Importance des Caractéristiques",
+    "FEATURE_IMPORTANCE_DESC": "Influence de chaque variable sur les prédictions du modèle",
+    "PREDICTIONS_DISTRIBUTION_TITLE": "Distribution des Prédictions",
+    "PREDICTIONS_DISTRIBUTION_DESC": "Répartition des prédictions de votre modèle",
+    "METRICS_CHART_TITLE": "Graphique des Métriques",
+    "METRICS_CHART_DESC": "Vue synthétique de toutes vos métriques de performance",
+    "REGRESSION_PLOT_TITLE": "Graphique de Régression",
+    "REGRESSION_PLOT_DESC": "Corrélation entre valeurs prédites et réelles",
+    "FULLSCREEN": "Plein écran",
+    "DOWNLOAD_CHART": "Télécharger le graphique",
+    "TREE_INSIGHTS": "Insights sur la structure de l'arbre",
+    "FOREST_INSIGHTS": "Insights sur la performance de la forêt",
+    "FEATURE_INSIGHTS": "Variables les plus importantes",
+    
+    "EXPORT_SHARE_TITLE": "Export et Partage",
+    "EXPORT_SHARE_DESC": "Partagez vos résultats ou exportez-les dans différents formats",
+    "EXPORT_PDF": "Exporter PDF",
+    "EXPORT_CSV": "Exporter CSV",
+    "EXPORT_NOTEBOOK": "Notebook Jupyter",
+    "SHARE_LINK": "Partager Lien",
+    
+    "LOADING_RESULTS": "Chargement des Résultats",
+    "LOADING_EXPERIMENT": "Récupération de l'expérience"
   },
   "CREDITS_REFILL": {
     "TITLE": "Recharge de crédits",

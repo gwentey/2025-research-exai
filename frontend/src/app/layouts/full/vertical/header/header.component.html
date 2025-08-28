@@ -34,16 +34,24 @@
   </button>
 
   <!-- --------------------------------------------------------------- -->
-  <!--  Recherche IBIS-X Élargie -->
+  <!--  Recherche IBIS-X Élargie et Améliorée -->
   <!-- --------------------------------------------------------------- -->
-  <div class="search-container d-none d-lg-flex flex-1 max-width-400 m-r-16">
+  <div class="search-container d-none d-lg-flex max-width-400 m-r-16 m-l-16 flex-grow-1">
     <button
       mat-stroked-button
       class="w-100 custom-outline-btn search-btn-expanded"
+      (click)="openSearchDialog()"
+      [attr.aria-label]="'HEADER.SEARCH_ARIA_LABEL' | translate"
+      matTooltip="{{ 'HEADER.SEARCH_TOOLTIP' | translate }}"
+      matTooltipPosition="below"
     >
-      <div class="d-flex align-items-center w-100">
-        <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> 
-        <span class="text-muted">{{ 'HEADER.SEARCH_PLACEHOLDER' | translate }}</span>
+      <div class="d-flex align-items-center w-100 justify-content-start">
+        <i-tabler name="search" class="icon-26 d-flex m-r-14"></i-tabler> 
+        <span class="text-muted flex-grow-1 text-start">{{ 'HEADER.SEARCH_PLACEHOLDER' | translate }}</span>
+        <div class="d-flex align-items-center text-muted opacity-75">
+          <span class="f-s-12 d-none d-xl-inline m-r-4">Ctrl</span>
+          <span class="f-s-12 d-none d-xl-inline">K</span>
+        </div>
       </div>
     </button>
   </div>
@@ -75,28 +83,7 @@
     }
   </mat-menu>
 
-  <!-- --------------------------------------------------------------- -->
-  <!-- light / dark icon -->
-  <!-- --------------------------------------------------------------- -->
-  @if(options.theme=='light'){
-  <button
-    mat-icon-button
-    aria-label="lightdark"
-    class="d-flex justify-content-center"
-    (click)="setlightDark('dark')"
-  >
-    <i-tabler class="d-flex icon-22" [name]="'moon'"></i-tabler>
-  </button>
-  }@else{
-  <button
-    mat-icon-button
-    aria-label="lightdark"
-    class="d-flex justify-content-center"
-    (click)="setlightDark('light')"
-  >
-    <i-tabler class="d-flex icon-22" [name]="'sun'"></i-tabler>
-  </button>
-  }
+
 
   <!-- --------------------------------------------------------------- -->
   <!-- Collpase bar -->

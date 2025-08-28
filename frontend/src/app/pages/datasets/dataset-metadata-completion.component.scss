@@ -346,30 +346,3 @@
   }
 }
 
-// Dark theme support
-@media (prefers-color-scheme: dark) {
-  .metadata-completion-container {
-    .header-section {
-      .dataset-info h2 {
-        color: #e0e0e0;
-      }
-    }
-
-    .form-section {
-      background-color: #424242;
-      border-color: #616161;
-
-      &.ethical-section {
-        background-color: #333;
-      }
-    }
-
-    .ethical-warning {
-      background-color: #3e2723;
-      
-      .warning-text {
-        color: #ffb74d;
-      }
-    }
-  }
-}

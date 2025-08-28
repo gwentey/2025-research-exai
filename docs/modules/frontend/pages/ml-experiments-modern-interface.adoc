@@ -1,0 +1,223 @@
+= Interface Moderne des Expérimentations ML
+:page-description: Guide des améliorations de design style Stripe/Linear pour l'interface d'affichage des expérimentations ML
+:page-keywords: interface, expérimentations, ML, Stripe, Linear, design, UX
+:imagesdir: ../assets/images
+
+== Vue d'ensemble
+
+L'interface d'affichage des expérimentations ML a été entièrement repensée dans un style moderne inspiré de Stripe et Linear, avec une approche user-friendly pour les utilisateurs novices.
+
+== Nouvelles fonctionnalités
+
+=== Hero Section Interactive
+
+Une section héroïque moderne affiche :
+
+* **Statistiques en temps réel** : Expériences terminées, performance moyenne, taux de réussite
+* **Actions rapides** : Création d'expérience et accès aux insights
+* **Design immersif** : Gradients, animations et effets de blur
+
+[source,html]
+----
+<section class="hero-section">
+  <div class="hero-background">
+    <div class="gradient-overlay"></div>
+    <div class="pattern-overlay"></div>
+  </div>
+  <div class="hero-content">
+    <!-- Contenu héroïque -->
+  </div>
+</section>
+----
+
+=== Filtres Intelligents
+
+==== Cartes de Filtres
+* **Recherche intelligente** : Recherche par ID, algorithme, métrique ou performance
+* **Filtres visuels** : Cardes avec icônes pour chaque type de filtre
+* **Filtres rapides** : Accès direct aux expériences haute performance et récentes
+
+==== Suggestions de recherche
+Les suggestions apparaissent automatiquement lors de la saisie pour guider l'utilisateur.
+
+=== Panel d'Insights Style Jupyter
+
+==== Analyse Automatique
+Un panel inspiré de Jupyter Notebook qui affiche :
+
+[source,python]
+----
+# In [1]: experiments_df.describe()
+#         count   mean    std     max
+# accuracy  15    87.3%   4.2%   96.7%
+
+# In [2]: experiments_df.groupby('algorithm').agg({'accuracy': 'mean'})
+# Decision Tree   : 85.4%
+# Random Forest   : 91.2%
+----
+
+==== Code Insights
+* **Style terminal authentique** : Background sombre, syntax highlighting
+* **Métriques calculées** : Statistiques descriptives automatiques
+* **Comparaisons d'algorithmes** : Performance par algorithme
+
+=== Interface en Cartes Modernes
+
+==== Layout Grid Responsif
+Les expérimentations sont affichées dans une grille de cartes modernes avec :
+
+* **Design cards élevé** : Shadows, hover effects, transitions fluides
+* **Badges d'algorithmes** : Couleurs distinctes par type d'algorithme
+* **Status badges animés** : Indicators visuels avec animations
+
+==== Métriques Visuelles
+Chaque carte d'expérience affiche :
+
+* **Progress rings** : Visualisation circulaire de la performance
+* **Mini-métriques** : Affichage compact des métriques additionnelles
+* **États en temps réel** : Progress bars pour les entraînements en cours
+
+== Guide d'utilisation
+
+=== Navigation
+
+1. **Accès** : `/ml-pipeline/experiments` depuis le menu principal
+2. **Vue d'ensemble** : La hero section affiche immédiatement l'état global
+3. **Filtrage** : Utilisez les cartes de filtres pour affiner la recherche
+
+=== Filtres Rapides
+
+[TIP]
+====
+Utilisez les filtres rapides pour accéder instantanément aux expériences :
+- **Haute performance** : >80% de précision
+- **Récentes** : Créées dans les 7 derniers jours
+====
+
+=== Insights Pandas
+
+1. **Activation** : Cliquez sur "Voir les Insights" ou l'icône d'expansion
+2. **Analyse** : Le panel affiche automatiquement les statistiques
+3. **Comparaison** : Les algorithmes sont comparés par performance moyenne
+
+== Architecture Technique
+
+=== Composants Angular
+
+==== ExperimentsListComponent
+[source,typescript]
+----
+export class ExperimentsListComponent implements OnInit {
+  // UI State
+  showCodeInsights = false;
+  searchSuggestions: string[] = [];
+  
+  // Quick Filters
+  isHighPerformanceFilterActive = false;
+  isRecentFilterActive = false;
+  
+  // Nouvelles méthodes
+  toggleCodeInsights(): void
+  getAlgorithmPerformance(): Array<AlgorithmPerf>
+  calculateAccuracyStd(): string
+}
+----
+
+==== Animations
+Utilise Angular Animations avec des triggers :
+
+* `fadeIn` : Entrée en fondu
+* `slideInUp` : Glissement vertical avec délai
+* `slideInLeft` : Glissement horizontal  
+* `scaleIn` : Effet de zoom
+* `expandCollapse` : Expansion/réduction du panel
+
+=== Styles SCSS
+
+==== Architecture BEM
+```scss
+.experiments-dashboard
+  .hero-section
+    .hero-content
+      .hero-stats
+        .stat-item
+```
+
+==== Variables CSS Custom Properties
+```scss
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+}
+```
+
+=== Traductions
+
+==== Nouvelles clés ajoutées
+[source,json]
+----
+{
+  "ML_EXPERIMENTS": {
+    "PANDAS_INSIGHTS": "Insights de données",
+    "PANDAS_INSIGHTS_DESC": "Analyse automatique style pandas/jupyter",
+    "INTELLIGENT_SEARCH": "Recherche intelligente",
+    "HIGH_PERFORMANCE": "Haute performance",
+    "TRAINING_IN_PROGRESS": "Entraînement en cours..."
+  }
+}
+----
+
+== Performances et Optimisations
+
+=== Optimisations Implémentées
+
+* **Animations CSS** : Utilisation de `transform` et `opacity` pour de meilleures performances
+* **TrackBy Functions** : Optimisation du rendering des listes
+* **Lazy Loading** : Chargement différé des insights
+* **Debounce** : Limitation des appels de recherche
+
+=== Responsive Design
+
+L'interface s'adapte automatiquement :
+
+* **Desktop** : Grille 2-3 colonnes, hero section complète
+* **Tablet** : Grille 2 colonnes, filtres réduits  
+* **Mobile** : Colonne unique, hero section compacte
+
+== Migration et Compatibilité
+
+=== Changements Breaking
+
+[WARNING]
+====
+Les anciennes références CSS `.experiments-list` sont remplacées par `.experiments-dashboard`.
+====
+
+=== Rétrocompatibilité
+
+* ✅ Toutes les traductions existantes sont préservées
+* ✅ Les routes et navigation restent identiques
+* ✅ L'API backend reste inchangée
+
+== Bonnes Pratiques
+
+=== Accessibilité
+
+* **ARIA labels** sur tous les éléments interactifs
+* **Focus management** pour la navigation clavier
+* **Contrast ratios** respectant WCAG 2.1
+* **Screen reader** friendly avec textes alternatifs
+
+=== Maintenance
+
+* **Code modulaire** : Séparation claire des responsabilités
+* **Styles isolés** : SCSS scoped par composant
+* **Typage strict** : TypeScript avec interfaces complètes
+* **Tests unitaires** : Coverage des nouvelles fonctionnalités
+
+== Conclusion
+
+Cette refonte apporte une expérience utilisateur moderne et intuitive, particulièrement adaptée aux utilisateurs novices en ML, tout en conservant la puissance nécessaire pour les utilisateurs avancés.
+
+L'approche pandas/jupyter rend les concepts ML plus accessibles en utilisant des métaphores familières aux data scientists.

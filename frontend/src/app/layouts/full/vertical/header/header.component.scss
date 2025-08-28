@@ -1,57 +1,87 @@
 .search-container {
   // Transition smooth pour les changements de taille
-  transition: max-width 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  flex: 1;
+  max-width: 800px; // Base width considérablement augmentée
 
   .search-btn-expanded {
-    border: 1px solid #e0e0e0 !important;
-    color: #666 !important;
-    padding: 12px 20px !important; // Padding légèrement augmenté pour une meilleure apparence
-    border-radius: 8px !important; // Coins arrondis pour un design moderne
-    transition: all 0.2s ease-in-out;
-    min-height: 44px; // Hauteur minimale pour une meilleure UX
+    border: 2px solid #e0e0e0 !important; // Bordure plus épaisse pour plus de visibilité
+    color: #555 !important;
+    padding: 18px 28px !important; // Padding encore plus augmenté
+    border-radius: 14px !important; // Coins encore plus arrondis
+    transition: all 0.3s ease-in-out;
+    min-height: 60px; // Hauteur minimale encore augmentée
+    background: linear-gradient(145deg, #ffffff, #f8f9fa) !important; // Fond subtil dégradé
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1) !important; // Ombre plus prononcée
+    font-size: 17px !important; // Taille de police encore augmentée
 
     &:hover {
       border-color: #1976d2 !important;
-      background-color: #f8f9fa !important;
-      transform: translateY(-1px); // Léger effet de lift au hover
-      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15) !important;
+      background: linear-gradient(145deg, #f8f9fa, #ffffff) !important;
+      transform: translateY(-2px) scale(1.02); // Effet plus prononcé
+      box-shadow: 0 8px 25px rgba(25, 118, 210, 0.25) !important; // Ombre plus visible
+      color: #1976d2 !important;
     }
 
     &:focus, &:focus-visible {
       border-color: #1976d2 !important;
-      outline: 2px solid rgba(25, 118, 210, 0.2);
-      outline-offset: 2px;
+      outline: 3px solid rgba(25, 118, 210, 0.3);
+      outline-offset: 3px;
+      box-shadow: 0 8px 25px rgba(25, 118, 210, 0.25) !important;
+    }
+
+    &:active {
+      transform: translateY(-1px) scale(1.01);
     }
 
     .text-muted {
-      color: #999 !important;
-      font-size: 14px;
-      font-weight: 400;
+      color: #777 !important;
+      font-size: 17px; // Texte plus grand
+      font-weight: 500; // Légèrement plus gras
+      text-align: left;
+      margin-left: 4px;
 
       // Amélioration de la lisibilité sur grands écrans
       @media (min-width: 1200px) {
-        font-size: 15px;
+        font-size: 18px;
       }
+
+      @media (min-width: 1400px) {
+        font-size: 19px;
+      }
+    }
+
+    // Icône de recherche plus visible
+    i-tabler[name="search"] {
+      font-size: 26px !important; // Icône encore plus grande
+      color: #1976d2 !important;
+      opacity: 0.8;
     }
   }
 }
 
-// Zone de recherche agrandie avec design responsive
+// Zone de recherche avec design responsive amélioré
 .max-width-400 {
-  max-width: 600px; // Agrandie de 400px à 600px
-
+  max-width: 900px; // Base width encore plus grande
+  
   // Responsive breakpoints pour ajuster la taille selon l'écran
   @media (min-width: 1200px) {
-    max-width: 700px; // Plus large sur très grands écrans
+    max-width: 1100px; // Très large sur grands écrans
   }
 
   @media (min-width: 1400px) {
-    max-width: 800px; // Encore plus large sur écrans XL
+    max-width: 1200px; // Maximum encore augmenté sur écrans XL
   }
 
-  @media (max-width: 1023px) {
-    max-width: 350px; // Plus petite sur tablettes
+  @media (max-width: 1199px) and (min-width: 992px) {
+    max-width: 700px; // Taille intermédiaire augmentée sur écrans moyens
   }
+
+  @media (max-width: 991px) and (min-width: 768px) {
+    max-width: 500px; // Plus grande sur tablettes
+  }
+
+  // Sur très petits écrans, la recherche est cachée (voir plus bas)
 }
 
 .topbar {
@@ -114,4 +144,127 @@
 .ibis-x-shortcuts {
   // Styles pour les raccourcis rapides
   gap: 0.5rem;
+}
+
+// Styles pour le dialogue de recherche amélioré
+::ng-deep .search-dialog-container {
+  .mat-mdc-dialog-container {
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+.search-dialog-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 1px solid #e9ecef;
+
+  .search-input-enhanced {
+    .mat-mdc-form-field-flex {
+      border-radius: 12px !important;
+    }
+
+    .mat-mdc-input-element {
+      font-size: 16px;
+      padding: 2px 0;
+    }
+
+    .mat-icon {
+      color: #1976d2;
+    }
+  }
+}
+
+.search-dialog-content {
+  max-height: 500px;
+  overflow-y: auto;
+
+  .no-results {
+    .icon-48 {
+      font-size: 48px !important;
+      opacity: 0.5;
+    }
+  }
+
+  .search-results {
+    .search-result-item {
+      background: transparent;
+      border: 1px solid transparent;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+        border-color: #1976d2;
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+
+        .search-result-title {
+          color: #1976d2;
+        }
+
+        .search-result-icon i-tabler {
+          transform: scale(1.1);
+        }
+
+        .search-result-shortcut {
+          opacity: 1;
+        }
+      }
+
+      .search-result-icon {
+        width: 40px;
+        height: 40px;
+        background: #e3f2fd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease-in-out;
+      }
+
+      .search-result-title {
+        transition: color 0.2s ease-in-out;
+      }
+
+      .search-result-path {
+        opacity: 0.7;
+      }
+
+      .search-result-shortcut {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+      }
+    }
+  }
+}
+
+.search-dialog-footer {
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+
+  .kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    color: #495057;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), inset 0 0 0 2px #fff;
+  }
+
+  .gap-16 > * + * {
+    margin-left: 16px;
+  }
+}
+
+// Styles pour les éléments de support
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.transition-all {
+  transition: all 0.2s ease-in-out;
 }

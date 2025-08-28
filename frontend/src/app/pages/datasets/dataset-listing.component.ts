@@ -850,13 +850,7 @@ export class DatasetListingComponent implements OnInit, OnDestroy {
       });
   }
 
-  /**
-   * Ouvre la page d'upload de datasets
-   */
-  uploadDataset(): void {
-    console.log('🚀 BOUTON FAB CLIQUÉ - Navigation vers upload de datasets');
-    this.router.navigate(['/datasets/upload']);
-  }
+
 
   // Note: Le filtrage côté client a été supprimé.
   // Toute la logique de filtrage et de scoring est maintenant gérée côté backend

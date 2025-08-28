@@ -24,9 +24,15 @@ export class CoreService {
   }
 
   setOptions(options: Partial<AppSettings>) {
+    // Force light theme - ignore any dark theme setting
+    const forcedOptions = {
+      ...options,
+      theme: 'light'
+    };
+    
     this.optionsSignal.update((current) => ({
       ...current,
-      ...options,
+      ...forcedOptions,
     }));
     this.notify$.next(this.optionsSignal);
     

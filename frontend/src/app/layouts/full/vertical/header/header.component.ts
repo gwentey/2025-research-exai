@@ -23,8 +23,6 @@ import { AppSettings } from 'src/app/config';
 import { AuthService } from 'src/app/services/auth.service';
 import { UserRead } from 'src/app/models/auth.models';
 import { UserNameDisplayComponent } from 'src/app/components/user-name-display';
-// Assuming search dialog is defined here or imported, comment out for now if causing issues
-// import { AppSearchDialogComponent } from './search-dialog.component';
 
 interface notifications {
   id: number;
@@ -235,25 +233,36 @@ export class VerticalHeaderComponent implements OnInit {
     }
   }
 
-  // Commented out openDialog to avoid compilation error
-  /*
-  openDialog() {
-    const dialogRef = this.dialog.open(AppSearchDialogComponent);
+  /**
+   * Ouvre le dialogue de recherche IBIS-X amélioré
+   */
+  openSearchDialog(): void {
+    const dialogRef = this.dialog.open(AppSearchDialogComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      panelClass: 'search-dialog-container',
+      autoFocus: true,
+      restoreFocus: true,
+      data: {
+        // Données à passer au dialogue si nécessaire
+        user: this.currentUser
+      }
+    });
+
     dialogRef.afterClosed().subscribe((result: any) => {
-      console.log(`Dialog result: ${result}`);
+      if (result) {
+        console.log('Résultat de recherche:', result);
+        // Logique de navigation ou d'action basée sur le résultat
+      }
     });
   }
-  */
 
   // Other methods
   changeLanguage(lang: Language): void {
     this.languageService.setLanguage(lang);
   }
 
-  setlightDark(theme: string) {
-    this.options.theme = theme;
-    this.emitOptions();
-  }
+
 
   logout(): void {
     this.authService.logout();
@@ -315,16 +324,88 @@ export class VerticalHeaderComponent implements OnInit {
   }
 }
 
-// Assuming search dialog component is defined elsewhere or needs fixing
-/*
+/**
+ * Composant de dialogue de recherche IBIS-X amélioré
+ */
 @Component({
-  selector: 'search-dialog',
-  imports: [RouterModule, MaterialModule, TablerIconsModule, FormsModule],
+  selector: 'app-search-dialog',
+  standalone: true,
+  imports: [
+    RouterModule, 
+    MaterialModule, 
+    TablerIconsModule, 
+    FormsModule, 
+    CommonModule,
+    TranslateModule
+  ],
   templateUrl: 'search-dialog.component.html',
 })
 export class AppSearchDialogComponent {
   searchText: string = '';
   navItems = navItems;
   navItemsData = navItems.filter((navitem) => navitem.displayName);
+  
+  // Propriétés pour la recherche filtrée
+  filteredNavItems: any[] = [];
+
+  constructor() {
+    // Initialiser avec tous les éléments
+    this.filteredNavItems = this.navItemsData;
+  }
+
+  /**
+   * Filtre les éléments de navigation en temps réel
+   */
+  onSearchChange(): void {
+    if (!this.searchText.trim()) {
+      this.filteredNavItems = this.navItemsData;
+      return;
+    }
+
+    const searchTerm = this.searchText.toLowerCase().trim();
+    this.filteredNavItems = this.navItemsData.filter(item => 
+      item.displayName?.toLowerCase().includes(searchTerm) ||
+      item.route?.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  /**
+   * Gère la sélection d'un élément de navigation
+   */
+  onSelectItem(item: any): void {
+    // Retourner l'élément sélectionné pour fermer le dialogue
+    // Le parent (header component) gérera la navigation
+    return item;
+  }
+
+  /**
+   * Retourne l'icône appropriée pour chaque route
+   */
+  getIconForRoute(route: string): string {
+    const iconMap: {[key: string]: string} = {
+      '/datasets': 'database',
+      '/ml-pipeline': 'chart-dots',
+      '/xai-explanations': 'bulb',
+      '/starter': 'dashboard',
+      '/profile': 'user',
+      '/admin': 'shield',
+      '/projects': 'folder',
+      // Ajoutez d'autres mappings si nécessaire
+    };
+
+    // Essayer de trouver une correspondance exacte
+    if (iconMap[route]) {
+      return iconMap[route];
+    }
+
+    // Essayer de trouver une correspondance partielle
+    for (const [path, icon] of Object.entries(iconMap)) {
+      if (route.includes(path)) {
+        return icon;
+      }
+    }
+
+    // Icône par défaut
+    return 'arrow-right';
+  }
 }
-*/

@@ -1,6 +1,7 @@
 * Améliorations Frontend
 ** xref:add-dataset-floating-button.adoc[Bouton Flottant d'Ajout de Dataset]
 ** xref:breadcrumb-modern-design.adoc[Design Moderne du Breadcrumb]
+** xref:dark-theme-removal.adoc[Suppression du Mode Nuit]
 ** xref:header-search-zone-enhancement.adoc[Zone de Recherche Header Agrandie]
 ** xref:login-background-animation.adoc[Animation d'Arrière-plan de Connexion]
 ** xref:ml-pipeline-cleaning-interface.adoc[Interface de Nettoyage ML Pipeline]

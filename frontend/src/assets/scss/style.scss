@@ -20,7 +20,6 @@
 
 @use "theme-variables/default-variables";
 @use "theme-variables/light-theme-variables";
-@use "theme-variables/dark-theme-variables";
 
 //container layout
 @use "layouts/transitions";
@@ -35,7 +34,6 @@
 
 // horizontal
 @use "horizontal/horizontal";
-@use "dark/dark";
 
 
 @use "pages/auth";

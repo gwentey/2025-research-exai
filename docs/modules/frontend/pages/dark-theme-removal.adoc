@@ -1,0 +1,156 @@
+= Suppression du Mode Nuit - Interface IBIS-X
+:description: Documentation sur la suppression complète de la fonctionnalité de mode nuit de l'application IBIS-X
+:keywords: mode nuit, dark theme, suppression, interface utilisateur, personnalisation
+:page-tags: frontend, ui/ux, theme, light-theme
+
+== Vue d'ensemble
+
+Cette documentation détaille la suppression complète de la fonctionnalité de mode nuit (dark theme) de l'application IBIS-X. Cette modification vise à simplifier l'interface utilisateur et réduire la complexité de maintenance en ne conservant que le thème clair.
+
+== Objectifs de la Suppression
+
+=== Simplification de l'Interface
+- **Réduction de la complexité** : Élimination des options de personnalisation non essentielles
+- **Cohérence visuelle** : Focus sur un seul thème optimisé et testé
+- **Experience utilisateur unifiée** : Tous les utilisateurs ont la même expérience visuelle
+
+=== Maintenance et Performance
+- **Réduction du code CSS** : Suppression de tous les styles liés au dark theme
+- **Simplicité de maintenance** : Un seul thème à maintenir et tester
+- **Performance améliorée** : Moins de code CSS et JavaScript à charger
+
+== Modifications Techniques Effectuées
+
+=== 1. Suppression du Toggle UI
+
+==== Composant Customizer
+Suppression complète de la section "Theme Option" dans le customizer :
+
+- **Fichier modifié** : `frontend/src/app/layouts/full/shared/customizer/customizer.component.html`
+- **Suppression** : Section complète avec boutons Light/Dark
+- **Fonction supprimée** : `setDark(theme: string)` dans le composant TypeScript
+
+==== Headers (Vertical et Horizontal)
+Suppression des boutons de toggle dark/light dans les headers :
+
+- **Fichiers modifiés** :
+  - `frontend/src/app/layouts/full/vertical/header/header.component.html`
+  - `frontend/src/app/layouts/full/horizontal/header/header.component.html`
+- **Éléments supprimés** : Boutons avec icônes soleil/lune
+- **Fonctions supprimées** : `setlightDark(theme: string)`
+
+=== 2. Suppression de la Logique Dark Theme
+
+==== Composants Layout
+Suppression des fonctions de gestion du dark theme :
+
+[source,typescript]
+----
+// SUPPRIMÉ : toggleDarkTheme(options: AppSettings)
+// REMPLACÉ PAR : Force du thème light dans le constructeur
+this.htmlElement.classList.add('light-theme');
+this.htmlElement.classList.remove('dark-theme');
+----
+
+**Composants modifiés :**
+- `frontend/src/app/layouts/full/full.component.ts`
+- `frontend/src/app/layouts/blank/blank.component.ts`
+
+==== Service CoreService
+Modification pour forcer le thème light :
+
+[source,typescript]
+----
+setOptions(options: Partial<AppSettings>) {
+  // Force light theme - ignore any dark theme setting
+  const forcedOptions = {
+    ...options,
+    theme: 'light'
+  };
+  // ... rest of logic
+}
+----
+
+=== 3. Suppression des Fichiers SCSS
+
+==== Fichiers Supprimés
+- `frontend/src/assets/scss/theme-variables/_dark-theme-variables.scss`
+- `frontend/src/assets/scss/dark/_dark.scss`
+
+==== Fichiers Modifiés
+- `frontend/src/assets/scss/style.scss` : Suppression des imports dark theme
+- Suppression des sections `@media (prefers-color-scheme: dark)` dans plusieurs composants
+
+=== 4. Nettoyage des Références
+
+==== Suppression Complète des Références Dark Mode
+- Suppression de tous les `@media (prefers-color-scheme: dark)` 
+- Suppression des commentaires et références au dark theme
+- Nettoyage des styles et classes CSS liées au mode sombre
+
+== Impact sur l'Expérience Utilisateur
+
+=== Avant la Modification
+- **Options disponibles** : Toggle Light/Dark dans le customizer et headers
+- **Complexité** : Utilisateurs devaient choisir entre 2 thèmes
+- **Maintenance** : Tests sur 2 thèmes différents requis
+
+=== Après la Modification
+- **Thème unique** : Seul le thème clair est disponible
+- **Simplicité** : Interface épurée sans options de thème
+- **Cohérence** : Expérience uniforme pour tous les utilisateurs
+- **Performance** : Chargement plus rapide sans CSS dark theme
+
+== Configuration Technique
+
+=== Configuration par Défaut
+Le thème est maintenant forcé à `light` dans la configuration :
+
+[source,typescript]
+----
+// config.ts
+export const defaults: AppSettings = {
+  theme: 'light', // Toujours light, non modifiable
+  // ... autres options
+};
+----
+
+=== Protection Against Dark Theme
+Le service CoreService empêche maintenant tout changement vers le dark theme :
+
+- **Méthode** : `setOptions()` force toujours `theme: 'light'`
+- **Protection** : Impossible de passer au dark theme via l'API
+- **Initialisation** : Classes CSS forcées dans les constructeurs des layouts
+
+== Avantages de la Suppression
+
+=== Pour les Développeurs
+- **Code simplifié** : Moins de conditions et de styles à maintenir
+- **Tests réduits** : Un seul thème à tester et valider
+- **Performance** : Bundle JavaScript et CSS plus léger
+
+=== Pour les Utilisateurs
+- **Interface épurée** : Moins d'options de configuration superflues
+- **Cohérence** : Design uniforme et optimisé
+- **Chargement rapide** : Performances améliorées
+
+=== Pour la Maintenance
+- **Réduction de bugs** : Moins de cas d'usage à tester
+- **Évolutivité** : Focus sur un seul thème à améliorer
+- **Simplicité** : Code plus maintenable et lisible
+
+== Migration et Compatibilité
+
+=== Utilisateurs Existants
+- **Transition automatique** : Tous les utilisateurs passent au thème clair
+- **Aucune action requise** : Migration transparente
+- **Paramètres préservés** : Autres options de personnalisation conservées
+
+=== Code Existant
+- **Compatibilité ascendante** : Le code existant continue de fonctionner
+- **Nettoyage graduel** : Suppression progressive des références legacy
+- **Tests mis à jour** : Adaptation des tests pour le thème unique
+
+== Conclusion
+
+La suppression du mode nuit améliore significativement la simplicité et la maintenabilité de l'application IBIS-X tout en conservant une expérience utilisateur de qualité. Cette décision permet de se concentrer sur l'optimisation d'un seul thème parfaitement adapté aux besoins des utilisateurs de la plateforme d'apprentissage automatique.

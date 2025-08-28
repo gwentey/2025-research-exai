@@ -1,39 +1,111 @@
-<div class="p-24">
-  <div class="row">
-    <div class="col-10">
+<!-- Header du dialogue avec recherche améliorée -->
+<div class="search-dialog-header p-24 p-b-16">
+  <div class="row align-items-center">
+    <div class="col-11">
       <mat-form-field
         appearance="outline"
         color="primary"
-        class="hide-hint w-100"
+        class="hide-hint w-100 search-input-enhanced"
       >
-        <input matInput placeholder="Search here" [(ngModel)]="searchText" />
+        <mat-icon matPrefix>search</mat-icon>
+        <input 
+          matInput 
+          [(ngModel)]="searchText"
+          (ngModelChange)="onSearchChange()"
+          [placeholder]="'HEADER.SEARCH_DIALOG_PLACEHOLDER' | translate"
+          autofocus
+        />
+        <mat-icon matSuffix *ngIf="searchText" (click)="searchText=''; onSearchChange()" class="cursor-pointer">clear</mat-icon>
       </mat-form-field>
     </div>
-    <div class="col-2 d-flex justify-content-end">
+    <div class="col-1 d-flex justify-content-end">
       <button
         mat-icon-button
         mat-dialog-close
         class="d-flex justify-content-center"
+        [attr.aria-label]="'COMMON.CLOSE' | translate"
       >
-        <i-tabler name="x" class="icon-18 d-flex"></i-tabler>
+        <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
       </button>
     </div>
   </div>
 </div>
-<mat-divider></mat-divider>
-<mat-dialog-content class="mat-typography search-dialog">
-  <h4 class="f-s-18 f-w-600  m-b-16">Quick Page Links</h4>
 
-  @for(item of navItemsData; track item.displayName) {
-  <a
-    [routerLink]="[item.route]"
-    mat-dialog-close
-    class="p-y-12 text-decoration-none d-block"
-  >
-    <h5 class="f-s-14 f-w-500 d-block  m-0">
-      {{ item.displayName }}
-    </h5>
-    <span class="f-s-12 text-body">{{ item.route }}</span>
-  </a>
+<mat-divider></mat-divider>
+
+<!-- Contenu du dialogue avec résultats filtrés -->
+<mat-dialog-content class="mat-typography search-dialog-content">
+  
+  <!-- Message si aucun résultat -->
+  @if (filteredNavItems.length === 0 && searchText.trim()) {
+  <div class="no-results p-24 text-center">
+    <i-tabler name="search-off" class="icon-48 text-muted m-b-16"></i-tabler>
+    <h5 class="f-s-16 text-muted">{{ 'HEADER.SEARCH_NO_RESULTS' | translate }}</h5>
+    <p class="f-s-14 text-body">{{ 'HEADER.SEARCH_TRY_DIFFERENT' | translate }}</p>
+  </div>
+  } @else {
+  
+  <!-- Titre dynamique -->
+  <div class="p-24 p-b-16">
+    <h4 class="f-s-18 f-w-600 m-0 d-flex align-items-center">
+      <i-tabler name="link" class="icon-20 m-r-8 text-primary"></i-tabler>
+      @if (searchText.trim()) {
+        {{ 'HEADER.SEARCH_RESULTS' | translate }} ({{ filteredNavItems.length }})
+      } @else {
+        {{ 'HEADER.SEARCH_QUICK_LINKS' | translate }}
+      }
+    </h4>
+  </div>
+
+  <!-- Liste des résultats -->
+  <div class="search-results p-x-24 p-b-24">
+    @for(item of filteredNavItems; track item.displayName) {
+    <a
+      [routerLink]="[item.route]"
+      mat-dialog-close
+      class="search-result-item p-16 text-decoration-none d-block rounded m-b-8 transition-all"
+    >
+      <div class="d-flex align-items-center">
+        <div class="search-result-icon m-r-12">
+          <i-tabler 
+            [name]="getIconForRoute(item.route)" 
+            class="icon-20 text-primary"
+          ></i-tabler>
+        </div>
+        <div class="flex-grow-1">
+          <h5 class="f-s-15 f-w-600 m-0 search-result-title">
+            {{ item.displayName }}
+          </h5>
+          <span class="f-s-12 text-body search-result-path">{{ item.route }}</span>
+        </div>
+        <div class="search-result-shortcut">
+          <i-tabler name="corner-down-left" class="icon-16 text-muted"></i-tabler>
+        </div>
+      </div>
+    </a>
+    }
+  </div>
+
   }
 </mat-dialog-content>
+
+<!-- Footer optionnel avec raccourcis clavier -->
+<mat-divider></mat-divider>
+<div class="search-dialog-footer p-16 bg-light">
+  <div class="d-flex align-items-center justify-content-between f-s-12 text-muted">
+    <div class="d-flex align-items-center gap-16">
+      <div class="d-flex align-items-center">
+        <kbd class="kbd">↑↓</kbd>
+        <span class="m-l-8">{{ 'HEADER.SEARCH_NAVIGATE' | translate }}</span>
+      </div>
+      <div class="d-flex align-items-center">
+        <kbd class="kbd">↵</kbd>
+        <span class="m-l-8">{{ 'HEADER.SEARCH_SELECT' | translate }}</span>
+      </div>
+    </div>
+    <div class="d-flex align-items-center">
+      <kbd class="kbd">Esc</kbd>
+      <span class="m-l-8">{{ 'HEADER.SEARCH_CLOSE' | translate }}</span>
+    </div>
+  </div>
+</div>

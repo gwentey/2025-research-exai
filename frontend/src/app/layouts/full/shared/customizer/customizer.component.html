@@ -1,22 +1,7 @@
 <div class="customizerNav">
   <ng-scrollbar class="position-relative" style="height: calc(100vh - 50px)">
     <div class="p-24">
-      <h6 class="f-s-16 f-w-600  f-s-16 m-b-16">Theme Option</h6>
-      <mat-button-toggle-group #group="matButtonToggleGroup" [(ngModel)]="options.theme" (change)="setDark($event.value)"
-        class="customizer-button-group gap-16" [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()">
-        <mat-button-toggle [value]="'light'">
-          <div class="d-flex align-items-center f-w-500">
-            <i-tabler name="sun-high" class="d-flex m-r-8 fill-icon"></i-tabler>
-            Light
-          </div>
-        </mat-button-toggle>
-        <mat-button-toggle [value]="'dark'">
-          <div class="d-flex align-items-center f-w-500">
-            <i-tabler name="moon" class="d-flex m-r-8 fill-icon"></i-tabler>
-            Dark
-          </div>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+
 
       <div>
         <h6 class="f-s-16 f-w-600  f-s-16 m-b-16 m-t-24 p-t-16">

@@ -24,16 +24,8 @@ export class BlankComponent {
 
   receiveOptions(options: AppSettings): void {
     this.options = options;
-    this.toggleDarkTheme(options);
-  }
-
-  toggleDarkTheme(options: AppSettings) {
-    if (options.theme === 'dark') {
-      this.htmlElement.classList.add('dark-theme');
-      this.htmlElement.classList.remove('light-theme');
-    } else {
-      this.htmlElement.classList.remove('dark-theme');
-      this.htmlElement.classList.add('light-theme');
-    }
+    // Force light theme
+    this.htmlElement.classList.add('light-theme');
+    this.htmlElement.classList.remove('dark-theme');
   }
 }

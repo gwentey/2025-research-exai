@@ -232,6 +232,10 @@ export class FullComponent implements OnInit {
 
     // Initialize project theme with options
     this.receiveOptions(this.options);
+    
+    // Force light theme
+    this.htmlElement.classList.add('light-theme');
+    this.htmlElement.classList.remove('dark-theme');
 
     // This is for scroll to top
     this.router.events
@@ -377,7 +381,6 @@ export class FullComponent implements OnInit {
   receiveOptions(options: AppSettings): void {
     //this.options = options;
 
-    this.toggleDarkTheme(options);
     this.toggleColorsTheme(options);
   }
 
@@ -390,16 +393,7 @@ export class FullComponent implements OnInit {
     }
   }
 
-  toggleDarkTheme(options: AppSettings) {
 
-    if (options.theme === 'dark') {
-      this.htmlElement.classList.add('dark-theme');
-      this.htmlElement.classList.remove('light-theme');
-    } else {
-      this.htmlElement.classList.remove('dark-theme');
-      this.htmlElement.classList.add('light-theme');
-    }
-  }
 
   toggleColorsTheme(options: AppSettings) {
     // Remove any existing theme class dynamically

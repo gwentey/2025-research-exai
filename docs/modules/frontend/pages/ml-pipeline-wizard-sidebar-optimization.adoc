@@ -1,0 +1,108 @@
+= Optimisation Sidebar ML Pipeline Wizard
+:description: Optimisation de l'affichage du menu de navigation sidebar pour les écrans de taille moyenne
+:keywords: Angular, SCSS, responsive design, sidebar, ML Pipeline Wizard
+
+== Vue d'ensemble
+
+Cette page documente l'optimisation effectuée sur la sidebar de navigation du ML Pipeline Wizard pour résoudre les problèmes d'affichage sur les écrans de taille moyenne (MacBook 13", MacBook Air, etc.).
+
+== Problème Initial
+
+Sur les écrans d'ordinateurs portables de taille moyenne, la sidebar du ML Pipeline Wizard était coupée et n'affichait que les 7 premières étapes sur les 8 étapes totales du processus. Cela créait une expérience utilisateur dégradée car les utilisateurs ne pouvaient pas accéder facilement à l'étape d'entraînement (étape 8).
+
+== Solutions Implémentées
+
+=== 1. Réduction des Tailles des Éléments
+
+==== Step Indicators
+- **Avant** : 36px × 36px
+- **Après** : 30px × 30px (réduction de 17%)
+
+==== Typographie
+- **Titres des étapes** : 17px → 15px
+- **Numéros des étapes** : 15px → 13px
+
+==== Espacement
+- **Padding vertical** de la sidebar : `var(--space-2xl)` → `var(--space-xl)`
+- **Gap entre éléments** : `var(--space-lg)` → `var(--space-md)`
+- **Margin-bottom des nav-steps** : `var(--space-sm)` → `6px`
+
+=== 2. Défilement Vertical
+
+[source,scss]
+----
+.wizard-nav {
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--color-primary-rgb), 0.2);
+    border-radius: 2px;
+  }
+}
+----
+
+=== 3. Media Queries Responsives
+
+==== Écrans de hauteur moyenne (max-height: 900px)
+- Step-indicator : 30px → 28px
+- Police titres : 15px → 14px
+- Police numéros : 13px → 12px
+
+==== Écrans de petite hauteur (max-height: 800px)
+- Step-indicator : 28px → 26px
+- Police titres : 14px → 13px
+- Police numéros : 12px → 11px
+- Optimisation extrême du padding et des marges
+
+== Impact sur l'Expérience Utilisateur
+
+=== Améliorations
+- ✅ **Visibilité complète** : Toutes les 8 étapes sont maintenant visibles sur les MacBook
+- ✅ **Navigation fluide** : Possibilité de faire défiler si nécessaire
+- ✅ **Design préservé** : L'esthétique moderne est maintenue
+- ✅ **Performance** : Optimisation progressive selon la taille d'écran
+
+=== Compatibilité
+- **MacBook 13"** : Affichage optimal
+- **MacBook Air** : Affichage optimal
+- **Écrans plus grands** : Pas d'impact négatif
+- **Écrans plus petits** : Défilement disponible
+
+== Fichiers Modifiés
+
+|===
+|Fichier |Type de modification
+
+|`ml-pipeline-wizard.component.scss`
+|Optimisation du CSS avec réduction des tailles et ajout de media queries
+|===
+
+== Configuration Technique
+
+=== Variables CSS Utilisées
+- `--space-xl`, `--space-lg`, `--space-md`, `--space-sm`
+- `--color-primary-rgb`
+- `--transition-base`
+
+=== Breakpoints
+- `max-height: 900px` : Écrans moyens
+- `max-height: 800px` : Écrans petits
+
+== Maintenance
+
+Cette optimisation est compatible avec les futures évolutions du composant. Les variables CSS utilisées permettent une maintenance facile et cohérente avec le design system.
+
+== Historique des Modifications
+
+|===
+|Date |Version |Modification
+
+|2025-01-XX
+|1.0
+|Optimisation initiale pour écrans moyens
+|===

@@ -56,6 +56,14 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   experiment: ExperimentStatus | null = null;
   results: ExperimentResults | null = null;
   isLoading = true;
+  
+  // 🚀 VERSION MODERNE - TIMESTAMP DE COMPILATION
+  readonly modernVersion = 'v2.0-' + new Date().toISOString();
+  
+  // Méthode pour obtenir la date actuelle (pour les templates Angular)
+  getCurrentDate(): string {
+    return new Date().toLocaleString();
+  }
 
   // Exposer l'enum pour le template
   readonly VisualizationType = VisualizationType;
@@ -74,6 +82,11 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   ) {}
 
   ngOnInit() {
+    // 🚀 LOG TRÈS VISIBLE POUR CONFIRMER LE CHARGEMENT
+    console.log('%c🎉 NOUVELLE INTERFACE MODERNE CHARGÉE ! 🎉', 'background: #dc2626; color: white; font-size: 20px; padding: 10px; border-radius: 5px; font-weight: bold;');
+    console.log('%cVersion:', 'font-weight: bold; color: #dc2626;', this.modernVersion);
+    console.log('%cTimestamp de chargement:', 'font-weight: bold; color: #dc2626;', new Date().toISOString());
+    
     this.experimentId = this.route.snapshot.params['id'];
 
     // Essayer différentes façons de récupérer le projectId
@@ -537,5 +550,293 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
     );
 
     return `${this.getMetricLabel(best.key)}: ${this.formatMetricValue(best.key, best.value)}`;
+  }
+
+  // ============================================================================
+  // NOUVELLES MÉTHODES POUR L'INTERFACE MODERNE
+  // ============================================================================
+
+  // État pour les panneaux d'explication
+  showMetricsExplanation = false;
+  showInsightsPanel = false;
+
+  // Méthodes pour l'interface hero
+  getAlgorithmClass(): string {
+    const algorithm = this.getAlgorithm();
+    switch (algorithm) {
+      case 'decision_tree': return 'algorithm-decision-tree';
+      case 'random_forest': return 'algorithm-random-forest';
+      case 'linear_regression': return 'algorithm-linear-regression';
+      default: return 'algorithm-default';
+    }
+  }
+
+  getAlgorithmIcon(): string {
+    const algorithm = this.getAlgorithm();
+    switch (algorithm) {
+      case 'decision_tree': return 'account_tree';
+      case 'random_forest': return 'park';
+      case 'linear_regression': return 'linear_scale';
+      default: return 'psychology';
+    }
+  }
+
+  getStatusClass(): string {
+    if (!this.experiment) return '';
+    switch (this.experiment.status) {
+      case 'completed': return 'success';
+      case 'failed': return 'danger';
+      case 'running': return 'warning';
+      default: return '';
+    }
+  }
+
+  getStatusIcon(): string {
+    if (!this.experiment) return 'help';
+    switch (this.experiment.status) {
+      case 'completed': return 'check_circle';
+      case 'failed': return 'error';
+      case 'running': return 'sync';
+      default: return 'help';
+    }
+  }
+
+  getRelativeTime(): string {
+    if (!this.experiment?.created_at) return 'Unknown';
+    
+    const now = new Date();
+    const createdAt = new Date(this.experiment.created_at);
+    const diffInMinutes = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minutes ago`;
+    } else if (diffInMinutes < 1440) { // 24 hours
+      const hours = Math.floor(diffInMinutes / 60);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInMinutes / 1440);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+  }
+
+  getOverallScore(): number {
+    const metrics = this.getMetricsArray();
+    if (metrics.length === 0) return 0;
+    
+    const sum = metrics.reduce((acc, metric) => acc + (metric.value * 100), 0);
+    return Math.round(sum / metrics.length);
+  }
+
+  // Méthodes pour les métriques avancées
+  toggleMetricsExplanation(): void {
+    this.showMetricsExplanation = !this.showMetricsExplanation;
+  }
+
+  toggleInsightsPanel(): void {
+    this.showInsightsPanel = !this.showInsightsPanel;
+  }
+
+  getMetricsExplanations(): Array<any> {
+    return [
+      {
+        name: 'Precision',
+        description: 'Proportion of positive identifications that were actually correct. High precision means few false positives.',
+        icon: 'target',
+        colorClass: 'good',
+        scale: {
+          poor: '< 70%',
+          good: '70-85%',
+          excellent: '> 85%'
+        }
+      },
+      {
+        name: 'Recall',
+        description: 'Proportion of actual positives that were identified correctly. High recall means few false negatives.',
+        icon: 'search',
+        colorClass: 'excellent',
+        scale: {
+          poor: '< 70%',
+          good: '70-85%',
+          excellent: '> 85%'
+        }
+      },
+      {
+        name: 'F1 Score',
+        description: 'Harmonic mean of precision and recall. Good balance between precision and recall.',
+        icon: 'balance',
+        colorClass: 'warning',
+        scale: {
+          poor: '< 70%',
+          good: '70-85%',
+          excellent: '> 85%'
+        }
+      },
+      {
+        name: 'Accuracy',
+        description: 'Proportion of correct predictions among the total number of cases examined.',
+        icon: 'speed',
+        colorClass: 'excellent',
+        scale: {
+          poor: '< 80%',
+          good: '80-90%',
+          excellent: '> 90%'
+        }
+      }
+    ];
+  }
+
+  trackByMetric(index: number, metric: {key: string, value: number}): string {
+    return metric.key;
+  }
+
+  getMetricPerformanceClass(value: number): string {
+    if (value >= 0.85) return 'excellent';
+    if (value >= 0.70) return 'good';
+    if (value >= 0.50) return 'warning';
+    return 'poor';
+  }
+
+  getMetricDescription(key: string): string {
+    const descriptions = {
+      'precision': 'Exactitude des prédictions positives',
+      'recall': 'Capacité à identifier tous les cas positifs',
+      'f1_score': 'Équilibre entre précision et rappel',
+      'accuracy': 'Pourcentage de prédictions correctes',
+      'roc_auc': 'Performance globale de classification'
+    };
+    return descriptions[key as keyof typeof descriptions] || 'Métrique de performance';
+  }
+
+  getPerformanceLabel(value: number): string {
+    if (value >= 0.85) return 'Excellent';
+    if (value >= 0.70) return 'Bon';
+    if (value >= 0.50) return 'Moyen';
+    return 'Faible';
+  }
+
+  getBenchmarkComparison(key: string, value: number): string {
+    // Benchmark basé sur des standards industriels
+    const benchmarks = {
+      'accuracy': 0.80,
+      'precision': 0.75,
+      'recall': 0.75,
+      'f1_score': 0.75,
+      'roc_auc': 0.80
+    };
+    
+    const benchmark = benchmarks[key as keyof typeof benchmarks] || 0.75;
+    
+    if (value > benchmark + 0.05) return 'Above Industry Benchmark';
+    if (value > benchmark - 0.05) return 'At Industry Benchmark';
+    return 'Below Industry Benchmark';
+  }
+
+  getBenchmarkClass(key: string, value: number): string {
+    const benchmarks = {
+      'accuracy': 0.80,
+      'precision': 0.75,
+      'recall': 0.75,
+      'f1_score': 0.75,
+      'roc_auc': 0.80
+    };
+    
+    const benchmark = benchmarks[key as keyof typeof benchmarks] || 0.75;
+    
+    if (value > benchmark + 0.05) return 'above-benchmark';
+    if (value > benchmark - 0.05) return 'at-benchmark';
+    return 'below-benchmark';
+  }
+
+  getAdvancedInterpretation(key: string, value: number): string {
+    const interpretations = {
+      'precision': value >= 0.85 ? 'Very few false positives' : value >= 0.70 ? 'Some false positives' : 'Many false positives',
+      'recall': value >= 0.85 ? 'Catches most positive cases' : value >= 0.70 ? 'Catches some positive cases' : 'Misses many positive cases',
+      'f1_score': value >= 0.85 ? 'Excellent balance' : value >= 0.70 ? 'Good balance' : 'Needs improvement',
+      'accuracy': value >= 0.90 ? 'Highly accurate' : value >= 0.80 ? 'Reasonably accurate' : 'Low accuracy'
+    };
+    return interpretations[key as keyof typeof interpretations] || 'Standard performance metric';
+  }
+
+  // Méthodes pour les insights de données
+  getModelStrengths(): string[] {
+    const metrics = this.getMetricsArray();
+    const strengths: string[] = [];
+    
+    metrics.forEach(metric => {
+      if (metric.value >= 0.85) {
+        const label = this.getMetricLabel(metric.key);
+        strengths.push(`Excellent ${label} (${(metric.value * 100).toFixed(1)}%)`);
+      }
+    });
+    
+    if (strengths.length === 0) {
+      strengths.push('Stable performance across metrics');
+    }
+    
+    return strengths;
+  }
+
+  getModelWeaknesses(): string[] {
+    const metrics = this.getMetricsArray();
+    const weaknesses: string[] = [];
+    
+    metrics.forEach(metric => {
+      if (metric.value < 0.70) {
+        const label = this.getMetricLabel(metric.key);
+        weaknesses.push(`${label} needs improvement (${(metric.value * 100).toFixed(1)}%)`);
+      }
+    });
+    
+    if (weaknesses.length === 0) {
+      weaknesses.push('No significant weaknesses detected');
+    }
+    
+    return weaknesses;
+  }
+
+  getRecommendations(): Array<any> {
+    const metrics = this.getMetricsArray();
+    const recommendations: Array<any> = [];
+    
+    // Analyser les métriques pour des recommandations
+    const avgScore = metrics.reduce((sum, m) => sum + m.value, 0) / metrics.length;
+    
+    if (avgScore < 0.80) {
+      recommendations.push({
+        type: 'data',
+        icon: 'dataset',
+        title: 'Améliorer la qualité des données',
+        description: 'Considérer plus de données d\'entraînement ou un nettoyage approfondi.'
+      });
+    }
+    
+    if (avgScore >= 0.80 && avgScore < 0.90) {
+      recommendations.push({
+        type: 'optimization',
+        icon: 'tune',
+        title: 'Optimisation des hyperparamètres',
+        description: 'Expérimenter avec différents paramètres pour améliorer les performances.'
+      });
+    }
+    
+    if (this.getAlgorithm() === 'decision_tree' && avgScore < 0.85) {
+      recommendations.push({
+        type: 'algorithm',
+        icon: 'psychology',
+        title: 'Essayer Random Forest',
+        description: 'Random Forest pourrait donner de meilleures performances pour ce dataset.'
+      });
+    }
+    
+    if (recommendations.length === 0) {
+      recommendations.push({
+        type: 'optimization',
+        icon: 'celebration',
+        title: 'Excellent travail!',
+        description: 'Les performances sont déjà très bonnes. Considérer la mise en production.'
+      });
+    }
+    
+    return recommendations;
   }
 }

@@ -234,15 +234,7 @@
   }
 }
 
-// Dark mode support - Three.js gère ses propres couleurs
-@media (prefers-color-scheme: dark) {
-  .animation-container {
-    .three-canvas {
-      // Three.js adapte automatiquement selon les couleurs Sorbonne définies
-      opacity: 0.95;
-    }
-  }
-}
+
 
 // Réduction de mouvement pour l'accessibilité
 @media (prefers-reduced-motion: reduce) {
@@ -347,14 +339,7 @@
   }
 }
 
-// ✨ Mode sombre support - SIMPLIFIÉ (plus de texte)
-@media (prefers-color-scheme: dark) {
-  .animation-container {
-    .modern-loader {
-      background: transparent; // ✅ RESTER TRANSPARENT même en mode sombre !
-    }
-  }
-}
+
 
 // ✨ Réduction de mouvement - version simplifiée du loader (plus de texte à gérer)
 @media (prefers-reduced-motion: reduce) {
