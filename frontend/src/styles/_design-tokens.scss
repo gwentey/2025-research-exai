@@ -206,19 +206,35 @@
   --console-success: #4ec9b0;
 }
 
-// Mode sombre (optionnel pour le futur)
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: #1f2937;
-    --bg-secondary: #111827;
-    --bg-tertiary: #374151;
-    --text-primary: #f9fafb;
-    --text-secondary: #d1d5db;
-    --text-tertiary: #9ca3af;
-    --border-color: #374151;
-    --border-color-light: #4b5563;
-    --border-color-dark: #6b7280;
-  }
+// Mode sombre DÉSACTIVÉ - Application toujours en mode jour
+// @media (prefers-color-scheme: dark) {
+//   :root {
+//     --bg-primary: #1f2937;
+//     --bg-secondary: #111827;
+//     --bg-tertiary: #374151;
+//     --text-primary: #f9fafb;
+//     --text-secondary: #d1d5db;
+//     --text-tertiary: #9ca3af;
+//     --border-color: #374151;
+//     --border-color-light: #4b5563;
+//     --border-color-dark: #6b7280;
+//   }
+// }
+
+// FORCE MODE JOUR PERMANENT - Ignore les préférences système
+html, body, :root {
+  color-scheme: light only !important;
+  
+  // Forcer les couleurs claires même si le système préfère le mode sombre
+  --bg-primary: #ffffff !important;
+  --bg-secondary: #f9fafb !important;
+  --bg-tertiary: #f3f4f6 !important;
+  --text-primary: #111827 !important;
+  --text-secondary: #374151 !important;
+  --text-tertiary: #6b7280 !important;
+  --border-color: #e5e7eb !important;
+  --border-color-light: #f3f4f6 !important;
+  --border-color-dark: #d1d5db !important;
 }
 
 // Mixins utilitaires

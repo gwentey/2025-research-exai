@@ -82,10 +82,7 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   ) {}
 
   ngOnInit() {
-    // 🚀 LOG TRÈS VISIBLE POUR CONFIRMER LE CHARGEMENT
-    console.log('%c🎉 NOUVELLE INTERFACE MODERNE CHARGÉE ! 🎉', 'background: #dc2626; color: white; font-size: 20px; padding: 10px; border-radius: 5px; font-weight: bold;');
-    console.log('%cVersion:', 'font-weight: bold; color: #dc2626;', this.modernVersion);
-    console.log('%cTimestamp de chargement:', 'font-weight: bold; color: #dc2626;', new Date().toISOString());
+    console.log('🎯 Experiment Results - Clean UI Loading...');
     
     this.experimentId = this.route.snapshot.params['id'];
 
@@ -180,20 +177,7 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   // Toutes les anciennes méthodes Chart.js ont été supprimées
   // Les visualisations utilisent maintenant EChartsContainerComponent
 
-  getMetricIcon(metric: string): string {
-    const icons: { [key: string]: string } = {
-      'accuracy': 'speed',
-      'precision': 'center_focus_strong',
-      'recall': 'radar',
-      'f1_score': 'balance',
-      'mae': 'trending_down',
-      'mse': 'show_chart',
-      'rmse': 'insights',
-      'r2': 'analytics'
-    };
 
-    return icons[metric] || 'assessment';
-  }
 
   getMetricColor(value: number): string {
     if (value >= 0.9) return 'excellent';
@@ -249,7 +233,7 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
 
     // Pour les métriques de classification (entre 0 et 1)
     if (['accuracy', 'precision', 'recall', 'f1_score', 'roc_auc'].includes(key)) {
-      return (value * 100).toFixed(1) + '%';
+      return (value * 100).toFixed(1);
     }
 
     // Pour les métriques de régression
@@ -581,6 +565,11 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
     }
   }
 
+  getAlgorithmStructureLabel(): string {
+    const algorithm = this.getAlgorithm();
+    return algorithm === 'decision_tree' ? 'Arbre de Décision' : 'Modèle';
+  }
+
   getStatusClass(): string {
     if (!this.experiment) return '';
     switch (this.experiment.status) {
@@ -602,20 +591,20 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   }
 
   getRelativeTime(): string {
-    if (!this.experiment?.created_at) return 'Unknown';
+    if (!this.experiment?.created_at) return 'Inconnu';
     
     const now = new Date();
     const createdAt = new Date(this.experiment.created_at);
     const diffInMinutes = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60));
     
     if (diffInMinutes < 60) {
-      return `${diffInMinutes} minutes ago`;
+      return `il y a ${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''}`;
     } else if (diffInMinutes < 1440) { // 24 hours
       const hours = Math.floor(diffInMinutes / 60);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      return `il y a ${hours} heure${hours > 1 ? 's' : ''}`;
     } else {
       const days = Math.floor(diffInMinutes / 1440);
-      return `${days} day${days > 1 ? 's' : ''} ago`;
+      return `il y a ${days} jour${days > 1 ? 's' : ''}`;
     }
   }
 
@@ -639,9 +628,9 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
   getMetricsExplanations(): Array<any> {
     return [
       {
-        name: 'Precision',
-        description: 'Proportion of positive identifications that were actually correct. High precision means few false positives.',
-        icon: 'target',
+        name: 'Précision (Precision)',
+        description: 'Proportion d\'identifications positives qui étaient réellement correctes. Une précision élevée signifie peu de faux positifs.',
+        icon: 'center_focus_strong',
         colorClass: 'good',
         scale: {
           poor: '< 70%',
@@ -650,9 +639,9 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
         }
       },
       {
-        name: 'Recall',
-        description: 'Proportion of actual positives that were identified correctly. High recall means few false negatives.',
-        icon: 'search',
+        name: 'Rappel (Recall)',
+        description: 'Proportion de vrais positifs qui ont été identifiés correctement. Un rappel élevé signifie peu de faux négatifs.',
+        icon: 'radar',
         colorClass: 'excellent',
         scale: {
           poor: '< 70%',
@@ -661,8 +650,8 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
         }
       },
       {
-        name: 'F1 Score',
-        description: 'Harmonic mean of precision and recall. Good balance between precision and recall.',
+        name: 'Score F1',
+        description: 'Moyenne harmonique de la précision et du rappel. Bon équilibre entre précision et rappel.',
         icon: 'balance',
         colorClass: 'warning',
         scale: {
@@ -672,8 +661,8 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
         }
       },
       {
-        name: 'Accuracy',
-        description: 'Proportion of correct predictions among the total number of cases examined.',
+        name: 'Exactitude (Accuracy)',
+        description: 'Proportion de prédictions correctes parmi le nombre total de cas examinés.',
         icon: 'speed',
         colorClass: 'excellent',
         scale: {
@@ -714,22 +703,7 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
     return 'Faible';
   }
 
-  getBenchmarkComparison(key: string, value: number): string {
-    // Benchmark basé sur des standards industriels
-    const benchmarks = {
-      'accuracy': 0.80,
-      'precision': 0.75,
-      'recall': 0.75,
-      'f1_score': 0.75,
-      'roc_auc': 0.80
-    };
-    
-    const benchmark = benchmarks[key as keyof typeof benchmarks] || 0.75;
-    
-    if (value > benchmark + 0.05) return 'Above Industry Benchmark';
-    if (value > benchmark - 0.05) return 'At Industry Benchmark';
-    return 'Below Industry Benchmark';
-  }
+
 
   getBenchmarkClass(key: string, value: number): string {
     const benchmarks = {
@@ -737,7 +711,8 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
       'precision': 0.75,
       'recall': 0.75,
       'f1_score': 0.75,
-      'roc_auc': 0.80
+      'roc_auc': 0.80,
+      'r2': 0.70
     };
     
     const benchmark = benchmarks[key as keyof typeof benchmarks] || 0.75;
@@ -749,12 +724,16 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
 
   getAdvancedInterpretation(key: string, value: number): string {
     const interpretations = {
-      'precision': value >= 0.85 ? 'Very few false positives' : value >= 0.70 ? 'Some false positives' : 'Many false positives',
-      'recall': value >= 0.85 ? 'Catches most positive cases' : value >= 0.70 ? 'Catches some positive cases' : 'Misses many positive cases',
-      'f1_score': value >= 0.85 ? 'Excellent balance' : value >= 0.70 ? 'Good balance' : 'Needs improvement',
-      'accuracy': value >= 0.90 ? 'Highly accurate' : value >= 0.80 ? 'Reasonably accurate' : 'Low accuracy'
+      'precision': value >= 0.85 ? 'Très peu de faux positifs' : value >= 0.70 ? 'Quelques faux positifs' : 'Beaucoup de faux positifs',
+      'recall': value >= 0.85 ? 'Capture la plupart des cas positifs' : value >= 0.70 ? 'Capture quelques cas positifs' : 'Rate beaucoup de cas positifs',
+      'f1_score': value >= 0.85 ? 'Équilibre excellent' : value >= 0.70 ? 'Bon équilibre' : 'À améliorer',
+      'accuracy': value >= 0.90 ? 'Très précis' : value >= 0.80 ? 'Raisonnablement précis' : 'Précision faible',
+      'mae': value <= 0.1 ? 'Erreur très faible' : value <= 0.3 ? 'Erreur modérée' : 'Erreur importante',
+      'mse': value <= 0.01 ? 'Erreur très faible' : value <= 0.1 ? 'Erreur modérée' : 'Erreur importante',
+      'rmse': value <= 0.1 ? 'Erreur très faible' : value <= 0.3 ? 'Erreur modérée' : 'Erreur importante',
+      'r2': value >= 0.90 ? 'Excellent fit' : value >= 0.70 ? 'Bon fit' : 'Fit faible'
     };
-    return interpretations[key as keyof typeof interpretations] || 'Standard performance metric';
+    return interpretations[key as keyof typeof interpretations] || 'Métrique de performance standard';
   }
 
   // Méthodes pour les insights de données
@@ -765,12 +744,12 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
     metrics.forEach(metric => {
       if (metric.value >= 0.85) {
         const label = this.getMetricLabel(metric.key);
-        strengths.push(`Excellent ${label} (${(metric.value * 100).toFixed(1)}%)`);
+        strengths.push(`Excellent ${label} (${this.formatMetricValue(metric.key, metric.value)}${['accuracy', 'precision', 'recall', 'f1_score'].includes(metric.key) ? '%' : ''})`);
       }
     });
     
     if (strengths.length === 0) {
-      strengths.push('Stable performance across metrics');
+      strengths.push('Performance stable à travers les métriques');
     }
     
     return strengths;
@@ -783,12 +762,12 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
     metrics.forEach(metric => {
       if (metric.value < 0.70) {
         const label = this.getMetricLabel(metric.key);
-        weaknesses.push(`${label} needs improvement (${(metric.value * 100).toFixed(1)}%)`);
+        weaknesses.push(`${label} à améliorer (${this.formatMetricValue(metric.key, metric.value)}${['accuracy', 'precision', 'recall', 'f1_score'].includes(metric.key) ? '%' : ''})`);
       }
     });
     
     if (weaknesses.length === 0) {
-      weaknesses.push('No significant weaknesses detected');
+      weaknesses.push('Aucune faiblesse significative détectée');
     }
     
     return weaknesses;
@@ -798,15 +777,25 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
     const metrics = this.getMetricsArray();
     const recommendations: Array<any> = [];
     
+    if (metrics.length === 0) {
+      recommendations.push({
+        type: 'data',
+        icon: 'info',
+        title: 'Pas de métriques disponibles',
+        description: 'Aucune métrique n\'est disponible pour analyser ce modèle.'
+      });
+      return recommendations;
+    }
+    
     // Analyser les métriques pour des recommandations
     const avgScore = metrics.reduce((sum, m) => sum + m.value, 0) / metrics.length;
     
     if (avgScore < 0.80) {
       recommendations.push({
         type: 'data',
-        icon: 'dataset',
+        icon: 'storage',
         title: 'Améliorer la qualité des données',
-        description: 'Considérer plus de données d\'entraînement ou un nettoyage approfondi.'
+        description: 'Considérer plus de données d\'entraînement ou un nettoyage approfondi des données existantes.'
       });
     }
     
@@ -815,17 +804,31 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
         type: 'optimization',
         icon: 'tune',
         title: 'Optimisation des hyperparamètres',
-        description: 'Expérimenter avec différents paramètres pour améliorer les performances.'
+        description: 'Expérimenter avec différents paramètres pour améliorer les performances du modèle.'
       });
     }
     
     if (this.getAlgorithm() === 'decision_tree' && avgScore < 0.85) {
       recommendations.push({
         type: 'algorithm',
-        icon: 'psychology',
+        icon: 'park',
         title: 'Essayer Random Forest',
-        description: 'Random Forest pourrait donner de meilleures performances pour ce dataset.'
+        description: 'Random Forest pourrait donner de meilleures performances pour ce dataset en réduisant le surajustement.'
       });
+    }
+    
+    // Recommandations spécifiques selon le type de task
+    const taskType = this.getTaskType();
+    if (taskType === 'regression') {
+      const r2Metric = metrics.find(m => m.key === 'r2');
+      if (r2Metric && r2Metric.value < 0.70) {
+        recommendations.push({
+          type: 'algorithm',
+          icon: 'functions',
+          title: 'Considérer des modèles plus complexes',
+          description: 'Un modèle non-linéaire pourrait mieux capturer les relations dans vos données.'
+        });
+      }
     }
     
     if (recommendations.length === 0) {
@@ -833,10 +836,132 @@ export class ExperimentResultsComponent implements OnInit, OnDestroy, AfterViewI
         type: 'optimization',
         icon: 'celebration',
         title: 'Excellent travail!',
-        description: 'Les performances sont déjà très bonnes. Considérer la mise en production.'
+        description: 'Les performances sont déjà très bonnes. Le modèle est prêt pour la mise en production.'
       });
     }
     
     return recommendations;
+  }
+
+  // 🎨 Nouvelles méthodes pour le dashboard moderne
+
+  getMetricIcon(key: string): string {
+    const icons: Record<string, string> = {
+      'recall': 'target',
+      'precision': 'gps_fixed', 
+      'f1_score': 'balance',
+      'accuracy': 'check_circle',
+      'roc_auc': 'trending_up',
+      'confusion_matrix': 'grid_view'
+    };
+    return icons[key] || 'analytics';
+  }
+
+  getMetricTrendClass(value: number): string {
+    if (value >= 90) return 'excellent';
+    if (value >= 75) return 'good';
+    if (value >= 60) return 'average';
+    return 'poor';
+  }
+
+  getMetricTrendIcon(value: number): string {
+    if (value >= 90) return 'trending_up';
+    if (value >= 75) return 'arrow_upward';
+    if (value >= 60) return 'arrow_forward';
+    return 'trending_down';
+  }
+
+  getMetricShortDescription(key: string): string {
+    const descriptions: Record<string, string> = {
+      'recall': 'Détection des vrais positifs',
+      'precision': 'Fiabilité des prédictions positives',
+      'f1_score': 'Équilibre précision/rappel',
+      'accuracy': 'Prédictions correctes globales',
+      'roc_auc': 'Capacité de discrimination',
+      'confusion_matrix': 'Matrice de confusion'
+    };
+    return descriptions[key] || 'Métrique de performance';
+  }
+
+  getBenchmarkComparison(key: string, value: number): string {
+    // Benchmarks industriels approximatifs
+    const benchmarks: Record<string, number> = {
+      'recall': 85,
+      'precision': 85,
+      'f1_score': 85,
+      'accuracy': 90,
+      'roc_auc': 85,
+      'confusion_matrix': 85
+    };
+    
+    const benchmark = benchmarks[key] || 85;
+    const diff = value - benchmark;
+    
+    if (diff > 5) return `+${diff.toFixed(1)}%`;
+    if (diff < -5) return `${diff.toFixed(1)}%`;
+    return '≈ benchmark';
+  }
+
+  getOverallPerformanceClass(): string {
+    const score = this.getOverallScore();
+    if (score >= 90) return 'excellent';
+    if (score >= 75) return 'good';
+    if (score >= 60) return 'average';
+    return 'poor';
+  }
+
+  getOverallPerformanceIcon(): string {
+    const score = this.getOverallScore();
+    if (score >= 90) return 'emoji_events';
+    if (score >= 75) return 'thumb_up';
+    if (score >= 60) return 'info';
+    return 'warning';
+  }
+
+  getOverallPerformanceDescription(): string {
+    const score = this.getOverallScore();
+    if (score >= 90) return 'Excellente performance ! Le modèle est prêt pour la production.';
+    if (score >= 75) return 'Bonne performance générale avec quelques points d\'amélioration.';
+    if (score >= 60) return 'Performance acceptable mais nécessite des optimisations.';
+    return 'Performance insuffisante, révision du modèle recommandée.';
+  }
+
+  getKeyInsights(): Array<{type: string, icon: string, message: string}> {
+    const insights = [];
+    const metrics = this.getMetricsArray();
+    const bestMetric = metrics.reduce((best, current) => 
+      current.value > best.value ? current : best
+    );
+    const worstMetric = metrics.reduce((worst, current) => 
+      current.value < worst.value ? current : worst
+    );
+
+    // Point fort
+    insights.push({
+      type: 'success',
+      icon: 'star',
+      message: `Excellente ${this.getMetricLabel(bestMetric.key).toLowerCase()} (${this.formatMetricValue(bestMetric.key, bestMetric.value)})`
+    });
+
+    // Point d'amélioration  
+    if (worstMetric.value < 85) {
+      insights.push({
+        type: 'warning',
+        icon: 'lightbulb',
+        message: `${this.getMetricLabel(worstMetric.key)} peut être améliorée (actuellement ${this.formatMetricValue(worstMetric.key, worstMetric.value)})`
+      });
+    }
+
+    // Insight contextuel
+    const algorithm = this.getAlgorithm();
+    if (algorithm === 'random_forest') {
+      insights.push({
+        type: 'info',
+        icon: 'nature',
+        message: 'Random Forest offre une bonne robustesse et interprétabilité'
+      });
+    }
+
+    return insights;
   }
 }

@@ -9,6 +9,45 @@
 // FORCE THÈME CLAIR ULTRA-AGRESSIF POUR LES FILTRES
 @use 'styles/force-light-theme-filters';
 
+// ===============================================
+// FORCE MODE JOUR GLOBAL - IGNORE PRÉFÉRENCES SYSTÈME
+// ===============================================
+html, body, * {
+  color-scheme: light only !important;
+}
+
+// Force tous les composants Material en mode jour
+.mat-app-background,
+.mat-primary,
+.mat-accent,
+.mat-warn,
+body,
+html {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+// Force les overlays et dialogs en mode jour
+.cdk-overlay-dark-backdrop {
+  background: rgba(0, 0, 0, 0.32) !important;
+}
+
+.cdk-overlay-container {
+  background: transparent !important;
+}
+
+// Force tous les composants Angular Material en mode jour
+.mat-mdc-card,
+.mat-mdc-dialog-container,
+.mat-mdc-snack-bar-container,
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel,
+.mat-mdc-tooltip {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
 html,
 body {
     height: 100%;
@@ -17,8 +56,9 @@ body {
     font-feature-settings: 'kern' 1, 'liga' 1;
     letter-spacing: var(--letter-spacing-tight);
     line-height: var(--line-height-normal);
-    color: var(--text-primary);
-    background: var(--bg-secondary);
+    color: var(--text-primary) !important;
+    background: var(--bg-secondary) !important;
+    color-scheme: light only !important;
 }
 
 // ==================================================

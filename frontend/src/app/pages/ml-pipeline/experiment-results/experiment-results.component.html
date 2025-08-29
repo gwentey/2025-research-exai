@@ -1,393 +1,342 @@
-<!-- 🚀 INTERFACE MODERNE STRIPE/LINEAR ACTIVÉE 🚀 -->
-<div style="background: #dc2626; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; border-bottom: 3px solid #fff;">
-  ✨ NOUVELLE INTERFACE MODERNE STRIPE/LINEAR CHARGÉE ✨
-</div>
-<div style="margin-top: 80px;"></div>
+<div class="experiment-results-dashboard" *ngIf="results; else loadingTemplate" [@fadeIn]>
 
-<div class="modern-results-dashboard" *ngIf="results; else loadingTemplate" [@fadeIn]>
-
-  <!-- Navigation Header & Breadcrumb -->
-  <header class="dashboard-header">
-    <div class="breadcrumb-container">
-      <nav class="breadcrumb-nav">
-        <button class="breadcrumb-item" (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-          <span>{{'ML_EXPERIMENTS.BACK_TO_LIST' | translate}}</span>
+  <!-- Clean Navigation Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <button class="back-button" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Retour au Wizard</span>
+      </button>
+      
+      <div class="header-title">
+        <h1>Résultats d'Expérimentation</h1>
+        <p>Analyse détaillée de votre modèle d'apprentissage automatique</p>
+      </div>
+      
+      <div class="header-actions">
+        <button mat-stroked-button (click)="runNewExperiment()">
+          <mat-icon>refresh</mat-icon>
+          <span>Nouvelle Expérience</span>
         </button>
-        <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
-        <span class="breadcrumb-current">{{'EXPERIMENT_RESULTS.TITLE' | translate}}</span>
-      </nav>
-    </div>
-
-    <div class="header-actions">
-      <button mat-stroked-button (click)="runNewExperiment()" class="action-button">
-        <mat-icon>add_circle_outline</mat-icon>
-        <span>{{'EXPERIMENT_RESULTS.NEW_EXPERIMENT' | translate}}</span>
-      </button>
-      <button mat-raised-button color="primary" (click)="downloadModel()" [disabled]="!results.model_uri" class="action-button primary">
-        <mat-icon>download</mat-icon>
-        <span>{{'EXPERIMENT_RESULTS.DOWNLOAD_MODEL' | translate}}</span>
-      </button>
+        <button mat-raised-button color="primary" (click)="downloadModel()" [disabled]="!results.model_uri">
+          <mat-icon>download</mat-icon>
+          <span>Télécharger le Modèle</span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero-section" [@slideUp]>
-    <div class="hero-background">
-      <div class="gradient-mesh"></div>
-    </div>
-    
-    <div class="hero-content">
-      <div class="experiment-info">
-        <div class="algorithm-badge" [ngClass]="getAlgorithmClass()">
+  <!-- Experiment Summary Card -->
+  <section class="experiment-summary" [@slideUp]>
+    <mat-card class="summary-card">
+      <div class="summary-content">
+        <div class="experiment-badge">
           <mat-icon>{{getAlgorithmIcon()}}</mat-icon>
-          <span>{{getAlgorithmDisplay()}}</span>
-        </div>
-        
-        <h1 class="hero-title">
-          {{'EXPERIMENT_RESULTS.EXPERIMENT_ANALYSIS' | translate}}
-        </h1>
-        
-        <p class="hero-subtitle">
-          {{'EXPERIMENT_RESULTS.DETAILED_ANALYSIS_DESC' | translate}}
-        </p>
-        
-        <div class="experiment-meta">
-          <div class="meta-item">
-            <mat-icon>fingerprint</mat-icon>
-            <span class="meta-label">{{'EXPERIMENT_RESULTS.EXPERIMENT_ID' | translate}}:</span>
-            <code class="meta-value">{{experimentId.substring(0, 8)}}...</code>
-          </div>
-          <div class="meta-item">
-            <mat-icon>schedule</mat-icon>
-            <span class="meta-label">{{'EXPERIMENT_RESULTS.COMPLETED' | translate}}:</span>
-            <span class="meta-value">{{getRelativeTime()}}</span>
-          </div>
-          <div class="meta-item" [ngClass]="getStatusClass()">
+          <span class="algorithm-name">{{getAlgorithmDisplay()}}</span>
+          <div class="status-indicator" [ngClass]="getStatusClass()">
             <mat-icon>{{getStatusIcon()}}</mat-icon>
-            <span class="meta-label">{{'EXPERIMENT_RESULTS.STATUS' | translate}}:</span>
-            <span class="meta-value status-badge">{{getStatusDisplay()}}</span>
+          </div>
+        </div>
+        
+        <div class="quick-stats">
+          <div class="stat-item">
+            <div class="stat-value">{{getOverallScore()}}%</div>
+            <div class="stat-label">Performance Globale</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{getMetricsArray().length}}</div>
+            <div class="stat-label">Métriques Calculées</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{getRelativeTime()}}</div>
+            <div class="stat-label">Terminé</div>
           </div>
         </div>
       </div>
-
-      <div class="hero-stats">
-        <div class="overall-score">
-          <div class="score-circle" [attr.data-score]="getOverallScore()">
-            <svg viewBox="0 0 100 100">
-              <circle class="score-bg" cx="50" cy="50" r="45"></circle>
-              <circle class="score-fill" cx="50" cy="50" r="45" 
-                      [attr.stroke-dasharray]="getOverallScore() * 2.83 + ', 283'"></circle>
-            </svg>
-            <div class="score-content">
-              <span class="score-value">{{getOverallScore()}}%</span>
-              <span class="score-label">{{'EXPERIMENT_RESULTS.OVERALL_PERFORMANCE' | translate}}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </mat-card>
   </section>
 
-  <!-- Performance Dashboard -->
+  <!-- Performance Dashboard - Cards Modernes -->
   <section class="performance-dashboard" [@slideUp]>
     <div class="section-header">
-      <div class="section-icon">
-        <mat-icon>analytics</mat-icon>
+      <div class="header-content">
+        <div class="header-text">
+          <h2>Métriques de Performance</h2>
+          <p>Analyse des métriques de votre modèle {{getAlgorithmDisplay()}}</p>
+        </div>
+        <button mat-icon-button (click)="toggleMetricsExplanation()" 
+                [class.active]="showMetricsExplanation" 
+                class="help-button"
+                matTooltip="Guide d'interprétation">
+          <mat-icon>help_outline</mat-icon>
+        </button>
       </div>
-      <div class="section-text">
-        <h2 class="section-title">{{'EXPERIMENT_RESULTS.PERFORMANCE_METRICS' | translate}}</h2>
-        <p class="section-description">{{'EXPERIMENT_RESULTS.METRICS_EXPLANATION' | translate}}</p>
-      </div>
-      <button mat-icon-button (click)="toggleMetricsExplanation()" class="help-button">
-        <mat-icon>help_outline</mat-icon>
-      </button>
     </div>
 
-    <!-- Novice Explanation Panel -->
-    <div class="explanation-panel" *ngIf="showMetricsExplanation" [@slideUp]>
-      <div class="explanation-content">
-        <div class="explanation-header">
+    <!-- Guide pour novices -->
+    <mat-card class="novice-guide" *ngIf="showMetricsExplanation" [@slideUp]>
+      <mat-card-header>
+        <mat-card-title>
           <mat-icon>school</mat-icon>
-          <h3>{{'EXPERIMENT_RESULTS.UNDERSTAND_METRICS' | translate}}</h3>
-        </div>
-        <div class="explanation-grid">
-          <div class="explanation-item" *ngFor="let metric of getMetricsExplanations()">
-            <div class="explanation-icon" [ngClass]="metric.colorClass">
+          Guide pour Comprendre les Métriques
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="guide-grid">
+          <div class="guide-item" *ngFor="let metric of getMetricsExplanations()">
+            <div class="guide-icon">
               <mat-icon>{{metric.icon}}</mat-icon>
             </div>
-            <div class="explanation-text">
+            <div class="guide-content">
               <h4>{{metric.name}}</h4>
               <p>{{metric.description}}</p>
-              <div class="interpretation-scale">
-                <div class="scale-item poor">
-                  <span class="scale-value">{{metric.scale.poor}}</span>
-                  <span class="scale-label">{{'COMMON.POOR' | translate}}</span>
-                </div>
-                <div class="scale-item good">
-                  <span class="scale-value">{{metric.scale.good}}</span>
-                  <span class="scale-label">{{'COMMON.GOOD' | translate}}</span>
-                </div>
-                <div class="scale-item excellent">
-                  <span class="scale-value">{{metric.scale.excellent}}</span>
-                  <span class="scale-label">{{'COMMON.EXCELLENT' | translate}}</span>
-                </div>
+              <div class="scale-indicators">
+                <span class="scale-item poor">{{metric.scale.poor}} Faible</span>
+                <span class="scale-item good">{{metric.scale.good}} Bon</span>
+                <span class="scale-item excellent">{{metric.scale.excellent}} Excellent</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
 
-    <!-- Metrics Cards Grid -->
-    <div class="metrics-dashboard-grid" *ngIf="getMetricsArray().length > 0">
-      <div class="metric-card-pro" *ngFor="let metric of getMetricsArray(); trackBy: trackByMetric" 
-           [ngClass]="getMetricPerformanceClass(metric.value)">
-        
+    <!-- Metrics Cards Grid - Style Linear/Stripe -->
+    <div class="metrics-grid">
+      <div class="metric-card" *ngFor="let metric of getMetricsArray()" [@slideUp]>
         <div class="metric-header">
-          <div class="metric-icon-container" [ngClass]="getMetricColor(metric.value)">
+          <div class="metric-icon">
             <mat-icon>{{getMetricIcon(metric.key)}}</mat-icon>
           </div>
-          <div class="metric-info">
-            <h3 class="metric-name">{{getMetricLabel(metric.key)}}</h3>
-            <p class="metric-description">{{getMetricDescription(metric.key)}}</p>
-          </div>
-          <div class="metric-trend" [ngClass]="getTrendClass(metric.value)">
-            <mat-icon>{{getTrendIcon(metric.value)}}</mat-icon>
+          <div class="metric-trend" [ngClass]="getMetricTrendClass(metric.value)">
+            <mat-icon>{{getMetricTrendIcon(metric.value)}}</mat-icon>
           </div>
         </div>
-
-        <div class="metric-body">
-          <div class="metric-value-container">
-            <span class="metric-value-primary">{{formatMetricValue(metric.key, metric.value)}}</span>
-            <span class="metric-unit">%</span>
+        
+        <div class="metric-content">
+          <div class="metric-value" [ngClass]="getMetricColor(metric.value)">
+            {{formatMetricValue(metric.key, metric.value)}}
           </div>
-          
-          <div class="metric-visual">
-            <div class="progress-bar-container">
-              <div class="progress-bar-bg"></div>
-              <div class="progress-bar-fill" 
-                   [style.width.%]="metric.value * 100"
-                   [ngClass]="getMetricColor(metric.value)"></div>
-            </div>
-            <div class="performance-label" [ngClass]="getMetricColor(metric.value)">
-              {{getPerformanceLabel(metric.value)}}
-            </div>
-          </div>
+          <div class="metric-label">{{getMetricLabel(metric.key)}}</div>
+          <div class="metric-description">{{getMetricShortDescription(metric.key)}}</div>
         </div>
-
+        
         <div class="metric-footer">
-          <div class="benchmark-comparison">
-            <span class="benchmark-label">{{'EXPERIMENT_RESULTS.INDUSTRY_BENCHMARK' | translate}}:</span>
-            <span class="benchmark-value" [ngClass]="getBenchmarkClass(metric.key, metric.value)">
-              {{getBenchmarkComparison(metric.key, metric.value)}}
-            </span>
+          <div class="performance-badge" [ngClass]="getMetricColor(metric.value)">
+            {{getPerformanceLabel(metric.value)}}
+          </div>
+          <div class="metric-benchmark">
+            vs benchmark: {{getBenchmarkComparison(metric.key, metric.value)}}
           </div>
         </div>
       </div>
     </div>
 
-    <!-- No Metrics Message -->
-    <div class="empty-metrics" *ngIf="getMetricsArray().length === 0">
-      <div class="empty-content">
-        <div class="empty-icon">
-          <mat-icon>assessment</mat-icon>
-        </div>
-        <h3>{{'EXPERIMENT_RESULTS.NO_METRICS_TITLE' | translate}}</h3>
-        <p>{{'EXPERIMENT_RESULTS.NO_METRICS_DESC' | translate}}</p>
-      </div>
+    <!-- Performance Summary Card -->
+    <div class="performance-summary" [@slideUp]>
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="summary-header">
+            <div class="summary-icon" [ngClass]="getOverallPerformanceClass()">
+              <mat-icon>{{getOverallPerformanceIcon()}}</mat-icon>
+            </div>
+            <div class="summary-content">
+              <h3>Performance Globale</h3>
+              <div class="overall-score" [ngClass]="getOverallPerformanceClass()">
+                {{getOverallScore()}}%
+              </div>
+              <div class="overall-description">
+                {{getOverallPerformanceDescription()}}
+              </div>
+            </div>
+          </div>
+          
+          <div class="summary-insights">
+            <div class="insight-item" *ngFor="let insight of getKeyInsights()">
+              <mat-icon class="insight-icon" [ngClass]="insight.type">{{insight.icon}}</mat-icon>
+              <span class="insight-text">{{insight.message}}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions" [@slideUp]>
+      <button mat-flat-button color="primary" class="action-button primary">
+        <mat-icon>download</mat-icon>
+        Télécharger le Modèle
+      </button>
+      <button mat-stroked-button class="action-button secondary">
+        <mat-icon>refresh</mat-icon>
+        Nouvelle Expérience  
+      </button>
+      <button mat-stroked-button class="action-button secondary" *ngIf="showMetricsExplanation">
+        <mat-icon>analytics</mat-icon>
+        Analyse Détaillée
+      </button>
     </div>
   </section>
 
-  <!-- Data Science Insights Panel -->
-  <section class="insights-panel" [@slideUp]>
-    <div class="insights-header">
-      <div class="insights-icon">
-        <mat-icon>psychology</mat-icon>
-      </div>
-      <div class="insights-text">
-        <h2 class="insights-title">{{'EXPERIMENT_RESULTS.DATA_INSIGHTS' | translate}}</h2>
-        <p class="insights-subtitle">{{'EXPERIMENT_RESULTS.PANDAS_LIKE_ANALYSIS' | translate}}</p>
-      </div>
-      <button mat-icon-button (click)="toggleInsightsPanel()" class="expand-button">
+
+  <!-- AI Insights avec style Jupyter -->
+  <section class="insights-section" [@slideUp]>
+    <div class="section-header">
+      <h2>Analyse Intelligente</h2>
+      <p>Insights générés automatiquement sur la performance de votre modèle</p>
+      <button mat-icon-button (click)="toggleInsightsPanel()" 
+              [class.active]="showInsightsPanel">
         <mat-icon>{{showInsightsPanel ? 'expand_less' : 'expand_more'}}</mat-icon>
       </button>
     </div>
 
-    <div class="insights-content" *ngIf="showInsightsPanel">
-      <!-- Jupyter-style Code Blocks -->
-      <div class="code-analysis">
-        <div class="code-block">
-          <div class="code-header">
-            <span class="code-prompt">In [1]:</span>
-            <span class="code-command">model_results.describe()</span>
-            <button mat-icon-button class="copy-code-btn">
-              <mat-icon>content_copy</mat-icon>
-            </button>
+    <div class="insights-container" *ngIf="showInsightsPanel">
+      <!-- Jupyter Notebook Style Analysis -->
+      <mat-card class="jupyter-notebook">
+        <mat-card-header>
+          <div class="notebook-header">
+            <div class="notebook-controls">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="notebook-title">model_analysis.ipynb</span>
           </div>
-          <div class="code-output">
-            <div class="output-table">
-              <div class="table-header">
-                <span class="col-metric">{{'EXPERIMENT_RESULTS.METRIC' | translate}}</span>
-                <span class="col-value">{{'EXPERIMENT_RESULTS.VALUE' | translate}}</span>
-                <span class="col-interpretation">{{'EXPERIMENT_RESULTS.INTERPRETATION' | translate}}</span>
-              </div>
-              <div class="table-row" *ngFor="let metric of getMetricsArray()">
-                <span class="col-metric">{{getMetricLabel(metric.key)}}</span>
-                <span class="col-value" [ngClass]="getMetricColor(metric.value)">
-                  {{formatMetricValue(metric.key, metric.value)}}%
-                </span>
-                <span class="col-interpretation">{{getAdvancedInterpretation(metric.key, metric.value)}}</span>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <!-- Cellule 1: Analyse générale -->
+          <div class="jupyter-cell">
+            <div class="cell-input">
+              <span class="cell-prompt">In [1]:</span>
+              <div class="cell-code">
+                <span class="comment"># Analyse des métriques de performance</span><br>
+                <span class="variable">model_performance</span> = <span class="function">evaluate_model</span>()<br>
+                <span class="variable">model_performance</span>.<span class="method">describe</span>()
               </div>
             </div>
-          </div>
-        </div>
-
-        <div class="code-block">
-          <div class="code-header">
-            <span class="code-prompt">In [2]:</span>
-            <span class="code-command">analyze_model_strengths()</span>
-          </div>
-          <div class="code-output">
-            <div class="insights-summary">
-              <div class="insight-item strength" *ngFor="let strength of getModelStrengths()">
-                <mat-icon>trending_up</mat-icon>
-                <span>{{strength}}</span>
-              </div>
-              <div class="insight-item weakness" *ngFor="let weakness of getModelWeaknesses()">
-                <mat-icon>trending_down</mat-icon>
-                <span>{{weakness}}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="code-block">
-          <div class="code-header">
-            <span class="code-prompt">In [3]:</span>
-            <span class="code-command">get_recommendations()</span>
-          </div>
-          <div class="code-output">
-            <div class="recommendations">
-              <div class="recommendation-item" *ngFor="let rec of getRecommendations()">
-                <div class="rec-icon" [ngClass]="rec.type">
-                  <mat-icon>{{rec.icon}}</mat-icon>
+            <div class="cell-output">
+              <div class="performance-table">
+                <div class="table-row header">
+                  <span>Métrique</span>
+                  <span>Valeur</span>
+                  <span>Évaluation</span>
+                  <span>Recommandation</span>
                 </div>
-                <div class="rec-content">
-                  <h4 class="rec-title">{{rec.title}}</h4>
-                  <p class="rec-description">{{rec.description}}</p>
+                <div class="table-row" *ngFor="let metric of getMetricsArray()">
+                  <span class="metric-name">{{getMetricLabel(metric.key)}}</span>
+                  <span class="metric-value" [ngClass]="getMetricColor(metric.value)">
+                    {{formatMetricValue(metric.key, metric.value)}}
+                  </span>
+                  <span class="metric-eval" [ngClass]="getMetricColor(metric.value)">
+                    {{getPerformanceLabel(metric.value)}}
+                  </span>
+                  <span class="metric-advice">{{getAdvancedInterpretation(metric.key, metric.value)}}</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+
+          <!-- Cellule 2: Points forts -->
+          <div class="jupyter-cell">
+            <div class="cell-input">
+              <span class="cell-prompt">In [2]:</span>
+              <div class="cell-code">
+                <span class="comment"># Identifier les points forts du modèle</span><br>
+                <span class="variable">strengths</span> = <span class="function">analyze_strengths</span>(<span class="variable">model_performance</span>)<br>
+                <span class="keyword">for</span> <span class="variable">strength</span> <span class="keyword">in</span> <span class="variable">strengths</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">print</span>(<span class="string">"✅ Points forts détectés"</span>)
+              </div>
+            </div>
+            <div class="cell-output">
+              <div class="strength-list">
+                <div class="insight-item positive" *ngFor="let strength of getModelStrengths()">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>{{strength}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cellule 3: Améliorations -->
+          <div class="jupyter-cell">
+            <div class="cell-input">
+              <span class="cell-prompt">In [3]:</span>
+              <div class="cell-code">
+                <span class="comment"># Suggestions d'amélioration</span><br>
+                <span class="variable">recommendations</span> = <span class="function">get_improvement_suggestions</span>()<br>
+                <span class="variable">recommendations</span>.<span class="method">display</span>()
+              </div>
+            </div>
+            <div class="cell-output">
+              <div class="recommendations-grid">
+                <div class="recommendation-card" *ngFor="let rec of getRecommendations()">
+                  <div class="rec-header">
+                    <mat-icon class="rec-icon" [ngClass]="rec.type">{{rec.icon}}</mat-icon>
+                    <h4>{{rec.title}}</h4>
+                  </div>
+                  <p>{{rec.description}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   </section>
 
-  <!-- Interactive Visualizations -->
+  <!-- Visualisations Interactives -->
   <section class="visualizations-section" [@slideUp]>
     <div class="section-header">
-      <div class="section-icon">
-        <mat-icon>bar_chart</mat-icon>
-      </div>
-      <div class="section-text">
-        <h2 class="section-title">{{'EXPERIMENT_RESULTS.INTERACTIVE_VISUALIZATIONS' | translate}}</h2>
-        <p class="section-description">{{'EXPERIMENT_RESULTS.EXPLORE_MODEL_BEHAVIOR' | translate}}</p>
-      </div>
+      <h2>Visualisations du Modèle</h2>
+      <p>Explorez le comportement de votre modèle avec des graphiques interactifs</p>
     </div>
 
-    <div class="visualizations-masonry">
-      
-      <!-- Decision Tree Visualization -->
-      <div class="visualization-card featured" *ngIf="getAlgorithm() === 'decision_tree'">
-        <div class="viz-header">
-          <div class="viz-info">
-            <mat-icon class="viz-icon">account_tree</mat-icon>
-            <div class="viz-text">
-              <h3>{{'EXPERIMENT_RESULTS.DECISION_TREE_TITLE' | translate}}</h3>
-              <p>{{'EXPERIMENT_RESULTS.DECISION_TREE_DESC' | translate}}</p>
-            </div>
-          </div>
-          <div class="viz-controls">
-            <button mat-icon-button [matTooltip]="'EXPERIMENT_RESULTS.FULLSCREEN' | translate">
+    <div class="visualizations-grid">
+      <!-- Arbre de Décision/Forêt Aléatoire -->
+      <mat-card class="visualization-card primary" *ngIf="getAlgorithm() === 'decision_tree' || getAlgorithm() === 'random_forest'">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>{{getAlgorithmIcon()}}</mat-icon>
+            Structure du {{getAlgorithmStructureLabel()}}
+          </mat-card-title>
+          <mat-card-subtitle>Visualisation de la logique de prédiction</mat-card-subtitle>
+          <div class="card-actions">
+            <button mat-icon-button matTooltip="Plein écran">
               <mat-icon>fullscreen</mat-icon>
             </button>
-            <button mat-icon-button [matTooltip]="'EXPERIMENT_RESULTS.DOWNLOAD_CHART' | translate">
+            <button mat-icon-button matTooltip="Télécharger">
               <mat-icon>download</mat-icon>
             </button>
           </div>
-        </div>
-        <div class="viz-content">
+        </mat-card-header>
+        <mat-card-content>
           <app-echarts-container
             [visualizationType]="VisualizationType.DECISION_TREE"
-            [data]="getTreeStructureData('decision_tree')"
+            [data]="getTreeStructureData(getAlgorithm())"
             [algorithm]="getAlgorithm()"
             [taskType]="getTaskType()"
             [experimentId]="experimentId">
           </app-echarts-container>
-        </div>
-        <div class="viz-insights">
-          <div class="insight-item">
-            <mat-icon>insights</mat-icon>
-            <span>{{'EXPERIMENT_RESULTS.TREE_INSIGHTS' | translate}}</span>
+        </mat-card-content>
+        <mat-card-footer>
+          <div class="chart-insight">
+            <mat-icon>lightbulb</mat-icon>
+            <span>Ce graphique montre comment votre modèle prend ses décisions étape par étape</span>
           </div>
-        </div>
-      </div>
+        </mat-card-footer>
+      </mat-card>
 
-      <!-- Random Forest Visualization -->
-      <div class="visualization-card featured" *ngIf="getAlgorithm() === 'random_forest'">
-        <div class="viz-header">
-          <div class="viz-info">
-            <mat-icon class="viz-icon">park</mat-icon>
-            <div class="viz-text">
-              <h3>{{'EXPERIMENT_RESULTS.RANDOM_FOREST_TITLE' | translate}}</h3>
-              <p>{{'EXPERIMENT_RESULTS.RANDOM_FOREST_DESC' | translate}}</p>
-            </div>
-          </div>
-          <div class="viz-controls">
-            <button mat-icon-button [matTooltip]="'EXPERIMENT_RESULTS.FULLSCREEN' | translate">
-              <mat-icon>fullscreen</mat-icon>
-            </button>
-            <button mat-icon-button [matTooltip]="'EXPERIMENT_RESULTS.DOWNLOAD_CHART' | translate">
-              <mat-icon>download</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div class="viz-content">
-          <app-echarts-container
-            [visualizationType]="VisualizationType.DECISION_TREE"
-            [data]="getTreeStructureData('random_forest')"
-            [algorithm]="getAlgorithm()"
-            [taskType]="getTaskType()"
-            [experimentId]="experimentId">
-          </app-echarts-container>
-        </div>
-        <div class="viz-insights">
-          <div class="insight-item">
-            <mat-icon>insights</mat-icon>
-            <span>{{'EXPERIMENT_RESULTS.FOREST_INSIGHTS' | translate}}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature Importance -->
-      <div class="visualization-card standard" *ngIf="hasFeatureImportance()">
-        <div class="viz-header">
-          <div class="viz-info">
-            <mat-icon class="viz-icon">tune</mat-icon>
-            <div class="viz-text">
-              <h3>{{'EXPERIMENT_RESULTS.FEATURE_IMPORTANCE_TITLE' | translate}}</h3>
-              <p>{{'EXPERIMENT_RESULTS.FEATURE_IMPORTANCE_DESC' | translate}}</p>
-            </div>
-          </div>
-          <div class="viz-controls">
-            <button mat-icon-button [matTooltip]="'EXPERIMENT_RESULTS.DOWNLOAD_CHART' | translate">
-              <mat-icon>download</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div class="viz-content">
+      <!-- Importance des Variables -->
+      <mat-card class="visualization-card" *ngIf="hasFeatureImportance()">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>tune</mat-icon>
+            Importance des Variables
+          </mat-card-title>
+          <mat-card-subtitle>Quelles variables influencent le plus les prédictions</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
           <app-echarts-container
             [visualizationType]="VisualizationType.FEATURE_IMPORTANCE"
             [data]="results.feature_importance"
@@ -395,32 +344,25 @@
             [taskType]="getTaskType()"
             [experimentId]="experimentId">
           </app-echarts-container>
-        </div>
-        <div class="viz-insights">
-          <div class="insight-item">
-            <mat-icon>lightbulb</mat-icon>
-            <span>{{'EXPERIMENT_RESULTS.FEATURE_INSIGHTS' | translate}}</span>
+        </mat-card-content>
+        <mat-card-footer>
+          <div class="chart-insight">
+            <mat-icon>psychology</mat-icon>
+            <span>Les variables en haut ont plus d'impact sur les prédictions</span>
           </div>
-        </div>
-      </div>
+        </mat-card-footer>
+      </mat-card>
 
-      <!-- Predictions Distribution -->
-      <div class="visualization-card standard">
-        <div class="viz-header">
-          <div class="viz-info">
-            <mat-icon class="viz-icon">show_chart</mat-icon>
-            <div class="viz-text">
-              <h3>{{'EXPERIMENT_RESULTS.PREDICTIONS_DISTRIBUTION_TITLE' | translate}}</h3>
-              <p>{{'EXPERIMENT_RESULTS.PREDICTIONS_DISTRIBUTION_DESC' | translate}}</p>
-            </div>
-          </div>
-          <div class="viz-controls">
-            <button mat-icon-button [matTooltip]="'EXPERIMENT_RESULTS.DOWNLOAD_CHART' | translate">
-              <mat-icon>download</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div class="viz-content">
+      <!-- Distribution des Prédictions -->
+      <mat-card class="visualization-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>bar_chart</mat-icon>
+            Distribution des Prédictions
+          </mat-card-title>
+          <mat-card-subtitle>Comment se répartissent les résultats de votre modèle</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
           <app-echarts-container
             [visualizationType]="VisualizationType.PREDICTIONS_DISTRIBUTION"
             [data]="getPredictionsDistributionData()"
@@ -428,48 +370,19 @@
             [taskType]="getTaskType()"
             [experimentId]="experimentId">
           </app-echarts-container>
-        </div>
-      </div>
+        </mat-card-content>
+      </mat-card>
 
-      <!-- Performance Metrics Chart -->
-      <div class="visualization-card compact" *ngIf="getMetricsArray().length > 0">
-        <div class="viz-header">
-          <div class="viz-info">
-            <mat-icon class="viz-icon">assessment</mat-icon>
-            <div class="viz-text">
-              <h3>{{'EXPERIMENT_RESULTS.METRICS_CHART_TITLE' | translate}}</h3>
-              <p>{{'EXPERIMENT_RESULTS.METRICS_CHART_DESC' | translate}}</p>
-            </div>
-          </div>
-        </div>
-        <div class="viz-content">
-          <app-echarts-container
-            [visualizationType]="VisualizationType.METRICS"
-            [data]="results.metrics"
-            [algorithm]="getAlgorithm()"
-            [taskType]="getTaskType()"
-            [experimentId]="experimentId">
-          </app-echarts-container>
-        </div>
-      </div>
-
-      <!-- Regression Plot (if applicable) -->
-      <div class="visualization-card standard" *ngIf="getTaskType() === 'regression' || getAlgorithm() === 'linear_regression'">
-        <div class="viz-header">
-          <div class="viz-info">
-            <mat-icon class="viz-icon">linear_scale</mat-icon>
-            <div class="viz-text">
-              <h3>{{'EXPERIMENT_RESULTS.REGRESSION_PLOT_TITLE' | translate}}</h3>
-              <p>{{'EXPERIMENT_RESULTS.REGRESSION_PLOT_DESC' | translate}}</p>
-            </div>
-          </div>
-          <div class="viz-controls">
-            <button mat-icon-button [matTooltip]="'EXPERIMENT_RESULTS.DOWNLOAD_CHART' | translate">
-              <mat-icon>download</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div class="viz-content">
+      <!-- Graphique de Régression -->
+      <mat-card class="visualization-card" *ngIf="getTaskType() === 'regression'">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>linear_scale</mat-icon>
+            Prédictions vs Réalité
+          </mat-card-title>
+          <mat-card-subtitle>Comparaison entre prédictions et valeurs réelles</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
           <app-echarts-container
             [visualizationType]="VisualizationType.REGRESSION_PLOT"
             [data]="getRegressionPlotData()"
@@ -477,43 +390,48 @@
             [taskType]="getTaskType()"
             [experimentId]="experimentId">
           </app-echarts-container>
-        </div>
-      </div>
+        </mat-card-content>
+        <mat-card-footer>
+          <div class="chart-insight">
+            <mat-icon>trending_up</mat-icon>
+            <span>Plus les points sont proches de la ligne, meilleures sont les prédictions</span>
+          </div>
+        </mat-card-footer>
+      </mat-card>
     </div>
   </section>
 
-  <!-- Export and Share Section -->
+  <!-- Actions d'Export -->
   <section class="export-section" [@slideUp]>
-    <div class="export-container">
-      <div class="export-header">
-        <div class="export-icon">
+    <mat-card class="export-card">
+      <mat-card-header>
+        <mat-card-title>
           <mat-icon>share</mat-icon>
+          Partager et Exporter
+        </mat-card-title>
+        <mat-card-subtitle>Sauvegardez ou partagez vos résultats</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="export-buttons">
+          <button mat-stroked-button class="export-btn">
+            <mat-icon>picture_as_pdf</mat-icon>
+            <span>Rapport PDF</span>
+          </button>
+          <button mat-stroked-button class="export-btn">
+            <mat-icon>table_chart</mat-icon>
+            <span>Données CSV</span>
+          </button>
+          <button mat-stroked-button class="export-btn">
+            <mat-icon>code</mat-icon>
+            <span>Notebook Python</span>
+          </button>
+          <button mat-raised-button color="primary" class="export-btn primary">
+            <mat-icon>link</mat-icon>
+            <span>Partager</span>
+          </button>
         </div>
-        <div class="export-text">
-          <h2>{{'EXPERIMENT_RESULTS.EXPORT_SHARE_TITLE' | translate}}</h2>
-          <p>{{'EXPERIMENT_RESULTS.EXPORT_SHARE_DESC' | translate}}</p>
-        </div>
-      </div>
-
-      <div class="export-actions">
-        <button mat-stroked-button class="export-button">
-          <mat-icon>picture_as_pdf</mat-icon>
-          <span>{{'EXPERIMENT_RESULTS.EXPORT_PDF' | translate}}</span>
-        </button>
-        <button mat-stroked-button class="export-button">
-          <mat-icon>table_chart</mat-icon>
-          <span>{{'EXPERIMENT_RESULTS.EXPORT_CSV' | translate}}</span>
-        </button>
-        <button mat-stroked-button class="export-button">
-          <mat-icon>code</mat-icon>
-          <span>{{'EXPERIMENT_RESULTS.EXPORT_NOTEBOOK' | translate}}</span>
-        </button>
-        <button mat-raised-button color="accent" class="export-button featured">
-          <mat-icon>link</mat-icon>
-          <span>{{'EXPERIMENT_RESULTS.SHARE_LINK' | translate}}</span>
-        </button>
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
   </section>
 
 </div>
